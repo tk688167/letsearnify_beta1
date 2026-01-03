@@ -13,11 +13,11 @@ export default async function AdminDepositsPage() {
     // Workaround for Stale Client: Fetch deposits using Raw Query to ensure 'txId' is included.
     const rawDeposits: any[] = await prisma.$queryRaw`
         SELECT 
-            t.id, t.amount, t."txId", t.status, t.method, t."createdAt", t."userId",
+            t.id, t.amount, t."txId", t.status, t.method, t."description", t."createdAt", t."userId",
             u.name as "userName", u.email as "userEmail"
         FROM "Transaction" t
         JOIN "User" u ON t."userId" = u.id
-        WHERE t.type = 'DEPOSIT' AND t.method IN ('TRC20', 'BEP20')
+        WHERE t.type = 'DEPOSIT' AND (t.method LIKE 'TRC20%' OR t.method LIKE 'BEP20%')
         ORDER BY t."createdAt" DESC
     `;
 
@@ -28,6 +28,7 @@ export default async function AdminDepositsPage() {
         txId: d.txId,
         status: d.status,
         method: d.method,
+        description: d.description,
         createdAt: new Date(d.createdAt),
         user: {
             name: d.userName,
@@ -83,6 +84,11 @@ export default async function AdminDepositsPage() {
                                             </td>
                                             <td className="px-6 py-4 font-mono text-xs text-gray-500 max-w-[150px] truncate" title={deposit.txId || ''}>
                                                 {deposit.txId}
+                                                {deposit.description?.includes("[VERIFIED") && (
+                                                    <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">
+                                                        VERIFIED
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 text-gray-500 text-xs">
                                                 {new Date(deposit.createdAt).toLocaleString()}

@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { headers } from "next/headers"
+import { verifyTronTransaction, base58ToHex } from "./tron"
 
 interface TrackingData {
   path: string
@@ -199,85 +200,97 @@ export async function deposit(amount: number, method: string, details?: { networ
      throw new Error("Stripe payments are currently disabled.")
   }
 
-  // Crypto Deposit Logic
-  if (method === "CRYPTO") {
-     if (!details?.txHash) throw new Error("Transaction Hash is required.")
-     if (!details?.network) throw new Error("Network is required.")
-     
-     // 1. Create Transaction Record
-     await prisma.transaction.create({
-      data: {
-        userId: session.user.id,
-        amount,
-        type: "DEPOSIT",
-        status: "COMPLETED", // Auto-complete for Beta
-        method: `${details.network} - ${details.txHash}`
-      }
-    })
-
-    // 2. Update User Balance & Total Deposit
-    // Fetch user first to check previous totalDeposit for Active Member trigger
-    const userBefore = await prisma.user.findUnique({ where: { id: session.user.id } });
-    if (!userBefore) throw new Error("User not found");
-
-    const wasActive = userBefore.totalDeposit >= 1.0;
-
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: { 
-          balance: { increment: amount },
-          totalDeposit: { increment: amount },
-          points: { increment: amount } // 1 Point = 1 Dollar from deposits
-      }
-    })
-
-    const isActiveNow = updatedUser.totalDeposit >= 1.0;
-
-    // 3. Active Member Trigger (If just became active)
-    if (!wasActive && isActiveNow && userBefore.referredByCode) {
-        // Find Referrer
-        const referrer = await prisma.user.findUnique({
-            where: { referralCode: userBefore.referredByCode }
-        });
+     // Crypto Deposit Logic
+     if (method === "CRYPTO") {
+        if (!details?.txHash) throw new Error("Transaction Hash is required.")
+        if (!details?.network) throw new Error("Network is required.")
         
-        if (referrer) {
-            // Increment referrer's activeMembers
-            await prisma.user.update({
-                where: { id: referrer.id },
-                data: { activeMembers: { increment: 1 } }
+        // --- Verification Logic (TRC20 Only) ---
+        if (details.network === "TRC20") {
+            // Check for reuse first
+            const existingTx = await prisma.transaction.findFirst({
+                where: { txId: details.txHash }
             });
+            if (existingTx) throw new Error("This Transaction Hash has already been used.");
+
+            const verification = await verifyTronTransaction(details.txHash);
             
-            // Check if Referrer is eligible for Tier Upgrade
-            const { checkAndUpgradeTier } = await import("./mlm");
-            await checkAndUpgradeTier(referrer.id);
+            if (!verification.success) {
+                // If verification failed but network is valid, it might be a user error or pending.
+                // We will throw error to stop the deposit.
+                throw new Error(`Verification Failed: ${verification.error}. Please check TXID.`);
+            }
+
+            // Verify Amount
+            // Tolerance of 0.5 USDT to account for potential precision issues or small fees deducted?
+            // Usually exact matches for USDT.
+            if (Math.abs(verification.amount! - amount) > 0.5) {
+                throw new Error(`Amount Mismatch: Blockchain says ${verification.amount}, you entered ${amount}.`);
+            }
+
+            // Verify Destination Address
+            const platformWallet = await prisma.platformWallet.findUnique({
+                where: { network: "TRC20" }
+            });
+
+            if (!platformWallet) {
+                throw new Error("System Error: Platform TRC20 Wallet not configured. Please contact support.");
+            }
+            
+            // Limit to USDT Contract Only
+            // USDT Mainnet Contract: TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t
+            const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+            const usdtHex = base58ToHex(USDT_CONTRACT);
+            
+            // verification.token is the contract address in Hex from the transaction
+            if (verification.token && usdtHex) {
+                 if (verification.token.toLowerCase() !== usdtHex.toLowerCase()) {
+                     throw new Error(`Invalid Token: We only accept USDT (${USDT_CONTRACT}). You sent a different token.`);
+                 }
+            } else if (!verification.token && verification.amount) {
+                 // If no token is present, it might be TRX transfer? 
+                 // My verification logic sets token="TRX" for TransferContract.
+                 // If we strictly want USDT, we reject TRX.
+                 throw new Error("Invalid Token: We only accept USDT Key transactions. You sent TRX or unknown token.");
+            }
+
+            const expectedHex = base58ToHex(platformWallet.address); 
+            // verification.toAddress is Hex provided by API.
+            if (expectedHex && verification.toAddress) {
+                if (verification.toAddress.toLowerCase() !== expectedHex.toLowerCase()) {
+                    throw new Error("Invalid Receiver Address: funds were not sent to our wallet.");
+                }
+            }
+        } else {
+             // BEP20 or other: Check for duplicate TXID still
+             const existingTx = await prisma.transaction.findFirst({
+                where: { txId: details.txHash }
+            });
+            if (existingTx) throw new Error("This Transaction Hash has already been used.");
         }
-    }
 
-    // 4. Update System Pools (5% CBSP, 5% Royalty)
-    // We update/upsert the pools.
-    const cbspAmount = amount * 0.05;
-    const royaltyAmount = amount * 0.05;
+        // 1. Create Transaction Record
+        await prisma.transaction.create({
+         data: {
+           userId: session.user.id,
+           amount,
+           type: "DEPOSIT",
+           status: "PENDING", // Wait for Admin Approval
+           method: details.network, // Store just "TRC20" or "BEP20"
+           description: `[VERIFIED_TRON_USDT] ${details.txHash}`, // Tag for UI
+           txId: details.txHash // Save TXID
+         }
+       })
 
-    await prisma.pool.upsert({
-        where: { name: "CBSP" },
-        update: { balance: { increment: cbspAmount } },
-        create: { name: "CBSP", balance: cbspAmount }
-    });
-
-    await prisma.pool.upsert({
-        where: { name: "ROYALTY" },
-        update: { balance: { increment: royaltyAmount } },
-        create: { name: "ROYALTY", balance: royaltyAmount }
-    });
-    
-    // Check for user's OWN tier upgrade (points increased)
-    const { checkAndUpgradeTier } = await import("./mlm");
-    await checkAndUpgradeTier(session.user.id);
+    // Remove Automatic Balance Update
+    // Admin Approval will handle balance increment.
 
     revalidatePath("/dashboard")
     revalidatePath("/dashboard/wallet")
-    return { success: true, message: "Deposit Successful. Points & Pools updated." }
+    return { success: true, message: "Deposit Verified! Creating Request for Admin Approval..." }
   }
+
+
   
   return { success: false, message: "Invalid payment method" }
 }

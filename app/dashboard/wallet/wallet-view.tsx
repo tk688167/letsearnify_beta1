@@ -321,7 +321,9 @@ function WalletContent({ user, transactions, platformWallets }: { user: any, tra
                      disabled={isPending}
                      className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-xl font-bold shadow-xl shadow-gray-200 hover:shadow-2xl hover:-translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                    >
-                      {isPending ? "Processing..." : `Confirm ${activeTab}`}
+                      {isPending 
+                        ? (activeTab === "deposit" && depositMethod === "CRYPTO" ? "Verifying Transaction..." : "Processing...") 
+                        : `Confirm ${activeTab}`}
                    </button>
                 )}
              </div>
