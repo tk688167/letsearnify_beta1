@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Pillar Hybrid Platform | Earn, Invest, Grow</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons (using Font Awesome CDN for now, or just placeholders) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Inline Auth Check to prevent flash
+        const isAuth = localStorage.getItem('earnify_auth_status') === 'true';
+        if (isAuth) {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container nav-container">
+            <div class="logo" onclick="handleLogoClick()" style="cursor: pointer;">Let'sEarnify</div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#how-to-join">How to Join</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#deposit">Deposit</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button class="btn btn-secondary" onclick="openAuthBoard('login')">Login</button>
+                <button class="btn btn-primary" onclick="openAuthBoard('signup')">Sign Up</button>
+            </div>
+            <div class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-headline">Turn $1 into Opportunities – All-in-One Earnings, Investments, and Growth Platform
+            </h1>
+            <p class="hero-subtext">Unlock multiple income streams through referrals, micro-tasks, automated
+                investments, and a service marketplace.</p>
+            <div class="hero-cta">
+                <button class="btn btn-primary" onclick="openAuthBoard('signup')">Start Earning Now</button>
+                <a href="#deposit" class="btn btn-secondary">Deposit $1 & Start</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Highlights (4 Pillars) -->
+    <section id="features" class="features reveal reveal-up">
+        <div class="container">
+            <h2 class="section-title">Earn, Learn, Grow – Your Path to Financial Freedom</h2>
+            <div class="features-grid">
+                <!-- Pillar 1: Referral System -->
+                <div class="feature-card reveal reveal-left">
+                    <div class="feature-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3>Referral System</h3>
+                    <p>Build your network and earn passive income from every active member you invite.</p>
+                </div>
+                <!-- Pillar 2: Tasks -->
+                <div class="feature-card reveal reveal-left">
+                    <div class="feature-icon"><i class="fas fa-check-square"></i></div>
+                    <h3>Tasks</h3>
+                    <p>Complete simple daily tasks and get paid instantly. Turn your spare time into cash.</p>
+                </div>
+                <!-- Pillar 3: Mudaraba Investment -->
+                <div class="feature-card reveal reveal-right">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <h3>Mudaraba Investment</h3>
+                    <p>Invest in ethical, Sharia-compliant portfolios and earn automated monthly profits.</p>
+                </div>
+                <!-- Pillar 4: Micro Skill Marketplace -->
+                <div class="feature-card reveal reveal-right">
+                    <div class="feature-icon"><i class="fas fa-briefcase"></i></div>
+                    <h3>Micro Skill Marketplace</h3>
+                    <p>Offer your skills or hire experts. Secure transactions with built-in escrow system.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Deposit Section -->
+    <section id="deposit" class="deposit-section reveal reveal-up">
+        <div class="container">
+            <div class="deposit-landscape-card">
+                <!-- Left: Info & Tagline -->
+                <div class="sector-info">
+                    <span class="premium-badge"><i class="fas fa-crown"></i> Premium Access</span>
+                    <h3>Start Your Journey</h3>
+                    <p class="sector-desc">Unlock exclusive earning opportunities with a minimal entry point. Join
+                        thousands of successful members today.</p>
+                    <ul class="benefit-list">
+                        <li><i class="fas fa-check-circle"></i> Instant Account Activation</li>
+                        <li><i class="fas fa-check-circle"></i> Access to all 4 Pillars</li>
+                        <li><i class="fas fa-check-circle"></i> 24/7 Priority Support</li>
+                    </ul>
+                    <a href="#features" class="learn-more-link">Show more <i class="fas fa-chevron-right"></i></a>
+                </div>
+
+                <!-- Center: Deposit Inputs -->
+                <div class="sector-center">
+                    <div class="deposit-logo-wrapper" style="margin-bottom: 30px;">
+                        <div class="logo">Let'<span class="logo-dollar">$</span><span
+                                style="color: #fff;">Earnify</span></div>
+                    </div>
+                    <div class="deposit-form-wrapper">
+                        <h4>Quick Deposit</h4>
+                        <p class="min-dep-text">Minimum just <strong class="gold-text">$1.00</strong></p>
+
+                        <div class="deposit-input-group">
+                            <input type="number" id="depositAmount" class="deposit-input" placeholder="Amount"
+                                value="1.00" min="1" max="1000" step="1">
+                            <input type="range" id="depositRange" class="deposit-range" min="1" max="1000" value="1"
+                                step="1">
+                        </div>
+
+                        <button class="btn btn-primary btn-deposit-wide" onclick="handleDeposit()">Deposit Now</button>
+                    </div>
+                </div>
+
+                <!-- Right: Visuals -->
+                <div class="sector-visuals">
+                    <div class="glow-effect-back"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- How to Join Section (Reference Based) -->
+    <section id="how-to-join" class="join-section reveal reveal-up">
+        <div class="container">
+            <div class="join-header">
+                <h2 class="section-title left-align">How to Join?</h2>
+                <button class="btn btn-primary join-btn">Join Affiliate <i class="fas fa-arrow-right"></i></button>
+            </div>
+
+            <div class="join-cards">
+                <!-- Step 1 -->
+                <div class="join-card">
+                    <div class="card-bg-num">1</div>
+                    <div class="join-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>Register</h3>
+                    <p>Create your account instantly and get verified to start your journey.</p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="join-card">
+                    <div class="card-bg-num">2</div>
+                    <div class="join-icon"><i class="fas fa-edit"></i></div>
+                    <h3>Create Affiliate Account</h3>
+                    <p>Activate your affiliate dashboard to access exclusive marketing tools.</p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="join-card">
+                    <div class="card-bg-num">3</div>
+                    <div class="join-icon"><i class="fas fa-link"></i></div>
+                    <h3>Start Referring</h3>
+                    <p>Share your unique referral link and earn commissions on every new member.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Support Section (Reference Based) -->
+    <section class="support-section reveal reveal-up">
+        <div class="container support-wrapper">
+            <!-- Left Content -->
+            <div class="support-content">
+                <div class="status-indicator">
+                    <span class="status-dot"></span> Available 24/7
+                </div>
+                <h2>Customer Support</h2>
+                <p class="support-desc">Our dedicated in-house customer support team is available 24/7. We provide
+                    assistance in 20 languages. We ensure fast and reliable support to help you whenever you need it.
+                </p>
+
+                <div class="support-actions">
+                    <button class="btn-support chat-btn">
+                        <i class="fas fa-comment-alt"></i> Chat with us <i class="fas fa-chevron-right arrow-icon"></i>
+                    </button>
+                    <button class="btn-support whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i> Start the chat <i
+                            class="fas fa-external-link-alt arrow-icon"></i>
+                    </button>
+                </div>
+
+                <div class="support-details">
+                    <div class="detail-item">
+                        <span class="detail-label">E-mail</span>
+                        <span class="detail-value">support@letsearnify.com</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">+1 910 920 310</span>
+                    </div>
+                </div>
+
+                <a href="#contact" class="show-contacts">Show All Contacts <i class="fas fa-chevron-right"></i></a>
+            </div>
+
+            <!-- Right Visual -->
+            <div class="support-visual">
+                <div class="visual-card">
+                    <img src="https://images.unsplash.com/photo-1556745757-8d76bdb6984b?q=80&w=1973&auto=format&fit=crop"
+                        alt="Support Team" class="support-img">
+                    <div class="overlay-gradient"></div>
+
+                    <!-- Floating Language Tags -->
+                    <div class="lang-tag tag-1"><i class="fas fa-flag-usa"></i> English</div>
+                    <div class="lang-tag tag-2"><i class="fas fa-globe"></i> Spanish</div>
+                    <div class="lang-tag tag-3"><i class="fas fa-users"></i> French</div>
+
+                    <!-- Stats Overlay -->
+                    <div class="visual-stats">
+                        <div class="stat-block">
+                            <span class="stat-num">60+</span>
+                            <span class="stat-label">Customer<br>Team Members</span>
+                        </div>
+                        <div class="stat-block">
+                            <span class="stat-num">20</span>
+                            <span class="stat-label">Languages<br>Spoken</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Preview Section -->
+    <section id="faq-preview" class="reveal reveal-up"
+        style="padding: 80px 0; background: linear-gradient(to bottom, #000, #0a0a0a); border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 class="section-title">Common Questions</h2>
+                <p style="color: #888; margin-top: 10px;">Quick answers to help you get started.</p>
+            </div>
+
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                <!-- Q1 -->
+                <div
+                    style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 10px; font-size: 1.1rem;">What is
+                        Let'$Earnify?</h4>
+                    <p style="color: #ccc; font-size: 0.95rem; line-height: 1.6;">A complete hybrid platform merging
+                        freelance tasks, referrals, and ethical investments into one ecosystem.</p>
+                </div>
+                <!-- Q2 -->
+                <div
+                    style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 10px; font-size: 1.1rem;">How can I earn?</h4>
+                    <p style="color: #ccc; font-size: 0.95rem; line-height: 1.6;">Earn actively by completing tasks and
+                        referrals, or heavily passively through our "Mudaraba" investment pools.</p>
+                </div>
+                <!-- Q3 -->
+                <div
+                    style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="color: var(--primary-gold); margin-bottom: 10px; font-size: 1.1rem;">Is it secure?</h4>
+                    <p style="color: #ccc; font-size: 0.95rem; line-height: 1.6;">Yes, we use banking-grade security and
+                        transparent portfolio tracking to ensure your data and funds are safe.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="faq.html" class="btn btn-secondary">View All FAQs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact" class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>Let'<span class="logo-dollar">$</span>Earnify</h4>
+                    <p style="color: #888; max-width: 300px;">The ultimate platform for financial freedom. Join
+                        thousands of users growing their wealth today.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li>Home</li>
+                        <li>About Us</li>
+                        <li>Features</li>
+                        <li>Pricing</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li>Privacy Policy</li>
+                        <li>Terms of Service</li>
+                        <li>Risk Disclosure</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li>support@hybridestates.com</li>
+                        <li>+1 (555) 123-4567</li>
+                        <li>Live Chat Support</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Let'$Earnify. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <!-- Sign Up Modal -->
+    <!-- Unified Login & Signup Board Modal -->
+    <div id="authBoardModal" class="modal">
+        <div class="auth-board">
+            <span class="close-modal" onclick="closeAuthBoard()">&times;</span>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+                <div class="tab-indicator"></div>
+            </div>
+
+            <div class="auth-content">
+                <!-- Login Panel -->
+                <div id="panel-login" class="auth-panel active">
+                    <h2>Welcome Back</h2>
+                    <p class="auth-subtitle">Login to continue your journey</p>
+                    <form onsubmit="handleAuthSubmit(event, 'login')">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="text" id="loginUser" placeholder="Email or Username" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPass" placeholder="Password" required>
+                        </div>
+                        <div class="form-options">
+                            <label><input type="checkbox"> Remember me</label>
+                            <a href="#">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                    </form>
+                </div>
+
+                <!-- Signup Panel -->
+                <div id="panel-signup" class="auth-panel">
+                    <h2>Create Account</h2>
+                    <p class="auth-subtitle">Join us and start earning today</p>
+                    <form onsubmit="handleAuthSubmit(event, 'signup')">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="spass" placeholder="Password" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="spassconf" placeholder="Confirm Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content" style="border-color: var(--primary-gold);">
+            <span class="close-modal" onclick="closeModal('notificationModal')">&times;</span>
+            <div style="font-size: 3rem; color: var(--primary-gold); margin-bottom: 10px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 id="notifTitle">Notification</h2>
+            <p id="notifMessage" style="color: #bbb; margin-top: 10px;">Message goes here.</p>
+            <button class="btn btn-primary" onclick="closeModal('notificationModal')"
+                style="margin-top: 20px;">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

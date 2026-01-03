@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Let'sEarnify</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-black: #0a0a0a;
+            --bg-dark: #111111;
+            --bg-card: #1a1a1a;
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+            --accent-gold: #D4AF37;
+            --accent-blue: #1E90FF;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-green: #2ecc71;
+            --danger-red: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-white);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding-top: 80px;
+            /* Header space */
+            overflow-x: hidden;
+        }
+
+        /* Header & Nav Reused Structure */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+
+        /* Logo styles removed to use global style.css */
+
+        /* Page Layout */
+        .settings-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px 60px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .page-title h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            color: var(--text-white);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            gap: 24px;
+        }
+
+        /* Cards */
+        .settings-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .settings-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header i {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            background: rgba(212, 175, 55, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-white);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(30, 144, 255, 0.1);
+        }
+
+        .form-input:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Toggles */
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+        }
+
+        .setting-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .setting-info p {
+            margin: 0;
+            color: var(--text-gray);
+            font-size: 0.85rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent-gold);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-white);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-white);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Wallet Mini View */
+        .wallet-preview {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .balance-info h4 {
+            margin: 0 0 5px 0;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .balance-info .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        /* Links */
+        .link-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-white);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .link-item:last-child {
+            border-bottom: none;
+        }
+
+        .link-item:hover {
+            color: var(--accent-gold);
+            padding-left: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 0 20px;
+            }
+
+            .page-title h1 {
+                font-size: 2rem;
+            }
+
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .wallet-preview {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .wallet-preview .btn-outline {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <a href="dashboard.html" class="logo">Let'sEarnify</a>
+        <div class="user-profile-mini">
+            <!-- Could duplicate the avatar from dashboard if needed, but keeping simple as per req -->
+        </div>
+    </header>
+
+    <div class="settings-container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Settings</h1>
+            </div>
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+
+        <div class="settings-grid">
+
+            <!-- 1. Account Information -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-user-circle"></i>
+                    <h2>Account Information</h2>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" value="Sarah Jenkins" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Username / ID</label>
+                    <input type="text" class="form-input" value="@sarahjenkins" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="email" class="form-input" value="sarah.jenkins@example.com" disabled>
+                        <button class="btn-outline">Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Password & Security -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-shield-alt"></i>
+                    <h2>Password & Security</h2>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Change Password</h3>
+                        <p>Update your password regularly</p>
+                    </div>
+                    <button class="btn-outline">Update</button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Two-Factor Authentication</h3>
+                        <p>Add an extra layer of security</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. Notifications -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-bell"></i>
+                    <h2>Notifications</h2>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Email Notifications</h3>
+                        <p>Receive updates via email</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>SMS Notifications</h3>
+                        <p>Receive updates via SMS</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 4. Privacy & Permissions -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-lock"></i>
+                    <h2>Privacy & Permissions</h2>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Profile Visibility</h3>
+                        <p>Make your profile public to other members</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Show Referral Stats</h3>
+                        <p>Allow upline to see your stats</p>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 5. Billing / Wallet -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-credit-card"></i>
+                    <h2>Billing & Wallet</h2>
+                </div>
+                <div class="wallet-preview">
+                    <div class="balance-info">
+                        <h4>Total Balance</h4>
+                        <div class="amount">$12,450.00</div>
+                    </div>
+                    <button class="btn-primary" onclick="window.location.href='wallet.html'">Manage Wallet</button>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <h3>Default Payment Method</h3>
+                        <p>USDT (TRC20)</p>
+                    </div>
+                    <button class="btn-outline">Change</button>
+                </div>
+            </div>
+
+            <!-- 6. About & Help -->
+            <div class="settings-card">
+                <div class="card-header">
+                    <i class="fas fa-circle-question"></i>
+                    <h2>About & Help</h2>
+                </div>
+                <div class="link-list">
+                    <a href="support.html" class="link-item">
+                        <span>Customer Support / FAQ</span>
+                        <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <a href="#" class="link-item">
+                        <span>Terms & Conditions</span>
+                        <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <a href="#" class="link-item">
+                        <span>Privacy Policy</span>
+                        <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <a href="about.html" class="link-item">
+                        <span>About Let'sEarnify</span>
+                        <i class="fas fa-chevron-right" style="font-size: 0.8rem;"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Authentication Check
+        if (localStorage.getItem('earnify_auth_status') !== 'true') {
+            window.location.href = 'index.html';
+        }
+
+        // Simple Toggle Animation Logic (Optional visual feedback)
+        const toggles = document.querySelectorAll('.toggle-switch input');
+        toggles.forEach(toggle => {
+            toggle.addEventListener('change', function () {
+                // Here you would normally call an API to save the setting
+                console.log('Setting changed:', this.checked);
+            });
+        });
+    </script>
+</body>
+
+</html>

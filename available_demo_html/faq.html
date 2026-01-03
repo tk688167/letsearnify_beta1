@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ | HybridEstates</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header (Dedicated FAQ) -->
+    <header class="header"
+        style="background: rgba(10,10,10,0.95); position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 1px solid var(--glass-border);">
+        <div class="container nav-container" style="justify-content: space-between;">
+            <!-- Back Button -->
+            <!-- Back Button Removed from Header -->
+
+            <div class="logo">Let'sEarnify</div>
+
+            <!-- Empty div for balance/spacing if needed, or just nothing -->
+            <div style="width: 100px;"></div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header"
+        style="background: url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1567&q=80') center/cover; padding: 120px 0 60px; position: relative;">
+        <div class="overlay-gradient" style="background: linear-gradient(to bottom, transparent, #000);"></div>
+        <div class="container" style="position: relative; z-index: 2; text-align: center;">
+            <div style="text-align: left; margin-bottom: 20px;">
+                <button class="back-btn" onclick="window.location.href='dashboard.html'"
+                    style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 0.95rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.4); color: #fff; border-radius: 6px; cursor: pointer; transition: all 0.3s; backdrop-filter: blur(5px);">
+                    <i class="fas fa-arrow-left"></i> Back to User Home Page
+                </button>
+            </div>
+            <h1 style="font-size: 3rem; margin-bottom: 20px;">Frequently Asked Questions</h1>
+            <p style="color: #ccc; max-width: 600px; margin: 0 auto;">Find answers to common questions about our
+                platform, services, and investment opportunities.</p>
+        </div>
+    </section>
+
+    <!-- FAQ Content -->
+    <section class="faq-section" style="padding: 80px 0;">
+        <div class="container" style="max-width: 800px;">
+
+            <!-- Category: General -->
+            <div class="faq-category reveal reveal-up">
+                <h3
+                    style="margin-bottom: 20px; color: var(--primary-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    General</h3>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What is Let'$Earnify?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Let'$Earnify is a comprehensive hybrid platform that allows users to earn money through
+                            multiple channels including micro-tasks, freelancing services, diverse investment portfolios
+                            (Real Estate, Tech, SME), and a robust referral system.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Who can join the platform?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our platform is open to anyone worldwide who is 18 years or older. Whether you are looking to
+                            earn active income through tasks or passive income through investments, you are welcome to
+                            join.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category: Earning & Investment -->
+            <div class="faq-category reveal reveal-up" style="margin-top: 40px;">
+                <h3
+                    style="margin-bottom: 20px; color: var(--primary-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    Earning & Investment</h3>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How does the Mudaraba Investment work?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our Mudaraba Investment model is based on ethical profit-sharing. You deposit funds into
+                            specific pools (e.g., Real Estate), and our experts manage these investments. You receive a
+                            share of the profits generated, distributed according to the pre-agreed ratio.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How do I earn from referrals?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>You earn a commission for every user who joins through your unique referral link and becomes
+                            an active member. We also offer multi-tier referral bonuses, meaning you earn when your
+                            referrals invite others.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category: Security & Support -->
+            <div class="faq-category reveal reveal-up" style="margin-top: 40px;">
+                <h3
+                    style="margin-bottom: 20px; color: var(--primary-gold); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    Security & Support</h3>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Is my data safe?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, we prioritize your security. We use banking-grade encryption to protect your personal
+                            information and transaction data. Your security is our top priority.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>How can I contact support?</span>
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our customer support team is available 24/7. You can reach us via the Live Chat widget on the
+                            bottom right, email us at support@letsearnify.com, or reach out via WhatsApp.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button (Moved to Bottom) -->
+            <div style="text-align: center; margin-top: 60px;">
+                <button class="back-btn" onclick="window.location.href='dashboard.html'"
+                    style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 1rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #fff; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                    <i class="fas fa-arrow-left"></i> Back to User Home Page
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer (Reused) -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>Let'<span class="logo-dollar">$</span>Earnify</h4>
+                    <p style="color: #888; max-width: 300px;">The ultimate platform for financial freedom. Join
+                        thousands of users growing their wealth today.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="index.html#features">Features</a></li>
+                        <li><a href="index.html#deposit">Pricing</a></li>
+                        <li><a href="faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul class="footer-links">
+                        <li>Privacy Policy</li>
+                        <li>Terms of Service</li>
+                        <li>Risk Disclosure</li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Contact</h4>
+                    <ul class="footer-links">
+                        <li>support@letsearnify.com</li>
+                        <li>+1 (555) 123-4567</li>
+                        <li>Live Chat Support</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Let'$Earnify. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal (Reused) -->
+    <div id="authBoardModal" class="modal">
+        <div class="auth-board">
+            <span class="close-modal" onclick="closeAuthBoard()">&times;</span>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Sign Up</button>
+                <div class="tab-indicator"></div>
+            </div>
+
+            <div class="auth-content">
+                <!-- Login Panel -->
+                <div id="panel-login" class="auth-panel active">
+                    <h2>Welcome Back</h2>
+                    <p class="auth-subtitle">Login to continue your journey</p>
+                    <form onsubmit="handleAuthSubmit(event, 'login')">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="text" id="loginUser" placeholder="Email or Username" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPass" placeholder="Password" required>
+                        </div>
+                        <div class="form-options">
+                            <label><input type="checkbox"> Remember me</label>
+                            <a href="#">Forgot Password?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+                    </form>
+                </div>
+
+                <!-- Signup Panel -->
+                <div id="panel-signup" class="auth-panel">
+                    <h2>Create Account</h2>
+                    <p class="auth-subtitle">Join us and start earning today</p>
+                    <form onsubmit="handleAuthSubmit(event, 'signup')">
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" placeholder="Full Name" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" placeholder="Email Address" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="spass" placeholder="Password" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="spassconf" placeholder="Confirm Password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container (Dynamic) -->
+
+    <script src="script.js"></script>
+</body>
+
+</html>
