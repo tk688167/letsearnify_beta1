@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { Tracker } from "./components/Tracker";
 import BackButton from "./components/BackButton";
@@ -34,6 +35,7 @@ export default function RootLayout({
         <BackButton />
         {children}
         <Tracker />
+        <SpeedInsights />
       </body>
     </html>
   );
