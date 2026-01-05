@@ -74,7 +74,7 @@ export default async function ReferralsPage() {
   const todayEarnings = todayEarningsAgg._sum.amount || 0
 
   return (
-    <div className="p-6 md:p-10 min-h-screen bg-gray-50/50">
+    <div className="p-4 md:p-10 min-h-screen bg-gray-50/50">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
              <h1 className="text-3xl font-serif font-bold text-gray-900">Partner Program</h1>

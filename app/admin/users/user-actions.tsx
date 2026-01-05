@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { creditMerchantDeposit } from "@/app/actions/admin/merchant"
-import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon } from "@heroicons/react/24/outline"
+import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon, TrashIcon } from "@heroicons/react/24/outline"
 import { updateUserAsAdmin } from "@/lib/actions"
 
 type UserActionsProps = {
@@ -30,7 +30,32 @@ export default function UserActions({ user }: UserActionsProps) {
   const [isDepositOpen, setIsDepositOpen] = useState(false)
   const [depositLoading, setDepositLoading] = useState(false)
   
+  // Delete State
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  
   const router = useRouter()
+
+  const handleDelete = async () => {
+    setDeleteLoading(true)
+    try {
+        const res = await fetch(`/api/admin/users/${user.id}`, {
+            method: 'DELETE',
+        })
+        const data = await res.json()
+        
+        if (!res.ok) throw new Error(data.error || "Failed to delete")
+
+        alert("User deleted successfully")
+        setIsDeleteOpen(false)
+        router.refresh()
+    } catch (error: any) {
+        console.error("Delete failed", error)
+        alert(error.message || "Failed to delete user")
+    } finally {
+        setDeleteLoading(false)
+    }
+  }
 
   const handleUpdate = async (formData: FormData) => {
     setLoading(true)
@@ -86,14 +111,54 @@ export default function UserActions({ user }: UserActionsProps) {
         >
             <BanknotesIcon className="w-5 h-5" />
         </button>
-        <button 
+      <button 
             onClick={() => setIsOpen(true)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
             title="Edit User"
         >
             <PencilSquareIcon className="w-5 h-5" />
         </button>
+        <button 
+            onClick={() => setIsDeleteOpen(true)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" 
+            title="Delete User"
+        >
+            <TrashIcon className="w-5 h-5" />
+        </button>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+             <div className="p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <TrashIcon className="w-8 h-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Delete User?</h3>
+                <p className="text-sm text-gray-500">
+                   Are you sure you want to delete <span className="font-bold text-gray-700">{user.email}</span>? 
+                   <br/>This action is <span className="font-bold text-red-600">PERMANENT</span> and cannot be undone.
+                </p>
+             </div>
+             <div className="bg-gray-50 px-6 py-4 flex gap-3 border-t border-gray-100">
+                <button 
+                   onClick={() => setIsDeleteOpen(false)}
+                   className="flex-1 py-2.5 text-gray-700 font-bold hover:bg-gray-200 rounded-xl transition-colors"
+                >
+                   Cancel
+                </button>
+                <button 
+                   onClick={handleDelete}
+                   disabled={deleteLoading}
+                   className="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl shadow-lg hover:bg-red-700 transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                   {deleteLoading ? "Deleting..." : "Delete User"}
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* EDIT MODAL */}
       {isOpen && (

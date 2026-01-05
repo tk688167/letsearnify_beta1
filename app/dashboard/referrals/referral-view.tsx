@@ -148,30 +148,30 @@ export default function ReferralView({ user, stats, referralTree, commissions }:
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Top Stats Widget (Always Visible) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center"><UserGroupIcon className="w-5 h-5"/></div>
+             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><UserGroupIcon className="w-5 h-5"/></div>
              <div>
                 <div className="text-xs text-gray-400 font-bold uppercase">Team Size</div>
                 <div className="text-lg font-bold text-gray-900">{stats.teamSize}</div>
              </div>
          </div>
          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"><CurrencyDollarIcon className="w-5 h-5"/></div>
+             <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><CurrencyDollarIcon className="w-5 h-5"/></div>
              <div>
                 <div className="text-xs text-gray-400 font-bold uppercase">Total Earned</div>
                 <div className="text-lg font-bold text-gray-900">${stats.totalEarnings.toFixed(2)}</div>
              </div>
          </div>
          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center"><TrophyIcon className="w-5 h-5"/></div>
+             <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0"><TrophyIcon className="w-5 h-5"/></div>
              <div>
                 <div className="text-xs text-gray-400 font-bold uppercase">Current Tier</div>
                 <div className="text-lg font-bold text-gray-900">{currentTier}</div>
              </div>
          </div>
          <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center"><ChartBarIcon className="w-5 h-5"/></div>
+             <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0"><ChartBarIcon className="w-5 h-5"/></div>
              <div>
                 <div className="text-xs text-gray-400 font-bold uppercase">My Points</div>
                 <div className="text-lg font-bold text-gray-900">{user.points.toFixed(0)}</div>
@@ -180,25 +180,27 @@ export default function ReferralView({ user, stats, referralTree, commissions }:
       </div>
 
       {/* Tabs */}
-      <div className="flex p-1 bg-white rounded-xl border border-gray-100 w-fit shadow-sm">
-        {[
-          { id: "overview", label: "Dashboard", icon: ChartBarIcon },
-          { id: "tree", label: "My Team", icon: UserGroupIcon },
-          { id: "rewards", label: "Rewards", icon: CurrencyDollarIcon },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
-              activeTab === tab.id 
-                ? "bg-gray-900 text-white shadow-md" 
-                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
+      <div className="w-full overflow-x-auto pb-2 -mb-2">
+        <div className="flex p-1 bg-white rounded-xl border border-gray-100 w-max md:w-fit shadow-sm min-w-full md:min-w-0">
+          {[
+            { id: "overview", label: "Dashboard", icon: ChartBarIcon },
+            { id: "tree", label: "My Team", icon: UserGroupIcon },
+            { id: "rewards", label: "Rewards", icon: CurrencyDollarIcon },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? "bg-gray-900 text-white shadow-md" 
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              }`}
+            >
+              <tab.icon className="w-4 h-4 shrink-0" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
@@ -210,46 +212,46 @@ export default function ReferralView({ user, stats, referralTree, commissions }:
             className="space-y-6"
           >
             {/* Hero Card */}
-            <div className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-white ${theme.bg} shadow-2xl shadow-current`}>
+            <div className={`relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 text-white ${theme.bg} shadow-2xl shadow-current transition-all`}>
                {/* Decorative Background Elements */}
-               <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-               <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2"></div>
+               <div className="absolute top-0 right-0 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-white/10 rounded-full blur-[60px] md:blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
+               <div className="absolute bottom-0 left-0 w-[150px] md:w-[300px] h-[150px] md:h-[300px] bg-black/10 rounded-full blur-[40px] md:blur-[80px] translate-y-1/2 -translate-x-1/2"></div>
                
-               <div className="relative z-10 flex flex-col md:flex-row gap-10 justify-between items-center">
-                  <div className="flex-1 space-y-6">
+               <div className="relative z-10 flex flex-col lg:flex-row gap-8 lg:gap-10 justify-between items-start lg:items-center">
+                  <div className="flex-1 space-y-6 w-full">
                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-xs font-bold border border-white/20 shadow-lg">
                         <SparklesIcon className="w-4 h-4 text-yellow-300" />
                         Beta Partner Program
                      </div>
                      <div>
-                        <h2 className="text-5xl md:text-7xl font-serif font-bold tracking-tight mb-2 drop-shadow-sm leading-tight flex items-center gap-4">
+                        <h2 className="text-4xl md:text-5xl lg:text-7xl font-serif font-bold tracking-tight mb-2 drop-shadow-sm leading-tight flex flex-wrap items-center gap-3 md:gap-4">
                            {currentTier} 
-                           <span className="text-6xl animate-pulse">{theme.icon}</span>
+                           <span className="text-5xl md:text-6xl animate-pulse">{theme.icon}</span>
                         </h2>
-                        <p className="text-lg text-white/90 font-medium max-w-md leading-relaxed">
+                        <p className="text-base md:text-lg text-white/90 font-medium max-w-md leading-relaxed">
                            You are performing exceptionally well. Continue expanding your network to unlock <span className="font-bold underline decoration-yellow-400 decoration-2 underline-offset-4">Emerald</span> status.
                         </p>
                      </div>
                      
                      {/* Referral Code Box */}
-                     <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-1 flex items-center gap-2 w-fit pr-4 shadow-inner">
-                        <div className="bg-white text-gray-900 px-4 py-3 rounded-xl font-mono text-xl font-bold tracking-wider shadow-sm">
+                     <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-1 flex items-center gap-2 w-full md:w-fit pr-4 shadow-inner">
+                        <div className="bg-white text-gray-900 px-4 py-3 rounded-xl font-mono text-lg md:text-xl font-bold tracking-wider shadow-sm truncate flex-1 md:flex-none text-center">
                            {user.referralCode || "----"}
                         </div>
-                        <div className="flex flex-col items-start px-2">
-                            <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Referral Code</span>
-                            <span className="text-xs font-medium text-white">Share to earn</span>
+                        <div className="flex flex-col items-start px-2 shrink-0">
+                            <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest hidden xs:block">Referral Code</span>
+                            <span className="text-xs font-medium text-white hidden xs:block">Share to earn</span>
                         </div>
-                        <button onClick={copyCode} className="ml-2 p-2 hover:bg-white/20 rounded-lg transition-colors text-white" title="Copy Code">
+                        <button onClick={copyCode} className="ml-auto md:ml-2 p-2 hover:bg-white/20 rounded-lg transition-colors text-white shrink-0" title="Copy Code">
                            <ClipboardDocumentCheckIcon className="w-5 h-5" />
                         </button>
-                        <span id="copy-btn" className="text-xs font-bold text-emerald-300"></span>
+                        <span id="copy-btn" className="text-xs font-bold text-emerald-300 whitespace-nowrap"></span>
                      </div>
                   </div>
 
                   {/* Right Side: Progress Circle or Card */}
                   {nextTierConfig && (
-                     <div className="bg-black/20 backdrop-blur-lg border border-white/10 rounded-3xl p-8 w-full md:w-[400px] shadow-xl">
+                     <div className="bg-black/20 backdrop-blur-lg border border-white/10 rounded-3xl p-6 md:p-8 w-full lg:w-[400px] shadow-xl mt-6 lg:mt-0">
                         <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                            <div>
                               <div className="text-xs text-white/50 uppercase tracking-widest font-bold mb-1">Next Milestone</div>
@@ -349,18 +351,18 @@ export default function ReferralView({ user, stats, referralTree, commissions }:
              animate={{ opacity: 1 }}
              className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden"
            >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gray-50/50">
                  <div>
                     <h3 className="font-serif font-bold text-gray-900 text-lg">My Team Structure</h3>
                     <p className="text-xs text-gray-500">View your downline across 3 levels.</p>
                  </div>
                  
-                 <div className="flex gap-1.5 p-1 bg-white border border-gray-200 rounded-xl">
+                 <div className="flex gap-1.5 p-1 bg-white border border-gray-200 rounded-xl overflow-x-auto max-w-full">
                     {(["all", 1, 2, 3] as const).map(lvl => (
                        <button 
                          key={lvl}
                          onClick={() => setLevelFilter(lvl)}
-                         className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                         className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
                             levelFilter === lvl 
                                ? "bg-gray-900 text-white shadow-sm" 
                                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"

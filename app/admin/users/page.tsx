@@ -101,9 +101,6 @@ export default async function AdminUsersPage() {
                                    activeMembers: user.activeMembers,
                                    tier: user.tier
                                }} />
-                               <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Delete">
-                                  <TrashIcon className="w-5 h-5" />
-                               </button>
                             </div>
                          </td>
                       </tr>

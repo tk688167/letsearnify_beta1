@@ -86,6 +86,7 @@ model User {
   // New Optimized MLM Relations
   referralTree        ReferralTree?
   mlmLogs             MLMLog[]
+  passwordResetToken  PasswordResetToken?
 }
 
 model PaymentMethod {
@@ -157,7 +158,7 @@ model Visit {
   duration         Int?     // Time spent in seconds
   createdAt        DateTime @default(now())
 
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 // Business Logic
@@ -174,7 +175,7 @@ model Transaction {
   destinationAddress String? // For Withdrawals
   
   createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
   @@index([txId])
@@ -190,7 +191,7 @@ model Investment {
   status    String   // ACTIVE, COMPLETED
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
 }
@@ -216,7 +217,7 @@ model TaskCompletion {
   pointsEarned Float @default(0.0)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   task      Task     @relation(fields: [taskId], references: [id])
 }
 
@@ -251,7 +252,7 @@ model Wallet {
   address   String
   createdAt DateTime @default(now())
   
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // Track referral earnings history specifically
@@ -264,8 +265,8 @@ model ReferralCommission {
   percentage     Float    // e.g., 20.0, 10.0
   createdAt      DateTime @default(now())
 
-  earner         User     @relation("CommissionEarner", fields: [earnerId], references: [id])
-  sourceUser     User     @relation("CommissionSource", fields: [sourceUserId], references: [id])
+  earner         User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
+  sourceUser     User     @relation("CommissionSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
 }
 
 // Audit log for Admin Actions
@@ -277,7 +278,7 @@ model AdminLog {
   details      String
   createdAt    DateTime @default(now())
   
-  targetUser   User?    @relation("AdminTarget", fields: [targetUserId], references: [id])
+  targetUser   User?    @relation("AdminTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
 }
 
 // Optimized Tree Lookup for 3-Level Deep
@@ -291,7 +292,7 @@ model ReferralTree {
   managerId    String?  // Level 3
   
   updatedAt    DateTime @updatedAt
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // System System Events Log (different from Admin Log)
@@ -303,7 +304,7 @@ model MLMLog {
   description String
   createdAt   DateTime @default(now())
   
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // System Pools for Logic
@@ -373,4 +374,14 @@ model MerchantContact {
   phone     String   // e.g., "+92317229711"
   
   country   MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
