@@ -13,6 +13,7 @@ import {
   EyeSlashIcon
 } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
+import { formatUserId } from "@/lib/utils"
 
 interface EditFormProps {
   user: User | null
@@ -40,7 +41,7 @@ export default function EditForm({ user }: EditFormProps) {
 
   return (
     <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden">
-      <div className="px-8 py-8 md:px-12 md:py-10">
+      <div className="px-6 py-6 md:px-12 md:py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-serif font-bold text-gray-900">Edit Profile</h1>
           <p className="text-gray-500 mt-2">Update your personal information and security settings.</p>
@@ -84,6 +85,17 @@ export default function EditForm({ user }: EditFormProps) {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">User ID (Permanent)</label>
+               <input 
+                 disabled
+                 readOnly
+                 // @ts-ignore
+                 value={formatUserId(user?.memberId)}
+                 className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl font-mono font-bold text-blue-600 cursor-not-allowed" 
+               />
+               <p className="text-[10px] text-gray-400">This ID identifies you across the platform and cannot be changed.</p>
+            </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">Full Name</label>
               <input 

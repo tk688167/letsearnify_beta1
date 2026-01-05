@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { PencilSquareIcon, XMarkIcon, UserGroupIcon } from "@heroicons/react/24/outline"
+import { creditMerchantDeposit } from "@/app/actions/admin/merchant"
+import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon } from "@heroicons/react/24/outline"
 import { updateUserAsAdmin } from "@/lib/actions"
 
 type UserActionsProps = {
@@ -14,6 +15,7 @@ type UserActionsProps = {
     role: string
     balance: number
     points?: number
+    activeMembers?: number
     tier?: string
   }
 }
@@ -23,16 +25,18 @@ const TIERS = ["BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 export default function UserActions({ user }: UserActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  
+  // Merchant Deposit State
+  const [isDepositOpen, setIsDepositOpen] = useState(false)
+  const [depositLoading, setDepositLoading] = useState(false)
+  
   const router = useRouter()
 
   const handleUpdate = async (formData: FormData) => {
     setLoading(true)
     try {
-      // Append ID since hidden input might be spoofed (though this is client side anyway)
-      // or we can just rely on the form having a hidden input.
       await updateUserAsAdmin(formData)
       setIsOpen(false)
-      // Optional: Show success toast
     } catch (error) {
       console.error("Update failed", error)
       alert("Failed to update user")
@@ -41,23 +45,57 @@ export default function UserActions({ user }: UserActionsProps) {
     }
   }
 
+  const handleDeposit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault()
+      setDepositLoading(true)
+      const formData = new FormData(e.currentTarget)
+      const amount = parseFloat(formData.get("amount") as string)
+      const note = formData.get("note") as string
+      
+      if (isNaN(amount) || amount <= 0) {
+          alert("Invalid amount")
+          setDepositLoading(false)
+          return
+      }
+
+      const res = await creditMerchantDeposit(user.id, amount, note)
+      if (res.success) {
+          setIsDepositOpen(false)
+          router.refresh()
+          alert("Deposit credited successfully")
+      } else {
+          alert(res.error || "Failed to credit deposit")
+      }
+      setDepositLoading(false)
+  }
+
   return (
     <>
-      <Link 
-        href={`/admin/users/${user.id}/tree`}
-        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" 
-        title="View Referral Tree"
-      >
-        <UserGroupIcon className="w-5 h-5" />
-      </Link>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
-        title="Edit User"
-      >
-        <PencilSquareIcon className="w-5 h-5" />
-      </button>
+      <div className="flex gap-2">
+        <Link 
+            href={`/admin/users/${user.id}/tree`}
+            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" 
+            title="View Referral Tree"
+        >
+            <UserGroupIcon className="w-5 h-5" />
+        </Link>
+        <button 
+            onClick={() => setIsDepositOpen(true)}
+            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" 
+            title="Credit Merchant Deposit"
+        >
+            <BanknotesIcon className="w-5 h-5" />
+        </button>
+        <button 
+            onClick={() => setIsOpen(true)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+            title="Edit User"
+        >
+            <PencilSquareIcon className="w-5 h-5" />
+        </button>
+      </div>
 
+      {/* EDIT MODAL */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 overflow-y-auto max-h-[90vh]">
@@ -120,6 +158,7 @@ export default function UserActions({ user }: UserActionsProps) {
                            min="0"
                            defaultValue={user.balance}
                            className="w-full pl-8 pr-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono font-bold text-lg text-gray-900 shadow-sm"
+                           required
                          />
                       </div>
                    </div>
@@ -134,6 +173,20 @@ export default function UserActions({ user }: UserActionsProps) {
                               min="0"
                               defaultValue={user.points || 0}
                               className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 shadow-sm"
+                              required
+                           />
+                      </div>
+                      
+                      {/* Active Members */}
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Active Members</label>
+                          <input 
+                              name="activeMembers"
+                              type="number"
+                              min="0"
+                              defaultValue={user.activeMembers || 0}
+                              className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 shadow-sm"
+                              required
                            />
                       </div>
                       
@@ -172,6 +225,70 @@ export default function UserActions({ user }: UserActionsProps) {
                    >
                      {loading ? "Saving..." : "Save Changes"}
                    </button>
+                </div>
+             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MERCHANT DEPOSIT MODAL */}
+      {isDepositOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+             <div className="px-6 py-4 flex justify-between items-center bg-green-50 border-b border-green-100">
+                <h3 className="text-lg font-bold text-green-900 flex items-center gap-2">
+                    <BanknotesIcon className="w-5 h-5"/>
+                    Merchant Credit
+                </h3>
+                <button onClick={() => setIsDepositOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                   <XMarkIcon className="w-6 h-6" />
+                </button>
+             </div>
+             
+             <form onSubmit={handleDeposit} className="p-6 space-y-6">
+                <div className="p-4 bg-green-50/50 rounded-xl text-sm text-green-800 border border-green-100">
+                    Use this to credit a user's wallet after they have successfully paid via a local merchant (EasyPaisa/JazzCash).
+                </div>
+
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Amount ($)</label>
+                        <input 
+                            name="amount"
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-50 outline-none transition-all font-bold text-lg"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Admin Note / Reference</label>
+                        <textarea 
+                            name="note"
+                            placeholder="e.g. Verified by Merchant 1 (EasyPaisa Trx ID: ...)"
+                            required
+                            rows={3}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 outline-none transition-all text-sm resize-none"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                     <button 
+                        type="button" 
+                        onClick={() => setIsDepositOpen(false)}
+                        className="flex-1 py-3 text-gray-600 font-bold hover:bg-gray-50 rounded-xl transition-colors"
+                     >
+                        Cancel
+                     </button>
+                     <button 
+                        type="submit" 
+                        disabled={depositLoading}
+                        className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+                     >
+                        {depositLoading ? "Crediting..." : "Credit Funds"}
+                     </button>
                 </div>
              </form>
           </div>

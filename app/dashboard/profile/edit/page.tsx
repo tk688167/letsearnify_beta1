@@ -17,7 +17,7 @@ export default async function EditProfilePage() {
   })
 
   return (
-    <div className="p-8 md:p-12 max-w-4xl mx-auto">
+    <div className="p-6 md:p-12 max-w-4xl mx-auto">
       <EditForm user={user} />
     </div>
   )

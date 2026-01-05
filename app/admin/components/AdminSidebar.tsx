@@ -9,14 +9,47 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
   { name: 'User Management', href: '/admin/users', icon: UsersIcon },
   { name: 'Deposit Approvals', href: '/admin/deposits', icon: CurrencyDollarIcon }, // Added
-  { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, // Added
+  { name: 'Withdrawal Requests', href: '/admin/withdrawals', icon: ArrowLeftOnRectangleIcon }, // Added
+  { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, 
+  { name: 'Merchant Settings', href: '/admin/settings/merchant', icon: BanknotesIcon }, // Added
   { name: 'Tier Audit', href: '/admin/tiers/audit', icon: CheckCircleIcon },
   { name: 'Pools & Revenue', href: '/admin/pools', icon: BanknotesIcon },
   { name: 'Visitor Logs', href: '/admin/visits', icon: GlobeAltIcon },
 ]
 
-export function AdminSidebar() {
+import { useEffect, useState } from "react" // Added imports
+
+export function AdminSidebar({ counts: initialCounts = { deposits: 0, withdrawals: 0 } }: { counts?: { deposits: number, withdrawals: number } }) {
   const pathname = usePathname()
+  const [counts, setCounts] = useState(initialCounts)
+
+  // Real-time polling
+  useEffect(() => {
+    // Poll every 10 seconds
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/admin/pending-counts')
+        if (res.ok) {
+          const data = await res.json()
+          if (typeof data.deposits === 'number') {
+            setCounts({ 
+                deposits: data.deposits, 
+                withdrawals: data.withdrawals 
+            })
+          }
+        }
+      } catch (error) {
+        console.error("Polling error:", error)
+      }
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Update state if initialCounts changes (e.g. server re-render)
+  useEffect(() => {
+    setCounts(initialCounts)
+  }, [initialCounts])
 
   return (
     <aside className="w-72 bg-white border-r border-gray-100 flex flex-col hidden md:flex z-50 h-screen sticky top-0">
@@ -32,6 +65,12 @@ export function AdminSidebar() {
       <nav className="flex-1 px-4 space-y-2">
         {navigation.map((item) => {
           const isActive = pathname === item.href
+          
+          // Determine badge count
+          let badgeCount = 0
+          if (item.name === 'Deposit Approvals') badgeCount = counts.deposits
+          if (item.name === 'Withdrawal Requests') badgeCount = counts.withdrawals
+
           return (
             <Link
               key={item.name}
@@ -42,8 +81,15 @@ export function AdminSidebar() {
                   : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
               }`}
             >
-              <item.icon className="w-5 h-5" />
-              {item.name}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="flex-1">{item.name}</span>
+              
+              {/* Notification Badge */}
+              {badgeCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full shadow-sm animate-pulse">
+                  {badgeCount}
+                </span>
+              )}
             </Link>
           )
         })}

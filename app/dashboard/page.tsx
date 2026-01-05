@@ -5,6 +5,8 @@ import { redirect } from "next/navigation"
 import { TierProgress } from "./components/TierProgress"
 import { CompanyPools } from "./components/CompanyPools"
 import { TIER_RULES } from "@/lib/mlm"
+import { formatUserId } from "@/lib/utils"
+import { CopyableText } from "./components/copyable-text"
 
 export const dynamic = 'force-dynamic'
 
@@ -14,7 +16,19 @@ export default async function DashboardPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      balance: true,
+      tier: true,
+      points: true,
+      // @ts-ignore
+      memberId: true, // Fetch ID
+      referralCode: true,
+      isActiveMember: true,
+      totalDeposit: true,
+      activeMembers: true,
       _count: {
         select: { referrals: true }
       }
@@ -23,8 +37,8 @@ export default async function DashboardPage() {
   
   if (!user) return null
 
-  // Unlock condition: Balance >= 1
-  const isUnlocked = user.totalDeposit >= 1.0 // Updated to check totalDeposit as per new rule? Or keep Balance?
+  // Unlock condition: Balance >= 1 OR has active member status OR total deposit > 1
+  const isUnlocked = user.balance >= 1.0 || user.isActiveMember || user.totalDeposit >= 1.0
   // Prompt: "Active Member ... minimum deposit of $1".
   // Unlock Banner matches this rule.
   
@@ -33,7 +47,7 @@ export default async function DashboardPage() {
   // We cast it if TS complains due to generation fail, but standard flow assumes it works.
   
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-10">
+    <div className="p-4 md:p-12 max-w-7xl mx-auto space-y-10">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -70,19 +84,56 @@ export default async function DashboardPage() {
         <StatCard title="Mudaraba Value" value="$0.00" sub="Projected +15%" icon="📈" color="emerald" />
       </div>
 
-      {/* Referral Code Section */}
-      {user.referralCode && (
-        <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-           <div>
-              <h3 className="font-bold text-indigo-900 mb-1">Your Referral Code</h3>
-              <p className="text-sm text-indigo-600">Share this code to earn commissions from your team.</p>
-           </div>
-           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-indigo-200">
-              <code className="font-mono font-bold text-lg text-indigo-700 tracking-wider">{user.referralCode}</code>
-              {/* Note: Client component needed for 'Copy' button usually, straightforward display for now */}
-           </div>
-        </div>
-      )}
+      {/* Basic Info & Referral Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Basic Info Card */}
+          <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
+             <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold text-xl">
+                    {user.name?.[0] || "U"}
+                </div>
+                <div>
+                   <h3 className="font-bold text-gray-900">Basic Information</h3>
+                   <p className="text-xs text-gray-500 mb-2">Your permanent identity keys.</p>
+                   <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm justify-between w-full">
+                         <span className="text-gray-400 w-16 text-xs uppercase font-bold tracking-wider">User ID</span>
+                         <CopyableText 
+                            // @ts-ignore
+                            text={formatUserId(user.memberId)} 
+                            className="bg-blue-50 px-2 rounded border border-blue-100 text-blue-600"
+                         />
+                      </div>
+                      <div className="flex items-center gap-2 text-sm justify-between w-full">
+                         <span className="text-gray-400 w-16 text-xs uppercase font-bold tracking-wider">Email</span>
+                         <CopyableText 
+                            text={user.email || ""} 
+                            className="font-medium text-gray-700"
+                         />
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Referral Code Card */}
+          {user.referralCode && (
+            <div className="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex flex-col justify-center">
+               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                     <h3 className="font-bold text-indigo-900 mb-1">Referral Code</h3>
+                     <p className="text-sm text-indigo-600">Share to earn commissions.</p>
+                  </div>
+                  <div className="bg-white px-5 py-2.5 rounded-xl border border-indigo-200 shadow-sm">
+                     <CopyableText 
+                        text={user.referralCode || ""} 
+                        className="text-xl text-indigo-700 tracking-wider"
+                     />
+                  </div>
+               </div>
+            </div>
+          )}
+      </div>
 
       {/* Tier Progress Section */}
       {/* Tier Progress Section */}

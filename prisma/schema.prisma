@@ -25,12 +25,16 @@ enum TierStatus {
 
 model User {
   id            String    @id @default(cuid())
+  memberId      Int       @unique @default(autoincrement()) // For LEU-XXXXXX ID
   name          String?
   email         String?   @unique
   phoneNumber   String?
   emailVerified DateTime?
   password      String?
   image         String?
+  
+  @@index([email])
+  @@index([referralCode])
   role          String    @default("USER") // USER, ADMIN
   balance       Float     @default(0.0)
   
@@ -62,6 +66,8 @@ model User {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  lastWithdrawalTime DateTime? // For tracking 24h cooldown
 
   accounts      Account[]
   sessions      Session[]
@@ -143,6 +149,9 @@ model Visit {
   userAgent        String?
   path             String
   referrer         String?
+  
+  @@index([userId])
+  @@index([sessionId])
   screenResolution String?
   language         String?
   duration         Int?     // Time spent in seconds
@@ -162,8 +171,14 @@ model Transaction {
   description String?
   txId        String?  @unique // For Manual Crypto Deposits
   
+  destinationAddress String? // For Withdrawals
+  
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([txId])
+  @@index([type])
 }
 
 model Investment {
@@ -176,6 +191,8 @@ model Investment {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
 }
 
 model Task {
@@ -311,4 +328,49 @@ model Distribution {
   recipients Int
   tierRates  Json?    // Store breakdown of rates per tier if needed
   createdAt DateTime @default(now())
+}
+
+// --- Merchant Deposit System Models ---
+
+model MerchantCountry {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g., "Pakistan", "India"
+  code      String   // e.g., "PK", "IN"
+  status    String   @default("COMING_SOON") // ACTIVE, COMING_SOON
+  currency  String   @default("USD")
+  description String?
+  instruction String?
+  withdrawalDescription String?
+  withdrawalInstruction String?
+  
+  methods   MerchantPaymentMethod[]
+  contacts  MerchantContact[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MerchantPaymentMethod {
+  id        String   @id @default(cuid())
+  countryId String
+  name      String   // e.g., "EasyPaisa", "JazzCash"
+  
+  country   MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
+}
+
+// Global System Configuration (Key-Value Store)
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g., "COMING_SOON_CONFIG"
+  value     Json     // Flexible JSON data
+  updatedAt DateTime @updatedAt
+}
+
+model MerchantContact {
+  id        String   @id @default(cuid())
+  countryId String
+  name      String   // e.g., "Merchant 1"
+  phone     String   // e.g., "+92317229711"
+  
+  country   MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
 }

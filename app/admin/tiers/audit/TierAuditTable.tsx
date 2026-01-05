@@ -54,6 +54,7 @@ export default function TierAuditTable({ users }: { users: AuditUser[] }) {
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full text-left">
              <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
@@ -117,6 +118,7 @@ export default function TierAuditTable({ users }: { users: AuditUser[] }) {
                 )}
              </tbody>
           </table>
+          </div>
        </div>
     )
 }

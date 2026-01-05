@@ -10,16 +10,20 @@ declare module "next-auth" {
       role: string
       /** The user's ID. */
       id: string
+      /** The user's numeric Member ID (e.g. 1001) */
+      memberId: number
     } & DefaultSession["user"]
   }
 
   interface User {
       role: string
+      memberId: number
   }
 }
 
 declare module "next-auth/jwt" {
     interface JWT {
         role?: string
+        memberId?: number
     }
 }

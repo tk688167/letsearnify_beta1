@@ -11,3 +11,8 @@ export function formatCurrency(amount: number) {
     currency: "USD",
   }).format(amount)
 }
+
+export function formatUserId(memberId: number | undefined | null) {
+  if (memberId === undefined || memberId === null) return "LEU-XXXXXX";
+  return `LEU-${memberId.toString().padStart(6, '0')}`;
+}

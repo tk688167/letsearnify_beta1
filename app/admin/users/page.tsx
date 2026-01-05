@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { format } from "date-fns"
 import { UserCircleIcon, ShieldCheckIcon, TrashIcon } from "@heroicons/react/24/outline"
 import UserActions from "./user-actions"
+import { formatUserId } from "@/lib/utils"
 
 export default async function AdminUsersPage() {
   const users = await prisma.user.findMany({
@@ -14,13 +15,15 @@ export default async function AdminUsersPage() {
       createdAt: true,
       balance: true,
       tier: true,
-      points: true
+      points: true,
+      activeMembers: true,
+      memberId: true // Fetch memberId
     }
   })
 
   return (
     <div className="p-6 md:p-10 min-h-screen bg-gray-50/50">
-       <div className="flex justify-between items-center mb-8">
+       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
           <div>
              <h1 className="text-3xl font-serif font-bold text-gray-900">User Management</h1>
              <p className="text-gray-500 mt-1">View and manage all registered users.</p>
@@ -39,6 +42,7 @@ export default async function AdminUsersPage() {
                       <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Role & Tier</th>
                       <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Balance</th>
                       <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Points</th>
+                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Active Members</th>
                       <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                    </tr>
                 </thead>
@@ -52,7 +56,10 @@ export default async function AdminUsersPage() {
                                </div>
                                <div>
                                   <div className="font-bold text-gray-900">{user.name || "Unnamed"}</div>
-                                  <div className="text-xs text-gray-500 font-mono">{user.email}</div>
+                                  <div className="text-xs text-gray-500 font-mono mb-1">{user.email}</div>
+                                  <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100 font-mono">
+                                    {formatUserId(user.memberId)}
+                                  </span>
                                </div>
                             </div>
                          </td>
@@ -75,6 +82,13 @@ export default async function AdminUsersPage() {
                                 {user.points.toFixed(0)} PTS
                              </span>
                          </td>
+                         <td className="p-6">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-gray-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 min-w-[3rem] text-center">
+                                    {user.activeMembers || 0}
+                                </span>
+                            </div>
+                         </td>
                          <td className="p-6 text-right">
                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                <UserActions user={{
@@ -84,6 +98,7 @@ export default async function AdminUsersPage() {
                                    role: user.role,
                                    balance: user.balance,
                                    points: user.points,
+                                   activeMembers: user.activeMembers,
                                    tier: user.tier
                                }} />
                                <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Delete">

@@ -17,7 +17,7 @@ export default async function AdminDepositsPage() {
             u.name as "userName", u.email as "userEmail"
         FROM "Transaction" t
         JOIN "User" u ON t."userId" = u.id
-        WHERE t.type = 'DEPOSIT' AND (t.method LIKE 'TRC20%' OR t.method LIKE 'BEP20%')
+        WHERE t.type = 'DEPOSIT' AND t.method LIKE 'TRC20%'
         ORDER BY t."createdAt" DESC
     `;
 

@@ -15,7 +15,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-            console.log("❌ Login Failed: Missing credentials")
             return null
         }
         
@@ -24,12 +23,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         })
 
         if (!user) {
-            console.log(`❌ Login Failed: User not found for email ${credentials.email}`)
             return null
         }
 
         if (!user.password) {
-            console.log("❌ Login Failed: User has no password (provider login?)")
             return null
         }
 
@@ -177,6 +174,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         
         if (existingUser) {
           token.role = existingUser.role
+          token.memberId = existingUser.memberId
         }
       } catch (error) {
         console.error("Error fetching user in JWT callback:", error)

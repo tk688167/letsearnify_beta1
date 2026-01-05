@@ -75,17 +75,12 @@ export function DepositCryptoForm({
                             <p className="text-xs text-blue-600 mt-1">Minimum deposit is $1. You may deposit any amount above this.</p>
                         </div>
 
-                        {/* Network Selector */}
+                        {/* Network Selector (Fixed) */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Select Network</label>
-                            <select 
-                                value={network} 
-                                onChange={(e) => setNetwork(e.target.value)}
-                                className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            >
-                                <option value="TRC20">TRC-20 (USDT - Tron)</option>
-                                <option value="BEP20">BEP-20 (BNB Smart Chain)</option>
-                            </select>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Network</label>
+                            <div className="w-full p-2.5 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 font-medium cursor-not-allowed">
+                                TRC-20 (USDT - Tron)
+                            </div>
                         </div>
 
                         {/* Wallet Info Card */}

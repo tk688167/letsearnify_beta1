@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { auth, signOut } from "@/auth"
 import { ArrowLeftStartOnRectangleIcon, HomeIcon, BriefcaseIcon, BanknotesIcon, ShoppingBagIcon, UserIcon, Cog6ToothIcon, GlobeAltIcon, CreditCardIcon } from "@heroicons/react/24/outline"
+import { formatUserId } from "@/lib/utils"
 
 import MobileNav from "./mobile-nav"
 
@@ -43,6 +44,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className="overflow-hidden">
               <div className="font-bold text-sm text-gray-900 truncate">{session?.user?.name || "User"}</div>
               <div className="text-xs text-gray-500 truncate">{session?.user?.email}</div>
+              <div className="text-[10px] font-mono text-blue-600 font-bold mt-0.5">{formatUserId(session?.user?.memberId)}</div>
             </div>
           </div>
           <form action={async () => {

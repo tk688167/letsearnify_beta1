@@ -205,7 +205,6 @@ export async function deposit(amount: number, method: string, details?: { networ
         if (!details?.txHash) throw new Error("Transaction Hash is required.")
         if (!details?.network) throw new Error("Network is required.")
         
-        // --- Verification Logic (TRC20 Only) ---
         if (details.network === "TRC20") {
             // Check for reuse first
             const existingTx = await prisma.transaction.findFirst({
@@ -262,11 +261,7 @@ export async function deposit(amount: number, method: string, details?: { networ
                 }
             }
         } else {
-             // BEP20 or other: Check for duplicate TXID still
-             const existingTx = await prisma.transaction.findFirst({
-                where: { txId: details.txHash }
-            });
-            if (existingTx) throw new Error("This Transaction Hash has already been used.");
+             throw new Error("Only TRC20 network is supported for crypto deposits.");
         }
 
         // 1. Create Transaction Record
@@ -302,6 +297,29 @@ export async function withdraw(amount: number, method: string, details: string) 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
   if (!user || user.balance < amount) {
     throw new Error("Insufficient funds")
+  }
+
+  // 1. Minimum 10% Check
+  const minWithdrawal = user.balance * 0.10;
+  if (amount < minWithdrawal) {
+      throw new Error(`Minimum withdrawal is 10% of balance ($${minWithdrawal.toFixed(2)})`)
+  }
+
+  // 2. 24h Cooldown Check
+  const lastWithdrawal = await prisma.transaction.findFirst({
+      where: {
+          userId: session.user.id,
+          type: "WITHDRAWAL"
+      },
+      orderBy: { createdAt: 'desc' }
+  });
+
+  if (lastWithdrawal) {
+      const hoursSinceLast = (Date.now() - lastWithdrawal.createdAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceLast < 24) {
+          const hoursRemaining = (24 - hoursSinceLast).toFixed(1);
+          throw new Error(`Withdrawal limit: Once every 24 hours. Try again in ${hoursRemaining} hours.`);
+      }
   }
 
   await prisma.$transaction([
@@ -372,8 +390,7 @@ export async function getPlatformWallets() {
       // Seed initial data if missing
       await prisma.platformWallet.createMany({
           data: [
-              { network: "TRC20", address: "T9y...Placeholder...TRC20", qrCodePath: "/qr-trc20.png" },
-              { network: "BEP20", address: "0x...Placeholder...BEP20", qrCodePath: "/qr-bep20.png" }
+              { network: "TRC20", address: "T9y...Placeholder...TRC20", qrCodePath: "/qr-trc20.png" }
           ]
       })
       return await prisma.platformWallet.findMany()
@@ -398,78 +415,91 @@ export async function updatePlatformWallet(network: string, address: string, qrC
   return { success: true }
 }
 
+import { checkAndUpgradeTier } from "./mlm"
+
 export async function updateUserAsAdmin(formData: FormData) {
   const session = await auth()
-  // Data modification is strictly restricted to ADMINs
   if (!session?.user || session.user.role !== "ADMIN") throw new Error("Unauthorized")
 
   const userId = formData.get("userId") as string
   const balanceRaw = formData.get("balance") as string
   const pointsRaw = formData.get("points") as string
-  const tier = formData.get("tier") as string // "BRONZE", "SILVER", etc.
+  const activeMembersRaw = formData.get("activeMembers") as string
+  const tier = formData.get("tier") as string 
   
   if (!userId) throw new Error("User ID required")
 
-  const balance = parseFloat(balanceRaw)
+  const balance = balanceRaw ? parseFloat(balanceRaw) : 0
   if (isNaN(balance)) throw new Error("Invalid balance")
   if (balance < 0) throw new Error("Balance cannot be negative")
   
   const points = pointsRaw ? parseFloat(pointsRaw) : 0;
+  const activeMembers = activeMembersRaw ? parseInt(activeMembersRaw) : 0;
   
-  // Get old data for logging comparison
   const oldUser = await prisma.user.findUnique({ where: { id: userId } });
   if (!oldUser) throw new Error("User not found");
 
   const updates: any = {
     balance,
-    points
+    points,
+    activeMembers
   };
   
   if (tier) {
-    updates.tier = tier as any; // Cast to conform to Prisma generated type
+    updates.tier = tier as any; 
   }
 
-  // Uses $transaction to ensure atomicity
+  if (balance >= 1.0) {
+     updates.isActiveMember = true;
+  }
+
+  const diff = balance - oldUser.balance;
+
   await prisma.$transaction([
     prisma.user.update({
       where: { id: userId },
-      data: updates
+      data: {
+        ...updates,
+        ...(diff > 0 ? { totalDeposit: { increment: diff } } : {})
+      }
     }),
     
-    // Log Balance Change if changed
-    (Math.abs(oldUser.balance - balance) > 0.001) ? 
+    (Math.abs(diff) > 0.001) ? 
       prisma.transaction.create({
         data: {
           userId,
-          amount: balance, // Snapshot
-          type: "ADMIN_ADJUSTMENT",
+          amount: Math.abs(diff),
+          type: diff > 0 ? "DEPOSIT" : "ADMIN_ADJUSTMENT",
           status: "COMPLETED",
-          method: "Admin Panel Manual Update",
-          description: `Balance changed from ${oldUser.balance} to ${balance}`
+          method: diff > 0 ? "Admin Credit" : "Admin Panel Manual Update",
+          description: diff > 0 
+            ? `Admin Credited $${diff.toFixed(2)}` 
+            : `Balance changed from ${oldUser.balance} to ${balance}`
         }
-      }) : prisma.$queryRaw`SELECT 1`, // No-op if valid
+      }) : prisma.$queryRaw`SELECT 1`,
       
-    // Create detailed Admin Log
     prisma.adminLog.create({
       data: {
         adminId: session.user.id,
         targetUserId: userId,
         actionType: "USER_UPDATE",
-        details: `Updated User ${oldUser.email}: Balance ${oldUser.balance}->${balance}, Points ${oldUser.points}->${points}, Tier ${oldUser.tier}->${tier || oldUser.tier}`
+        details: `Updated User ${oldUser.email}: Balance ${oldUser.balance}->${balance}, Pts ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}, Tier ${oldUser.tier}->${tier || oldUser.tier}`
       }
     }),
 
-    // Log to MLM System Log if Tier or Points changed
-    ((tier && tier !== oldUser.tier) || (points !== oldUser.points)) ?
+    ((tier && tier !== oldUser.tier) || (points !== oldUser.points) || (activeMembers !== oldUser.activeMembers)) ?
       prisma.mLMLog.create({
         data: {
            userId: userId,
            type: "ADMIN_UPDATE",
            amount: 0,
-           description: `Admin updated: Tier ${oldUser.tier}->${tier || oldUser.tier}, Points ${oldUser.points}->${points}`
+           description: `Admin updated: Tier ${oldUser.tier}->${tier || oldUser.tier}, Points ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}`
         }
       }) : prisma.$queryRaw`SELECT 1`
   ])
+  
+  // Trigger Tier Check after update
+  await checkAndUpgradeTier(userId);
 
   revalidatePath("/admin/users")
   revalidatePath("/dashboard") 

@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+import LandingHeader from "./components/LandingHeader"
+import SmartPoolsSection from "./components/landing/SmartPoolsSection"
 
 const SUPPORT_EMAIL = "LetsEarnify@gmail.com"
 
@@ -13,58 +15,35 @@ export default async function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Navbar */}
-      <header className="fixed top-0 left-0 w-full z-50 glass-panel border-b-0">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-          <div className="text-2xl font-serif font-bold tracking-tight">
-            Let'<span className="text-primary">$</span>Earnify
-          </div>
-          <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
-            <Link href="#features" className="hover:text-primary transition-colors">Features</Link>
-            <Link href="#how-it-works" className="hover:text-primary transition-colors">How it Works</Link>
-            <Link href="/about" className="hover:text-primary transition-colors">About</Link>
-            <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
-          </nav>
-          <div className="flex gap-4">
-             <Link href="/login" className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-primary transition-colors">
-               Log In
-             </Link>
-             <Link 
-               href="/signup" 
-               className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-full text-sm font-medium shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-0.5"
-             >
-               Get Started
-             </Link>
-          </div>
-        </div>
-      </header>
+      <LandingHeader />
       
       {/* Hero Section */}
-      <main className="flex-1 pt-32 pb-20">
-        <section className="relative px-6 text-center max-w-5xl mx-auto mb-32">
+      <main className="flex-1 pt-24 md:pt-32 pb-12 md:pb-20">
+        <section className="relative px-4 md:px-6 text-center max-w-5xl mx-auto mb-20 md:mb-32">
           {/* Decor */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
           
-          <div className="inline-block px-4 py-1.5 mb-6 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-block px-3 py-1 md:px-4 md:py-1.5 mb-6 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-[10px] md:text-xs font-bold uppercase tracking-wider">
             🚀 The Future of Digital Earning
           </div>
-          <h1 className="text-5xl md:text-7xl font-serif font-bold text-gray-900 mb-8 leading-[1.1]">
+          <h1 className="text-4xl md:text-7xl font-serif font-bold text-gray-900 mb-6 md:mb-8 leading-[1.1]">
             Turn <span className="text-primary">$1</span> into <br/>
             <span className="text-gradient">Endless Opportunities</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-500 mb-12 max-w-3xl mx-auto font-light leading-relaxed">
+          <p className="text-lg md:text-2xl text-gray-500 mb-8 md:mb-12 max-w-3xl mx-auto font-light leading-relaxed px-2">
             A Hybrid Business Model bridging Micro-Tasks, Freelancing, and Ethical Investments. 
             Join the ecosystem designed for your financial freedom.
           </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-5 justify-center items-center">
             <Link 
               href="/signup" 
-              className="px-10 py-4 bg-primary hover:bg-primary-hover text-white rounded-full text-lg font-semibold shadow-xl shadow-blue-600/20 transition-all hover:scale-105"
+              className="w-full sm:w-auto px-6 py-3 md:px-10 md:py-4 bg-primary hover:bg-primary-hover text-white rounded-full text-base md:text-lg font-semibold shadow-xl shadow-blue-600/20 transition-all hover:scale-105"
             >
               Start Earning Now
             </Link>
             <Link 
               href="/about" 
-              className="px-10 py-4 bg-white border border-gray-200 text-gray-700 rounded-full text-lg font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+              className="w-full sm:w-auto px-6 py-3 md:px-10 md:py-4 bg-white border border-gray-200 text-gray-700 rounded-full text-base md:text-lg font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             >
               Learn More
             </Link>
@@ -108,6 +87,9 @@ export default async function LandingPage() {
           </div>
         </section>
 
+        {/* Smart Pools Section */}
+        <SmartPoolsSection />
+
         {/* How It Works Section */}
         <section id="how-it-works" className="py-24 relative overflow-hidden">
            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl -z-10 opacity-60 translate-x-1/2"></div>
@@ -135,9 +117,9 @@ export default async function LandingPage() {
         </section>
 
         {/* Why Users Trust Us Section */}
-        <section className="py-20 bg-gray-50/50">
-           <div className="max-w-7xl mx-auto px-6">
-              <div className="text-center mb-16">
+        <section className="py-12 md:py-20 bg-gray-50/50">
+           <div className="max-w-7xl mx-auto px-4 md:px-6">
+              <div className="text-center mb-10 md:mb-16">
                  <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Why Users Trust Let'$Earnify</h2>
                  <p className="text-gray-500 max-w-2xl mx-auto">Built on transparency, security, and ethical financial principles.</p>
               </div>
@@ -163,8 +145,8 @@ export default async function LandingPage() {
         </section>
 
         {/* Customer Support Section */}
-        <section className="py-24 px-6 relative">
-             <div className="max-w-5xl mx-auto bg-white border border-gray-100 rounded-[2.5rem] p-12 shadow-2xl shadow-gray-200/50 flex flex-col md:flex-row gap-12 items-center relative overflow-hidden">
+        <section className="py-16 md:py-24 px-4 md:px-6 relative">
+             <div className="max-w-5xl mx-auto bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-2xl shadow-gray-200/50 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-10"></div>
                 <div className="flex-1 space-y-6">
                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -215,7 +197,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Transparency & Rules Section */}
-        <section className="pb-24 pt-10 px-6">
+        <section className="pb-16 md:pb-24 pt-6 md:pt-10 px-4 md:px-6">
            <div className="max-w-4xl mx-auto">
               <div className="grid md:grid-cols-2 gap-8">
                  <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
@@ -263,19 +245,19 @@ export default async function LandingPage() {
         </section>
         
         {/* Deposit/CTA Section */}
-        <section className="py-24 px-6">
-           <div className="max-w-6xl mx-auto bg-gray-900 text-white rounded-[2rem] p-12 md:p-20 relative overflow-hidden shadow-2xl">
+        <section className="py-16 md:py-24 px-4 md:px-6">
+           <div className="max-w-6xl mx-auto bg-gray-900 text-white rounded-[2rem] p-6 md:p-20 relative overflow-hidden shadow-2xl">
               {/* Background Glows */}
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink-600/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
 
-              <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+              <div className="relative z-10 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
                  <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sm font-medium mb-6 backdrop-blur-sm border border-white/10">
                        <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Premium Access
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">Start Small, <br/> Dream Big.</h2>
-                    <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                    <h2 className="text-3xl md:text-5xl font-serif font-bold mb-4 md:mb-6">Start Small, <br/> Dream Big.</h2>
+                    <p className="text-gray-300 text-base md:text-lg mb-6 md:mb-8 leading-relaxed">
                        Unlock the full potential of the platform with a minimal entry deposit. 
                        Get access to high-value tasks, marketplace posting, and investment pools.
                     </p>
@@ -295,9 +277,9 @@ export default async function LandingPage() {
                     </ul>
                  </div>
                  
-                 <div className="bg-white/10 backdrop-blur-md border border-white/10 p-8 rounded-3xl text-center">
+                 <div className="bg-white/10 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-3xl text-center">
                     <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">Minimum Deposit</div>
-                    <div className="text-6xl font-bold mb-2">$1<span className="text-2xl text-gray-400">.00</span></div>
+                    <div className="text-5xl md:text-6xl font-bold mb-2">$1<span className="text-2xl text-gray-400">.00</span></div>
                     <div className="text-gray-400 text-sm mb-8">One-time entry fee</div>
                     
                     <Link 
