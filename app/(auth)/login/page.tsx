@@ -1,12 +1,12 @@
 "use client"
 
 import { signIn } from "next-auth/react"
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon } from "@heroicons/react/24/outline"
 
-export default function LoginPage() {
+function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -179,5 +179,21 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+                <div className="flex justify-center">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            </div>
+        </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }
