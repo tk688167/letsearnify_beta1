@@ -6,11 +6,12 @@ import SmartPoolsSection from "./components/landing/SmartPoolsSection"
 
 const SUPPORT_EMAIL = "LetsEarnify@gmail.com"
 
-export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-dynamic' // Removed for Static Generation
 
 export default async function LandingPage() {
-  const session = await auth()
-  if (session) redirect("/dashboard")
+  // Session check moved to Middleware for performance
+  // const session = await auth()
+  // if (session) redirect("/dashboard")
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">

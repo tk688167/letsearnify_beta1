@@ -1,3 +1,4 @@
+import React, { Suspense } from "react"
 import Link from "next/link"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
@@ -194,7 +195,9 @@ export default async function DashboardPage() {
               <h2 className="text-2xl font-bold text-gray-900 font-serif">Company Pools</h2>
               <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase tracking-wider">Live Network Status</span>
           </div>
-          <CompanyPools />
+          <React.Suspense fallback={<div className="h-48 bg-gray-100 rounded-2xl animate-pulse"></div>}>
+             <CompanyPools />
+          </React.Suspense>
       </div>
 
     </div>

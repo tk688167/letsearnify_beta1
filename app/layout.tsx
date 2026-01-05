@@ -7,11 +7,13 @@ import BackButton from "./components/BackButton";
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+  display: 'swap',
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

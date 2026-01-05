@@ -71,6 +71,11 @@ export default async function middleware(req: NextRequest) {
   // Run NextAuth with modified headers
   const session = await NextAuth(authConfig).auth(req as any)
 
+  // Redirect authenticated users from Home to Dashboard
+  if (nextUrl.pathname === "/" && session?.user) {
+      return NextResponse.redirect(new URL("/dashboard", nextUrl))
+  }
+
   // NOTE: NextAuth middleware usually handles redirect protection based on authConfig.
   // We can add custom Role checks here if needed, but usually done in component/api.
   
