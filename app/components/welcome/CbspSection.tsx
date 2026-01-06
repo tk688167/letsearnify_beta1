@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ArrowRightIcon, LockClosedIcon, LockOpenIcon } from "@heroicons/react/24/solid"
-import { TIER_WEIGHTS, getTierColor } from "@/lib/cbsp"
+import { CBSP_TIER_PERCENTAGES, getTierColor } from "@/lib/cbsp"
 
 
 // Hooks removed as internal state is replaced by prop-derived logic
@@ -30,7 +30,7 @@ export default function CbspSection({ user }: { user: any }) {
 
 
 
-  const tiers = (Object.keys(TIER_WEIGHTS) as Array<keyof typeof TIER_WEIGHTS>).reverse()
+  const tiers = (Object.keys(CBSP_TIER_PERCENTAGES) as string[]).reverse()
 
   return (
     <div className="relative overflow-hidden rounded-[2.5rem] bg-gray-900 text-white p-8 md:p-12 shadow-2xl border border-white/5">
@@ -120,14 +120,14 @@ export default function CbspSection({ user }: { user: any }) {
 }
 
 function TierCard({ tier, isCurrent, stats, index }: { tier: string, isCurrent: boolean, stats: any, index: number }) {
-    const weight = TIER_WEIGHTS[tier as keyof typeof TIER_WEIGHTS]
+    const weight = CBSP_TIER_PERCENTAGES[tier] || 0
     const gradient = getTierColor(tier as any)
     const tierMembers = stats?.tierMap?.[tier] || 0
     
     // Estimate share PER USER in this tier
-    // Logic: TierPool = (Pool * 0.04 * Percentage) / CountInTier
+    // Logic: (Pool * Tier%) / Count
     const estimatedShare = stats?.poolBalance 
-        ? ((stats.poolBalance * 0.04) * weight) / (tierMembers || 1)
+        ? ((stats.poolBalance * weight) / 100) / (tierMembers || 1)
         : 0
 
     return (

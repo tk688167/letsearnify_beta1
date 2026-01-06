@@ -2,6 +2,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
+import { CBSP_POOL_FEE_PERCENTAGE } from "@/lib/cbsp"
 
 // Helper to determine if user is admin - basic check
 async function isAdmin(userId: string) {
@@ -36,7 +37,8 @@ export async function GET(req: Request) {
     }
 
     // Fetch Data
-    const [contributions, totalCount, adminStats] = await Promise.all([
+    const [contributions, totalCount, aggregateStats, poolConfig] = await Promise.all([
+        // @ts-ignore
         prisma.cbspContribution.findMany({
             where,
             include: { user: { select: { name: true, email: true } } },
@@ -44,8 +46,10 @@ export async function GET(req: Request) {
             skip,
             take: limit
         }),
+        // @ts-ignore
         prisma.cbspContribution.count({ where }),
         // Calculate Totals over ALL time
+        // @ts-ignore
         prisma.cbspContribution.aggregate({
             _sum: {
                 depositAmount: true,
@@ -68,11 +72,11 @@ export async function GET(req: Request) {
             totalPages: Math.ceil(totalCount / limit)
         },
         totals: {
-            totalDeposits: adminStats._sum.depositAmount || 0,
-            totalPoolContribution: adminStats._sum.contributionAmount || 0
+            totalDeposits: aggregateStats._sum.depositAmount || 0,
+            totalPoolContribution: aggregateStats._sum.contributionAmount || 0
         },
         config: {
-            percentage: adminStats[3]?.percentage ?? 4.0 // Use fetched percentage or default
+            percentage: poolConfig?.percentage ?? 5.0 // Use fetched percentage or default
         }
     })
 

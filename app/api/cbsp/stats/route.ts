@@ -1,7 +1,7 @@
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { CBSP_POOL_NAME, TIER_WEIGHTS, calculateProjectedShare } from "@/lib/cbsp"
+import { CBSP_POOL_NAME, CBSP_TIER_PERCENTAGES, calculateProjectedShare } from "@/lib/cbsp"
 import { NextResponse } from "next/server"
 
 export async function GET(req: Request) {
@@ -20,7 +20,10 @@ export async function GET(req: Request) {
     // 2. Fetch Member Counts per Tier
     const tierCounts = await prisma.user.groupBy({
       by: ['tier'],
-      where: { isCbspMember: true },
+      where: { 
+        // @ts-ignore - Field exists in schema, client generation stale
+        isCbspMember: true 
+      },
       _count: {
         _all: true
       }
@@ -43,6 +46,7 @@ export async function GET(req: Request) {
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { 
+            // @ts-ignore
             isCbspMember: true,
             tier: true
         }
@@ -50,11 +54,16 @@ export async function GET(req: Request) {
 
       if (user) {
         const tierCount = tierMap[user.tier] || 1 // Avoid div by 0
-        const potentialShare = calculateProjectedShare(poolBalance, user.tier, tierCount)
+        // New Logic: (Pool * Tier%) / Count
+        const percentage = CBSP_TIER_PERCENTAGES[user.tier] || 0
+        const totalTierShare = calculateProjectedShare(poolBalance, percentage)
+        // @ts-ignore
+        const isMember = user.isCbspMember
+        
         userStats = {
-          isMember: user.isCbspMember,
+          isMember,
           tier: user.tier,
-          potentialShare
+          potentialShare: totalTierShare / Math.max(1, tierCount)
         }
       }
     }

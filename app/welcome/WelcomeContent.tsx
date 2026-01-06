@@ -332,12 +332,23 @@ function FeatureCard({ title, desc, icon, gradient, bg, href, actionText, isActi
 
 function PoolCard({ pool, index, userTier }: { pool: any, index: number, userTier?: string }) {
     const isRoyalty = pool.name === "ROYALTY";
-    const ecosystemPools = ["CBSP", "REWARD", "EMERGENCY"];
+    const name = pool.name;
     
     // Royalty Eligibility Logic
     const eligibleTiers = ['PLATINUM', 'DIAMOND', 'EMERALD'];
     const isEligible = isRoyalty ? eligibleTiers.includes(userTier || "") : true;
 
+    // Theme Config
+    const getTheme = (n: string) => {
+        if (n === 'CBSP') return { bg: "from-blue-500 to-indigo-600", shadow: "shadow-blue-500/20", text: "text-blue-700", border: "border-blue-100", pale: "bg-blue-50", icon: "🏢" }
+        if (n === 'REWARD') return { bg: "from-orange-400 to-amber-600", shadow: "shadow-orange-500/20", text: "text-orange-700", border: "border-orange-100", pale: "bg-orange-50", icon: "💎" }
+        if (n === 'EMERGENCY') return { bg: "from-rose-500 to-red-600", shadow: "shadow-red-500/20", text: "text-red-700", border: "border-red-100", pale: "bg-red-50", icon: "🛡️" }
+        // Default / Royalty
+        return { bg: "from-purple-500 to-fuchsia-600", shadow: "shadow-purple-500/20", text: "text-purple-700", border: "border-purple-100", pale: "bg-purple-50", icon: "👑" }
+    }
+
+    const theme = getTheme(name);
+    
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -349,20 +360,12 @@ function PoolCard({ pool, index, userTier }: { pool: any, index: number, userTie
             }`}
         >
             {/* Hover Gradient Overlay */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
-                isRoyalty ? "bg-gradient-to-br from-amber-50/50 to-yellow-50/50" : "bg-gradient-to-br from-indigo-50/50 to-purple-50/50"
-            }`}></div>
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${theme.bg} opacity-5`}></div>
 
             <div className="relative z-10">
                 <div className="flex items-start justify-between mb-8">
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg transition-transform duration-300 group-hover:scale-110 ${
-                        isRoyalty 
-                            ? "bg-gradient-to-br from-amber-400 to-orange-600 shadow-amber-500/20" 
-                            : "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-indigo-500/20"
-                    }`}>
-                        {pool.name.includes("CBSP") ? "🏢" : 
-                         pool.name.includes("ROYALTY") ? "👑" : 
-                         pool.name.includes("EMERGENCY") ? "🛡️" : "💎"}
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl text-white shadow-lg transition-transform duration-300 group-hover:scale-110 bg-gradient-to-br ${theme.bg} ${theme.shadow}`}>
+                        {theme.icon}
                     </div>
                     
                     {isRoyalty ? (
@@ -385,13 +388,9 @@ function PoolCard({ pool, index, userTier }: { pool: any, index: number, userTie
                     )}
                 </div>
                 
-                <h4 className={`text-2xl font-serif font-bold text-gray-900 mb-2 transition-colors ${
-                    isRoyalty ? "group-hover:text-amber-700" : "group-hover:text-indigo-900"
-                }`}>
+                <h4 className={`text-2xl font-serif font-bold text-gray-900 mb-2 transition-colors group-hover:${theme.text}`}>
                     {pool.name === "ROYALTY" ? "Royalty Pool" : pool.name}
                 </h4>
-                
-
 
                 {isRoyalty && !isEligible ? (
                      <div className="pt-6 border-t border-gray-100">
@@ -409,9 +408,7 @@ function PoolCard({ pool, index, userTier }: { pool: any, index: number, userTie
                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">
                                 {isRoyalty ? "Monthly Dist." : "Current Yield"}
                             </p>
-                            <p className={`font-bold px-2 py-1 rounded-lg ${
-                                isRoyalty ? "text-amber-600 bg-amber-50" : "text-indigo-600 bg-indigo-50"
-                            }`}>
+                            <p className={`font-bold px-2 py-1 rounded-lg ${theme.pale} ${theme.text}`}>
                                 {isRoyalty ? "1-2%" : `${pool.percentage}%`}
                             </p>
                         </div>
