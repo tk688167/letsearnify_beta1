@@ -17,8 +17,8 @@ export async function processCbspContribution(
         where: { name: "CBSP" }
     })
 
-    // Default to 4% if not set or pool doesn't exist
-    const percentage = pool?.percentage ?? 4.0; 
+    // Default to CBSP_POOL_FEE_PERCENTAGE if not set or pool doesn't exist
+    const percentage = pool?.percentage ?? CBSP_POOL_FEE_PERCENTAGE;  
     
     // 2. Calculate Contribution
     const contributionAmount = depositAmount * (percentage / 100);
@@ -52,6 +52,60 @@ export async function processCbspContribution(
     }
 }
 
+
+/**
+ * Pool Name
+ */
+export const CBSP_POOL_NAME = "CBSP";
+
+/**
+ * Entry fee required to join CBSP Pool (USD)
+ */
+export const CBSP_ENTRY_FEE = 1;
+
+/**
+ * Pool fee percentage for backend distribution calculation
+ * Example: 5% from deposit goes to CBSP Pool
+ */
+export const CBSP_POOL_FEE_PERCENTAGE = 5;
+
+/**
+ * Tier percentages (example structure)
+ * You can adjust percentages for Newbie, Bronze, Silver, Gold, Platinum, Diamond, Emerald
+ */
+export const CBSP_TIER_PERCENTAGES: Record<string, number> = {
+  Newbie: 4,
+  Bronze: 5,
+  Silver: 6,
+  Gold: 7,
+  Platinum: 8,
+  Diamond: 10,
+  Emerald: 12,
+};
+
+/**
+ * Helper function to calculate projected share per tier
+ * @param totalPool Total amount in CBSP Pool
+ * @param tierPercentage Percentage assigned to this tier
+ * @returns Amount for the tier
+ */
+export function calculateProjectedShare(totalPool: number, tierPercentage: number) {
+  return (totalPool * tierPercentage) / 100;
+}
+
+/**
+ * Example function to distribute weekly profit per tier
+ * @param totalPool Total CBSP Pool amount
+ * @returns Object with tier-wise distribution
+ */
+export function distributeWeeklyProfit(totalPool: number) {
+  const distribution: Record<string, number> = {};
+  for (const [tier, percent] of Object.entries(CBSP_TIER_PERCENTAGES)) {
+    distribution[tier] = calculateProjectedShare(totalPool, percent);
+  }
+  return distribution;
+}
+
 export const TIER_WEIGHTS = {
     EMERALD: 0.30,
     DIAMOND: 0.20,
@@ -75,22 +129,3 @@ export function getTierColor(tier: keyof typeof TIER_WEIGHTS) {
     }
 }
 
-export const CBSP_POOL_NAME = "CBSP";
-
-export function calculateProjectedShare(poolBalance: number, tier: string, memberCountInTier: number) {
-    // Basic logic: TierPool = (PoolBalance) * TIER_WEIGHT -> Share = TierPool / Count
-    // But wait, the Frontend formula was: ((stats.poolBalance * 0.04) * weight) / (tierMembers || 1)
-    // The poolBalance in DB is ALREADY the 4% accumulation. 
-    // IF the pool balance provided is the TOTAL DEPOSITS, then we multiply by 0.04. 
-    // BUT the pool model `balance` IS the accumulated pot. 
-    // So the formula should likely be: (PoolBalance * Weight) / Count
-    // However, let's stick to the frontend's logic if it assumes poolBalance is the total deposits?
-    // No, `processCbspContribution` updates `balance` with the contribution amount.
-    // So `pool.balance` IS the pot.
-    // So Share = (pool.balance * TIER_WEIGHTS[tier]) / memberCountInTier
-    
-    // Safety check
-    const weight = TIER_WEIGHTS[tier as keyof typeof TIER_WEIGHTS] || 0;
-    const count = Math.max(1, memberCountInTier);
-    return (poolBalance * weight) / count;
-}
