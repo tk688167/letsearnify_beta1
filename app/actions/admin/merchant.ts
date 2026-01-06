@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 // @ts-ignore
 import { checkAndUpgradeTier } from "@/lib/mlm"
+import { processCbspContribution } from "@/lib/cbsp"
 
 export async function creditMerchantDeposit(userId: string, amount: number, note: string) {
     const session = await auth()
@@ -38,7 +39,11 @@ export async function creditMerchantDeposit(userId: string, amount: number, note
                 }
             })
 
-            // 3. Admin Log
+            // 3. CBSP Contribution (Shared Helper)
+            // @ts-ignore
+            await processCbspContribution(userId, amount, undefined, `Merchant Deposit Credit`, tx)
+
+            // 4. Admin Log
             await tx.adminLog.create({
                 data: {
                     adminId: session.user.id!,

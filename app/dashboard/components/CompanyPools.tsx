@@ -1,10 +1,10 @@
 
-import { prisma } from "@/lib/prisma"
 import { InformationCircleIcon } from "@heroicons/react/24/outline"
 
-// Server Component for fetching and displaying pools
-export async function CompanyPools() {
-    const pools = await prisma.pool.findMany()
+// Client/Server agnostic component for displaying pools
+export function CompanyPools({ pools }: { pools: any[] }) {
+    // const pools = await prisma.pool.findMany() // Removed internal fetch
+
     
     const getPool = (name: string) => {
         const p = pools.find(p => p.name === name)

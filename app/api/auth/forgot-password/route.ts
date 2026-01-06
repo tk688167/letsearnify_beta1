@@ -29,7 +29,11 @@ export async function POST(req: NextRequest) {
       create: { userId: user.id, otp, expiresAt },
     });
 
-    await sendEmail(email, otp);
+    const result = await sendEmail(email, otp);
+
+    if (!result || !result.success) {
+      return NextResponse.json({ message: "Failed to send OTP email." }, { status: 500 });
+    }
 
     return NextResponse.json({ message: "OTP sent to your email." });
   } catch (error) {

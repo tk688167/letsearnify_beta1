@@ -15,26 +15,31 @@ export default async function DashboardPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      balance: true,
-      tier: true,
-      points: true,
-      // @ts-ignore
-      memberId: true, // Fetch ID
-      referralCode: true,
-      isActiveMember: true,
-      totalDeposit: true,
-      activeMembers: true,
-      _count: {
-        select: { referrals: true }
+  if (!session?.user?.id) redirect("/login")
+  
+  const [user, pools] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        balance: true,
+        tier: true,
+        points: true,
+        // @ts-ignore
+        memberId: true, // Fetch ID
+        referralCode: true,
+        isActiveMember: true,
+        totalDeposit: true,
+        activeMembers: true,
+        _count: {
+          select: { referrals: true }
+        }
       }
-    }
-  })
+    }),
+    prisma.pool.findMany()
+  ])
   
   if (!user) return null
 
@@ -196,7 +201,7 @@ export default async function DashboardPage() {
               <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold uppercase tracking-wider">Live Network Status</span>
           </div>
           <React.Suspense fallback={<div className="h-48 bg-gray-100 rounded-2xl animate-pulse"></div>}>
-             <CompanyPools />
+             <CompanyPools pools={pools} />
           </React.Suspense>
       </div>
 

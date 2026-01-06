@@ -241,6 +241,8 @@ export async function distributeReferralCommission(depositorId: string, amount: 
   }
 }
 
+import { processRoyaltyContribution } from "@/lib/royalty";
+
 /**
  * Handle new deposit event for MLM logic:
  * 1. Update User's total deposit.
@@ -256,12 +258,19 @@ export async function processDeposit(userId: string, amount: number) {
     });
 
     // 2. Check for Active Member Qualification
+    // Logic: If they weren't active before, and now have >= $1, they just activated.
+    // NOTE: The activation fee is effectively the first $1 of their total deposits.
     if (!user.isActiveMember && user.totalDeposit >= 1.0) {
         // Mark as Active
         await prisma.user.update({
             where: { id: userId },
             data: { isActiveMember: true }
         });
+
+        // TRIGGER ROYALTY POOL CONTRIBUTION
+        // "Whenever a user deposits $1 to unlock... 5% of that $1 is added"
+        // We only contribute ONCE upon activation.
+        await processRoyaltyContribution(userId, 1.0); // Fixed $1 basis
 
         // 3. Find Referrer and Increment Active Active Members
         // We use the ReferralTree to find the direct upline (advisorId)

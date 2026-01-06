@@ -225,13 +225,16 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-               <button
+              <button
                 onClick={resetPassword}
                 disabled={loading || otp.length < 6 || !newPassword || !confirmPassword}
                 className="w-full flex justify-center items-center py-3 px-4 h-12 border border-transparent rounded-xl shadow-sm text-base font-bold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-[0.98]"
               >
                 {loading ? "Resetting..." : "Reset Password"}
+
               </button>
+
+              <ResendTimer onResend={requestOtp} /> 
             </div>
           )}
           
@@ -274,6 +277,44 @@ export default function ForgotPasswordPage() {
 
         </div>
       </div>
+    </div>
+  );
+}
+
+function ResendTimer({ onResend }: { onResend: () => void }) {
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timerId);
+    } else {
+      setCanResend(true);
+    }
+  }, [timeLeft]);
+
+  const handleResend = () => {
+    setTimeLeft(60);
+    setCanResend(false);
+    onResend();
+  };
+
+  return (
+    <div className="mt-4 text-center">
+      {canResend ? (
+        <button
+          onClick={handleResend}
+          type="button"
+          className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+        >
+          Resend Verification Code
+        </button>
+      ) : (
+        <p className="text-sm text-gray-500">
+          Resend code in <span className="font-medium text-gray-700">{timeLeft}s</span>
+        </p>
+      )}
     </div>
   );
 }

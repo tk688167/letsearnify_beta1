@@ -73,7 +73,7 @@ export default async function middleware(req: NextRequest) {
 
   // Redirect authenticated users from Home to Dashboard
   if (nextUrl.pathname === "/" && session?.user) {
-      return NextResponse.redirect(new URL("/dashboard", nextUrl))
+      return NextResponse.redirect(new URL("/welcome", nextUrl))
   }
 
   // NOTE: NextAuth middleware usually handles redirect protection based on authConfig.

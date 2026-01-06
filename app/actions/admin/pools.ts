@@ -64,3 +64,39 @@ export async function updatePool(data: { name: string, amount: number, percentag
     return { error: "Failed to update pool" }
   }
 }
+
+export async function updateCbspPercentage(percentage: number) {
+    const session = await auth();
+    if (!session?.user?.id) return { error: "Unauthorized" };
+
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    if (user?.role !== "ADMIN") return { error: "Unauthorized" };
+
+    if (percentage < 0 || percentage > 100) return { error: "Invalid percentage" };
+
+    try {
+        const pool = await prisma.pool.upsert({
+            where: { name: "CBSP" },
+            update: { percentage },
+            create: {
+                name: "CBSP",
+                balance: 0,
+                percentage,
+                description: "Company Business Share Profit Pool"
+            }
+        });
+
+        await prisma.adminLog.create({
+            data: {
+                adminId: session.user.id!,
+                actionType: "POOL_CONFIG_UPDATE",
+                details: `Updated CBSP Percentage to ${percentage}%`
+            }
+        });
+
+        revalidatePath("/admin/pools/cbspool");
+        return { success: true, percentage };
+    } catch (e: any) {
+        return { error: e.message || "Failed to update percentage" };
+    }
+}

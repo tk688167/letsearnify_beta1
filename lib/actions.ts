@@ -416,6 +416,7 @@ export async function updatePlatformWallet(network: string, address: string, qrC
 }
 
 import { checkAndUpgradeTier } from "./mlm"
+import { processCbspContribution } from "@/lib/cbsp"
 
 export async function updateUserAsAdmin(formData: FormData) {
   const session = await auth()
@@ -455,17 +456,19 @@ export async function updateUserAsAdmin(formData: FormData) {
 
   const diff = balance - oldUser.balance;
 
-  await prisma.$transaction([
-    prisma.user.update({
+  await prisma.$transaction(async (tx) => {
+    // 1. Update User
+    await tx.user.update({
       where: { id: userId },
       data: {
         ...updates,
         ...(diff > 0 ? { totalDeposit: { increment: diff } } : {})
       }
-    }),
+    })
     
-    (Math.abs(diff) > 0.001) ? 
-      prisma.transaction.create({
+    // 2. Create Transaction Record
+    if (Math.abs(diff) > 0.001) {
+      await tx.transaction.create({
         data: {
           userId,
           amount: Math.abs(diff),
@@ -476,27 +479,37 @@ export async function updateUserAsAdmin(formData: FormData) {
             ? `Admin Credited $${diff.toFixed(2)}` 
             : `Balance changed from ${oldUser.balance} to ${balance}`
         }
-      }) : prisma.$queryRaw`SELECT 1`,
+      })
+    }
       
-    prisma.adminLog.create({
+    // 3. Admin Log
+    await tx.adminLog.create({
       data: {
-        adminId: session.user.id,
+        adminId: session.user.id!,
         targetUserId: userId,
         actionType: "USER_UPDATE",
         details: `Updated User ${oldUser.email}: Balance ${oldUser.balance}->${balance}, Pts ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}, Tier ${oldUser.tier}->${tier || oldUser.tier}`
       }
-    }),
+    })
 
-    ((tier && tier !== oldUser.tier) || (points !== oldUser.points) || (activeMembers !== oldUser.activeMembers)) ?
-      prisma.mLMLog.create({
+    // 4. CBSP Contribution for Admin Added Funds
+    if (diff > 0) {
+        // @ts-ignore
+        await processCbspContribution(userId, diff, undefined, "Admin Panel Manual Update", tx)
+    }
+
+    // 5. MLM Log
+    if ((tier && tier !== oldUser.tier) || (points !== oldUser.points) || (activeMembers !== oldUser.activeMembers)) {
+      await tx.mLMLog.create({
         data: {
            userId: userId,
            type: "ADMIN_UPDATE",
            amount: 0,
            description: `Admin updated: Tier ${oldUser.tier}->${tier || oldUser.tier}, Points ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}`
         }
-      }) : prisma.$queryRaw`SELECT 1`
-  ])
+      })
+    }
+  })
   
   // Trigger Tier Check after update
   await checkAndUpgradeTier(userId);

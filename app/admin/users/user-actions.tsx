@@ -20,7 +20,7 @@ type UserActionsProps = {
   }
 }
 
-const TIERS = ["BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
+const TIERS = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 
 export default function UserActions({ user }: UserActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -260,7 +260,7 @@ export default function UserActions({ user }: UserActionsProps) {
                           <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tier</label>
                           <select 
                             name="tier" 
-                            defaultValue={user.tier || "BRONZE"}
+                            defaultValue={user.tier || "NEWBIE"}
                             className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-gray-900 shadow-sm"
                           >
                              {TIERS.map(t => (

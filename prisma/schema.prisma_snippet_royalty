@@ -1,0 +1,10 @@
+
+model RoyaltyContribution {
+  id                 String   @id @default(cuid())
+  userId             String
+  depositAmount      Float    // The activation amount (e.g. $1.0)
+  contributionAmount Float    // The 5% portion
+  createdAt          DateTime @default(now())
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

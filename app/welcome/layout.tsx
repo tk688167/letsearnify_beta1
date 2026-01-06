@@ -1,13 +1,13 @@
 import { auth } from "@/auth"
-import MobileNav from "./mobile-nav"
-import { Sidebar } from "./components/sidebar"
+import MobileNav from "../dashboard/mobile-nav"
+import { Sidebar } from "../dashboard/components/sidebar"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function WelcomeLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
 
   return (
     <div className="flex h-screen bg-gray-50/50">
-      {/* Sidebar */}
+      {/* Sidebar - Reusing Dashboard Sidebar */}
       <Sidebar session={session} />
 
       {/* Main Content */}

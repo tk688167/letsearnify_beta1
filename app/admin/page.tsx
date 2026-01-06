@@ -2,6 +2,7 @@ import { getAnalytics } from "@/lib/analytics"
 import { MainTrafficChart, DistributionChart, BarListChart } from "./components/charts"
 import { StatsCard } from "./components/StatsCard"
 import { LiveFeed } from "./components/LiveFeed"
+import { AdminStatsGrid } from "./components/AdminStatsGrid"
 import { UsersIcon, GlobeAltIcon, CursorArrowRaysIcon, AdjustmentsHorizontalIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 
@@ -25,6 +26,10 @@ export default async function AdminDashboard(props: { searchParams: Promise<{ ra
             <FilterButton label="90 Days" active={range === '90d'} value="90d" />
          </div>
       </div>
+
+
+      {/* Platform Financials & User Stats */}
+      <AdminStatsGrid />
 
       {/* KPI Stats Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">

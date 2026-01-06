@@ -51,6 +51,7 @@ model User {
 
   // MLM Activity Tracking
   isActiveMember Boolean   @default(false) // True if user has deposited >= $1
+  isCbspMember   Boolean   @default(false) // True if user is a member of the CBSP Pool
   activeMembers Int       @default(0) // Count of direct referrals with >= $1 deposit
   totalDeposit  Float     @default(0.0) // Total amount deposited by user
 
@@ -86,9 +87,33 @@ model User {
   // New Optimized MLM Relations
   referralTree        ReferralTree?
   mlmLogs             MLMLog[]
+  cbspContributions   CbspContribution[]
+  royaltyContributions RoyaltyContribution[]
   passwordResetToken  PasswordResetToken?
 }
 
+model CbspContribution {
+  id                 String   @id @default(cuid())
+  userId             String
+  depositAmount      Float    // The original deposit amount (e.g. $1.0)
+  contributionAmount Float    // The 5% portion (e.g. $0.05)
+  description        String?
+  createdAt          DateTime @default(now())
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RoyaltyContribution {
+  id                 String   @id @default(cuid())
+  userId             String
+  depositAmount      Float    // The activation amount (e.g. $1.0)
+  contributionAmount Float    // The 5% portion
+  createdAt          DateTime @default(now())
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// System Pools for Logic
 model PaymentMethod {
   id        String   @id @default(cuid())
   userId    String

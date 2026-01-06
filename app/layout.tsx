@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Tracker } from "./components/Tracker";
 import BackButton from "./components/BackButton";
+import ScrollToTop from "./components/ScrollToTop";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-gray-50 text-gray-900`}
       >
+        <ScrollToTop />
         <BackButton />
         {children}
         <Tracker />

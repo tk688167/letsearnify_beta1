@@ -1,63 +1,125 @@
+"use client"
+
 import Link from "next/link"
-import { auth } from "@/auth"
-import { redirect } from "next/navigation"
+import React, { useRef } from "react"
+import { motion, useScroll, useTransform, useInView } from "framer-motion"
+import SpecialPoolsSection from "./components/landing/SpecialPoolsSection"
 import LandingHeader from "./components/LandingHeader"
 import SmartPoolsSection from "./components/landing/SmartPoolsSection"
+import { ArrowRightIcon } from "@heroicons/react/24/outline"
 
-const SUPPORT_EMAIL = "LetsEarnify@gmail.com"
-
-// export const dynamic = 'force-dynamic' // Removed for Static Generation
-
-export default async function LandingPage() {
-  // Session check moved to Middleware for performance
-  // const session = await auth()
-  // if (session) redirect("/dashboard")
+export default function LandingPage() {
+  const { scrollYProgress } = useScroll()
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 overflow-x-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Navbar */}
       <LandingHeader />
       
       {/* Hero Section */}
-      <main className="flex-1 pt-24 md:pt-32 pb-12 md:pb-20">
-        <section className="relative px-4 md:px-6 text-center max-w-5xl mx-auto mb-20 md:mb-32">
-          {/* Decor */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-blue-100 rounded-full blur-3xl -z-10 opacity-50"></div>
-          
-          <div className="inline-block px-3 py-1 md:px-4 md:py-1.5 mb-6 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-[10px] md:text-xs font-bold uppercase tracking-wider">
-            🚀 The Future of Digital Earning
+      <main className="flex-1">
+        <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
+          {/* Animated Background */}
+          <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden">
+             <motion.div 
+               animate={{ 
+                 x: [0, 50, 0], 
+                 y: [0, 30, 0],
+                 scale: [1, 1.1, 1]
+               }}
+               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+               style={{ willChange: 'transform' }}
+               className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[100px] translate-x-1/3 -translate-y-1/4 transform-gpu" 
+             />
+             <motion.div 
+               animate={{ 
+                 x: [0, -30, 0], 
+                 y: [0, 50, 0],
+                 scale: [1, 1.2, 1]              
+               }}
+               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+               style={{ willChange: 'transform' }}
+               className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-fuchsia-500/10 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/4 transform-gpu" 
+             />
           </div>
-          <h1 className="text-4xl md:text-7xl font-serif font-bold text-gray-900 mb-6 md:mb-8 leading-[1.1]">
-            Turn <span className="text-primary">$1</span> into <br/>
-            <span className="text-gradient">Endless Opportunities</span>
-          </h1>
-          <p className="text-lg md:text-2xl text-gray-500 mb-8 md:mb-12 max-w-3xl mx-auto font-light leading-relaxed px-2">
-            A Hybrid Business Model bridging Micro-Tasks, Freelancing, and Ethical Investments. 
-            Join the ecosystem designed for your financial freedom.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 md:gap-5 justify-center items-center">
-            <Link 
-              href="/signup" 
-              className="w-full sm:w-auto px-6 py-3 md:px-10 md:py-4 bg-primary hover:bg-primary-hover text-white rounded-full text-base md:text-lg font-semibold shadow-xl shadow-blue-600/20 transition-all hover:scale-105"
+
+          <motion.div 
+            style={{ opacity, scale }}
+            className="max-w-6xl mx-auto text-center relative z-10"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-indigo-100 shadow-sm mb-8"
             >
-              Start Earning Now
-            </Link>
-            <Link 
-              href="/about" 
-              className="w-full sm:w-auto px-6 py-3 md:px-10 md:py-4 bg-white border border-gray-200 text-gray-700 rounded-full text-base md:text-lg font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+              </span>
+              <span className="text-sm font-semibold text-indigo-900 tracking-wide uppercase">The Future of Digital Earning</span>
+            </motion.div>
+
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="text-5xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
             >
-              Learn More
-            </Link>
-          </div>
+              Turn <span className="text-indigo-600 inline-block relative">
+                $1
+                <svg className="absolute w-full h-3 -bottom-1 left-0 text-indigo-400 opacity-40" viewBox="0 0 100 10" preserveAspectRatio="none">
+                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                </svg>
+              </span> into <br className="hidden md:block"/>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600">Endless Opportunities</span>
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-lg md:text-2xl text-gray-500 mb-12 max-w-3xl mx-auto leading-relaxed"
+            >
+              A revolutionary hybrid ecosystem bridging Micro-Tasks, Freelancing, and Ethical Mudaraba Investments. 
+              Join thousands building financial freedom today.
+            </motion.p>
+
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8, delay: 0.6 }}
+               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <Link href="/signup" className="group relative w-full sm:w-auto">
+                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                 <button className="relative w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 group-hover:bg-gray-800 transition-all transform group-hover:-translate-y-0.5">
+                    Start Earning Now
+                    <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                 </button>
+              </Link>
+              <Link href="#features">
+                 <button className="w-full sm:w-auto px-8 py-4 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-lg hover:border-gray-300 hover:bg-gray-50 transition-all shadow-sm">
+                    Learn More
+                 </button>
+              </Link>
+            </motion.div>
+          </motion.div>
         </section>
 
         {/* Features Grid */}
-        <section id="features" className="py-20 bg-white/50 relative">
+        <section id="features" className="py-24 md:py-32 bg-white relative">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-16">
-               <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">The 4-Pillar Ecosystem</h2>
-               <div className="h-1 w-20 bg-primary mx-auto rounded-full"></div>
-            </div>
+            <FadeIn>
+              <div className="text-center mb-20">
+                 <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6 text-gray-900">The 4-Pillar Ecosystem</h2>
+                 <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+                    Designed to provide multiple income streams regardless of your skill level or investment capital.
+                 </p>
+              </div>
+            </FadeIn>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <FeatureCard 
@@ -65,259 +127,258 @@ export default async function LandingPage() {
                 desc="Build your team and earn passive commissions from a multi-tier referral system."
                 icon="👥"
                 gradient="from-blue-500 to-indigo-600"
+                delay={0}
               />
               <FeatureCard 
                 title="Task Center" 
                 desc="Complete simple micro-tasks for instant rewards in your spare time."
                 icon="✅"
                 gradient="from-emerald-500 to-teal-600"
+                delay={0.1}
               />
               <FeatureCard 
                 title="Mudaraba Pool" 
                 desc="Ethical, profit-sharing investment pools for long-term passive growth."
                 icon="📈"
                 gradient="from-amber-400 to-orange-500"
+                delay={0.2}
               />
               <FeatureCard 
                 title="Marketplace" 
                 desc="Offer your professional skills and services to a global audience."
                 icon="🛍️"
                 gradient="from-pink-500 to-rose-600"
+                delay={0.3}
               />
             </div>
           </div>
         </section>
 
-        {/* Smart Pools Section */}
-        <SmartPoolsSection />
+        {/* Special Pools Section */}
+        <SpecialPoolsSection />
+
+        {/* Smart Pools Section (Existing Component Wrapper) */}
+        <div className="bg-gray-50">
+             <SmartPoolsSection />
+        </div>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-24 relative overflow-hidden">
-           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-50 rounded-full blur-3xl -z-10 opacity-60 translate-x-1/2"></div>
+        <section id="how-it-works" className="py-24 relative overflow-hidden bg-white">
+           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-b from-indigo-50/50 to-transparent rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+           
            <div className="max-w-7xl mx-auto px-6">
-              <div className="text-center mb-16">
-                 <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">How It Works</h2>
-                 <p className="text-gray-500 max-w-2xl mx-auto">Start your earning journey in four simple steps.</p>
-              </div>
+              <FadeIn>
+                <div className="text-center mb-20">
+                   <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">How It Works</h2>
+                   <p className="text-gray-500 max-w-2xl mx-auto text-lg">Start your earning journey in four simple steps.</p>
+                </div>
+              </FadeIn>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                 {/* Connecting Line (Desktop) */}
+                 <div className="hidden md:block absolute top-[60px] left-0 w-full h-0.5 bg-gray-100 -z-10"></div>
+                 
                  {[
-                    { number: "01", title: "Create Account", desc: "Sign up with your email & country in under 60 seconds." },
-                    { number: "02", title: "Activate", desc: "Unlock full platform access with a minimal $1 deposit." },
-                    { number: "03", title: "Choose Earning", desc: "Engage in Tasks, Referrals, Marketplace, or Investment pools." },
-                    { number: "04", title: "Withdraw", desc: "Track earnings in real-time and withdraw securely." }
+                    { number: "01", title: "Create Account", desc: "Sign up with your email & country in under 60 seconds.", color: "text-blue-500", bg: "bg-blue-50", border: "hover:border-blue-200", gradient: "from-blue-50 to-white" },
+                    { number: "02", title: "Activate", desc: "Unlock full platform access with a minimal $1 deposit.", color: "text-purple-500", bg: "bg-purple-50", border: "hover:border-purple-200", gradient: "from-purple-50 to-white" },
+                    { number: "03", title: "Choose Earning", desc: "Engage in Tasks, Referrals, Marketplace, or Investment pools.", color: "text-emerald-500", bg: "bg-emerald-50", border: "hover:border-emerald-200", gradient: "from-emerald-50 to-white" },
+                    { number: "04", title: "Withdraw", desc: "Track earnings in real-time and withdraw securely.", color: "text-orange-500", bg: "bg-orange-50", border: "hover:border-orange-200", gradient: "from-orange-50 to-white" }
                  ].map((step, idx) => (
-                    <div key={idx} className="relative p-8 bg-white/60 backdrop-blur-sm border border-white/50 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 group">
-                       <div className="text-5xl font-bold text-gray-100 mb-6 group-hover:text-blue-50 transition-colors">{step.number}</div>
+                    <motion.div 
+                        key={idx}
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: idx * 0.1 }}
+                        viewport={{ once: true }}
+                        className={`relative p-8 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group hover:-translate-y-2 ${step.border} bg-gradient-to-br ${step.gradient}`}
+                    >
+                       <div className={`text-5xl font-black mb-6 transition-colors absolute top-4 right-4 opacity-10 group-hover:opacity-20 ${step.color}`}>{step.number}</div>
+                       <div className={`w-14 h-14 rounded-2xl ${step.bg} ${step.color} flex items-center justify-center font-bold text-xl mb-6 shadow-sm relative z-10 group-hover:scale-110 transition-transform`}>
+                          {idx + 1}
+                       </div>
                        <h3 className="font-serif font-bold text-xl mb-3 text-gray-900 relative z-10">{step.title}</h3>
-                       <p className="text-gray-500 text-sm leading-relaxed relative z-10">{step.desc}</p>
-                    </div>
+                       <p className="text-gray-500 text-sm leading-relaxed relative z-10 font-medium">{step.desc}</p>
+                    </motion.div>
                  ))}
               </div>
            </div>
         </section>
 
         {/* Why Users Trust Us Section */}
-        <section className="py-12 md:py-20 bg-gray-50/50">
-           <div className="max-w-7xl mx-auto px-4 md:px-6">
-              <div className="text-center mb-10 md:mb-16">
-                 <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Why Users Trust Let'$Earnify</h2>
-                 <p className="text-gray-500 max-w-2xl mx-auto">Built on transparency, security, and ethical financial principles.</p>
-              </div>
+        <section className="py-24 bg-gray-50 relative">
+           <div className="max-w-7xl mx-auto px-6">
+              <FadeIn>
+                <div className="text-center mb-16">
+                   <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Why Users Trust Let'$Earnify</h2>
+                   <p className="text-gray-500 max-w-2xl mx-auto text-lg">Built on transparency, security, and ethical financial principles.</p>
+                </div>
+              </FadeIn>
 
               <div className="grid md:grid-cols-3 gap-8">
-                 <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-blue-100 transition-colors">
-                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-6 text-blue-600">🛡️</div>
-                    <h3 className="font-bold text-lg mb-3">Secure Infrastructure</h3>
-                    <p className="text-gray-500 text-sm">Enterprise-grade security for your wallet and personal data.</p>
-                 </div>
-                 <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-emerald-100 transition-colors">
-                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center text-2xl mb-6 text-emerald-600">⚖️</div>
-                    <h3 className="font-bold text-lg mb-3">Ethical Profit-Sharing</h3>
-                    <p className="text-gray-500 text-sm">Our Mudaraba model ensures fair, transparent profit distribution.</p>
-                 </div>
-                 <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:border-amber-100 transition-colors">
-                    <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-2xl mb-6 text-amber-600">💳</div>
-                    <h3 className="font-bold text-lg mb-3">Real-Time Tracking</h3>
-                    <p className="text-gray-500 text-sm">Monitor every cent of your earnings and deposits instantly.</p>
-                 </div>
+                 <TrustCard 
+                    title="Secure Infrastructure"
+                    desc="Enterprise-grade security measures to protect your wallet and personal data."
+                    icon="🛡️"
+                    color="bg-blue-50 text-blue-600"
+                    hoverBorder="hover:border-blue-200"
+                    delay={0}
+                 />
+                 <TrustCard 
+                    title="Ethical Profit-Sharing"
+                    desc="Our Mudaraba model ensures fair, compliant, and transparent profit distribution."
+                    icon="⚖️"
+                    color="bg-emerald-50 text-emerald-600"
+                    hoverBorder="hover:border-emerald-200"
+                    delay={0.1}
+                 />
+                 <TrustCard 
+                    title="Real-Time Tracking"
+                    desc="Monitor every cent of your earnings, commissions, and deposits instantly."
+                    icon="💳"
+                    color="bg-amber-50 text-amber-600"
+                    hoverBorder="hover:border-amber-200"
+                    delay={0.2}
+                 />
               </div>
            </div>
         </section>
 
         {/* Customer Support Section */}
-        <section className="py-16 md:py-24 px-4 md:px-6 relative">
-             <div className="max-w-5xl mx-auto bg-white border border-gray-100 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-12 shadow-2xl shadow-gray-200/50 flex flex-col md:flex-row gap-8 md:gap-12 items-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-10"></div>
-                <div className="flex-1 space-y-6">
-                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                      💬 We're Here To Help
-                   </div>
-                   <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900">Dedicated Support & Resources</h2>
-                   <p className="text-gray-500 leading-relaxed">
-                      Your success is our priority. We provide multiple channels to ensure you never feel stuck or alone on your journey.
-                   </p>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                      <a 
-                        href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("Support Request – Let'$Earnify")}&body=${encodeURIComponent("Hello Let'$Earnify Support Team,\n\nI need help regarding my account.\n\nName:\nRegistered Email:\nUser ID (if available):\nIssue Description:\n\nThank you,")}`}
-                        className="flex flex-col gap-1 p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors group cursor-pointer"
-                      >
-                         <div className="flex items-center gap-3">
-                            <span className="text-xl">📧</span>
-                            <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">Email Support</span>
-                         </div>
-                         <span className="text-[10px] text-gray-400 pl-9">Opens default email app</span>
-                      </a>
-                      <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                         <span className="text-xl">🎫</span>
-                         <span className="text-sm font-semibold text-gray-700">Ticket System</span>
-                      </div>
-                      <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl">
-                         <span className="text-xl">📚</span>
-                         <span className="text-sm font-semibold text-gray-700">Knowledge Base</span>
-                      </div>
-                      <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl opacity-70">
-                         <span className="text-xl">💬</span>
-                         <div>
-                            <span className="text-sm font-semibold text-gray-700 block">Live Chat</span>
-                            <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded">Coming Soon</span>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-                <div className="w-full md:w-1/3 flex flex-col gap-4">
-                   <div className="p-6 bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-3xl text-center">
-                      <div className="text-4xl mb-2">24/7</div>
-                      <div className="text-sm text-gray-300 font-medium">System Monitoring</div>
-                   </div>
-                   <Link href="/support" className="p-6 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-3xl text-center font-bold transition-colors">
-                      Visit Help Center
-                   </Link>
-                </div>
-             </div>
-        </section>
+        <section className="py-24 px-6 relative bg-white">
+             <FadeIn>
+               <div className="max-w-6xl mx-auto bg-gradient-to-br from-white to-gray-50 border border-gray-100 rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-10 opacity-50"></div>
+                  
+                  <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="space-y-8">
+                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                          💬 We're Here To Help
+                       </div>
+                       <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900">Dedicated Support & Resources</h2>
+                       <p className="text-gray-500 text-lg leading-relaxed">
+                          Your success is our priority. We provide multiple channels to ensure you never feel stuck or alone on your journey.
+                       </p>
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <a href="mailto:LetsEarnify@gmail.com" className="flex flex-col gap-2 p-5 bg-white border border-gray-100 rounded-2xl hover:border-indigo-200 hover:shadow-lg transition-all group cursor-pointer">
+                             <div className="flex items-center gap-3">
+                                <span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-xl group-hover:scale-110 transition-transform">📧</span>
+                                <span className="font-bold text-gray-900 text-sm">Email Support</span>
+                             </div>
+                             <span className="text-xs text-gray-400 pl-11">Opens default mail app</span>
+                          </a>
+                          
+                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors">
+                             <span className="p-2 bg-purple-50 text-purple-600 rounded-lg text-xl">🎫</span>
+                             <span className="font-bold text-gray-900 text-sm">Ticket System</span>
+                          </div>
 
-        {/* Transparency & Rules Section */}
-        <section className="pb-16 md:pb-24 pt-6 md:pt-10 px-4 md:px-6">
-           <div className="max-w-4xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-8">
-                 <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                    <h3 className="font-serif font-bold text-lg mb-6 flex items-center gap-2">
-                       <span className="w-2 h-8 bg-blue-500 rounded-full"></span>
-                       Platform Rules
-                    </h3>
-                    <ul className="space-y-4">
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-blue-500 font-bold">•</span>
-                          Minimum $1 deposit required for activation
-                       </li>
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-blue-500 font-bold">•</span>
-                          Marketplace applies minimum commission fees
-                       </li>
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-blue-500 font-bold">•</span>
-                          Withdrawals subject to standard verification
-                       </li>
-                    </ul>
-                 </div>
-                 <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-                    <h3 className="font-serif font-bold text-lg mb-6 flex items-center gap-2">
-                       <span className="w-2 h-8 bg-gray-500 rounded-full"></span>
-                       Transparency
-                    </h3>
-                    <ul className="space-y-4">
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-gray-400 font-bold">•</span>
-                          Earnings depend on activity & participation
-                       </li>
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-gray-400 font-bold">•</span>
-                          No guaranteed fixed profits in Mudaraba
-                       </li>
-                       <li className="flex gap-3 text-sm text-gray-600">
-                          <span className="text-gray-400 font-bold">•</span>
-                          Global architecture for worldwide access
-                       </li>
-                    </ul>
-                 </div>
-              </div>
-           </div>
-        </section>
-        
-        {/* Deposit/CTA Section */}
-        <section className="py-16 md:py-24 px-4 md:px-6">
-           <div className="max-w-6xl mx-auto bg-gray-900 text-white rounded-[2rem] p-6 md:p-20 relative overflow-hidden shadow-2xl">
-              {/* Background Glows */}
-              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-              <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink-600/20 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors">
+                             <span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg text-xl">📚</span>
+                             <span className="font-bold text-gray-900 text-sm">Knowledge Base</span>
+                          </div>
 
-              <div className="relative z-10 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-                 <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sm font-medium mb-6 backdrop-blur-sm border border-white/10">
-                       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Premium Access
+                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl opacity-80">
+                             <span className="p-2 bg-gray-50 text-gray-600 rounded-lg text-xl">💬</span>
+                             <div>
+                                <span className="font-bold text-gray-900 text-sm block">Live Chat</span>
+                                <span className="inline-block text-[10px] uppercase font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5">Coming Soon</span>
+                             </div>
+                          </div>
+                       </div>
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-serif font-bold mb-4 md:mb-6">Start Small, <br/> Dream Big.</h2>
-                    <p className="text-gray-300 text-base md:text-lg mb-6 md:mb-8 leading-relaxed">
-                       Unlock the full potential of the platform with a minimal entry deposit. 
-                       Get access to high-value tasks, marketplace posting, and investment pools.
-                    </p>
-                    <ul className="space-y-4 mb-10">
-                       <li className="flex items-center gap-3 text-gray-300">
-                          <span className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm">✓</span>
-                          Instant Account Activation
-                       </li>
-                       <li className="flex items-center gap-3 text-gray-300">
-                          <span className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm">✓</span>
-                          Access to all 4 Earning Pillars
-                       </li>
-                       <li className="flex items-center gap-3 text-gray-300">
-                          <span className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-sm">✓</span>
-                          24/7 Priority Support
-                       </li>
-                    </ul>
-                 </div>
-                 
-                 <div className="bg-white/10 backdrop-blur-md border border-white/10 p-6 md:p-8 rounded-3xl text-center">
-                    <div className="text-sm uppercase tracking-widest text-gray-400 mb-2">Minimum Deposit</div>
-                    <div className="text-5xl md:text-6xl font-bold mb-2">$1<span className="text-2xl text-gray-400">.00</span></div>
-                    <div className="text-gray-400 text-sm mb-8">One-time entry fee</div>
+                    <div className="bg-gray-900 rounded-3xl p-8 md:p-10 text-white shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                        <div className="relative z-10 text-center">
+                            <div className="text-6xl mb-4">24/7</div>
+                            <h3 className="text-2xl font-bold mb-2">System Monitoring</h3>
+                            <p className="text-gray-400 mb-8">Our platform runs around the clock so you can earn anytime.</p>
+                            <Link href="/support" className="inline-block w-full py-4 bg-white text-gray-900 rounded-xl font-bold hover:bg-gray-100 transition-colors">
+                                Visit Help Center
+                            </Link>
+                        </div>
+                    </div>
+                  </div>
+               </div>
+             </FadeIn>
+        </section>
+
+        {/* Deposit/CTA Section */}
+        <section className="py-24 px-6 md:px-12 bg-gray-50">
+           <div className="max-w-7xl mx-auto">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true }}
+                className="bg-gray-900 text-white rounded-[2.5rem] p-8 md:p-24 relative overflow-hidden shadow-2xl text-center md:text-left"
+              >
+                 {/* Background Glows */}
+                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
+                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+
+                 <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium mb-8 backdrop-blur-sm border border-white/10">
+                          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Premium Access
+                       </div>
+                       <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6">Start Small, <br/> Dream Big.</h2>
+                       <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed max-w-lg">
+                          Unlock the full potential of the platform with a minimal entry deposit. 
+                          Get access to high-value tasks, marketplace posting, and investment pools.
+                       </p>
+                       <ul className="space-y-4 mb-12">
+                          {["Instant Account Activation", "Access to all 4 Earning Pillars", "24/7 Priority Support"].map((item, i) => (
+                              <li key={i} className="flex items-center gap-3 text-gray-300">
+                                <span className="w-6 h-6 rounded-full bg-indigo-500/30 flex items-center justify-center text-indigo-300 text-sm">✓</span>
+                                {item}
+                              </li>
+                          ))}
+                       </ul>
+                    </div>
                     
-                    <Link 
-                      href="/signup" 
-                      className="block w-full py-4 bg-white text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-100 transition-colors shadow-lg"
-                    >
-                       Get Started Now
-                    </Link>
-                    <p className="mt-4 text-xs text-gray-500">Secure payment via Stripe & TRC20</p>
+                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-[2rem] text-center transform hover:scale-105 transition-transform duration-500 shadow-2xl">
+                       <div className="text-sm uppercase tracking-widest text-gray-400 mb-4">Minimum Deposit</div>
+                       <div className="text-6xl md:text-7xl font-bold mb-4 tracking-tighter">$1<span className="text-2xl text-gray-500">.00</span></div>
+                       <div className="text-gray-400 text-sm mb-10">One-time entry fee</div>
+                       
+                       <Link 
+                         href="/signup" 
+                         className="block w-full py-5 bg-white text-gray-900 rounded-2xl font-bold text-xl hover:bg-gray-100 transition-colors shadow-lg shadow-white/10"
+                       >
+                          Get Started Now
+                       </Link>
+                       <p className="mt-6 text-xs text-gray-500 font-medium">Secure payment via Stripe & TRC20</p>
+                    </div>
                  </div>
-              </div>
+              </motion.div>
            </div>
         </section>
         
         {/* Final Emotional CTA Section */}
-        <section className="py-20 text-center px-6">
-           <div className="max-w-3xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6">Start Small. Grow Big.</h2>
-              <p className="text-xl text-gray-500 mb-10 font-light">
-                 Your financial freedom journey doesn't need a fortune to begin. 
-                 Consistency is the key to unlocking endless opportunities.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                 <Link 
-                   href="/signup" 
-                   className="px-8 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
-                 >
-                   Create Free Account
-                 </Link>
-                 <Link 
-                   href="/signup" 
-                   className="px-8 py-4 bg-white border border-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-colors"
-                 >
-                   Start with $1
-                 </Link>
-              </div>
-           </div>
+        <section className="py-32 text-center px-6 bg-white">
+           <FadeIn>
+             <div className="max-w-4xl mx-auto">
+                <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8">Ready to start your journey?</h2>
+                <p className="text-xl md:text-2xl text-gray-500 mb-12 font-light">
+                   Your financial freedom journey doesn't need a fortune to begin. 
+                   Consistency is the key to unlocking endless opportunities.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                   <Link 
+                     href="/signup" 
+                     className="px-10 py-5 bg-gray-900 text-white rounded-2xl font-bold text-lg hover:bg-black transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1"
+                   >
+                     Create Free Account
+                   </Link>
+                   <Link 
+                     href="/signup" 
+                     className="px-10 py-5 bg-gray-50 border border-gray-200 text-gray-700 rounded-2xl font-bold text-lg hover:bg-gray-100 transition-colors"
+                   >
+                     Start with $1
+                   </Link>
+                </div>
+             </div>
+           </FadeIn>
         </section>
 
       </main>
@@ -326,38 +387,40 @@ export default async function LandingPage() {
         <div className="max-w-7xl mx-auto px-6">
            <div className="grid md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-1">
-                 <div className="text-xl font-serif font-bold mb-6">Let'$Earnify</div>
-                 <p className="text-gray-500 text-sm leading-relaxed">
+                 <Link href="/" className="text-2xl font-serif font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-6 inline-block">
+                    Let'$Earnify
+                 </Link>
+                 <p className="text-gray-500 text-sm leading-relaxed mt-4">
                     The ultimate platform for financial freedom. Join thousands of users growing their wealth today.
                  </p>
               </div>
               <div>
-                 <h4 className="font-bold mb-6">Platform</h4>
+                 <h4 className="font-bold mb-6 text-gray-900">Platform</h4>
                  <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="#" className="hover:text-primary">Features</Link></li>
-                    <li><Link href="#" className="hover:text-primary">Pricing</Link></li>
-                    <li><Link href="#" className="hover:text-primary">Investments</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Features</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Pricing</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Investments</Link></li>
                  </ul>
               </div>
               <div>
-                 <h4 className="font-bold mb-6">Company</h4>
+                 <h4 className="font-bold mb-6 text-gray-900">Company</h4>
                  <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="/about" className="hover:text-primary">About Us</Link></li>
-                    <li><Link href="#" className="hover:text-primary">Careers</Link></li>
-                    <li><Link href="/support" className="hover:text-primary">Contact</Link></li>
+                    <li><Link href="/about" className="hover:text-indigo-600 transition-colors">About Us</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Careers</Link></li>
+                    <li><Link href="/support" className="hover:text-indigo-600 transition-colors">Contact</Link></li>
                  </ul>
               </div>
               <div>
-                 <h4 className="font-bold mb-6">Legal</h4>
+                 <h4 className="font-bold mb-6 text-gray-900">Legal</h4>
                  <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="#" className="hover:text-primary">Privacy Policy</Link></li>
-                    <li><Link href="#" className="hover:text-primary">Terms of Service</Link></li>
-                    <li><Link href="#" className="hover:text-primary">Risk Disclosure</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</Link></li>
+                    <li><Link href="#" className="hover:text-indigo-600 transition-colors">Risk Disclosure</Link></li>
                  </ul>
               </div>
            </div>
            <div className="text-center text-sm text-gray-400 border-t border-gray-100 pt-10">
-              © 2024 Let'$Earnify. All rights reserved.
+              © {new Date().getFullYear()} Let'$Earnify. All rights reserved.
            </div>
         </div>
       </footer>
@@ -365,14 +428,51 @@ export default async function LandingPage() {
   )
 }
 
-function FeatureCard({ title, desc, icon, gradient }: { title: string, desc: string, icon: string, gradient: string }) {
+function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: number }) {
   return (
-    <div className="p-8 bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-3xl mb-6 text-white shadow-lg group-hover:scale-110 transition-transform`}>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay }}
+      viewport={{ once: true, margin: "-100px" }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
+function FeatureCard({ title, desc, icon, gradient, delay }: { title: string, desc: string, icon: string, gradient: string, delay: number }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
+      whileHover={{ y: -10, transition: { duration: 0.2 } }}
+      viewport={{ once: true }}
+      className="p-8 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 group cursor-default"
+    >
+      <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-3xl mb-8 text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
         {icon}
       </div>
-      <h3 className="font-bold text-xl mb-3 text-gray-900 font-serif">{title}</h3>
-      <p className="text-gray-500 leading-relaxed font-light">{desc}</p>
-    </div>
+      <h3 className="font-bold text-xl mb-4 text-gray-900 font-serif">{title}</h3>
+      <p className="text-gray-500 leading-relaxed text-sm">{desc}</p>
+    </motion.div>
+  )
+}
+
+function TrustCard({ title, desc, icon, color, hoverBorder, delay }: { title: string, desc: string, icon: string, color: string, hoverBorder: string, delay: number }) {
+  return (
+     <motion.div 
+       initial={{ opacity: 0, scale: 0.9 }}
+       whileInView={{ opacity: 1, scale: 1 }}
+       whileHover={{ scale: 1.02 }}
+       transition={{ duration: 0.5, delay }}
+       viewport={{ once: true }}
+       className={`p-10 bg-white rounded-[2rem] shadow-sm border border-gray-100 flex flex-col items-center text-center ${hoverBorder} transition-colors group`}
+     >
+        <div className={`w-20 h-20 ${color.split(' ')[0]} rounded-full flex items-center justify-center text-3xl mb-8 ${color.split(' ')[1]} group-hover:scale-110 transition-transform`}>{icon}</div>
+        <h3 className="font-bold text-xl mb-3">{title}</h3>
+        <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+     </motion.div>
   )
 }

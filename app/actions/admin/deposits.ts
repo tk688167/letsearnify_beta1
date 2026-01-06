@@ -2,7 +2,8 @@
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { processDeposit } from "@/lib/mlm" // Reusing the deposit processor logic fro MLM updates?
+import { processDeposit } from "@/lib/mlm" 
+import { processCbspContribution } from "@/lib/cbsp"
 // Actually prompt says "No CBSP, Referral... automated distributions included". 
 // BUT prompt says "Approved: ... User dashboard shows $1 active deposit". 
 // `processDeposit` updates `totalDeposit` and triggers MLM Active Status checks. 
@@ -105,14 +106,17 @@ export async function approveDeposit(txId: string) {
                  }
              }
 
-            // 5. Log Admin Action
+            // 5. CBSP Contribution Logic (Shared Helper)
+            // @ts-ignore
+            await processCbspContribution(tx.userId, depositAmount, tx.txId || tx.id, `Deposit #${txId}`, prismaTx);
+
+            // 6. Log Admin Action
             await prismaTx.adminLog.create({
                 data: {
                     adminId: session.user.id!,
                     targetUserId: tx.userId,
                     actionType: "DEPOSIT_APPROVAL",
                     // @ts-ignore
-                    // details: `Approved deposit of $${tx.amount} (TXID: ${tx.txId})`
                     details: `Approved deposit of $${depositAmount} (TXID: ${txId})` 
                 }
             });
