@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   /* Startup / Premium Light Theme */
   --background: #f8f9fa; /* Clean Off-White */

@@ -210,7 +210,7 @@ export default function WelcomeContent({ user, pools }: WelcomeContentProps) {
                              {user.referralCode && (
                                 <div className="bg-black/20 rounded-xl p-2 flex items-center justify-between pl-4">
                                     <span className="text-gray-300 text-sm truncate mr-4">le-earn.com/ref/{user.referralCode}</span>
-                                    <CopyableText text={`https://lets-earnify.com/register?ref=${user.referralCode}`} className="bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-bold" />
+                                    <CopyableText text={`https://letsearnify.com/welcome/${user.referralCode}`} className="bg-white text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-bold" />
                                 </div>
                              )}
 

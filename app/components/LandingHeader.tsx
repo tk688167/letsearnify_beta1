@@ -17,9 +17,10 @@ export default function LandingHeader() {
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex gap-8 text-sm font-medium text-gray-600">
-            <Link href="#features" className="hover:text-blue-600 transition-colors">Features</Link>
-            <Link href="#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link>
+            <Link href="/#features" className="hover:text-blue-600 transition-colors">Features</Link>
+            <Link href="/#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link>
             <Link href="/about" className="hover:text-blue-600 transition-colors">About</Link>
+            <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms & Disclosures</Link>
             <Link href="/faq" className="hover:text-blue-600 transition-colors">FAQ</Link>
           </nav>
 
@@ -50,9 +51,10 @@ export default function LandingHeader() {
       <div className={`fixed inset-0 z-40 bg-white transform transition-transform duration-300 ease-in-out md:hidden ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
          <div className="flex flex-col h-full pt-24 px-6 pb-8">
             <nav className="flex flex-col space-y-6 text-lg font-medium text-gray-900">
-               <Link href="#features" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Features</Link>
-               <Link href="#how-it-works" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">How it Works</Link>
+               <Link href="/#features" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Features</Link>
+               <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">How it Works</Link>
                <Link href="/about" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">About</Link>
+               <Link href="/terms" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Terms & Disclosures</Link>
                <Link href="/faq" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">FAQ</Link>
             </nav>
             
