@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { 
@@ -261,6 +261,16 @@ function IdentityCard({ user }: any) {
 }
 
 function ReferralCard({ user }: any) {
+    const [origin, setOrigin] = useState("")
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setOrigin(window.location.origin)
+        }
+    }, [])
+
+    const referralLink = origin ? `${origin}/welcome?ref=${user.referralCode}` : "Loading..."
+
     return (
         <div className="p-6 bg-gradient-to-br from-indigo-50 to-white rounded-2xl border border-indigo-100 flex flex-col justify-center shadow-sm relative overflow-hidden group">
              {/* Decor */}
@@ -270,7 +280,7 @@ function ReferralCard({ user }: any) {
                 <div className="flex justify-between items-start mb-4">
                    <div>
                        <h3 className="font-bold text-indigo-900 font-serif text-lg">Partner Program</h3>
-                       <p className="text-sm text-indigo-600/80">Share your code to earn lifelong commissions.</p>
+                       <p className="text-sm text-indigo-600/80">Share your link to earn lifelong commissions.</p>
                    </div>
                    <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-500">
                        <UserGroupIcon className="w-6 h-6"/>
@@ -278,11 +288,28 @@ function ReferralCard({ user }: any) {
                 </div>
 
                 {user.referralCode ? (
-                    <div className="bg-white p-1 pr-2 rounded-xl border border-indigo-100 shadow-sm flex items-center justify-between gap-3">
-                        <div className="bg-indigo-50 px-4 py-3 rounded-lg flex-1 text-center">
-                            <span className="text-lg font-bold text-indigo-700 tracking-widest">{user.referralCode}</span>
+                    <div className="space-y-3">
+                        {/* 1. Referral Link (Primary) */}
+                        <div className="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                            <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Your Personal Link</label>
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 overflow-hidden">
+                                     <p className="text-sm font-medium text-indigo-900 truncate bg-indigo-50/50 px-2 py-1.5 rounded-lg border border-indigo-100/50">
+                                        {referralLink}
+                                     </p>
+                                </div>
+                                <CopyButton text={referralLink} color="indigo" />
+                            </div>
                         </div>
-                        <CopyButton text={user.referralCode} color="indigo" />
+
+                        {/* 2. Code Only (Secondary) */}
+                        <div className="flex items-center justify-between gap-3 px-1">
+                             <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Referral Code:</span>
+                             <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-indigo-700">{user.referralCode}</span>
+                                <CopyButton text={user.referralCode} />
+                             </div>
+                        </div>
                     </div>
                 ) : (
                     <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">Referral code generating...</div>
