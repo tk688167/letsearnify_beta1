@@ -2,7 +2,7 @@
 
 import React from "react"
 import { motion } from "framer-motion"
-import { ArrowRgthIcon, ShieldCheckIcon, CalendarDaysIcon } from "@heroicons/react/24/solid" // Note: Check imports, ArrowRight might be standard
+import { ShieldCheckIcon } from "@heroicons/react/24/solid"
 import { ArrowRightIcon } from "@heroicons/react/24/outline"
 
 export default function WelcomeHero({ user }: { user: any }) {

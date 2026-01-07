@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 export default function ComingSoonSettingsPage() {
     const [globalConfig, setGlobalConfig] = useState<ComingSoonConfig | null>(null)
-    const [activeTab, setActiveTab] = useState<keyof ComingSoonConfig>('default')
+    const [activeTab, setActiveTab] = useState<'default' | 'tasks' | 'pools' | 'marketplace'>('default')
     const [isPending, startTransition] = useTransition()
     const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
     const router = useRouter()

@@ -21,6 +21,9 @@ export interface ComingSoonConfig {
   tasks: SectionConfig
   pools: SectionConfig
   marketplace: SectionConfig
+  tasksEnabled?: boolean
+  poolsEnabled?: boolean
+  marketplaceEnabled?: boolean
 }
 
 const DEFAULT_SECTION: SectionConfig = {
@@ -37,7 +40,10 @@ const DEFAULT_CONFIG: ComingSoonConfig = {
   default: DEFAULT_SECTION,
   tasks: { ...DEFAULT_SECTION, title: "Task Center Is Coming", description: "Get ready to earn by completing simple tasks. Our comprehensive Task Center is under construction.", gradientFrom: "from-blue-950", gradientTo: "to-purple-900", watermarkText: "TASK CENTER" },
   pools: { ...DEFAULT_SECTION, title: "Mudaraba Pool Opening", description: "Invest in ethical, Sharia-compliant pools. The Mudaraba investment platform is being finalized.", gradientFrom: "from-indigo-950", gradientTo: "to-violet-900", watermarkText: "POOLS" },
-  marketplace: { ...DEFAULT_SECTION, title: "Marketplace Launching", description: "Buy and sell services in our upcoming Micro-Earning Marketplace. Stay tuned!", gradientFrom: "from-violet-950", gradientTo: "to-fuchsia-900", watermarkText: "MARKET" }
+  marketplace: { ...DEFAULT_SECTION, title: "Marketplace Launching", description: "Buy and sell services in our upcoming Micro-Earning Marketplace. Stay tuned!", gradientFrom: "from-violet-950", gradientTo: "to-fuchsia-900", watermarkText: "MARKET" },
+  tasksEnabled: false,
+  poolsEnabled: false,
+  marketplaceEnabled: false
 }
 
 export async function getComingSoonConfig(): Promise<ComingSoonConfig> {
