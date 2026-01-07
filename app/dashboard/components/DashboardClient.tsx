@@ -269,7 +269,7 @@ function ReferralCard({ user }: any) {
         }
     }, [])
 
-    const referralLink = origin ? `${origin}/welcome?ref=${user.referralCode}` : "Loading..."
+    const referralLink = origin ? `${origin}/?ref=${user.referralCode}` : "Loading..."
 
     return (
         <div className="p-6 bg-gradient-to-br from-indigo-50 to-white rounded-2xl border border-indigo-100 flex flex-col justify-center shadow-sm relative overflow-hidden group">

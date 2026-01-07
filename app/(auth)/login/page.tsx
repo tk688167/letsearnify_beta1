@@ -42,12 +42,12 @@ function LoginContent() {
            if (data.role === "ADMIN") {
                router.push("/admin")
            } else {
-               router.push("/welcome")
+               router.push("/dashboard")
            }
            router.refresh()
         } catch (e) {
-           // Fallback to welcome if role check fails
-           router.push("/welcome")
+           // Fallback to dashboard if role check fails
+           router.push("/dashboard")
            router.refresh()
         }
       }

@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   }
 }
 
+import React, { Suspense } from "react"
+// ... imports
+
 export default function LandingPage() {
-  return <LandingPageContent />
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50"></div>}>
+       <LandingPageContent />
+    </Suspense>
+  )
 }

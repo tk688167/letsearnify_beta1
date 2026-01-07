@@ -1,14 +1,29 @@
 "use client"
 
 import Link from "next/link"
-import React from "react"
-import { motion, useScroll, useTransform } from "framer-motion"
+import React, { useState, useEffect } from "react"
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { useSearchParams } from "next/navigation"
 import SpecialPoolsSection from "../../components/landing/SpecialPoolsSection"
 import LandingHeader from "../../components/LandingHeader"
 import SmartPoolsSection from "../../components/landing/SmartPoolsSection"
-import { ArrowRightIcon } from "@heroicons/react/24/outline"
+import { ArrowRightIcon, XMarkIcon, StarIcon } from "@heroicons/react/24/outline"
+import SignupForm from "../../components/auth/SignupForm"
 
 export default function LandingPageContent() {
+  const searchParams = useSearchParams()
+  const [isSignupOpen, setIsSignupOpen] = useState(false)
+  const refCode = searchParams.get("ref")
+
+  // Auto-open logic if ref exists
+  useEffect(() => {
+    if (refCode) {
+        // Small delay to ensure smooth loading
+        const timer = setTimeout(() => setIsSignupOpen(true), 1000)
+        return () => clearTimeout(timer)
+    }
+  }, [refCode])
+
   const { scrollYProgress } = useScroll()
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
@@ -421,6 +436,53 @@ export default function LandingPageContent() {
            </div>
         </div>
       </footer>
+
+      {/* AUTO-OPEN SIGNUP MODAL */}
+      <AnimatePresence>
+         {isSignupOpen && (
+            <>
+               <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity"
+                  onClick={() => setIsSignupOpen(false)}
+               />
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden max-h-[90vh] overflow-y-auto"
+               >
+                  <div className="p-6 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                     <h3 className="text-lg font-bold text-gray-900">Create Account</h3>
+                     <button 
+                        onClick={() => setIsSignupOpen(false)}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                     >
+                        <XMarkIcon className="w-5 h-5 text-gray-500" />
+                     </button>
+                  </div>
+                  
+                  <div className="p-6">
+                     {refCode && (
+                       <div className="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start gap-3">
+                          <StarIcon className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+                          <div>
+                             <p className="text-sm font-bold text-indigo-900">Referral Applied!</p>
+                             <p className="text-xs text-indigo-700 mt-1">
+                                You are joining with code <span className="font-mono font-bold">{refCode}</span>.
+                             </p>
+                          </div>
+                       </div>
+                     )}
+                     
+                     <SignupForm referralCode={refCode || ""} isModal={true} />
+                  </div>
+               </motion.div>
+            </>
+         )}
+      </AnimatePresence>
     </div>
   )
 }
