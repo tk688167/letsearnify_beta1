@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { 
-  Bars3Icon, 
+  EllipsisVerticalIcon, 
   XMarkIcon,
   HomeIcon, 
   BriefcaseIcon, 
@@ -24,21 +24,23 @@ export default function MobileNav({ session }: { session: Session | null }) {
   const pathname = usePathname()
 
   const closeMenu = () => setIsOpen(false)
+  const toggleMenu = () => setIsOpen(!isOpen)
 
   return (
     <>
-      {/* Mobile Header */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex justify-between items-center md:hidden">
+      {/* Mobile Header - Always Visible, Z-Index High */}
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-gray-100 px-6 py-3.5 flex justify-between items-center md:hidden h-[64px]">
          <div className="flex items-center gap-3">
             <button 
-              onClick={() => setIsOpen(true)}
-              className="p-1 -ml-1 text-gray-600 hover:text-blue-600 focus:outline-none"
+              onClick={toggleMenu}
+              className="group relative flex items-center justify-center w-10 h-10 rounded-full bg-white border border-indigo-100 shadow-sm shadow-indigo-100/50 hover:shadow-md hover:shadow-indigo-200/50 hover:border-indigo-200 hover:scale-105 active:scale-95 transition-all duration-300"
             >
-               <Bars3Icon className="w-7 h-7" />
+               <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+               <EllipsisVerticalIcon className="w-6 h-6 text-gray-500 group-hover:text-indigo-600 transition-colors duration-300 relative z-10" />
             </button>
             <Link href="/dashboard" className="font-serif font-bold text-lg text-gray-900 cursor-pointer">Let'$Earnify</Link>
          </div>
-         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-blue-500/20">
+         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-indigo-500/20 ring-2 ring-white">
             {session?.user?.name?.[0] || "U"}
          </div>
       </header>
@@ -46,28 +48,16 @@ export default function MobileNav({ session }: { session: Session | null }) {
       {/* Drawer Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-gray-900/20 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 top-[64px] z-30 bg-gray-900/20 backdrop-blur-[2px] md:hidden animate-in fade-in duration-200"
           onClick={closeMenu}
         />
       )}
 
-      {/* Drawer Panel */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Drawer Panel - Slides in BELOW header */}
+      <div className={`fixed inset-y-0 left-0 top-[64px] z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-gray-100 shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
-           <div className="p-6 pb-2 flex justify-between items-start">
-             <div>
-               <Link href="/dashboard">
-                 <h1 className="text-2xl font-serif font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer">
-                   Let'$Earnify
-                 </h1>
-               </Link>
-               <p className="text-xs text-gray-400 mt-1 font-medium tracking-wider uppercase">Beta Release</p>
-             </div>
-             <button onClick={closeMenu} className="p-1 text-gray-400 hover:text-gray-600">
-               <XMarkIcon className="w-6 h-6" />
-             </button>
-           </div>
-
+           {/* Header inside drawer removed to avoid duplication/clutter, simpler list */}
+           
            <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
               <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
               <MobileNavItem href="/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" pathname={pathname} close={closeMenu} color="blue" />

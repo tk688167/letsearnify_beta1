@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation"
 import { XMarkIcon, CheckCircleIcon, CurrencyDollarIcon, UserGroupIcon, StarIcon } from "@heroicons/react/24/outline"
 import LandingHeader from "../components/LandingHeader"
 import SignupForm from "../components/auth/SignupForm"
+import PlatformStatsCarousel from "../components/PlatformStatsCarousel"
+import WelcomeSlider from "../components/WelcomeSlider"
 
 // Features Data
 const features = [
@@ -65,8 +67,8 @@ function PublicWelcomeContent({ initialRef }: { initialRef?: string }) {
          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <LandingHeader />
-
-      <main className="flex-1 pt-20">
+      
+      <main className="flex-1">
         
         {/* HERO SECTION */}
         <section className="relative py-20 px-6 text-center overflow-hidden bg-gray-900 text-white">
@@ -112,9 +114,17 @@ function PublicWelcomeContent({ initialRef }: { initialRef?: string }) {
                       </button>
                    </Link>
                 </div>
+
+                {/* Platform Stats Carousel */}
+                <div className="mt-12">
+                   <PlatformStatsCarousel />
+                </div>
              </motion.div>
            </div>
         </section>
+
+        {/* WELCOME SLIDER */}
+        <WelcomeSlider />
 
         {/* FEATURES TEASER */}
         <section className="py-20 px-6 bg-white">

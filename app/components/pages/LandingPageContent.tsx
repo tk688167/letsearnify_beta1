@@ -68,11 +68,9 @@ export default function LandingPageContent() {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-4xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
             >
-              LetsEarnify: The Premier Platform to <span className="text-indigo-600 inline-block relative">
-                Earn Online Rewards
-                <svg className="absolute w-full h-3 -bottom-1 left-0 text-indigo-400 opacity-40" viewBox="0 0 100 10" preserveAspectRatio="none">
-                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
-                </svg>
+              Turn $1 into <br />
+              <span className="text-indigo-600 inline-block relative">
+                Endless Opportunities
               </span>
             </motion.h1>
 

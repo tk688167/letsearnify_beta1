@@ -1,8 +1,9 @@
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect, notFound } from "next/navigation"
 import ReferralView from "@/app/dashboard/referrals/referral-view"
+import { getTierRules } from "@/lib/mlm"
 import { startOfDay } from "date-fns"
 
 export default async function AdminUserTreePage(props: { params: Promise<{ id: string }> }) {
@@ -93,6 +94,8 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
   })
   const todayEarnings = todayEarningsAgg._sum.amount || 0
 
+  const tierRules = await getTierRules()
+
   return (
     <div className="p-6 md:p-10 min-h-screen bg-gray-50/50">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -134,6 +137,7 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
              sourceUser: c.sourceUser,
              createdAt: c.createdAt
           })) : []}
+          tierConfig={tierRules}
        />
     </div>
   )

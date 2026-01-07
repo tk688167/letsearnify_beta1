@@ -73,7 +73,43 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         return null
       }
     }),
-    Google
+    Google,
+    Credentials({
+        id: "impersonation",
+        name: "Impersonation",
+        credentials: {
+            token: { label: "Token", type: "text" }
+        },
+        async authorize(credentials) {
+            if (!credentials?.token) return null;
+            
+            try {
+                const jwt = await import("jsonwebtoken");
+                const secret = process.env.AUTH_SECRET;
+                if (!secret) throw new Error("Missing AUTH_SECRET");
+
+                const payload = jwt.verify(credentials.token as string, secret) as any;
+
+                if (payload.type !== "impersonation" || !payload.targetUserId) {
+                    throw new Error("Invalid token type");
+                }
+
+                // Verify target user still exists
+                const user = await prisma.user.findUnique({
+                    where: { id: payload.targetUserId }
+                });
+
+                if (!user) return null;
+
+                console.log("🎭 Admin Impersonation: Switching to", user.email);
+                return user;
+
+            } catch (error) {
+                console.error("Impersonation failed:", error);
+                return null;
+            }
+        }
+    })
   ],
   events: {
     async createUser({ user }) {

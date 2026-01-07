@@ -1,0 +1,28 @@
+[2026-01-07T14:54:22.907Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T14:54:23.172Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T14:54:43.692Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T14:54:44.227Z] Password mismatch "superadmin@letsearnify.com"
+[2026-01-07T14:54:51.763Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T14:54:51.939Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T14:58:13.986Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T14:58:14.249Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T14:58:44.305Z] Authorize called {"email":"admin@letsearnify.com"}
+[2026-01-07T14:58:44.561Z] Password match! Login Successful {"email":"admin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T14:59:12.476Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T14:59:12.832Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:02:14.830Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:02:15.084Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:02:34.654Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:02:34.907Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:02:36.702Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:02:36.873Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:04:42.041Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:04:42.303Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:04:44.557Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:04:44.745Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:06:38.062Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:06:38.313Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:07:45.408Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:07:45.664Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}
+[2026-01-07T15:10:39.686Z] Authorize called {"email":"superadmin@letsearnify.com"}
+[2026-01-07T15:10:39.942Z] Password match! Login Successful {"email":"superadmin@letsearnify.com","role":"ADMIN"}

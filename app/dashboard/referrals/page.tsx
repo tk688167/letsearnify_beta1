@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import ReferralView from "./referral-view"
 import { startOfDay } from "date-fns"
+import { getTierRules } from "@/lib/mlm"
 
 export default async function ReferralsPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
+  
+  // Fetch Dynamic Rules
+  const tierConfig = await getTierRules();
 
   // Fetch User with Deeply Nested Referrals (3 Levels)
   const user = await prisma.user.findUnique({
@@ -91,10 +95,11 @@ export default async function ReferralsPage() {
              balance: user.balance
           }}
           stats={{
-             teamSize,
+             teamSize: user.activeMembers || teamSize, // Use DB count if available (handles admin overrides), else tree
              totalEarnings,
              todayEarnings
           }}
+          tierConfig={tierConfig}
           referralTree={referralTree.map(n => ({
              id: n.id,
              name: n.name,

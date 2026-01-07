@@ -11,9 +11,13 @@ export const authConfig = {
       const isOnAdmin = nextUrl.pathname.startsWith("/admin")
 
       if (isOnAdmin) {
-        console.log("Middleware Auth Check:", JSON.stringify(auth?.user, null, 2)) // DEBUG LOG
-        if (isLoggedIn && auth?.user?.role === "ADMIN") return true
+        const ALLOWED_ADMIN = "admin@letsearnify.com";
+        // Strict Email Whitelist for Admin Portal
+        if (isLoggedIn && auth?.user?.email === ALLOWED_ADMIN) return true
+        
+        // Redirect unauthorized logged-in users to /unauthorized or home
         if (isLoggedIn) return Response.redirect(new URL('/unauthorized', nextUrl))
+        
         return false // Block unauthenticated users
       }
       
@@ -23,7 +27,7 @@ export const authConfig = {
       }
 
       if (nextUrl.pathname === '/login' && isLoggedIn) {
-        return Response.redirect(new URL('/dashboard', nextUrl))
+        return Response.redirect(new URL('/welcome', nextUrl))
       }
 
       return true

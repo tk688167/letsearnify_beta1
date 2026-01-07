@@ -32,7 +32,7 @@ export default function SmartPoolsSection() {
             title="CBSPool"
             subtitle="Core Benefit Sharing"
             desc="The core earning engine where active participants receive weekly profit shares from platform activities."
-            motivation="Deposit just $1 and start receiving weekly profit shares."
+            motivation="Deposit just $1 and start receiving 3% weekly profit shares."
             icon={<BanknotesIcon className="w-7 h-7 text-white" />}
             gradient="from-blue-500 to-cyan-500"
             delay="delay-0"

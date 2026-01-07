@@ -4,6 +4,7 @@ import "./globals.css";
 import { Tracker } from "./components/Tracker";
 import BackButton from "./components/BackButton";
 import ScrollToTop from "./components/ScrollToTop";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -99,6 +100,7 @@ export default function RootLayout({
       >
         <ScrollToTop />
         <BackButton />
+        <Toaster position="top-center" />
         {children}
         <script
           type="application/ld+json"

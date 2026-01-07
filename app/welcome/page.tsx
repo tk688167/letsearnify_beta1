@@ -45,7 +45,7 @@ export default async function WelcomePage({
   }
   
   // If Authenticated, show Internal Welcome Dashboard
-  const [user, pools] = await Promise.all([
+  const [user, pools, sliderMessages] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.user.id },
         select: {
@@ -66,10 +66,17 @@ export default async function WelcomePage({
             percentage: true,
             balance: true
         }
+      }),
+      prisma.systemConfig.findUnique({
+        where: { key: "WELCOME_SLIDER" }
       })
   ])
 
   if (!user) return <PublicWelcome /> // Fallback if user not found
 
-  return <WelcomeContent user={user} pools={pools} />
+  // Parse slider messages
+  const messages = (sliderMessages?.value as any[]) || []
+  const activeMessages = Array.isArray(messages) ? messages.filter((m: any) => m.active) : []
+
+  return <WelcomeContent user={user} pools={pools} messages={activeMessages} />
 }

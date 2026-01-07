@@ -11,7 +11,9 @@ import {
     BanknotesIcon,
     UserGroupIcon,
     XMarkIcon,
-    CheckIcon
+    CheckIcon,
+    PhoneIcon,
+    BuildingStorefrontIcon
 } from "@heroicons/react/24/outline"
 import { 
     addCountry, 
@@ -19,30 +21,24 @@ import {
     deleteCountry, 
     addPaymentMethod, 
     deletePaymentMethod,
-    updatePaymentMethod,
     addMerchantContact,
     deleteMerchantContact,
-    updateMerchantContact,
     updateCountryDetails
 } from "@/app/actions/admin/merchant-settings"
 
 export default function MerchantSettingsPage({ countries }: { countries: any[] }) {
     const [isPending, startTransition] = useTransition()
     
-    // State
-    const [activeTab, setActiveTab] = useState<string>(countries.length > 0 ? countries[0].id : "manage")
+    // UI State
+    const [isAddCountryOpen, setIsAddCountryOpen] = useState(false)
+    const [expandedCountryId, setExpandedCountryId] = useState<string | null>(null)
     
-    // Forms State
+    // Forms
     const [newCountry, setNewCountry] = useState({ name: "", code: "" })
-    const [newMethod, setNewMethod] = useState("")
-    const [newContact, setNewContact] = useState({ name: "", phone: "" })
     
-    // Editing State
-    const [editingContact, setEditingContact] = useState<string | null>(null)
-    const [editContactForm, setEditContactForm] = useState({ name: "", phone: "" })
-    
-    const [editingMethod, setEditingMethod] = useState<string | null>(null)
-    const [editMethodForm, setEditMethodForm] = useState("")
+    // Quick Add States
+    const [quickMethod, setQuickMethod] = useState<{id: string, val: string} | null>(null)
+    const [quickContact, setQuickContact] = useState<{id: string, name: string, phone: string} | null>(null)
 
     // Handlers
     const handleAddCountry = () => {
@@ -50,430 +46,383 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
         startTransition(async () => {
             await addCountry(newCountry.name, newCountry.code)
             setNewCountry({ name: "", code: "" })
-            // Optional: Switch to new country tab logic could be added here if we returned the ID
+            setIsAddCountryOpen(false)
         })
     }
 
-    const activeCountry = countries.find(c => c.id === activeTab)
+    const toggleStatus = (id: string, currentStatus: string) => {
+        startTransition(async () => {
+            await updateCountryStatus(id, currentStatus === "ACTIVE" ? "COMING_SOON" : "ACTIVE")
+        })
+    }
+
+    const handleDeleteCountry = (id: string) => {
+        if (confirm("Are you sure? This will delete all associated merchants and methods.")) {
+            startTransition(async () => {
+                await deleteCountry(id)
+            })
+        }
+    }
+
+    // Computed Stats
+    const activeCountries = countries.filter(c => c.status === "ACTIVE").length
+    const totalMethods = countries.reduce((acc, c) => acc + c.methods.length, 0)
 
     return (
-        <div className="space-y-6 pb-10">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h1 className="text-2xl font-bold font-serif text-gray-900">Merchant Settings</h1>
-            </div>
-
-            {/* TABS NAVIGATION */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-2">
-                <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 scrollbar-hide">
-                    <button
-                        onClick={() => setActiveTab("manage")}
-                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                            activeTab === "manage" 
-                                ? "bg-gray-900 text-white shadow-lg shadow-gray-200" 
-                                : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                        }`}
-                    >
-                        <GlobeAltIcon className="w-5 h-5"/>
-                        Manage Countries
-                    </button>
-                    
-                    <div className="w-px bg-gray-200 mx-2 hidden md:block"></div>
-
-                    {countries.map(country => (
-                        <button
-                            key={country.id}
-                            onClick={() => setActiveTab(country.id)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                                activeTab === country.id 
-                                    ? "bg-blue-600 text-white shadow-lg shadow-blue-200" 
-                                    : "text-gray-500 hover:bg-blue-50 hover:text-blue-600"
-                            }`}
-                        >
-                            <span>{country.name}</span>
-                            <span className={`w-2 h-2 rounded-full ${country.status === "ACTIVE" ? "bg-green-400" : "bg-yellow-400"}`}></span>
-                        </button>
-                    ))}
+        <div className="space-y-8 pb-12">
+            
+            {/* HEADER & STATS */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="text-3xl font-serif font-bold text-gray-900">Merchant Settings</h1>
+                    <p className="text-gray-500 mt-2">Manage supported countries, payment methods, and merchant contacts.</p>
+                </div>
+                <div className="flex gap-4">
+                     <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                            <GlobeAltIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Countries</div>
+                            <div className="text-xl font-bold text-gray-900">{activeCountries} <span className="text-gray-300 text-sm font-normal">/ {countries.length}</span></div>
+                        </div>
+                     </div>
+                     <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <BanknotesIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Methods</div>
+                            <div className="text-xl font-bold text-gray-900">{totalMethods}</div>
+                        </div>
+                     </div>
                 </div>
             </div>
 
-            {/* CONTENT AREA */}
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm min-h-[500px]">
-                
-                {/* 1. MANAGE COUNTRIES TAB */}
-                {activeTab === "manage" && (
-                    <div className="p-6 md:p-8 space-y-8">
-                        {/* Add New */}
-                        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">Add New Country</h3>
-                            <div className="flex flex-col md:flex-row gap-4 items-end">
-                                <div className="flex-1 w-full">
-                                    <label className="text-xs font-bold text-gray-400 mb-1 block">Country Name</label>
-                                    <input 
-                                        className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                                        placeholder="e.g. United Kingdom"
-                                        value={newCountry.name} 
-                                        onChange={e => setNewCountry({...newCountry, name: e.target.value})}
-                                    />
+            {/* ACTION BAR */}
+            <div className="flex justify-between items-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                <div className="pl-4 text-sm font-bold text-gray-700">
+                    Showing <span className="text-black">{countries.length}</span> Regions
+                </div>
+                <button 
+                    onClick={() => setIsAddCountryOpen(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-black transition-all shadow-lg hover:shadow-gray-900/20 font-bold text-sm"
+                >
+                    <PlusIcon className="w-4 h-4" />
+                    Add Country
+                </button>
+            </div>
+
+            {/* COUNTRIES GRID (MASONRY-STYLE) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {countries.map((country) => (
+                    <div 
+                        key={country.id} 
+                        className={`group relative bg-white rounded-[2rem] border transition-all duration-300 overflow-hidden flex flex-col ${
+                            country.status === "ACTIVE" 
+                            ? "border-gray-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-900/5" 
+                            : "border-gray-100 bg-gray-50/50 opacity-80 hover:opacity-100"
+                        }`}
+                    >
+                        {/* CARD HEADER */}
+                        <div className="p-6 pb-4 flex justify-between items-start border-b border-gray-50">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-inner font-bold ${
+                                    country.status === "ACTIVE" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-400"
+                                }`}>
+                                    {country.code}
                                 </div>
-                                <div className="md:w-32 w-full">
-                                    <label className="text-xs font-bold text-gray-400 mb-1 block">Code</label>
-                                    <input 
-                                        className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
-                                        placeholder="e.g. UK"
-                                        value={newCountry.code} 
-                                        onChange={e => setNewCountry({...newCountry, code: e.target.value})}
-                                    />
+                                <div>
+                                    <h3 className="font-bold text-lg text-gray-900">{country.name}</h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <div onClick={() => toggleStatus(country.id, country.status)} className={`cursor-pointer px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider border select-none transition-colors ${
+                                            country.status === "ACTIVE" 
+                                            ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100" 
+                                            : "bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100"
+                                        }`}>
+                                            {country.status === "ACTIVE" ? "Active Region" : "Coming Soon"}
+                                        </div>
+                                    </div>
                                 </div>
+                            </div>
+                            
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button 
-                                    onClick={handleAddCountry} 
-                                    disabled={isPending || !newCountry.name || !newCountry.code}
-                                    className="p-3 bg-gray-900 text-white rounded-xl hover:bg-black disabled:opacity-50 transition-colors w-full md:w-auto flex justify-center"
+                                    onClick={() => setExpandedCountryId(country.id)}
+                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                                    title="Edit Details"
                                 >
-                                    <PlusIcon className="w-6 h-6"/>
+                                    <PencilSquareIcon className="w-5 h-5"/>
+                                </button>
+                                <button 
+                                    onClick={() => handleDeleteCountry(country.id)}
+                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                    title="Delete"
+                                >
+                                    <TrashIcon className="w-5 h-5"/>
                                 </button>
                             </div>
                         </div>
 
-                        {/* List */}
-                        <div className="space-y-4">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Existing Countries</h3>
-                            <div className="grid gap-4">
-                                {countries.map((country) => (
-                                    <div key={country.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors bg-white hover:shadow-sm">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                                {country.code}
-                                            </div>
-                                            <div>
-                                                <div className="font-bold text-gray-900">{country.name}</div>
-                                                <div className={`text-xs font-bold px-2 py-0.5 rounded-md w-fit mt-1 ${country.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                                                    {country.status === "ACTIVE" ? "Active" : "Coming Soon"}
+                        {/* CARD BODY */}
+                        <div className="p-6 space-y-6 flex-1">
+                            
+                            {/* Payment Methods */}
+                            <div>
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+                                    <span>Payment Methods</span>
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {country.methods.map((method: any) => (
+                                        <div key={method.id} className="group/tag inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-100 rounded-lg text-xs font-bold text-gray-600">
+                                            {method.name}
+                                            <button 
+                                                onClick={() => startTransition(async () => { await deletePaymentMethod(method.id) })}
+                                                className="hover:text-red-500 hidden group-hover/tag:block"
+                                            >
+                                                <XMarkIcon className="w-3 h-3"/>
+                                            </button>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Add Quick Method Input */}
+                                    {quickMethod?.id === country.id ? (
+                                        <div className="inline-flex items-center gap-1">
+                                            <input 
+                                                autoFocus
+                                                className="w-24 px-2 py-1 text-xs border border-blue-200 rounded-lg outline-none focus:ring-1 focus:ring-blue-500"
+                                                placeholder="Name..."
+                                                value={quickMethod?.val || ''}
+                                                onChange={e => setQuickMethod({ id: country.id, val: e.target.value })}
+                                                onKeyDown={e => {
+                                                    if(e.key === 'Enter' && quickMethod?.val) {
+                                                        startTransition(async () => {
+                                                            await addPaymentMethod(country.id, quickMethod?.val || '')
+                                                            setQuickMethod(null)
+                                                        })
+                                                    }
+                                                    if(e.key === 'Escape') setQuickMethod(null)
+                                                }}
+                                            />
+                                            <button 
+                                                 onClick={() => {
+                                                    if(quickMethod?.val) {
+                                                        startTransition(async () => {
+                                                            await addPaymentMethod(country.id, quickMethod?.val || '')
+                                                            setQuickMethod(null)
+                                                        })
+                                                    }
+                                                 }}
+                                                 className="p-1 bg-green-100 text-green-700 rounded-md"
+                                            >
+                                                <CheckIcon className="w-3 h-3"/>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setQuickMethod({ id: country.id, val: "" })}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-100 transition-colors"
+                                        >
+                                            <PlusIcon className="w-3 h-3"/> Add
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Contact Numbers */}
+                            <div className="pt-2">
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center justify-between">
+                                    <span>Merchant Contacts</span>
+                                </h4>
+                                <div className="space-y-2">
+                                    {country.contacts.map((contact: any) => (
+                                        <div key={contact.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-100 hover:border-gray-300 transition-colors group/contact">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-400 shadow-sm">
+                                                    <BuildingStorefrontIcon className="w-4 h-4"/>
+                                                </div>
+                                                <div>
+                                                    <div className="text-xs font-bold text-gray-900">{contact.name}</div>
+                                                    <div className="text-[10px] font-mono text-gray-500">{contact.phone}</div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
                                             <button 
-                                                onClick={() => startTransition(async () => { await updateCountryStatus(country.id, country.status === "ACTIVE" ? "COMING_SOON" : "ACTIVE") })}
-                                                className={`p-2 rounded-xl border transition-all ${
-                                                    country.status === "ACTIVE" 
-                                                        ? "bg-red-50 text-red-600 border-red-100 hover:bg-red-100" 
-                                                        : "bg-green-50 text-green-600 border-green-100 hover:bg-green-100"
-                                                }`}
-                                                title={country.status === "ACTIVE" ? "Deactivate" : "Activate"}
+                                                onClick={() => startTransition(async () => { await deleteMerchantContact(contact.id) })}
+                                                className="p-1.5 text-gray-400 hover:text-red-600 opacity-0 group-hover/contact:opacity-100 transition-opacity"
                                             >
-                                                {country.status === "ACTIVE" ? <NoSymbolIcon className="w-5 h-5"/> : <CheckCircleIcon className="w-5 h-5"/>}
-                                            </button>
-                                            <button 
-                                                onClick={() => { if(confirm("Delete country? This will verify delete all associated data.")) startTransition(async () => { await deleteCountry(country.id) }) }}
-                                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                                            >
-                                                <TrashIcon className="w-5 h-5"/>
+                                                <XMarkIcon className="w-4 h-4"/>
                                             </button>
                                         </div>
-                                    </div>
-                                ))}
-                                {countries.length === 0 && <div className="text-center text-gray-400 py-8 italic">No countries added yet.</div>}
+                                    ))}
+
+                                    {/* Add Contact Form Inline */}
+                                    {quickContact?.id === country.id ? (
+                                        <div className="flex flex-col gap-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100 animate-in fade-in zoom-in-95">
+                                            <input 
+                                                autoFocus
+                                                placeholder="Merchant Name"
+                                                className="w-full bg-white p-2 text-xs rounded-lg border border-blue-200 outline-none"
+                                                value={quickContact?.name || ''}
+                                                onChange={e => setQuickContact({ id: country.id, name: e.target.value, phone: quickContact?.phone || '' })}
+                                            />
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    placeholder="Phone Number"
+                                                    className="w-full bg-white p-2 text-xs rounded-lg border border-blue-200 outline-none font-mono"
+                                                    value={quickContact?.phone || ''}
+                                                    onChange={e => setQuickContact({ id: country.id, name: quickContact?.name || '', phone: e.target.value })}
+                                                />
+                                                <button 
+                                                    onClick={() => {
+                                                        if(quickContact?.name && quickContact?.phone) {
+                                                            startTransition(async () => {
+                                                                await addMerchantContact(country.id, quickContact?.name || '', quickContact?.phone || '')
+                                                                setQuickContact(null)
+                                                            })
+                                                        }
+                                                    }}
+                                                    className="px-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs"
+                                                >
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setQuickContact({ id: country.id, name: "", phone: "" })}
+                                            className="w-full py-2 border border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50/50 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <PlusIcon className="w-3 h-3"/> Add Contact
+                                        </button>
+                                    )}
+                                </div>
                             </div>
+
                         </div>
                     </div>
-                )}
-
-                {/* 2. SPECIFIC COUNTRY TAB */}
-                {activeCountry && activeTab === activeCountry.id && (
-                    <div className="p-6 md:p-8 animate-in fade-in duration-300">
-                        {/* Header Stats */}
-                        <div className="flex items-center justify-between mb-8 pb-8 border-b border-gray-100">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-1">{activeCountry.name} Settings</h2>
-                                <p className="text-gray-500 text-sm">Manage merchants, payment methods, and display text.</p>
-                            </div>
-                            <div className={`px-3 py-1 rounded-full text-xs font-bold border ${activeCountry.status === "ACTIVE" ? "bg-green-50 text-green-700 border-green-200" : "bg-yellow-50 text-yellow-700 border-yellow-200"}`}>
-                                {activeCountry.status === "ACTIVE" ? "Active" : "Coming Soon"}
-                            </div>
-                        </div>
-
-                        <div className="grid lg:grid-cols-2 gap-10">
-                            
-                            {/* LEFT COL: CONTENT */}
-                            <div className="space-y-8">
-                                <section>
-                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 flex items-center gap-2">
-                                        <BanknotesIcon className="w-5 h-5"/>
-                                        Descriptions
-                                    </h3>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Deposit Description</label>
-                                            <textarea 
-                                                className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-                                                defaultValue={activeCountry.description || ""}
-                                                placeholder="Merchant will handle all your deposits..."
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(activeCountry.id, { description: e.target.value }) })}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Deposit Warning / Instruction</label>
-                                            <textarea 
-                                                className="w-full p-3 text-sm border border-orange-100 bg-orange-50/30 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-orange-900 placeholder:text-orange-300 min-h-[80px]"
-                                                defaultValue={activeCountry.instruction || ""}
-                                                placeholder="Important instructions..."
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(activeCountry.id, { instruction: e.target.value }) })}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Withdrawal Description</label>
-                                            <textarea 
-                                                className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
-                                                defaultValue={activeCountry.withdrawalDescription || ""}
-                                                placeholder="Merchant will handle all your withdrawals..."
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(activeCountry.id, { withdrawalDescription: e.target.value }) })}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Withdrawal Warning / Instruction</label>
-                                            <textarea 
-                                                className="w-full p-3 text-sm border border-red-100 bg-red-50/30 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-red-900 placeholder:text-red-300 min-h-[80px]"
-                                                defaultValue={activeCountry.withdrawalInstruction || ""}
-                                                placeholder="Important withdrawal instructions..."
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(activeCountry.id, { withdrawalInstruction: e.target.value }) })}
-                                            />
-                                        </div>
-                                    </div>
-                                </section>
-                            </div>
-
-                            {/* RIGHT COL: TABLES */}
-                            <div className="space-y-10">
-                                
-                                {/* MERCHANTS TABLE */}
-                                <section>
-                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 flex items-center gap-2">
-                                        <UserGroupIcon className="w-5 h-5"/>
-                                        Merchants
-                                    </h3>
-                                    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="bg-gray-50 text-gray-500 font-bold border-b border-gray-200">
-                                                <tr>
-                                                    <th className="p-4 w-1/3">Name</th>
-                                                    <th className="p-4 w-1/3">Phone</th>
-                                                    <th className="p-4 w-1/3 text-right">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100">
-                                                {/* Existing Rows */}
-                                                {activeCountry.contacts.map((contact: any) => (
-                                                    <tr key={contact.id} className="group hover:bg-blue-50/50 transition-colors">
-                                                        {editingContact === contact.id ? (
-                                                            // EDIT MODE
-                                                            <>
-                                                                <td className="p-2">
-                                                                    <input 
-                                                                        className="w-full p-2 border rounded-lg text-xs" 
-                                                                        value={editContactForm.name}
-                                                                        onChange={e => setEditContactForm({...editContactForm, name: e.target.value})}
-                                                                        autoFocus
-                                                                    />
-                                                                </td>
-                                                                <td className="p-2">
-                                                                    <input 
-                                                                        className="w-full p-2 border rounded-lg text-xs" 
-                                                                        value={editContactForm.phone}
-                                                                        onChange={e => setEditContactForm({...editContactForm, phone: e.target.value})}
-                                                                    />
-                                                                </td>
-                                                                <td className="p-2 text-right flex justify-end gap-1">
-                                                                    <button 
-                                                                        onClick={() => startTransition(async () => {
-                                                                            await updateMerchantContact(contact.id, editContactForm.name, editContactForm.phone)
-                                                                            setEditingContact(null)
-                                                                        })}
-                                                                        className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
-                                                                    >
-                                                                        <CheckIcon className="w-4 h-4"/>
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => setEditingContact(null)}
-                                                                        className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
-                                                                    >
-                                                                        <XMarkIcon className="w-4 h-4"/>
-                                                                    </button>
-                                                                </td>
-                                                            </>
-                                                        ) : (
-                                                            // VIEW MODE
-                                                            <>
-                                                                <td className="p-4 font-medium text-gray-900">{contact.name}</td>
-                                                                <td className="p-4 text-gray-500 font-mono text-xs">{contact.phone}</td>
-                                                                <td className="p-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setEditingContact(contact.id)
-                                                                                setEditContactForm({ name: contact.name, phone: contact.phone })
-                                                                            }}
-                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                                                        >
-                                                                            <PencilSquareIcon className="w-4 h-4"/>
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={() => { if(confirm("Remove this merchant?")) startTransition(async () => { await deleteMerchantContact(contact.id) }) }}
-                                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                                                                        >
-                                                                            <TrashIcon className="w-4 h-4"/>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </>
-                                                        )}
-                                                    </tr>
-                                                ))}
-
-                                                {/* Add Row */}
-                                                <tr className="bg-gray-50/50">
-                                                    <td className="p-2">
-                                                        <input 
-                                                            className="w-full p-2 border border-gray-200 bg-white rounded-lg text-xs" 
-                                                            placeholder="New Name"
-                                                            value={newContact.name}
-                                                            onChange={e => setNewContact({...newContact, name: e.target.value})}
-                                                        />
-                                                    </td>
-                                                    <td className="p-2">
-                                                        <input 
-                                                            className="w-full p-2 border border-gray-200 bg-white rounded-lg text-xs" 
-                                                            placeholder="New Phone"
-                                                            value={newContact.phone}
-                                                            onChange={e => setNewContact({...newContact, phone: e.target.value})}
-                                                        />
-                                                    </td>
-                                                    <td className="p-2 text-right">
-                                                        <button 
-                                                            onClick={() => startTransition(async () => {
-                                                                if(!newContact.name || !newContact.phone) return;
-                                                                await addMerchantContact(activeCountry.id, newContact.name, newContact.phone)
-                                                                setNewContact({ name: "", phone: "" })
-                                                            })}
-                                                            className="p-2 bg-gray-900 text-white rounded-lg hover:bg-black disabled:opacity-50"
-                                                            disabled={!newContact.name || !newContact.phone}
-                                                        >
-                                                            <PlusIcon className="w-4 h-4"/>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </section>
-
-                                {/* PAYMENT METHODS TABLE */}
-                                <section>
-                                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4 flex items-center gap-2">
-                                        <GlobeAltIcon className="w-5 h-5"/>
-                                        Payment Methods
-                                    </h3>
-                                    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-sm">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="bg-gray-50 text-gray-500 font-bold border-b border-gray-200">
-                                                <tr>
-                                                    <th className="p-4 w-2/3">Method Name</th>
-                                                    <th className="p-4 w-1/3 text-right">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-100">
-                                                {/* Existing Rows */}
-                                                {activeCountry.methods.map((method: any) => (
-                                                    <tr key={method.id} className="group hover:bg-blue-50/50 transition-colors">
-                                                        {editingMethod === method.id ? (
-                                                            // EDIT MODE
-                                                            <>
-                                                                <td className="p-2">
-                                                                    <input 
-                                                                        className="w-full p-2 border rounded-lg text-xs" 
-                                                                        value={editMethodForm}
-                                                                        onChange={e => setEditMethodForm(e.target.value)}
-                                                                        autoFocus
-                                                                    />
-                                                                </td>
-                                                                <td className="p-2 text-right flex justify-end gap-1">
-                                                                    <button 
-                                                                        onClick={() => startTransition(async () => {
-                                                                            await updatePaymentMethod(method.id, editMethodForm)
-                                                                            setEditingMethod(null)
-                                                                        })}
-                                                                        className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
-                                                                    >
-                                                                        <CheckIcon className="w-4 h-4"/>
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => setEditingMethod(null)}
-                                                                        className="p-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
-                                                                    >
-                                                                        <XMarkIcon className="w-4 h-4"/>
-                                                                    </button>
-                                                                </td>
-                                                            </>
-                                                        ) : (
-                                                            // VIEW MODE
-                                                            <>
-                                                                <td className="p-4 font-medium text-gray-900">{method.name}</td>
-                                                                <td className="p-4 text-right">
-                                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                        <button 
-                                                                            onClick={() => {
-                                                                                setEditingMethod(method.id)
-                                                                                setEditMethodForm(method.name)
-                                                                            }}
-                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg"
-                                                                        >
-                                                                            <PencilSquareIcon className="w-4 h-4"/>
-                                                                        </button>
-                                                                        <button 
-                                                                            onClick={() => { if(confirm("Remove this method?")) startTransition(async () => { await deletePaymentMethod(method.id) }) }}
-                                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"
-                                                                        >
-                                                                            <TrashIcon className="w-4 h-4"/>
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </>
-                                                        )}
-                                                    </tr>
-                                                ))}
-
-                                                {/* Add Row */}
-                                                <tr className="bg-gray-50/50">
-                                                    <td className="p-2">
-                                                        <input 
-                                                            className="w-full p-2 border border-gray-200 bg-white rounded-lg text-xs" 
-                                                            placeholder="New Method (e.g. EasyPaisa)"
-                                                            value={newMethod}
-                                                            onChange={e => setNewMethod(e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td className="p-2 text-right">
-                                                        <button 
-                                                            onClick={() => startTransition(async () => {
-                                                                if(!newMethod) return;
-                                                                await addPaymentMethod(activeCountry.id, newMethod)
-                                                                setNewMethod("")
-                                                            })}
-                                                            className="p-2 bg-gray-900 text-white rounded-lg hover:bg-black disabled:opacity-50"
-                                                            disabled={!newMethod}
-                                                        >
-                                                            <PlusIcon className="w-4 h-4"/>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </section>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                ))}
             </div>
+
+
+            {/* ADD COUNTRY MODAL */}
+            {isAddCountryOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+                        <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                            <h3 className="text-lg font-bold">Add Region</h3>
+                            <button onClick={() => setIsAddCountryOpen(false)}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600"/></button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Country Name</label>
+                                <input 
+                                    className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900"
+                                    placeholder="e.g. Canada"
+                                    value={newCountry.name}
+                                    onChange={e => setNewCountry({...newCountry, name: e.target.value})}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Country Code (2-3 chars)</label>
+                                <input 
+                                    className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900"
+                                    placeholder="e.g. CA"
+                                    value={newCountry.code}
+                                    onChange={e => setNewCountry({...newCountry, code: e.target.value.toUpperCase()})}
+                                    maxLength={3}
+                                />
+                            </div>
+                            <button 
+                                onClick={handleAddCountry}
+                                disabled={!newCountry.name || !newCountry.code}
+                                className="w-full py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black disabled:opacity-50 transition-all"
+                            >
+                                Create Region
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT DETAIL MODAL */}
+            {expandedCountryId && (() => {
+                const country = countries.find(c => c.id === expandedCountryId)
+                if(!country) return null
+                return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+                        <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl h-[85vh] flex flex-col">
+                           <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
+                                <div>
+                                    <h3 className="text-xl font-bold flex items-center gap-2">
+                                        Edit Details: {country.name}
+                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-md">{country.code}</span>
+                                    </h3>
+                                </div>
+                                <button onClick={() => setExpandedCountryId(null)}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600"/></button>
+                            </div>
+                            
+                            <div className="p-8 overflow-y-auto space-y-8 flex-1">
+                                {/* Instructions Section */}
+                                <section className="space-y-6">
+                                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Deposit Instructions</h4>
+                                    
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                                        <textarea 
+                                            className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                            defaultValue={country.description || ""}
+                                            placeholder="Standard deposit description..."
+                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { description: e.target.value }) })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Important Warning</label>
+                                        <textarea 
+                                            className="w-full p-3 text-sm border border-orange-100 bg-orange-50/30 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-orange-900 placeholder:text-orange-300 min-h-[80px]"
+                                            defaultValue={country.instruction || ""}
+                                            placeholder="Warning message for users..."
+                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { instruction: e.target.value }) })}
+                                        />
+                                    </div>
+                                </section>
+
+                                <section className="space-y-6">
+                                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Withdrawal Instructions</h4>
+                                    
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                                        <textarea 
+                                            className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                            defaultValue={country.withdrawalDescription || ""}
+                                            placeholder="Standard withdrawal description..."
+                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalDescription: e.target.value }) })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Important Warning</label>
+                                        <textarea 
+                                            className="w-full p-3 text-sm border border-red-100 bg-red-50/30 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-red-900 placeholder:text-red-300 min-h-[80px]"
+                                            defaultValue={country.withdrawalInstruction || ""}
+                                            placeholder="Warning message for withdrawals..."
+                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalInstruction: e.target.value }) })}
+                                        />
+                                    </div>
+                                </section>
+                            </div>
+
+                            <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+                                <button 
+                                    onClick={() => setExpandedCountryId(null)}
+                                    className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-all"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            })()}
+
         </div>
     )
 }

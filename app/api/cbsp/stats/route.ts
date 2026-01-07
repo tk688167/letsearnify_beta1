@@ -56,7 +56,8 @@ export async function GET(req: Request) {
         const tierCount = tierMap[user.tier] || 1 // Avoid div by 0
         // New Logic: (Pool * Tier%) / Count
         const percentage = CBSP_TIER_PERCENTAGES[user.tier] || 0
-        const totalTierShare = calculateProjectedShare(poolBalance, percentage)
+        const weeklyDistributable = poolBalance * 0.03
+        const totalTierShare = calculateProjectedShare(weeklyDistributable, percentage)
         // @ts-ignore
         const isMember = user.isCbspMember
         

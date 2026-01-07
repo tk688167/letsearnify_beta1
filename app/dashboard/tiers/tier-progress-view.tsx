@@ -4,62 +4,23 @@ import { motion } from "framer-motion"
 import { 
   CheckCircleIcon, 
   LockClosedIcon, 
-  TrophyIcon,
-  StarIcon
+  StarIcon,
+  ArrowLongRightIcon
 } from "@heroicons/react/24/outline"
-import { TIER_RULES, TierLevel } from "@/lib/mlm"
+import { SparklesIcon } from "@heroicons/react/24/solid"
+import { TierLevel, TierRules } from "@/lib/mlm"
 
-// Theme config for each tier
-const TIER_THEME: Record<string, { bg: string, border: string, text: string, icon: string, glow: string }> = {
-  NEWBIE: { 
-     bg: "bg-gradient-to-br from-gray-100 to-gray-300", 
-     border: "border-gray-200", 
-     text: "text-gray-700", 
-     icon: "🚀", 
-     glow: "shadow-gray-500/10" 
-  },
-  BRONZE: { 
-     bg: "bg-gradient-to-br from-[#CD7F32] to-[#8B4513]", 
-     border: "border-orange-200", 
-     text: "text-orange-900", 
-     icon: "🥉", 
-     glow: "shadow-orange-500/20" 
-  },
-  SILVER: { 
-     bg: "bg-gradient-to-br from-[#E0E0E0] to-[#9E9E9E]", 
-     border: "border-gray-300", 
-     text: "text-gray-900", 
-     icon: "🥈", 
-     glow: "shadow-gray-500/20" 
-  },
-  GOLD: { 
-     bg: "bg-gradient-to-br from-[#FFD700] to-[#DAA520]", 
-     border: "border-yellow-300", 
-     text: "text-yellow-900", 
-     icon: "🥇", 
-     glow: "shadow-yellow-500/30" 
-  },
-  PLATINUM: { 
-     bg: "bg-gradient-to-br from-[#8A2BE2] to-[#4B0082]", 
-     border: "border-purple-300", 
-     text: "text-purple-900", 
-     icon: "💎", 
-     glow: "shadow-purple-500/30" 
-  },
-  DIAMOND: { 
-     bg: "bg-gradient-to-br from-[#0000FF] to-[#00008B]", 
-     border: "border-blue-300", 
-     text: "text-blue-900", 
-     icon: "💠", 
-     glow: "shadow-blue-500/40" 
-  },
-  EMERALD: { 
-     bg: "bg-gradient-to-br from-[#50C878] to-[#2E8B57]", 
-     border: "border-emerald-300", 
-     text: "text-emerald-900", 
-     icon: "👑", 
-     glow: "shadow-emerald-500/40" 
-  }
+// ... (imports)
+
+// Professional Color Map (Subtle, Banking-style)
+const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string }> = {
+    NEWBIE: { badge: "bg-gray-100 text-gray-700", border: "border-gray-200", text: "text-gray-900", icon: "🚀", bg: "bg-white", ring: "ring-gray-100" },
+    BRONZE: { badge: "bg-orange-50 text-orange-800", border: "border-orange-200", text: "text-orange-900", icon: "🥉", bg: "bg-white", ring: "ring-orange-100" },
+    SILVER: { badge: "bg-slate-100 text-slate-700", border: "border-slate-200", text: "text-slate-900", icon: "🥈", bg: "bg-white", ring: "ring-slate-100" },
+    GOLD:   { badge: "bg-yellow-50 text-yellow-800", border: "border-yellow-200", text: "text-yellow-900", icon: "🥇", bg: "bg-white", ring: "ring-yellow-100" },
+    PLATINUM: { badge: "bg-slate-50 text-slate-800", border: "border-slate-300", text: "text-slate-900", icon: "💎", bg: "bg-white", ring: "ring-slate-200" },
+    DIAMOND: { badge: "bg-blue-50 text-blue-800", border: "border-blue-200", text: "text-blue-900", icon: "💠", bg: "bg-white", ring: "ring-blue-100" },
+    EMERALD: { badge: "bg-emerald-50 text-emerald-800", border: "border-emerald-200", text: "text-emerald-900", icon: "✳️", bg: "bg-white", ring: "ring-emerald-100" },
 }
 
 const TIERS: TierLevel[] = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"]
@@ -72,236 +33,211 @@ type TierProgressViewProps = {
   stats: {
     teamSize: number
   }
+  tierConfig: TierRules
 }
 
-export default function TierProgressView({ user, stats }: TierProgressViewProps) {
+export default function TierProgressView({ user, stats, tierConfig }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf(user.tier as TierLevel)
 
+  // Helper to calculate percentage between range [min, max]
+  const calcPercent = (current: number, min: number, max: number) => {
+      if (max <= min) return 100 
+      const gained = Math.max(0, current - min)
+      const needed = max - min
+      return Math.min((gained / needed) * 100, 100)
+  }
+
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="space-y-10 animate-in fade-in duration-700 max-w-5xl mx-auto">
       
-      {/* Header Summary */}
-      <div className="text-center space-y-4 max-w-2xl mx-auto">
-         <div className="inline-flex items-center gap-2 px-4 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-bold border border-blue-100">
-            <TrophyIcon className="w-4 h-4" />
-            My Journey
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-gray-200">
+         <div>
+            <div className="flex items-center gap-2 mb-2">
+               <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-100">
+                  Career Path
+               </span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Your Journey</h1>
+            <p className="text-gray-500 mt-1">Track your progress and unlock higher commission tiers.</p>
          </div>
-         <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900">Tier Progression</h1>
-         <p className="text-gray-500 text-lg">Unlock higher commission rates and exclusive rewards by growing your team and earning points.</p>
+         <div className="text-right hidden md:block">
+            <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Current Status</div>
+            <div className="text-2xl font-bold text-indigo-600">{user.tier}</div>
+         </div>
       </div>
 
-      {/* Tiers Timeline / Cards */}
-      <div className="space-y-8">
-         {TIERS.map((tierName, index) => {
-            const config = TIER_RULES[tierName]
-            const theme = TIER_THEME[tierName]
-            
-            // Status Logic
-            const isCompleted = index < currentTierIndex
-            const isCurrent = index === currentTierIndex
-            const isLocked = index > currentTierIndex
-            const isNext = index === currentTierIndex + 1
+      {/* Timeline Container */}
+      <div className="relative pl-8 md:pl-0">
+          
+          {/* Vertical Line (Desktop: Center / Mobile: Left) */}
+          <div className="absolute left-0 md:left-8 top-4 bottom-4 w-px bg-gray-200"></div>
 
-            // Determine Target Requirements for THIS Tier Card
-            // If I am looking at the "Starter" card:
-            // - If I am Starter: Show progress towards Bronze (Next Tier Requirements)
-            // - If I am Bronze+: Show "Completed" (Full styling)
-            
-            // Wait, standard UI pattern:
-            // "Starter" is where I AM. The progress bar inside "Starter" usually implies "Progress through Starter".
-            // So for Starter card, we show progress to Bronze.
-            // For Bronze card, we show progress to Silver.
-            
-            // Target Config (The goal to complete this stage)
-            // If this is the last tier (Emerald), there is no next tier.
-            const nextTierName = index < TIERS.length - 1 ? TIERS[index + 1] : null
-            const targetConfig = nextTierName ? TIER_RULES[nextTierName] : config
-            
-            // Base Config (Where this stage starts)
-            const baseConfig = config
-            
-            // Calculate Progress Bars
-            let pointsPercent = 0
-            let membersPercent = 0
-            let pointsDisplay = 0
-            let membersDisplay = 0
+          <div className="space-y-12">
+             {TIERS.map((tierName, index) => {
+                const config = tierConfig[tierName] || { points: 0, members: 0, levels: [0,0,0] }
+                const style = TIER_STYLES[tierName]
+                
+                const isCompleted = index < currentTierIndex
+                const isCurrent = index === currentTierIndex
+                const isLocked = index > currentTierIndex
+                
+                // For progress calculation
+                const prevTierConfig = index > 0 ? tierConfig[TIERS[index - 1]] : { points: 0, members: 0 }
+                // Only relevant if calculating "progress within this tier"
+                // But typically, requirements shown are "To Unlock This Tier" (so from prev max to current target)
+                // Actually, the requirements listed in `config` are "To Reach This Tier". 
+                // Wait, Starter (0) is default. Bronze (Points 100) is requirement to be Bronze.
+                
+                // Let's visualize: 
+                // If I am NEWBIE. Next is BRONZE.
+                // The BRONZE card should show "Requirements to Unlock: 100 Points".
+                
+                // If isCurrent: This is where I am. I have already unlocked it (or am in it).
+                // Usually "Current" shows progress towards "Next". 
+                // But the visual list is "Tiers". listing "Bronze" means "The Bronze Status".
+                // If I am Bronze, I have achieved Bronze.
+                
+                // Redesign Logic:
+                // List Tiers as "Achievements".
+                // Completed: "Achieved"
+                // Current: "Active Status" (Show Benefits) -> NEXT Goal is displayed in a separate "Next Step" block usually, 
+                // OR we can show progress bar ON the Next Tier card.
+                
+                // Let's do:
+                // Show Progress ON the card itself.
+                // If Locked: Show 0% progress or current accumulated points towards it.
+                
+                const pointsProgress = calcPercent(user.points, 0, config.points) 
+                // Note: calc from 0 is simpler for user understanding ("You need 500, you have 200"). 
+                // Range-based (200 to 500) is confusing visually sometimes. Let's stick to absolute 0->Target.
+                
+                const membersProgress = calcPercent(stats.teamSize, 0, config.members)
+                const isFinal = index === TIERS.length - 1
 
-            // Helper to calculate percentage between range [min, max]
-            const calcPercent = (current: number, min: number, max: number) => {
-               if (max <= min) return 100 // Avoid divide by zero
-               const gained = Math.max(0, current - min)
-               const needed = max - min
-               return Math.min((gained / needed) * 100, 100)
-            }
+                return (
+                   <motion.div 
+                     key={tierName}
+                     initial={{ opacity: 0, x: -20 }}
+                     whileInView={{ opacity: 1, x: 0 }}
+                     viewport={{ once: true, margin: "-50px" }}
+                     className="relative md:pl-24"
+                   >
+                      {/* Timeline Dot */}
+                      <div className={`absolute left-[-5px] md:left-4 top-8 w-3 h-3 rounded-full border-2 bg-white z-10 transition-colors duration-500 ${
+                          isCompleted ? "border-emerald-500 bg-emerald-500" :
+                          isCurrent ? "border-indigo-500 animate-pulse scale-125" :
+                          "border-gray-300"
+                      }`}></div>
 
-            if (isCompleted) {
-               pointsPercent = 100
-               membersPercent = 100
-               pointsDisplay = targetConfig.points
-               membersDisplay = targetConfig.members
-            } else if (isCurrent && nextTierName) {
-               // Current Stage: Calculate progress from Base to Target
-               // Example: Starter (0) -> Bronze (150). User has 50.
-               // Progress = (50 - 0) / (150 - 0) = 33%
-               
-               // Example: Bronze (150) -> Silver (350). User has 200.
-               // Progress = (200 - 150) / (350 - 150) = 50 / 200 = 25%
-               
-               pointsPercent = calcPercent(user.points, baseConfig.points, targetConfig.points)
-               membersPercent = calcPercent(stats.teamSize, baseConfig.members, targetConfig.members)
-               
-               pointsDisplay = user.points
-               membersDisplay = stats.teamSize
-            } else {
-               // Locked: 0%
-               pointsPercent = 0
-               membersPercent = 0
-               pointsDisplay = 0
-               membersDisplay = 0
-            }
+                      {/* Content Card */}
+                      <div className={`group rounded-[1.5rem] border transition-all duration-300 ${
+                          isCurrent 
+                            ? "bg-white border-indigo-200 shadow-xl shadow-indigo-100/50 ring-1 ring-indigo-50" 
+                            : isCompleted
+                                ? "bg-white border-gray-200 opacity-75 hover:opacity-100"
+                                : "bg-gray-50/50 border-gray-200/60"
+                      }`}>
+                          
+                          {/* Card Header */}
+                          <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 md:items-center border-b border-gray-100/50">
+                               <div className="flex items-center gap-5">
+                                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-gray-100 ${
+                                       isLocked ? "bg-gray-100 grayscale opacity-50" : "bg-white"
+                                   }`}>
+                                       {style.icon}
+                                   </div>
+                                   <div>
+                                       <h3 className={`text-xl font-bold flex items-center gap-2 ${isCurrent ? 'text-indigo-900' : 'text-gray-900'}`}>
+                                           {tierName}
+                                           {isCompleted && <CheckCircleIcon className="w-5 h-5 text-emerald-500" />}
+                                           {isCurrent && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase font-bold tracking-wide">Active</span>}
+                                           {isLocked && <LockClosedIcon className="w-4 h-4 text-gray-400" />}
+                                       </h3>
+                                       <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                                           <span>Level 1: <strong className="text-gray-700">{(config.levels[0] * 100)}%</strong></span>
+                                           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                           <span>Level 2: <strong className="text-gray-700">{(config.levels[1] * 100)}%</strong></span>
+                                           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                           <span>Level 3: <strong className="text-gray-700">{(config.levels[2] * 100)}%</strong></span>
+                                       </div>
+                                   </div>
+                               </div>
 
-            // For Emerald (Last one), if current, just show full or special
-            if (!nextTierName && isCurrent) {
-               pointsPercent = 100
-               membersPercent = 100
-               pointsDisplay = user.points
-               membersDisplay = stats.teamSize
-            }
+                               {/* Right Side: Status or Quick Stats */}
+                               {isCurrent ? (
+                                   <div className="text-center md:text-right">
+                                       <div className="text-sm font-medium text-indigo-600 flex items-center gap-1 justify-center md:justify-end">
+                                           <SparklesIcon className="w-4 h-4" />
+                                           Current Benefits Active
+                                       </div>
+                                   </div>
+                               ) : isLocked ? (
+                                    <div className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center md:text-right">Locked</div>
+                               ) : (
+                                    <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest text-center md:text-right">Completed</div>
+                               )}
+                          </div>
 
-            // Overall Progress (Average of the two conditions)
-            const totalProgress = (pointsPercent + membersPercent) / 2
-
-            return (
-               <motion.div 
-                 key={tierName}
-                 initial={{ opacity: 0, y: 20 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true }}
-                 transition={{ delay: index * 0.1 }}
-                 className={`relative rounded-[2.5rem] overflow-hidden border transition-all duration-300 ${
-                    !isLocked 
-                       ? `bg-white ${theme.border} shadow-lg ${theme.glow}` 
-                       : isNext // Highlight the immediate next goal
-                          ? "bg-white ring-2 ring-blue-500 ring-offset-4 shadow-xl scale-[1.02] border-blue-200" 
-                          : "bg-gray-50 border-gray-100 opacity-80 grayscale-[0.5]"
-                 }`}
-               >
-                  {/* Background Logic */}
-                  {!isLocked && (
-                     <div className={`absolute top-0 left-0 w-full h-2 ${theme.bg}`}></div>
-                  )}
-
-                  <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 md:items-center">
-                     
-                     {/* Tier Identity */}
-                     <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-4">
-                           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shadow-sm ${
-                              !isLocked ? theme.bg + " text-white" : "bg-gray-200 text-gray-400"
-                           }`}>
-                              {theme.icon}
-                           </div>
-                           <div>
-                              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                                 {tierName}
-                                 {isCompleted && <CheckCircleIcon className="w-6 h-6 text-emerald-500" />}
-                                 {isLocked && <LockClosedIcon className="w-5 h-5 text-gray-400" />}
-                              </h3>
-                              <p className="text-sm text-gray-500 font-medium">
-                                 {isCompleted ? "Completed" : isCurrent ? "Current Stage" : "Locked"}
-                              </p>
-                           </div>
-                        </div>
-
-                        {/* Rewards / Benefits Grid */}
-                        <div className="grid grid-cols-3 gap-2 mt-6">
-                           <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
-                              <div className="text-xs text-gray-400 font-medium uppercase mb-1">Level 1</div>
-                              <div className="font-bold text-gray-900">{(config.levels[0] * 100).toFixed(0)}%</div>
-                           </div>
-                           <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
-                              <div className="text-xs text-gray-400 font-medium uppercase mb-1">Level 2</div>
-                              <div className="font-bold text-gray-900">{(config.levels[1] * 100).toFixed(0)}%</div>
-                           </div>
-                           <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
-                              <div className="text-xs text-gray-400 font-medium uppercase mb-1">Level 3</div>
-                              <div className="font-bold text-gray-900">{(config.levels[2] * 100).toFixed(0)}%</div>
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* Progress Stats */}
-                     <div className="flex-1 bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
-                        <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                           <StarIcon className="w-5 h-5 text-yellow-500" />
-                           {isCompleted ? "Requirements Met" : isCurrent ? "Next Milestone Requirements" : "Requirements"}
-                        </h4>
-                        
-                        <div className="space-y-5">
-                           {/* Points Bar */}
-                           <div>
-                              <div className="flex justify-between text-sm mb-1.5">
-                                 <span className="font-medium text-gray-600">Points</span>
-                                 <span className="font-bold text-gray-900">
-                                    {pointsDisplay.toLocaleString()} / {targetConfig ? targetConfig.points.toLocaleString() : "Max"}
-                                 </span>
+                          {/* Card Body - Requirements (Only if NOT completed, or if Current to show how far they went) */}
+                          <div className={`p-6 md:p-8 grid md:grid-cols-2 gap-8 ${(isCompleted || (isCurrent && isFinal)) ? 'hidden' : 'block'}`}>
+                              
+                              {/* Points Requirement */}
+                              <div>
+                                  <div className="flex justify-between items-end mb-2">
+                                      <span className="text-sm font-medium text-gray-500">Required Points</span>
+                                      <span className={`text-sm font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                          {user.points.toLocaleString()} <span className="text-gray-400 font-normal">/ {config.points.toLocaleString()}</span>
+                                      </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className={`h-full rounded-full transition-all duration-1000 ${isCurrent ? 'bg-indigo-500' : 'bg-gray-300'}`} 
+                                        style={{ width: `${Math.min(pointsProgress, 100)}%` }}
+                                      ></div>
+                                  </div>
                               </div>
-                              <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                 <div 
-                                    className={`h-full rounded-full transition-all duration-1000 ${isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}`} 
-                                    style={{ width: `${pointsPercent}%` }}
-                                 ></div>
+
+                              {/* Members Requirement */}
+                              <div>
+                                  <div className="flex justify-between items-end mb-2">
+                                      <span className="text-sm font-medium text-gray-500">Required Team Size</span>
+                                      <span className={`text-sm font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-700'}`}>
+                                          {stats.teamSize.toLocaleString()} <span className="text-gray-400 font-normal">/ {config.members.toLocaleString()}</span>
+                                      </span>
+                                  </div>
+                                  <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                      <div 
+                                        className={`h-full rounded-full transition-all duration-1000 ${isCurrent ? 'bg-purple-500' : 'bg-gray-300'}`} 
+                                        style={{ width: `${Math.min(membersProgress, 100)}%` }}
+                                      ></div>
+                                  </div>
                               </div>
-                              {isCurrent && nextTierName && (
-                                 <div className="text-xs text-gray-400 mt-1">
-                                    {Math.max(0, targetConfig.points - user.points).toLocaleString()} more needed
+                          </div>
+                          
+                          {/* Completed State Footer (Optional Summary) */}
+                          {isCompleted && (
+                             <div className="px-8 pb-6 pt-0">
+                                 <div className="text-xs text-emerald-600 font-medium bg-emerald-50 inline-block px-3 py-1 rounded-full">
+                                    Requirements Met • Access Granted
                                  </div>
-                              )}
-                           </div>
+                             </div>
+                          )}
 
-                           {/* Members Bar */}
-                           <div>
-                              <div className="flex justify-between text-sm mb-1.5">
-                                 <span className="font-medium text-gray-600">Active Team</span>
-                                 <span className="font-bold text-gray-900">
-                                    {membersDisplay.toLocaleString()} / {targetConfig ? targetConfig.members.toLocaleString() : "Max"}
-                                 </span>
-                              </div>
-                              <div className="h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                 <div 
-                                    className={`h-full rounded-full transition-all duration-1000 ${isCompleted ? 'bg-emerald-500' : 'bg-purple-500'}`} 
-                                    style={{ width: `${membersPercent}%` }}
-                                 ></div>
-                              </div>
-                               {isCurrent && nextTierName && (
-                                 <div className="text-xs text-gray-400 mt-1">
-                                    {Math.max(0, targetConfig.members - stats.teamSize).toLocaleString()} more needed
+                          {isCurrent && isFinal && (
+                             <div className="px-8 pb-8 pt-2">
+                                 <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 flex items-center justify-center gap-3 text-indigo-800 font-medium">
+                                    <SparklesIcon className="w-5 h-5 text-indigo-500" />
+                                    <span>You have reached the maximum tier. Pinnacle of success!</span>
                                  </div>
-                              )}
-                           </div>
-                        </div>
-                     </div>
+                             </div>
+                          )}
 
-                     {/* Action / Status */}
-                     <div className="w-full md:w-auto flex justify-center">
-                        {isCompleted ? (
-                           <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                              <CheckCircleIcon className="w-7 h-7" />
-                           </div>
-                        ) : isCurrent ? (
-                           <div className="text-center px-4">
-                              <div className="text-3xl font-bold text-blue-600">{totalProgress.toFixed(0)}%</div>
-                              <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mt-1">Progress</div>
-                           </div>
-                        ) : (
-                           <LockClosedIcon className="w-8 h-8 text-gray-300" />
-                        )}
-                     </div>
-
-                  </div>
-               </motion.div>
-            )
-         })}
+                      </div>
+                   </motion.div>
+                )
+             })}
+          </div>
       </div>
     </div>
   )

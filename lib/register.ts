@@ -56,65 +56,85 @@ export async function registerUser(formData: FormData) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Generate unique referral code for new user
-    const newReferralCode = generateReferralCode();
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    // Create the user
-    // Note: We use the default tier (STARTER) from schema, or explicitly set it here if needed.
-    // Schema default is STARTER now (per prompt).
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        country: country || null, 
-        referralCode: newReferralCode,
-        referredByCode: validReferredByCode, // Will be user's input or COMPANY
+    while (attempts < maxAttempts) {
+        attempts++;
+        const newReferralCode = generateReferralCode();
+        
+        try {
+            // Create the user
+            const newUser = await prisma.user.create({
+              data: {
+                name,
+                email,
+                password: hashedPassword,
+                country: country || null, 
+                referralCode: newReferralCode,
+                referredByCode: validReferredByCode, 
+                tier: Tier.NEWBIE,
+                tierStatus: TierStatus.CURRENT,
+                points: 0,
+                activeMembers: 0,
+                totalDeposit: 0.0,
+                isActiveMember: false
+              }
+            })
 
-        tier: Tier.NEWBIE,
-        tierStatus: TierStatus.CURRENT,
-        points: 0,
-        activeMembers: 0,
-        totalDeposit: 0.0,
-        isActiveMember: false
-      }
-    })
+            // --- MLM: Create Referral Tree Entry ---
+            let advisorId = null;
+            let supervisorId = null;
+            let managerId = null;
 
-    // --- MLM: Create Referral Tree Entry ---
-    // This allows efficient 3-level lookups later
-    let advisorId = null;
-    let supervisorId = null;
-    let managerId = null;
+            if (validReferrer) {
+               advisorId = validReferrer.id;
+               
+               const referrerTree = await prisma.referralTree.findUnique({
+                  where: { userId: validReferrer.id }
+               });
 
-    if (validReferrer) {
-       advisorId = validReferrer.id;
-       
-       // Get Referrer's upline to fill L2 and L3
-       const referrerTree = await prisma.referralTree.findUnique({
-          where: { userId: validReferrer.id }
-       });
+               if (referrerTree) {
+                  supervisorId = referrerTree.advisorId; 
+                  managerId = referrerTree.supervisorId; 
+               }
+            }
 
-       if (referrerTree) {
-          supervisorId = referrerTree.advisorId; // My L2 is my referrer's L1
-          managerId = referrerTree.supervisorId; // My L3 is my referrer's L2
-       }
+            await prisma.referralTree.create({
+               data: {
+                  userId: newUser.id,
+                  advisorId,
+                  supervisorId,
+                  managerId
+               }
+            });
+
+            return { error: null, success: true }
+        } catch (err: any) {
+            // Check for Unique Constraint Violation
+            if (err.code === 'P2002') {
+                const target = err.meta?.target;
+                
+                // If Email collision (race condition despite check above)
+                if (target && (target === 'User_email_key' || target.includes('email'))) {
+                    return { error: 'Email already exists', success: false }
+                }
+
+                // If Referral Code collision, retry
+                if (target && (target === 'User_referralCode_key' || target.includes('referralCode'))) {
+                     console.warn(`Referral Code Collision: ${newReferralCode}. Retrying... (${attempts}/${maxAttempts})`);
+                     continue;
+                }
+            }
+            
+            console.error("Registration Error:", err);
+            return { error: 'Something went wrong during registration. Please try again.', success: false }
+        }
     }
 
-    await prisma.referralTree.create({
-       data: {
-          userId: newUser.id,
-          advisorId,
-          supervisorId,
-          managerId
-       }
-    });
-
-    return { error: null, success: true }
-  } catch (err: any) {
-    if (err.code === 'P2002') {
-      return { error: 'Email already exists or Referral Code collision.', success: false }
-    }
-    console.error("Registration Error:", err);
-    return { error: 'Something went wrong.', success: false }
+    return { error: "Failed to generate a unique ID. Please try again.", success: false }
+  } catch (err) {
+    console.error("Registration Unexpected Error:", err);
+    return { error: "An unexpected error occurred.", success: false }
   }
 }

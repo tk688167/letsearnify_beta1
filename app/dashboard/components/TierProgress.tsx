@@ -20,15 +20,15 @@ interface TierProgressProps {
 
 const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 
-// Mapping colors for a premium feel
-const TIER_THEMES: Record<string, string> = {
-    NEWBIE: "from-gray-800 to-gray-900 border-gray-700", // Dark sleek
-    BRONZE: "from-[#CD7F32] to-[#8B4513] border-orange-900", // Bronze
-    SILVER: "from-[#C0C0C0] to-[#708090] border-gray-500", // Silver
-    GOLD: "from-[#FFD700] to-[#B8860B] border-yellow-600", // Gold
-    PLATINUM: "from-[#E5E4E2] to-[#707070] border-slate-500", // Platinum
-    DIAMOND: "from-[#00BFFF] to-[#00008B] border-blue-800", // Diamond
-    EMERALD: "from-[#50C878] to-[#006400] border-green-800", // Emerald
+// Refined Professional Themes (Subtle Accents)
+const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string }> = {
+    NEWBIE: { badge: "bg-gray-100 text-gray-700", border: "border-gray-200", text: "text-gray-900", icon: "🚀", bg: "from-gray-50 to-white", ring: "ring-gray-100" },
+    BRONZE: { badge: "bg-orange-50 text-orange-800", border: "border-orange-200", text: "text-orange-900", icon: "🥉", bg: "from-orange-50/50 to-white", ring: "ring-orange-100" },
+    SILVER: { badge: "bg-slate-100 text-slate-700", border: "border-slate-200", text: "text-slate-900", icon: "🥈", bg: "from-slate-50 to-white", ring: "ring-slate-100" },
+    GOLD:   { badge: "bg-yellow-50 text-yellow-800", border: "border-yellow-200", text: "text-yellow-900", icon: "🥇", bg: "from-yellow-50/50 to-white", ring: "ring-yellow-100" },
+    PLATINUM: { badge: "bg-slate-50 text-slate-800", border: "border-slate-300", text: "text-slate-900", icon: "💎", bg: "from-slate-100/50 to-white", ring: "ring-slate-200" },
+    DIAMOND: { badge: "bg-blue-50 text-blue-800", border: "border-blue-200", text: "text-blue-900", icon: "💠", bg: "from-blue-50/50 to-white", ring: "ring-blue-100" },
+    EMERALD: { badge: "bg-emerald-50 text-emerald-800", border: "border-emerald-200", text: "text-emerald-900", icon: "✳️", bg: "from-emerald-50/50 to-white", ring: "ring-emerald-100" },
 }
 
 export function TierProgress({ currentTier, points, activeMembers, tierRules, referralCode }: TierProgressProps) {
@@ -54,104 +54,108 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
         progress = 100;
     }
 
-    const theme = TIER_THEMES[currentTierName] || TIER_THEMES["NEWBIE"];
+    // Default formatting
+    const style = TIER_STYLES[currentTierName] || TIER_STYLES["NEWBIE"];
 
     const copyToClipboard = () => {
         if (referralCode) {
             navigator.clipboard.writeText(referralCode);
-            // Could add toast here
+            // Toast notification could be added here
         }
     }
 
     return (
-        <div className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 text-white bg-gradient-to-br ${theme} shadow-2xl shadow-black/20 col-span-full border border-white/10`}>
-            {/* Background Blurs */}
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black/10 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+        <div className={`relative overflow-hidden rounded-[2rem] border ${style.border} bg-gradient-to-br ${style.bg} shadow-xl shadow-gray-200/50 col-span-full`}>
+            
+            {/* Top Pattern Decoration */}
+            <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none select-none text-9xl">
+                {style.icon}
+            </div>
 
-            <div className="relative z-10 flex flex-col lg:flex-row gap-10 justify-between items-center">
-                {/* Left: Current Tier Section */}
-                <div className="flex-1 space-y-6 w-full text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold border border-white/20 shadow-lg mx-auto lg:mx-0">
-                        <SparklesIcon className="w-4 h-4 text-yellow-300" />
-                        Beta Partner Program
-                    </div>
-                    
+            <div className="relative z-10 flex flex-col lg:flex-row">
+                
+                {/* LEFT: Identity Section */}
+                <div className="flex-1 p-8 md:p-10 flex flex-col justify-center space-y-6">
                     <div>
-                        <h2 className="text-5xl md:text-7xl font-serif font-bold tracking-tight mb-2 drop-shadow-sm leading-tight flex items-center justify-center lg:justify-start gap-4">
+                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${style.badge} border ${style.border}`}>
+                            <SparklesIcon className="w-3.5 h-3.5" />
+                            Current Status
+                        </span>
+                        <h2 className={`text-4xl md:text-5xl font-bold tracking-tight ${style.text} flex items-center gap-3`}>
                             {currentTierName}
-                            <span className="text-6xl animate-pulse">
-                                {currentTierName === 'NEWBIE' ? '🚀' : 
-                                 currentTierName === 'BRONZE' ? '🥉' : 
-                                 currentTierName === 'SILVER' ? '🥈' : 
-                                 currentTierName === 'GOLD' ? '🥇' : '💎'}
-                            </span>
+                            <span className="text-4xl filter drop-shadow-sm">{style.icon}</span>
                         </h2>
-                        <p className="text-lg text-white/90 font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                            You are performing exceptionally well. Continue expanding your network to unlock <span className="font-bold underline decoration-yellow-400 decoration-2 underline-offset-4">{nextTierName}</span> status.
+                        <p className="text-gray-500 mt-3 max-w-md text-sm md:text-base leading-relaxed">
+                            You&apos;re currently earning at the <strong className={style.text}>{currentTierName}</strong> level. 
+                            {nextTier ? ` Upgrade to ${nextTierName} to unlock higher rewards.` : " You have reached the pinnacle of success!"}
                         </p>
                     </div>
 
-                    {/* Referral Code Section */}
+                    {/* Referral Box (Styled) */}
                     {referralCode && (
-                        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-1 flex items-center gap-2 w-fit pr-4 shadow-inner mx-auto lg:mx-0">
-                            <div className="bg-white text-gray-900 px-4 py-3 rounded-xl font-mono text-xl font-bold tracking-wider shadow-sm select-all">
-                                {referralCode}
-                            </div>
-                            <div className="flex flex-col items-start px-2">
-                                <span className="text-[10px] uppercase font-bold text-white/60 tracking-widest">Referral Code</span>
-                                <span className="text-xs font-medium text-white">Share to earn</span>
-                            </div>
-                            <button 
-                                onClick={copyToClipboard}
-                                className="ml-2 p-2 hover:bg-white/20 rounded-lg transition-colors text-white active:scale-90" 
-                                title="Copy Code"
-                            >
-                                <ClipboardDocumentIcon className="w-5 h-5" />
-                            </button>
+                        <div className="w-full max-w-md">
+                             <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Referral Code</span>
+                             </div>
+                             <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md group">
+                                 <div className="flex-1 px-3 py-1 text-lg font-mono font-bold text-gray-800 tracking-wider">
+                                     {referralCode}
+                                 </div>
+                                 <button 
+                                    onClick={copyToClipboard}
+                                    className="px-4 py-2 bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 rounded-lg text-xs font-bold uppercase tracking-wide border border-gray-200 transition-colors"
+                                 >
+                                     Copy
+                                 </button>
+                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Right: Next Tier Preview Box */}
+                {/* RIGHT: Progress Section (Desktop Split) */}
                 {nextTier && (
-                    <div className="flex-1 w-full lg:w-auto lg:max-w-sm space-y-5 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-inner relative overflow-hidden group">
-                        {/* Shimmer on hover */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                    <div className="lg:w-[400px] bg-white/50 backdrop-blur-md border-t lg:border-t-0 lg:border-l border-gray-100 p-8 md:p-10 flex flex-col justify-center gap-6">
+                       
+                       <div className="flex items-center justify-between">
+                           <div>
+                               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Next Milestone</h3>
+                               <div className="text-2xl font-bold text-gray-900">{nextTierName}</div>
+                           </div>
+                           <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white border border-gray-100 shadow-sm text-2xl`}>
+                               <ArrowTrendingUpIcon className="w-6 h-6 text-gray-400" />
+                           </div>
+                       </div>
 
-                        <div className="flex items-center justify-between pb-4 border-b border-white/10">
-                            <h3 className="text-xl font-bold text-white/90 flex items-center gap-2">
-                                Next Tier: {nextTierName}
-                            </h3>
-                            <ArrowTrendingUpIcon className="w-6 h-6 text-white/50" />
-                        </div>
-                        
-                        <ul className="text-sm text-white/80 space-y-3">
-                            <li className="flex justify-between items-center">
-                                <span>Points Required</span>
-                                <span className="font-bold bg-white/10 px-2 py-1 rounded">{targetPoints}</span>
-                            </li>
-                            <li className="flex justify-between items-center">
-                                <span>Active Members</span>
-                                <span className="font-bold bg-white/10 px-2 py-1 rounded">{targetMembers}</span>
-                            </li>
-                            <li className="pt-2">
-                                <div className="flex justify-between text-xs mb-1">
-                                    <span>Estimated Progress</span>
-                                    <span className="font-bold">{progress}%</span>
-                                </div>
-                                <div className="h-2 bg-black/20 rounded-full overflow-hidden">
-                                    <div 
-                                        className="h-full bg-white/90 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-1000"
-                                        style={{ width: `${progress}%` }}
-                                    ></div>
-                                </div>
-                            </li>
-                        </ul>
-                        
-                        <p className="text-xs text-white/60 pt-2 text-center italic">
-                            Keep building your network to unlock {nextTierName} tier!
-                        </p>
+                       {/* Progress Bar */}
+                       <div className="space-y-2">
+                           <div className="flex justify-between text-xs font-bold text-gray-500">
+                               <span>Progress</span>
+                               <span>{progress}%</span>
+                           </div>
+                           <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                               <div 
+                                   className={`h-full rounded-full transition-all duration-1000 ${style.badge.replace('text-', 'bg-').split(' ')[0]}`} 
+                                   style={{ width: `${progress}%` }}
+                               ></div>
+                           </div>
+                       </div>
+
+                       {/* Requirements Grid */}
+                       <div className="grid grid-cols-2 gap-4 pt-2">
+                           <div className="p-3 rounded-xl bg-white border border-gray-100 shadow-sm">
+                               <div className="text-xs text-gray-400 uppercase font-bold mb-1">Points</div>
+                               <div className="text-lg font-bold text-gray-900">
+                                   {points} <span className="text-gray-400 text-xs font-normal">/ {targetPoints}</span>
+                               </div>
+                           </div>
+                           <div className="p-3 rounded-xl bg-white border border-gray-100 shadow-sm">
+                               <div className="text-xs text-gray-400 uppercase font-bold mb-1">Members</div>
+                               <div className="text-lg font-bold text-gray-900">
+                                   {activeMembers} <span className="text-gray-400 text-xs font-normal">/ {targetMembers}</span>
+                               </div>
+                           </div>
+                       </div>
+
                     </div>
                 )}
             </div>

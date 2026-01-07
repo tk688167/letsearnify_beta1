@@ -1,117 +1,152 @@
 
-import { InformationCircleIcon } from "@heroicons/react/24/outline"
+import { 
+    BanknotesIcon, 
+    SparklesIcon, 
+    ShieldCheckIcon, 
+    ChartBarIcon, 
+    InformationCircleIcon,
+    ArrowTrendingUpIcon,
+    UsersIcon,
+    GiftIcon
+} from "@heroicons/react/24/outline"
+import { cn } from "@/lib/utils";
 
-// Client/Server agnostic component for displaying pools
 export function CompanyPools({ pools }: { pools: any[] }) {
-    // const pools = await prisma.pool.findMany() // Removed internal fetch
-
     
-    const getPool = (name: string) => {
-        const p = pools.find(p => p.name === name)
-        return { 
-            value: p ? `$${p.balance.toLocaleString()}` : "$0.00",
-            percentage: (p as any)?.percentage || 0 
+    // Helper to format currency
+    const formatMoney = (amount: number) => 
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+    const getPoolData = (key: string) => {
+        const pool = pools.find(p => p.name === key);
+        return {
+            balance: pool ? pool.balance : 0,
+            formatted: pool ? formatMoney(pool.balance) : "$0.00"
         }
     }
 
-    const poolData = [
+    const poolConfig = [
         { 
-            name: "CBSP Pool", 
-            key: "CBSP",
-            ...getPool("CBSP"), 
-            color: "bg-blue-500", 
-            textColor: "text-blue-700",
-            bgColor: "bg-blue-50",
-            description: "Community Benevolent/Bonus System Pool. Accumulates a portion of referral commissions to reward top performers and fund special community events."
+            key: "CBSP", 
+            name: "CBSP Pool",
+            subtitle: "Global Profit Share",
+            icon: UsersIcon,
+            theme: "blue",
+            accent: "from-blue-500 to-indigo-600",
+            bg: "bg-blue-50",
+            text: "text-blue-900",
+            allocation: "5% of All Deposits",
+            distribution: "Weekly (3%)",
+            qualification: "Active Member",
+            features: ["Auto-Distribution", "Community Funded"],
+            data: getPoolData("CBSP")
         },
         { 
-            name: "Royalty Pool", 
-            key: "Royalty",
-            ...getPool("Royalty"), 
-            color: "bg-purple-500",
-            textColor: "text-purple-700",
-            bgColor: "bg-purple-50", 
-            description: "Dedicated rewarad pool for Gold, Platinum, Diamond, and Emerald tier members based on monthly performance qualifications."
+            key: "Royalty", 
+            name: "Royalty Pool",
+            subtitle: "Elite Performance Reward",
+            icon: SparklesIcon,
+            theme: "purple",
+            accent: "from-purple-500 to-fuchsia-600",
+            bg: "bg-purple-50",
+            text: "text-purple-900",
+            allocation: "Dynamic Allocation",
+            distribution: "Monthly",
+            qualification: "Gold Tier & Above",
+            features: ["High-Yield", "Tier Multipliers"],
+            data: getPoolData("Royalty")
         },
         { 
-            name: "Reward Pool", 
-            key: "Reward",
-            ...getPool("Reward"), 
-            color: "bg-orange-500", 
-            textColor: "text-orange-700",
-            bgColor: "bg-orange-50",
-            description: "Funds tier-based achievement rewards. Users receive these rewards automatically upon reaching specific new tier milestones."
+            key: "Reward", 
+            name: "Achievement Pool",
+            subtitle: "Milestone Bounties",
+            icon: GiftIcon,
+            theme: "amber",
+            accent: "from-amber-400 to-orange-500",
+            bg: "bg-amber-50",
+            text: "text-amber-900",
+            allocation: "System Generated",
+            distribution: "Instant",
+            qualification: "Rank Upgrades",
+            features: ["Instant Payout", "One-time Bonus"],
+            data: getPoolData("Reward")
         },
         { 
-            name: "Emergency Fund", 
-            key: "Emergency",
-            ...getPool("Emergency"), 
-            color: "bg-red-500", 
-            textColor: "text-red-700",
-            bgColor: "bg-red-50",
-            description: "Strategic reserve fund for emergency contingencies and company-specific payouts. Managed strictly by the administration."
+            key: "Emergency", 
+            name: "Reserve Fund",
+            subtitle: "Strategic Safety Net",
+            icon: ShieldCheckIcon,
+            theme: "emerald",
+            accent: "from-emerald-500 to-teal-600",
+            bg: "bg-emerald-50",
+            text: "text-emerald-900",
+            allocation: "Admin Discretion",
+            distribution: "Contingency",
+            qualification: "Strictly Controlled",
+            features: ["Risk Management", "Liquidity Cover"],
+            data: getPoolData("Emergency")
         },
     ]
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-bottom-5 duration-700 ease-out">
-            {poolData.map((pool) => (
-                <div key={pool.name} className="relative group bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
-                    {/* Background Gradient Splash */}
-                    <div className={`absolute top-0 right-0 w-24 h-24 ${pool.bgColor} rounded-full blur-[40px] opacity-50 group-hover:opacity-100 transition-opacity`}></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            {poolConfig.map((pool) => (
+                <div 
+                    key={pool.key} 
+                    className="group relative bg-white rounded-[1.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+                >
+                    {/* Top Decorative Line */}
+                    <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${pool.accent}`}></div>
+
+                    {/* Background Pattern */}
+                    <div className={`absolute top-0 right-0 w-32 h-32 ${pool.bg} rounded-full blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 -mr-10 -mt-10`}></div>
                     
-                    <div className="relative z-10">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                               <div className={`w-10 h-10 rounded-xl ${pool.bgColor} ${pool.textColor} flex items-center justify-center shadow-inner`}>
-                                   {/* Icon or Initial */}
-                                   <span className="font-black text-lg">{pool.key.charAt(0)}</span>
-                               </div>
-                               <div>
-                                   <h3 className="font-bold text-gray-900 text-sm font-serif leading-tight">{pool.name}</h3>
-                                   <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">System Pool</span>
-                               </div>
-                            </div>
-                            
-                            {/* Tooltip Icon */}
-                            <div className="relative">
-                                    <InformationCircleIcon className="w-5 h-5 text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
-                                    {/* Tooltip Content */}
-                                    <div className="absolute right-0 bottom-full mb-2 w-56 p-3 bg-gray-900/95 backdrop-blur-md text-white text-[11px] leading-relaxed rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-xl border border-white/10 pointer-events-none transform translate-y-2 group-hover:translate-y-0">
-                                        {pool.description}
-                                        <div className="absolute top-full right-1 -mt-1 border-4 border-transparent border-t-gray-900/95"></div>
-                                    </div>
+                    <div className="relative z-10 p-6 flex flex-col h-full">
+                        
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-6">
+                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br ${pool.accent} text-white shadow-lg shadow-${pool.theme}-500/20 group-hover:scale-110 transition-transform duration-300`}>
+                                 <pool.icon className="w-6 h-6" />
+                             </div>
+                             <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${pool.bg.replace('bg-', 'border-').replace('50', '100')} ${pool.text} bg-opacity-50`}>
+                                 {pool.qualification}
+                             </div>
+                        </div>
+
+                        {/* Title & Amount */}
+                        <div className="mb-6">
+                            <h3 className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">{pool.subtitle}</h3>
+                            <h2 className="text-xl font-bold text-gray-900 font-serif leading-none mb-2">{pool.name}</h2>
+                            <div className={`text-2xl md:text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${pool.accent}`}>
+                                {pool.data.formatted}
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-1 mb-4">
-                             <div className="text-3xl font-serif font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
-                                {pool.value}
-                             </div>
-                             {pool.key === "CBSP" && (
-                                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-green-50 text-green-700 rounded-md border border-green-100 w-fit">
-                                    <span className="relative flex h-2 w-2">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                                    </span>
-                                    <span className="text-[10px] font-bold uppercase tracking-wide">Weekly 4% Distrib.</span>
-                                </div>
-                             )}
-                             {pool.percentage > 0 && pool.key !== "CBSP" && (
-                                <div className="flex items-center gap-2">
-                                    <div className="h-1.5 w-24 bg-gray-100 rounded-full overflow-hidden">
-                                        <div className={`h-full ${pool.color} w-[${Math.min(pool.percentage, 100)}%] rounded-full`}></div>
-                                    </div>
-                                    <span className={`text-xs font-bold ${pool.textColor}`}>
-                                        {pool.percentage}% Alloc
-                                    </span>
-                                </div>
-                             )}
+                        {/* Details Divider */}
+                        <div className="border-t border-gray-100 my-auto mb-4"></div>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-xs">
+                            <div>
+                                <div className="text-gray-400 font-medium mb-0.5">Allocation</div>
+                                <div className="font-bold text-gray-700">{pool.allocation}</div>
+                            </div>
+                            <div>
+                                <div className="text-gray-400 font-medium mb-0.5">Frequency</div>
+                                <div className="font-bold text-gray-700">{pool.distribution}</div>
+                            </div>
                         </div>
                         
-                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
-                            {pool.description}
-                        </p>
+                        {/* Hover Overlay Features */}
+                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gray-50/90 backdrop-blur-sm border-t border-gray-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex justify-between gap-2">
+                            {pool.features.map((feature, i) => (
+                                <div key={i} className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-600 bg-white py-2 rounded-lg border border-gray-200 shadow-sm">
+                                    <SparklesIcon className="w-3 h-3 text-amber-500" />
+                                    {feature}
+                                </div>
+                            ))}
+                        </div>
+
                     </div>
                 </div>
             ))}

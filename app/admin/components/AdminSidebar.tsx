@@ -15,7 +15,24 @@ const navigation = [
   { name: 'Withdrawal Requests', href: '/admin/withdrawals', icon: ArrowLeftOnRectangleIcon },
   { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, 
   { name: 'Merchant Settings', href: '/admin/settings/merchant', icon: BanknotesIcon },
-  { name: 'Tier Audit', href: '/admin/tiers/audit', icon: CheckCircleIcon },
+  { 
+      name: 'Tier System', 
+      href: '#', 
+      icon: CheckCircleIcon,
+      children: [
+          { name: 'Tier Audit', href: '/admin/tiers/audit', icon: '📋' },
+          { name: 'Tier Management', href: '/admin/tiers/manage', icon: '⚙️' }
+      ]
+  },
+  { 
+      name: 'Site Management',
+      href: '#',
+      icon: GlobeAltIcon,
+      children: [
+          { name: 'Platform Stats', href: '/admin/stats', icon: '📊' },
+          { name: 'Welcome Page Slider', href: '/admin/welcome-slider', icon: '📢' }
+      ]
+  },
   { 
       name: 'Pools & Revenue', 
       href: '/admin/pools', // Fallback or main link
@@ -168,7 +185,14 @@ export function AdminSidebar({ counts: initialCounts = { deposits: 0, withdrawal
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 m-4">
+      <div className="p-4 border-t border-gray-100 m-4 space-y-2">
+         <Link 
+           href="/dashboard"
+           className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+         >
+           <UsersIcon className="w-5 h-5" />
+           Switch to Dashboard
+         </Link>
          <button 
            onClick={() => signOut({ callbackUrl: '/' })}
            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"

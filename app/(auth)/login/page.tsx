@@ -34,8 +34,22 @@ function LoginContent() {
         setError("Invalid email or password")
         setLoading(false)
       } else {
-        router.push("/welcome")
-        router.refresh()
+        // Successful Login - Check Role for Redirect
+        try {
+           const roleRes = await fetch("/api/auth/role")
+           const data = await roleRes.json()
+           
+           if (data.role === "ADMIN") {
+               router.push("/admin")
+           } else {
+               router.push("/welcome")
+           }
+           router.refresh()
+        } catch (e) {
+           // Fallback to welcome if role check fails
+           router.push("/welcome")
+           router.refresh()
+        }
       }
     } catch (err) {
       setError("An unexpected error occurred")

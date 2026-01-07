@@ -18,9 +18,9 @@ export default function CbspHistorySection() {
     const [loading, setLoading] = useState(true)
     
     // Percentage Config State
-    const [percentage, setPercentage] = useState(4.0)
+    const [percentage, setPercentage] = useState(5.0)
     const [isEditing, setIsEditing] = useState(false)
-    const [newPercentage, setNewPercentage] = useState(4.0)
+    const [newPercentage, setNewPercentage] = useState(5.0)
 
     // Filters
     const [search, setSearch] = useState("")

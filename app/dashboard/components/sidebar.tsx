@@ -41,6 +41,18 @@ export function Sidebar({ session }: { session: any }) {
         <NavItem href="/dashboard/settings" icon={<Cog6ToothIcon className="w-5 h-5"/>} label="Settings" color="gray" />
       </nav>
 
+      {session?.user?.email === "admin@letsearnify.com" && (
+         <div className="px-4 mb-2">
+            <Link 
+              href="/admin"
+              className="flex items-center justify-center gap-2 w-full py-3 text-sm font-bold text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 rounded-xl transition-all shadow-lg shadow-gray-200"
+            >
+              <BriefcaseIcon className="w-5 h-5" />
+              Switch to Admin Portal
+            </Link>
+         </div>
+      )}
+
       <div className="p-4 m-4 bg-gray-50 rounded-2xl border border-gray-100">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">

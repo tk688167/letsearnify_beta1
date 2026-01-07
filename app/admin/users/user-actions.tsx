@@ -4,7 +4,9 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { creditMerchantDeposit } from "@/app/actions/admin/merchant"
-import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { signIn } from "next-auth/react"
+import { generateImpersonationToken } from "@/app/actions/admin/impersonate"
+import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon, TrashIcon, EyeIcon } from "@heroicons/react/24/outline"
 import { updateUserAsAdmin } from "@/lib/actions"
 
 type UserActionsProps = {
@@ -25,6 +27,10 @@ const TIERS = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EME
 export default function UserActions({ user }: UserActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  
+  // Impersonation State
+  const [impersonateLoading, setImpersonateLoading] = useState(false)
+
   
   // Merchant Deposit State
   const [isDepositOpen, setIsDepositOpen] = useState(false)
@@ -94,9 +100,44 @@ export default function UserActions({ user }: UserActionsProps) {
       setDepositLoading(false)
   }
 
+  const handleImpersonate = async () => {
+    if (!confirm(`Are you sure you want to log in as ${user.name || user.email}? You will be logged out of your admin account.`)) return
+
+    setImpersonateLoading(true)
+    try {
+        const res = await generateImpersonationToken(user.id)
+        
+        if (!res.success || !res.token) {
+            throw new Error(res.error || "Failed to generate token")
+        }
+
+        // Use standard NextAuth client signIn with the custom credentials provider
+        await signIn("impersonation", {
+            token: res.token,
+            callbackUrl: "/dashboard",
+            redirect: true,
+        })
+
+    } catch (error: any) {
+        console.error("Impersonation failed:", error)
+        alert(error.message || "Failed to switch user")
+        setImpersonateLoading(false)
+    }
+  }
+
   return (
     <>
       <div className="flex gap-2">
+        {user.role === 'ADMIN' && (
+            <button 
+                onClick={handleImpersonate}
+                disabled={impersonateLoading}
+                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50" 
+                title="Log in as this Admin"
+            >
+                <EyeIcon className={`w-5 h-5 ${impersonateLoading ? 'animate-pulse' : ''}`} />
+            </button>
+        )}
         <Link 
             href={`/admin/users/${user.id}/tree`}
             className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" 

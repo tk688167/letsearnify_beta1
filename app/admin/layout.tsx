@@ -3,8 +3,18 @@ import MobileAdminNav from "./components/mobile-admin-nav"
 
 import { getPendingCounts } from "@/app/actions/admin/counts"
 
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Middleware handles auth check now.
+  // 1. Strict Server-Side Security Check
+  const session = await auth()
+  
+  if (session?.user?.email !== "admin@letsearnify.com") {
+      console.warn("🚨 Unauthorized Admin Access Attempt:", session?.user?.email || "Unknown")
+      redirect("/unauthorized") // Or "/"
+  }
+
   const counts = await getPendingCounts()
 
   return (

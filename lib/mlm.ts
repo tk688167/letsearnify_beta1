@@ -1,49 +1,63 @@
-import { PrismaClient, Tier, TierStatus } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { Tier, TierStatus } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 
 // --- Tier Configuration ---
 // Values represent the ENTRY requirement for that tier
 // BOTH Points AND Active Members must be met.
-export const TIER_RULES = {
-  NEWBIE: { 
-    points: 0,
-    members: 0,
-    levels: [0.05, 0.03, 0.02] 
-  },
-  BRONZE: { 
-    points: 150,
-    members: 50, 
-    levels: [0.10, 0.06, 0.04] 
-  },
-  SILVER: { 
-    points: 350,
-    members: 150,
-    levels: [0.12, 0.08, 0.05] 
-  },
-  GOLD: { 
-    points: 700,
-    members: 300,
-    levels: [0.15, 0.10, 0.05] 
-  },
-  PLATINUM: { 
-    points: 1500,
-    members: 650,
-    levels: [0.18, 0.12, 0.05] 
-  },
-  DIAMOND: { 
-    points: 3500,
-    members: 1400,
-    levels: [0.20, 0.15, 0.05] 
-  },
-  EMERALD: { 
-    points: 8000, 
-    members: 3000,
-    levels: [0.30, 0.10, 0.05]
-  }
+
+export const DEFAULT_TIER_RULES = {
+  NEWBIE: { points: 0, members: 0, levels: [0.05, 0.03, 0.02] },
+  BRONZE: { points: 200, members: 50, levels: [0.10, 0.06, 0.04] },
+  SILVER: { points: 350, members: 150, levels: [0.12, 0.08, 0.05] },
+  GOLD: { points: 700, members: 300, levels: [0.15, 0.10, 0.05] },
+  PLATINUM: { points: 1500, members: 650, levels: [0.18, 0.12, 0.05] },
+  DIAMOND: { points: 3500, members: 1400, levels: [0.20, 0.15, 0.05] },
+  EMERALD: { points: 8000, members: 3000, levels: [0.30, 0.10, 0.05] }
 }
 
-export type TierLevel = keyof typeof TIER_RULES;
+export type TierLevel = keyof typeof DEFAULT_TIER_RULES;
+export type TierRules = typeof DEFAULT_TIER_RULES;
+
+/**
+ * Fetches the active Tier Configuration from the DB.
+ * If no config exists, it seeds the DB with DEFAULT_TIER_RULES.
+ */
+export async function getTierRules() {
+  // 1. Try to fetch from DB
+  const configs = await prisma.tierConfiguration.findMany();
+  
+  // 2. If exists, format and return
+  if (configs.length > 0) {
+     const rules: Record<string, any> = {};
+     configs.forEach(c => {
+        rules[c.tier] = {
+           points: c.points,
+           members: c.members,
+           levels: c.levels
+        }
+     });
+     return rules as typeof DEFAULT_TIER_RULES;
+  }
+
+  // 3. If empty, Seed and Return
+  console.log("Seeding Tier Configurations...");
+  for (const [key, value] of Object.entries(DEFAULT_TIER_RULES)) {
+      await prisma.tierConfiguration.create({
+          data: {
+              tier: key as Tier,
+              points: value.points,
+              members: value.members,
+              levels: value.levels
+          }
+      });
+  }
+  return DEFAULT_TIER_RULES;
+}
+
+// Keep TIER_RULES as a deprecated export for now to avoid breaking imports immediately, 
+// BUT IT WILL BE STATIC. We will remove usages gradually.
+export const TIER_RULES = DEFAULT_TIER_RULES; 
+
 
 // --- Helper Functions ---
 
@@ -70,46 +84,33 @@ export async function checkAndUpgradeTier(userId: string) {
   const currentPoints = user.points;
   const activeMembers = user.activeMembers; 
   
+  // FETCH DYNAMIC RULES
+  const RULES = await getTierRules();
+
   // Logic: Check highest tier first
   let newTier: Tier = user.tier;
-  let newStatus: TierStatus = user.tierStatus || 'CURRENT'; // Default if null
-
+  
   // Helper to check criteria
   const qualifies = (tier: TierLevel) => 
-     currentPoints >= TIER_RULES[tier].points && activeMembers >= TIER_RULES[tier].members;
+     currentPoints >= RULES[tier].points && activeMembers >= RULES[tier].members;
 
-  // STRICT UPGRADE PATH
-  if (user.tier === 'NEWBIE') {
-      if (currentPoints >= 150 && activeMembers >= 50) {
-          newTier = 'BRONZE';
-          newStatus = 'CURRENT'; // Start of Bronze is CURRENT
-          // Mark previous as completed? DB doesn't store history in User model, just current tier.
+  // STRICT UPGRADE PATH - Dynamic Check
+  // We check in REVERSE order to find the highest qualified tier
+  const tierOrder: TierLevel[] = ['EMERALD', 'DIAMOND', 'PLATINUM', 'GOLD', 'SILVER', 'BRONZE'];
+  
+  for (const t of tierOrder) {
+      if (qualifies(t)) {
+          // Verify we are actually upgrading (e.g. don't downgrade or stay same unless we want to support that)
+          // For now, only upgrade if 't' is higher than current 'user.tier'.
+          // Simple way: assign if qualified, and rely on the fact we check highest first.
+          // However, we need to know if t > user.tier.
+          
+          const tiers = ['NEWBIE', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'EMERALD'];
+          if (tiers.indexOf(t) > tiers.indexOf(user.tier)) {
+             newTier = t;
+             break; // Found highest qualification
+          }
       }
-  } else if (user.tier === 'BRONZE') {
-      if (currentPoints >= 350 && activeMembers >= 150) {
-          newTier = 'SILVER';
-          newStatus = 'CURRENT';
-      }
-  } else if (user.tier === 'SILVER') {
-        if (currentPoints >= 700 && activeMembers >= 300) {
-            newTier = 'GOLD';
-            newStatus = 'CURRENT';
-        }
-  } else if (user.tier === 'GOLD') {
-        if (currentPoints >= 1500 && activeMembers >= 650) {
-            newTier = 'PLATINUM';
-            newStatus = 'CURRENT';
-        }
-  } else if (user.tier === 'PLATINUM') {
-        if (currentPoints >= 3500 && activeMembers >= 1400) {
-            newTier = 'DIAMOND';
-            newStatus = 'CURRENT';
-        }
-  } else if (user.tier === 'DIAMOND') {
-        if (currentPoints >= 8000 && activeMembers >= 3000) {
-            newTier = 'EMERALD';
-            newStatus = 'CURRENT';
-        }
   }
 
   if (newTier !== user.tier) {
@@ -174,7 +175,8 @@ export async function distributeReferralCommission(depositorId: string, amount: 
      if (!referrer) continue;
 
      // Calculate Commission based on REFERRER's Tier
-     const tierRules = TIER_RULES[referrer.tier as TierLevel] || TIER_RULES.NEWBIE;
+     const RULES = await getTierRules();
+     const tierRules = RULES[referrer.tier as TierLevel] || RULES.NEWBIE;
      const percentage = tierRules.levels[i] || 0; // level 1 is index 0
 
      if (percentage > 0) {

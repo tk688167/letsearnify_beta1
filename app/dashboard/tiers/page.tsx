@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import TierProgressView from "./tier-progress-view"
 import ReferralView from "../referrals/referral-view"
+import { getTierRules } from "@/lib/mlm"
 
 export default async function TierPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
+
+  // Fetch Dynamic Rules
+  const tierConfig = await getTierRules();
 
   // Fetch User & Team Data
   // We need the full tree for the "Referral Tree" requirement below the tiers
@@ -62,7 +66,8 @@ export default async function TierPage() {
        
        <TierProgressView 
           user={{ tier: user.tier, points: user.points }}
-          stats={{ teamSize }}
+          stats={{ teamSize: user.activeMembers || teamSize }}
+          tierConfig={tierConfig}
        />
 
        {/* Divider */}
@@ -84,6 +89,7 @@ export default async function TierPage() {
                totalEarnings,
                todayEarnings: 0 // Optional here
              }}
+             tierConfig={tierConfig}
              referralTree={referralTree.map(n => ({
                id: n.id,
                name: n.name,
