@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/security',
     '/stories',
     '/proofs',
-    '/welcome', // Public referral landing
+    '/proofs',
     '/login',
     '/signup',
   ].map((route) => ({

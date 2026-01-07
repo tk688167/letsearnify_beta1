@@ -2,5 +2,5 @@
 import { FeatureGuard } from "@/app/dashboard/components/FeatureGuard"
 
 export default function MarketplacePage() {
-  return <FeatureGuard title="Marketplace" feature="marketplace" />
+  return <FeatureGuard title="Marketplace Page" feature="marketplace" />
 }

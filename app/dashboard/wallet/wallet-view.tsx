@@ -461,7 +461,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                   </div>
                                   <div>
                                       <div className="text-xs font-bold text-gray-900">{tx.type}</div>
-                                      <div className="text-[10px] text-gray-400">{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                      <div className="text-[10px] text-gray-400" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
                                   </div>
                               </div>
                               <div className="text-right">

@@ -27,7 +27,7 @@ export function Sidebar({ session }: { session: any }) {
       
       <nav className="flex-1 px-4 py-6 space-y-1.5">
         <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
-        <NavItem href="/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" color="blue" />
+        <NavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" color="blue" />
         <NavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" color="gray" />
         <NavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" color="purple" />
         <NavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" color="yellow" />

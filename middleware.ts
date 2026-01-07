@@ -76,6 +76,8 @@ export default async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", nextUrl))
   }
 
+
+
   // NOTE: NextAuth middleware usually handles redirect protection based on authConfig.
   // We can add custom Role checks here if needed, but usually done in component/api.
   

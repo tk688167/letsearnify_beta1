@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { User, PaymentMethod } from "@prisma/client"
 import { updateProfile, addPaymentMethod } from "@/lib/actions"
 import { 
@@ -8,246 +9,351 @@ import {
   ShieldCheckIcon, 
   CreditCardIcon, 
   DocumentTextIcon, 
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  CheckBadgeIcon,
+  ArrowRightOnRectangleIcon,
+  BellIcon,
+  GlobeAltIcon,
+  LockClosedIcon,
+  SwatchIcon
 } from "@heroicons/react/24/outline"
-// Reusing parts of the Edit Form logic but adapted for tabs
-import EditForm from "../profile/edit/edit-form" 
+import EditForm from "../profile/edit/edit-form"
+import { cn } from "@/lib/utils"
 
-// Type extension to include payment methods
+// Type extension
 type UserWithMethods = User & { paymentMethods: PaymentMethod[] }
 
 export default function SettingsTabs({ user }: { user: UserWithMethods }) {
   const [activeTab, setActiveTab] = useState("general")
   const [isAddingPayment, setIsAddingPayment] = useState(false)
 
-  const tabs = [
-    { id: "general", label: "General", icon: UserCircleIcon },
-    { id: "security", label: "Security", icon: ShieldCheckIcon },
-    { id: "payments", label: "Payment Methods", icon: CreditCardIcon },
-    { id: "verification", label: "Verification (KYC)", icon: DocumentTextIcon },
-    { id: "preferences", label: "Preferences", icon: Cog6ToothIcon },
+  const menuItems = [
+    { id: "general", label: "My Profile", icon: UserCircleIcon, desc: "Personal details & bio" },
+    { id: "security", label: "Security & Login", icon: ShieldCheckIcon, desc: "Password, 2FA, Recovery" },
+    { id: "payments", label: "Payment Methods", icon: CreditCardIcon, desc: "Linked cards & banks" },
+    { id: "verification", label: "Identity (KYC)", icon: DocumentTextIcon, desc: "Verification status" },
+    { id: "preferences", label: "Global Preferences", icon: Cog6ToothIcon, desc: "Language & Notifications" },
   ]
 
   return (
-    <div>
-      {/* Mobile Tab Dropdown could go here, for now using responsive flex */}
-      <div className="flex overflow-x-auto pb-4 gap-2 mb-8 border-b border-gray-100 no-scrollbar">
-        {tabs.map((tab) => {
-           const Icon = tab.icon
-           const isActive = activeTab === tab.id
-           return (
-             <button
-               key={tab.id}
-               onClick={() => setActiveTab(tab.id)}
-               className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${
-                 isActive 
-                   ? "bg-blue-600 text-white shadow-md shadow-blue-500/20" 
-                   : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-               }`}
-             >
-               <Icon className="w-4 h-4" />
-               {tab.label}
-             </button>
-           )
-        })}
+    <div className="flex flex-col lg:flex-row gap-8 pb-12">
+      
+      {/* 1. LEFT SIDEBAR NAVIGATION */}
+      <div className="w-full lg:w-80 shrink-0 space-y-6">
+        
+        {/* User Mini Card */}
+        <div className="bg-white rounded-[2rem] border border-gray-100 p-6 shadow-xl shadow-gray-200/40 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-50"></div>
+            <div className="relative z-10 flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white shadow-sm p-1">
+                    {user.image ? (
+                        <img src={user.image} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
+                    ) : (
+                        <div className="w-full h-full bg-gray-100 rounded-xl flex items-center justify-center">
+                            <UserCircleIcon className="w-8 h-8 text-gray-300" />
+                        </div>
+                    )}
+                </div>
+                <div>
+                    <h3 className="font-bold text-gray-900 font-serif leading-tight">{user.name}</h3>
+                    <p className="text-xs text-gray-500 font-medium truncate max-w-[120px]">{user.email}</p>
+                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100/50 text-blue-700 text-[10px] font-bold uppercase rounded-md">
+                        {user.tier} Member
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-200/40 overflow-hidden">
+            <div className="p-4 space-y-1">
+                {menuItems.map((item) => {
+                    const Icon = item.icon
+                    const isActive = activeTab === item.id
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={cn(
+                                "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 text-left group relative overflow-hidden",
+                                isActive 
+                                    ? "bg-gray-900 text-white shadow-lg shadow-gray-900/20" 
+                                    : "hover:bg-gray-50 text-gray-600"
+                            )}
+                        >
+                            <div className={cn(
+                                "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+                                isActive ? "bg-white/10 text-white" : "bg-gray-100 text-gray-500 group-hover:bg-white group-hover:shadow-sm"
+                            )}>
+                                <Icon className="w-5 h-5" />
+                            </div>
+                            <div className="relative z-10">
+                                <span className={cn("block font-bold text-sm", isActive ? "text-white" : "text-gray-900")}>
+                                    {item.label}
+                                </span>
+                                <span className={cn("block text-[10px]", isActive ? "text-gray-400" : "text-gray-400")}>
+                                    {item.desc}
+                                </span>
+                            </div>
+                            {isActive && (
+                                <motion.div layoutId="active-indicator" className="absolute right-4 w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.8)]" />
+                            )}
+                        </button>
+                    )
+                })}
+            </div>
+        </nav>
+
+        {/* Security Summary Widget */}
+        <div className="bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+             <h4 className="font-bold text-sm uppercase tracking-widest text-indigo-200 mb-4">Account Health</h4>
+             <div className="flex items-end gap-2 mb-2">
+                 <span className="text-4xl font-bold font-serif">{user.kycStatus === 'VERIFIED' ? '98%' : '65%'}</span>
+             </div>
+             <div className="w-full bg-white/10 rounded-full h-1.5 mb-4 overflow-hidden">
+                 <div className={cn("h-full rounded-full", user.kycStatus === 'VERIFIED' ? "bg-emerald-400 w-[98%]" : "bg-amber-400 w-[65%]")}></div>
+             </div>
+             <p className="text-xs text-indigo-200/70 leading-relaxed">
+                 {user.kycStatus === 'VERIFIED' ? "Your account is secure and verified." : "Complete KYC to reach 100% health."}
+             </p>
+        </div>
+
       </div>
 
-      <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 md:p-10 min-h-[500px]">
-        
-        {/* GENERAL TAB */}
-        {activeTab === "general" && (
-           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <h2 className="text-xl font-bold font-serif mb-6 text-gray-900">Profile Information</h2>
-              {/* We can render the EditForm here, slightly modified or passed directly. 
-                  EditForm is fully self-contained with its own form action. */}
-              <EditForm user={user} />
-           </div>
-        )}
+      {/* 2. RIGHT CONTENT AREA */}
+      <div className="flex-1 min-w-0">
+         <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/40 p-8 md:p-12 min-h-[800px] relative">
+            
+            {/* Ambient Background */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-b from-gray-50 to-transparent rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none opacity-60"></div>
+            
+            <AnimatePresence mode="wait">
+                {activeTab === "general" && (
+                    <motion.div 
+                        key="general"
+                        initial={{ opacity: 0, x: 20 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        exit={{ opacity: 0, x: -20 }}
+                        className="relative z-10 max-w-2xl"
+                    >
+                        <header className="mb-10 border-b border-gray-100 pb-6">
+                            <h2 className="text-3xl font-bold font-serif text-gray-900 mb-2">Profile Settings</h2>
+                            <p className="text-gray-500">Manage your personal information and public profile.</p>
+                        </header>
+                        <EditForm user={user} />
+                    </motion.div>
+                )}
 
-        {/* SECURITY TAB */}
-        {activeTab === "security" && (
-           <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <h2 className="text-xl font-bold font-serif mb-6 text-gray-900">Security Settings</h2>
-              
-              <div className="space-y-6">
-                <div className="p-4 bg-yellow-50 border border-yellow-100 rounded-xl text-yellow-800 text-sm mb-6">
-                  <strong>Note:</strong> Password changes are handled in the General tab for convenience, but advanced security is here.
-                </div>
-                
-                <form action={async (formData) => { await updateProfile(formData) }} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Security Question</label>
-                    <select name="securityQuestion" defaultValue={user.securityQuestion || ""} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-                       <option value="" disabled>Select a question</option>
-                       <option value="pet">What was the name of your first pet?</option>
-                       <option value="school">What elementary school did you attend?</option>
-                       <option value="city">In what city were you born?</option>
-                    </select>
-                  </div>
-                  <div>
-                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Answer</label>
-                     <input 
-                       name="securityAnswer"
-                       defaultValue={user.securityAnswer || ""}
-                       type="text" 
-                       className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl"
-                       placeholder="Your answer..."
-                     />
-                  </div>
-                  <button className="px-6 py-2 bg-gray-900 text-white font-bold rounded-xl text-sm">Save Security Info</button>
-                </form>
+                {activeTab === "security" && (
+                    <motion.div 
+                        key="security"
+                        initial={{ opacity: 0, x: 20 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="relative z-10 max-w-3xl"
+                    >
+                        <header className="mb-10 border-b border-gray-100 pb-6">
+                            <h2 className="text-3xl font-bold font-serif text-gray-900 mb-2">Security Center</h2>
+                            <p className="text-gray-500">Advanced controls to keep your assets safe.</p>
+                        </header>
 
-                <div className="pt-6 border-t border-gray-100">
-                   <h3 className="font-bold text-gray-900 mb-2">Two-Factor Authentication</h3>
-                   <p className="text-gray-500 text-sm mb-4">Protect your account with an extra layer of security.</p>
-                   <button className="px-6 py-2 bg-gray-100 text-gray-400 font-bold rounded-xl text-sm cursor-not-allowed">Enable 2FA (Coming Soon)</button>
-                </div>
-              </div>
-           </div>
-        )}
+                        <div className="grid gap-6">
+                            {/* 2FA Card (Premium) */}
+                            <div className="p-8 rounded-[2rem] bg-gray-900 text-white relative overflow-hidden shadow-2xl">
+                                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+                                <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-500/20 blur-3xl rounded-full -mr-16 -mt-16"></div>
+                                
+                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center shrink-0">
+                                            <LockClosedIcon className="w-6 h-6 text-indigo-300" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg mb-1">Two-Factor Authentication</h3>
+                                            <p className="text-indigo-200/80 text-sm max-w-sm">Add an extra layer of security to your account by requiring a code when signing in.</p>
+                                        </div>
+                                    </div>
+                                    <button className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/30 whitespace-nowrap opacity-50 cursor-not-allowed">
+                                        Enable 2FA (Soon)
+                                    </button>
+                                </div>
+                            </div>
 
-        {/* PAYMENTS TAB */}
-        {activeTab === "payments" && (
-           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold font-serif text-gray-900">Linked Payment Methods</h2>
-                <button 
-                  onClick={() => setIsAddingPayment(!isAddingPayment)}
-                  className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl text-sm shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-colors"
-                >
-                  + Add New
-                </button>
-              </div>
+                            {/* Security Questions */}
+                            <div className="p-8 border border-gray-200 rounded-[2rem] bg-white">
+                                <form action={async (formData) => { await updateProfile(formData) }} className="space-y-6">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                        <ShieldCheckIcon className="w-5 h-5 text-gray-400" />
+                                        Recovery Question
+                                    </h3>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Question</label>
+                                            <div className="relative">
+                                                <select name="securityQuestion" defaultValue={user.securityQuestion || ""} className="w-full pl-4 pr-10 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-700 outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all appearance-none cursor-pointer">
+                                                    <option value="" disabled>Select a recovery question</option>
+                                                    <option value="pet">What was the name of your first pet?</option>
+                                                    <option value="school">What elementary school did you attend?</option>
+                                                    <option value="city">In what city were you born?</option>
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Answer</label>
+                                            <input 
+                                                name="securityAnswer"
+                                                defaultValue={user.securityAnswer || ""}
+                                                type="text" 
+                                                className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl font-medium text-gray-700 outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-900 transition-all placeholder:text-gray-300"
+                                                placeholder="Enter your secret answer"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end pt-2">
+                                        <button className="px-8 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-all shadow-lg shadow-gray-900/10">
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
-              {isAddingPayment && (
-                 <div className="mb-8 p-6 bg-gray-50 rounded-2xl border border-gray-100">
-                    <form action={async (formData) => {
-                        await addPaymentMethod(formData)
-                        setIsAddingPayment(false)
-                    }}>
-                       <h3 className="font-bold mb-4">Add Method (Simulated)</h3>
-                       <div className="grid md:grid-cols-2 gap-4 mb-4">
-                          <select name="type" className="px-4 py-3 rounded-xl border border-gray-200">
-                             <option value="CARD">Credit/Debit Card</option>
-                             <option value="BANK">Bank Account</option>
-                          </select>
-                          <input name="details" placeholder="Last 4 digits or IBAN" className="px-4 py-3 rounded-xl border border-gray-200" required />
-                       </div>
-                       <div className="flex gap-2">
-                         <button className="px-6 py-2 bg-gray-900 text-white font-bold rounded-xl text-sm">Save</button>
-                         <button type="button" onClick={() => setIsAddingPayment(false)} className="px-6 py-2 bg-white border border-gray-200 text-gray-600 font-bold rounded-xl text-sm">Cancel</button>
-                       </div>
-                    </form>
-                 </div>
-              )}
+                {activeTab === "payments" && (
+                     <motion.div 
+                        key="payments"
+                        initial={{ opacity: 0, x: 20 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="relative z-10 max-w-4xl"
+                    >
+                        <header className="mb-10 text-center md:text-left border-b border-gray-100 pb-6">
+                            <h2 className="text-3xl font-bold font-serif text-gray-900 mb-2">Wallet & Methods</h2>
+                            <p className="text-gray-500">Manage payment sources for deposits and withdrawals.</p>
+                        </header>
 
-              <div className="space-y-4">
-                 {user.paymentMethods.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400 border-2 border-dashed border-gray-100 rounded-3xl">
-                       <CreditCardIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                       <p>No payment methods linked yet.</p>
-                    </div>
-                 ) : (
-                    user.paymentMethods.map(method => (
-                       <div key={method.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                                <CreditCardIcon className="w-6 h-6" />
-                             </div>
-                             <div>
-                                <div className="font-bold text-gray-900">{method.title}</div>
-                                <div className="text-xs text-gray-500 uppercase">{method.type} • {method.details}</div>
-                             </div>
-                          </div>
-                          <button className="text-xs font-bold text-red-500 px-3 py-1 bg-red-50 rounded-lg">Remove</button>
-                       </div>
-                    ))
-                 )}
-              </div>
-           </div>
-        )}
+                        <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border border-gray-100 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+                            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-50 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-blue-100/50 relative z-10">
+                                <CreditCardIcon className="w-10 h-10 text-blue-500" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 font-serif mb-3 relative z-10">Payments Coming Soon</h3>
+                            <p className="text-gray-500 max-w-md mx-auto mb-8 relative z-10 px-6">
+                                We are finalizing partnerships with global payment providers to ensure secure and fast transactions. This section will be live shortly.
+                            </p>
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest rounded-full">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                                In Development
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
 
-        {/* VERIFICATION TAB */}
-        {activeTab === "verification" && (
-           <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <h2 className="text-xl font-bold font-serif mb-6 text-gray-900">Identity Verification (KYC)</h2>
-              
-              <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl mb-8">
-                 <div className="flex items-center gap-3 mb-2">
-                    <ShieldCheckIcon className={`w-6 h-6 ${user.kycStatus === 'VERIFIED' ? 'text-green-600' : 'text-blue-600'}`} />
-                    <span className="font-bold text-gray-900 uppercase tracking-widest text-sm">Current Status: {user.kycStatus.replace("_", " ")}</span>
-                 </div>
-                 <p className="text-sm text-blue-800/70">
-                    {user.kycStatus === 'VERIFIED' 
-                       ? "Your account is fully verified. You have access to all features." 
-                       : "Verify your identity to unlock higher withdrawal limits and investment pools."}
-                 </p>
-              </div>
+                {activeTab === "verification" && (
+                    <motion.div 
+                        key="verification"
+                        initial={{ opacity: 0, x: 20 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="relative z-10 max-w-3xl"
+                    >
+                         <header className="mb-10 text-center md:text-left border-b border-gray-100 pb-6">
+                            <h2 className="text-3xl font-bold font-serif text-gray-900 mb-2">Identity Verification</h2>
+                            <p className="text-gray-500">Know Your Customer (KYC) compliance status.</p>
+                        </header>
 
-              {user.kycStatus !== 'VERIFIED' && (
-                 <div className="space-y-6">
-                    <div>
-                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Government ID Type</label>
-                       <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-                          <option>Passport</option>
-                          <option>National ID</option>
-                          <option>Driver's License</option>
-                       </select>
-                    </div>
-                    <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer group">
-                       <DocumentTextIcon className="w-10 h-10 text-gray-300 mx-auto mb-3 group-hover:text-blue-500 transition-colors" />
-                       <p className="font-bold text-gray-600">Click to Upload Document</p>
-                       <p className="text-xs text-gray-400 mt-1">JPG, PNG or PDF (Max 5MB)</p>
-                    </div>
-                    <button className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20">Submit for Review</button>
-                 </div>
-              )}
-           </div>
-        )}
+                        <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-[2.5rem] border border-gray-100 text-center relative overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
+                            <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-fuchsia-50 rounded-full flex items-center justify-center mb-6 shadow-xl shadow-purple-100/50 relative z-10">
+                                <DocumentTextIcon className="w-10 h-10 text-purple-500" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-gray-900 font-serif mb-3 relative z-10">KYC Portal In Progress</h3>
+                            <p className="text-gray-500 max-w-md mx-auto mb-8 relative z-10 px-6">
+                                Our automated identity verification system is currently undergoing security audits. It will be available for all users very soon.
+                            </p>
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 text-xs font-bold uppercase tracking-widest rounded-full">
+                                <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+                                In Development
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
 
-        {/* PREFERENCES TAB */}
-        {activeTab === "preferences" && (
-           <div className="max-w-xl animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <h2 className="text-xl font-bold font-serif mb-6 text-gray-900">Preferences</h2>
-              <form action={async (formData) => { await updateProfile(formData) }} className="space-y-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Currency</label>
-                       <select name="currency" defaultValue={user.currency} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-                          <option value="USD">USD ($)</option>
-                          <option value="EUR">EUR (€)</option>
-                          <option value="GBP">GBP (£)</option>
-                       </select>
-                    </div>
-                    <div>
-                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Language</label>
-                       <select name="language" defaultValue={user.language} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl">
-                          <option value="en">English</option>
-                          <option value="es">Spanish</option>
-                          <option value="fr">French</option>
-                       </select>
-                    </div>
-                 </div>
+                {activeTab === "preferences" && (
+                    <motion.div 
+                        key="preferences"
+                        initial={{ opacity: 0, x: 20 }} 
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="relative z-10 max-w-2xl"
+                    >
+                         <header className="mb-10 border-b border-gray-100 pb-6">
+                            <h2 className="text-3xl font-bold font-serif text-gray-900 mb-2">Global Preferences</h2>
+                            <p className="text-gray-500">Customize your platform experience.</p>
+                        </header>
 
-                 <div className="pt-6 border-t border-gray-100">
-                    <h3 className="font-bold text-gray-900 mb-4">Notifications</h3>
-                    <div className="space-y-4">
-                       <label className="flex items-center justify-between p-4 border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50">
-                          <span className="font-medium text-gray-700">Email Alerts</span>
-                          <input type="checkbox" className="w-5 h-5 rounded text-blue-600" defaultChecked />
-                       </label>
-                       <label className="flex items-center justify-between p-4 border border-gray-100 rounded-xl cursor-pointer hover:bg-gray-50">
-                          <span className="font-medium text-gray-700">Login Notifications</span>
-                          <input type="checkbox" className="w-5 h-5 rounded text-blue-600" defaultChecked />
-                       </label>
-                    </div>
-                 </div>
-                 
-                 <button className="px-6 py-2 bg-gray-900 text-white font-bold rounded-xl text-sm">Save Preferences</button>
-              </form>
-           </div>
-        )}
+                        <form action={async (formData) => { await updateProfile(formData) }} className="space-y-8">
+                            
+                            {/* Language & Currency */}
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                        <GlobeAltIcon className="w-4 h-4" /> Language
+                                    </label>
+                                    <select name="language" defaultValue={user.language} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl font-bold text-gray-700 outline-none focus:ring-2 focus:ring-gray-200">
+                                        <option value="en">English (United States)</option>
+                                        <option value="es">Español</option>
+                                        <option value="fr">Français</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                        <SwatchIcon className="w-4 h-4" /> Currency
+                                    </label>
+                                    <select name="currency" defaultValue={user.currency} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl font-bold text-gray-700 outline-none focus:ring-2 focus:ring-gray-200">
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                    </select>
+                                </div>
+                            </div>
 
+                            <div className="h-px bg-gray-100 my-8"></div>
+
+                            {/* Notifications */}
+                            <div className="space-y-6">
+                                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                                    <BellIcon className="w-5 h-5" />
+                                    Notifications
+                                </h3>
+                                
+                                {['Email Alerts', 'Push Notifications', 'Marketing Updates'].map((item, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
+                                        <span className="font-medium text-gray-700">{item}</span>
+                                        <div className="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" defaultChecked={i !== 1} className="sr-only peer" />
+                                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gray-900"></div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-end pt-6">
+                                <button className="px-10 py-4 bg-gray-900 text-white font-bold rounded-2xl shadow-xl shadow-gray-900/20 hover:bg-black hover:scale-[1.02] transition-all">
+                                    Save Preferences
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                )}
+
+            </AnimatePresence>
+         </div>
       </div>
     </div>
   )

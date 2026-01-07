@@ -15,15 +15,30 @@ import {
   ShieldCheckIcon,
   DocumentDuplicateIcon,
   CheckIcon,
-  LockClosedIcon
+  LockClosedIcon,
+  WrenchScrewdriverIcon,
+  SparklesIcon
 } from "@heroicons/react/24/outline"
 import { formatCurrency, formatUserId, cn } from "@/lib/utils"
 import { CompanyPools } from "./CompanyPools"
 import { TierProgress } from "./TierProgress"
 import { CopyableText } from "./copyable-text"
 
+// Feature Configuration (Can be moved to DB/Env later)
+const FEATURE_FLAGS = {
+    TASKS: false,      // Set to true when ready to go Live
+    MARKETPLACE: false, // Set to true when ready to go Live
+    POOLS: false       // Set to true when ready to go Live
+}
+
 export default function DashboardClient({ user, pools, stats }: { user: any, pools: any[], stats: any }) {
   const isUnlocked = user.balance >= 1.0 || user.isActiveMember || user.totalDeposit >= 1.0
+
+  // Helper to determine status: 'LOCKED' | 'DEV' | 'LIVE'
+  const getFeatureStatus = (featureKey: keyof typeof FEATURE_FLAGS) => {
+      if (!isUnlocked) return "LOCKED"
+      return FEATURE_FLAGS[featureKey] ? "LIVE" : "DEV"
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-24">
@@ -101,10 +116,40 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
 
       {/* 3. ACTION HUB */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <ActionTile href="/dashboard/wallet?tab=deposit" icon={ArrowDownTrayIcon} label="Add Funds" sub="Deposit Crypto" color="blue" delay={0.1} />
-          <ActionTile href="/dashboard/wallet?tab=withdraw" icon={ArrowUpTrayIcon} label="Withdraw" sub="Cash Out" color="purple" delay={0.2} />
-          <ActionTile href="/dashboard/tasks" icon={BriefcaseIcon} label="Task Center" sub="Earn Cash" color="emerald" delay={0.3} />
-          <ActionTile href="/dashboard/marketplace" icon={ShoppingBagIcon} label="Marketplace" sub="Buy & Sell" color="orange" delay={0.4} />
+          <ActionTile 
+              href="/dashboard/wallet?tab=deposit" 
+              icon={ArrowDownTrayIcon} 
+              label="Add Funds" 
+              sub="Deposit Crypto" 
+              color="blue" 
+              delay={0.1} 
+          />
+          <ActionTile 
+              href="/dashboard/wallet?tab=withdraw" 
+              icon={ArrowUpTrayIcon} 
+              label="Withdraw" 
+              sub="Cash Out" 
+              color="purple" 
+              delay={0.2} 
+          />
+          <ActionTile 
+              href="/dashboard/tasks" 
+              icon={BriefcaseIcon} 
+              label="Task Center" 
+              sub="Earn Cash" 
+              color="emerald" 
+              delay={0.3}
+              status={getFeatureStatus("TASKS")}
+          />
+          <ActionTile 
+              href="/dashboard/marketplace" 
+              icon={ShoppingBagIcon} 
+              label="Marketplace" 
+              sub="Buy & Sell" 
+              color="orange" 
+              delay={0.4}
+              status={getFeatureStatus("MARKETPLACE")}
+          />
       </div>
 
       {/* 4. IDENTITY & SECURITY */}
@@ -113,14 +158,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
           <ReferralCard user={user} />
       </div>
 
-      {/* 5. TIER PROGRESS */}
-      <TierProgress 
-         currentTier={user.tier} 
-         points={user.points} 
-         activeMembers={user.activeMembers} 
-         tierRules={user.tierRules} 
-         referralCode={user.referralCode}
-      />
+
 
       {/* 6. UNLOCK BANNER (If Locked) */}
       {!isUnlocked && (
@@ -137,7 +175,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
                 </div>
                 <h3 className="text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight">Unlock Your <br/>Full Earnings Potential</h3>
                 <p className="text-blue-100/80 mb-8 leading-relaxed text-lg max-w-lg">
-                   Active your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features.
+                   Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features.
                 </p>
                 <div className="flex flex-wrap gap-4">
                    <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
@@ -152,12 +190,45 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
       )}
 
       {/* 7. POOLS SECTION */}
-      <div className="pt-8">
+      <div className="pt-8 relative">
           <div className="flex items-center gap-3 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-serif">Community Pools</h2>
+
+                {getFeatureStatus("POOLS") === "LOCKED" && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-md tracking-wide border border-gray-200">
+                        Locked
+                    </span>
+                )}
           </div>
-          <CompanyPools pools={pools} />
+          
+          <div className="relative">
+              <CompanyPools pools={pools} />
+              
+              {/* Overlay for LOCKED states only */}
+              {getFeatureStatus("POOLS") === "LOCKED" && (
+                 <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center border border-white/20">
+                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 text-center max-w-sm">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <LockClosedIcon className="w-6 h-6 text-gray-400"/>
+                        </div>
+                        <h3 className="font-bold text-gray-900 mb-1">Mudaraba Pools Locked</h3>
+                        <p className="text-sm text-gray-500 mb-4">Deposit $1.00 to unlock investment opportunities.</p>
+                        <Link href="/dashboard/wallet?tab=deposit" className="inline-block px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-black transition-colors">
+                            Unlock Now
+                        </Link>
+                     </div>
+                 </div>
+              )}
+          </div>
       </div>
+
+      <TierProgress 
+         currentTier={user.tier} 
+         points={user.points} 
+         activeMembers={user.activeMembers} 
+         tierRules={user.tierRules} 
+         referralCode={user.referralCode}
+      />
 
     </div>
   )
@@ -193,7 +264,11 @@ function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
     )
 }
 
-function ActionTile({ href, icon: Icon, label, sub, color, delay }: any) {
+function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE" }: any) {
+    const isLive = status === "LIVE"
+    const isLocked = status === "LOCKED"
+    
+    // Base colors
     const hoverColors: any = {
         blue: "group-hover:text-blue-600 group-hover:border-blue-200 group-hover:bg-blue-50",
         purple: "group-hover:text-purple-600 group-hover:border-purple-200 group-hover:bg-purple-50",
@@ -207,25 +282,52 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay }: any) {
         orange: "text-orange-500 bg-orange-50",
     }
 
-    return (
-        <Link href={href} className="block group">
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: delay, duration: 0.4 }}
-                className={cn(
-                    "h-full p-5 bg-white rounded-2xl border border-gray-100 shadow-sm transition-all duration-300",
-                    hoverColors[color]
-                )}
-            >
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors", iconColors[color], "group-hover:bg-white")}>
-                    <Icon className="w-5 h-5"/>
+    // Locked/Dev State UI Overrides
+    const content = (
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: delay, duration: 0.4 }}
+            className={cn(
+                "h-full p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden",
+                isLive ? cn("bg-white border-gray-100 cursor-pointer", hoverColors[color]) : "bg-gray-50 border-gray-200 cursor-not-allowed opacity-90"
+            )}
+        >
+            <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors", 
+                isLive ? cn(iconColors[color], "group-hover:bg-white") : "bg-gray-200 text-gray-400"
+            )}>
+                {isLocked ? <LockClosedIcon className="w-5 h-5"/> : isLive ? <Icon className="w-5 h-5"/> : <WrenchScrewdriverIcon className="w-5 h-5"/>}
+            </div>
+            
+            <h3 className={cn("font-bold text-sm md:text-base transition-colors", isLive ? "text-gray-900 group-hover:text-inherit" : "text-gray-500")}>
+                {label}
+            </h3>
+            <p className={cn("text-xs transition-colors", isLive ? "text-gray-400 group-hover:text-inherit/70" : "text-gray-400")}>
+                {sub}
+            </p>
+
+            {/* Status Overlay Badge */}
+            {!isLive && (
+                <div className="absolute top-4 right-4">
+                     {isLocked ? (
+                         <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                             <LockClosedIcon className="w-3 h-3 text-gray-500"/>
+                         </div>
+                     ) : (
+                         <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-200">
+                             Dev
+                         </span>
+                     )}
                 </div>
-                <h3 className="font-bold text-gray-900 text-sm md:text-base group-hover:text-inherit transition-colors">{label}</h3>
-                <p className="text-xs text-gray-400 group-hover:text-inherit/70 transition-colors">{sub}</p>
-            </motion.div>
-        </Link>
+            )}
+        </motion.div>
     )
+
+    if (isLive) {
+        return <Link href={href} className="block group">{content}</Link>
+    }
+    
+    return <div className="block">{content}</div>
 }
 
 function IdentityCard({ user }: any) {

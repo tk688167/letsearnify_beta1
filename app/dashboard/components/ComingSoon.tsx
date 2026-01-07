@@ -1,179 +1,183 @@
 "use client"
 
-import { RocketLaunchIcon, LockClosedIcon, ClockIcon, WrenchScrewdriverIcon, BriefcaseIcon, BanknotesIcon, ShoppingBagIcon, CheckCircleIcon, SparklesIcon } from "@heroicons/react/24/outline"
-import { useRouter } from "next/navigation"
+import { useState, useTransition } from "react"
+import { motion } from "framer-motion"
+import { CommandLineIcon, WrenchScrewdriverIcon, CheckCircleIcon } from "@heroicons/react/24/outline"
+import { CpuChipIcon, CurrencyDollarIcon, CheckBadgeIcon, BriefcaseIcon, UserGroupIcon, BellAlertIcon } from "@heroicons/react/24/solid"
+import { joinWaitlist } from "@/app/actions/waitlist"
+import toast from "react-hot-toast"
 import { cn } from "@/lib/utils"
-// import { SectionWatermark } from "./SectionWatermark" // Assuming this doesn't exist or is optional, removing to be safe or defining inline if needed. Wait, it was imported before. I should check if it exists. 
-// Actually, looking at previous file view, it was imported. I should keep it.
-import { SectionWatermark } from "./SectionWatermark"
-import { ComingSoonConfig, SectionConfig } from "@/app/actions/admin/settings"
-// import { motion } from "framer-motion" // Removing unused motion import if not used, or keeping if I add animations. The previous code had style tag animations.
 
-interface ComingSoonProps {
-    title?: string;
-    feature?: 'tasks' | 'pools' | 'marketplace' | 'default';
-    config?: ComingSoonConfig;
+const featureData: any = {
+    tasks: {
+        title: "Micro-Task Center",
+        subtitle: "Earn Online Rewards",
+        description: "Turn your spare time into cash. Complete simple, verified tasks like watching videos or taking surveys and get paid instantly.",
+        benefits: ["Instant Payouts", "No Experience Needed", "High Volume of Tasks"],
+        icon: CheckBadgeIcon,
+        color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+        accent: "emerald"
+    },
+    pools: {
+        title: "Mudaraba Investment Pools",
+        subtitle: "Ethical Passive Growth",
+        description: "Participate in profit-sharing pools based on Mudaraba principles. Your capital is professionally managed in real-world ventures.",
+        benefits: ["Sharia-Compliant Model", "Weekly Profit Distribution", "Low Entry Barrier ($10)"],
+        icon: CurrencyDollarIcon,
+        color: "text-amber-600 bg-amber-50 border-amber-100",
+        accent: "amber"
+    },
+    marketplace: {
+        title: "Freelance Marketplace",
+        subtitle: "Monetize Your Skills",
+        description: "Offer your services to a global audience. Whether you are a designer, writer, or developer, our secure escrow system ensures you get paid.",
+        benefits: ["Secure Escrow System", "Global Client Base", "Low Platform Fees"],
+        icon: BriefcaseIcon,
+        color: "text-purple-600 bg-purple-50 border-purple-100",
+        accent: "purple"
+    },
+    default: {
+        title: "Feature In Development",
+        subtitle: "Under Construction",
+        description: "Our engineers are currently building this feature. Expect a secure, automated, and high-yield experience.",
+        benefits: ["Enhanced Security", "Automated Workflows", "Premium Support"],
+        icon: WrenchScrewdriverIcon,
+        color: "text-gray-600 bg-gray-50 border-gray-100",
+        accent: "gray"
+    }
 }
 
-export function ComingSoon({ title, feature = 'default', config }: ComingSoonProps) {
-  const router = useRouter()
-  
-  // Feature-Specific Theming
-  const themeMap = {
-      default: {
-          gradientFrom: "from-blue-600",
-          gradientTo: "to-indigo-900",
-          accent: "text-blue-500",
-          bgBadge: "bg-blue-500/10 border-blue-500/20 text-blue-200",
-          icon: <RocketLaunchIcon className="w-10 h-10 text-white" />,
-          benefits: [
-              "Early Access soon",
-              "Premium features unlocking",
-              "Enhanced earning potential"
-          ],
-          description: "In Development – Coming Soon. This feature will be available in the near future. Stay tuned!",
-          watermark: "COMING SOON"
-      },
-      tasks: {
-          gradientFrom: "from-emerald-500",
-          gradientTo: "to-teal-900",
-          accent: "text-emerald-400",
-          bgBadge: "bg-emerald-500/10 border-emerald-500/20 text-emerald-200",
-          icon: <BriefcaseIcon className="w-10 h-10 text-white" />,
-          benefits: [
-              "High-Value Daily Tasks",
-              "Instant Verification System",
-              "Advertiser & Publisher Portal"
-          ],
-          description: "Our comprehensive Task Center is being built to provide you with a stream of verified earning opportunities. Get ready to monetize your time like never before.",
-          watermark: "TASKS"
-      },
-      pools: {
-          gradientFrom: "from-amber-500",
-          gradientTo: "to-yellow-900", 
-          accent: "text-amber-400",
-          bgBadge: "bg-amber-500/10 border-amber-500/20 text-amber-200",
-          icon: <BanknotesIcon className="w-10 h-10 text-white" />,
-          benefits: [
-              "Sharia-Compliant Profit Sharing",
-              "Real-time Portfolio Tracking",
-              "Automated Re-investing"
-          ],
-          description: "The Mudaraba Investment Pool represents an ethical, transparent way to grow your wealth. We are finalizing the smart contracts and profit distribution logic.",
-          watermark: "MUDARABA"
-      },
-      marketplace: {
-          gradientFrom: "from-rose-500",
-          gradientTo: "to-orange-900",
-          accent: "text-rose-400",
-          bgBadge: "bg-rose-500/10 border-rose-500/20 text-rose-200",
-          icon: <ShoppingBagIcon className="w-10 h-10 text-white" />,
-          benefits: [
-              "Peer-to-Peer Digital Asset Trading",
-              "Freelance Service Gigs",
-              "Secure Escrow Payments"
-          ],
-          description: "A vibrant ecosystem for buying and selling services and digital goods. The Marketplace will be the central hub for local commerce within Let'$Earnify.",
-          watermark: "MARKET"
-      }
+export function ComingSoon({ feature = 'default', config }: { feature?: string, config?: any }) {
+  const content = featureData[feature] || featureData['default']
+  const Icon = content.icon
+  const [isPending, startTransition] = useTransition()
+  const [joined, setJoined] = useState(false)
+
+  const handleJoinWaitlist = () => {
+      startTransition(async () => {
+          const result = await joinWaitlist(content.title)
+          if (result.success) {
+              setJoined(true)
+              toast.success("You're on the list! Check your email.")
+          } else {
+              toast.error(result.error || "Something went wrong.")
+          }
+      })
   }
 
-  const theme = themeMap[feature] || themeMap.default
-
-  // Overrides from Props/Config
-  const displayTitle = title || "Coming Soon"
+  // Define dynamic styles based on accent color
+  const accentStyles: any = {
+      emerald: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+      amber: "from-amber-500/20 via-amber-500/5 to-transparent",
+      purple: "from-purple-500/20 via-purple-500/5 to-transparent",
+      gray: "from-gray-500/20 via-gray-500/5 to-transparent",
+  }
   
+  const textStyles: any = {
+      emerald: "text-emerald-600",
+      amber: "text-amber-600",
+      purple: "text-purple-600",
+      gray: "text-gray-600",
+  }
+
   return (
-    <div className="w-full min-h-[85vh] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-700">
+    <div className="relative min-h-[60vh] flex items-center justify-center p-4 md:p-8 bg-white overflow-hidden rounded-[2rem] md:rounded-[2.5rem] border border-gray-100 shadow-sm group">
        
-       {/* Main Card Container */}
-       <div className="w-full max-w-6xl bg-[#09090b] border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl relative flex flex-col lg:flex-row min-h-[500px]">
+       {/* Modern Animated Gradient Background */}
+       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 transition-all duration-1000", accentStyles[content.accent])}></div>
+       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-[0.03]"></div>
+
+       {/* Floating Orbs */}
+       <div className={cn("absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60", 
+           content.accent === 'emerald' ? 'bg-emerald-100' : 
+           content.accent === 'amber' ? 'bg-amber-100' : 
+           content.accent === 'purple' ? 'bg-purple-100' : 'bg-gray-100'
+       )}></div>
+       <div className={cn("absolute bottom-0 left-0 w-64 h-64 md:w-96 md:h-96 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 opacity-60",
+           content.accent === 'emerald' ? 'bg-teal-100' : 
+           content.accent === 'amber' ? 'bg-orange-100' : 
+           content.accent === 'purple' ? 'bg-fuchsia-100' : 'bg-slate-100'
+       )}></div>
+
+       <motion.div 
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         transition={{ duration: 0.6, ease: "easeOut" }}
+         className="relative z-10 max-w-2xl w-full text-center"
+       >
+           {/* Icon & Status */}
+           <div className="flex flex-col items-center mb-6 md:mb-8">
+               <div className={cn("w-20 h-20 md:w-24 md:h-24 rounded-3xl flex items-center justify-center mb-6 shadow-xl border-4 border-white backdrop-blur-xl bg-white/50 ring-1 ring-gray-100 transform transition-transform group-hover:scale-105 duration-500", textStyles[content.accent])}>
+                   <Icon className="w-10 h-10 md:w-12 md:h-12" />
+               </div>
+               
+               <div className="inline-flex items-center gap-2.5 px-5 py-2 bg-gray-900/95 backdrop-blur text-white rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest shadow-xl border border-white/10 group-hover:scale-105 transition-transform">
+                   <WrenchScrewdriverIcon className="w-3.5 h-3.5 text-amber-400" />
+                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-100">
+                       In Development
+                   </span>
+               </div>
+           </div>
+
+           {/* Content */}
+           <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-3 tracking-tight">
+               {content.title}
+           </h2>
+           <p className={cn("text-xs md:text-sm font-bold uppercase tracking-widest mb-6", textStyles[content.accent])}>
+               {content.subtitle}
+           </p>
            
-           {/* Global Glow Effects (Themed) */}
-           <div className={cn("absolute top-0 right-0 w-[600px] h-[600px] rounded-full blur-[150px] opacity-20 pointer-events-none translate-x-1/2 -translate-y-1/2 bg-gradient-to-br", theme.gradientFrom, theme.gradientTo)}></div>
-           <div className={cn("absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full blur-[150px] opacity-10 pointer-events-none -translate-x-1/2 translate-y-1/2 bg-gradient-to-tr", theme.gradientFrom, theme.gradientTo)}></div>
+           <p className="text-gray-500 text-base md:text-lg leading-relaxed mb-8 md:mb-10 max-w-lg mx-auto px-4 md:px-0">
+               {content.description}
+           </p>
 
-
-           {/* Left Column: Content */}
-           <div className="relative z-10 flex-1 p-8 md:p-12 lg:p-16 flex flex-col justify-center items-start space-y-8 overflow-hidden">
-               
-               {/* Watermark - Huge Background Text */}
-               <h1 className="hidden md:block absolute top-1/2 left-0 -translate-y-1/2 text-[100px] lg:text-[150px] leading-none font-black text-white/[0.03] select-none pointer-events-none whitespace-nowrap z-0">
-                   {theme.watermark}
-               </h1>
-
-               {/* Badge */}
-               <div className={cn("relative z-10 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase tracking-wider", theme.bgBadge)}>
-                   <SparklesIcon className="w-4 h-4" />
-                   <span>In Development</span>
-               </div>
-
-               {/* Typography */}
-               <div className="relative z-10 space-y-4">
-                   <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-none drop-shadow-xl">
-                       {displayTitle}
-                   </h2>
-                   <p className="text-gray-400 text-lg leading-relaxed max-w-lg font-medium">
-                       {theme.description}
-                   </p>
-               </div>
-
-               {/* Benefits List */}
-               <ul className="space-y-4 relative z-10">
-                   {theme.benefits.map((item, i) => (
-                       <li key={i} className="flex items-center gap-3 text-gray-300 font-medium text-sm md:text-base">
-                           <div className={cn("w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br shadow-sm", theme.gradientFrom, theme.gradientTo)}>
-                               <CheckCircleIcon className="w-4 h-4 text-white" />
-                           </div>
-                           {item}
-                       </li>
-                   ))}
-               </ul>
-
-               {/* CTA Link */}
-               <button 
-                  onClick={() => router.back()}
-                  className={cn("relative z-10 px-8 py-3 rounded-xl font-bold text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 bg-gradient-to-r", theme.gradientFrom, theme.gradientTo)}
-               >
-                   <span>Notify Me</span>
-                   <ClockIcon className="w-4 h-4 text-white/70" />
-               </button>
+           {/* Mobile-Responsive Benefits Grid */}
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-10 text-left px-2 md:px-0">
+               {content.benefits.map((benefit: string, i: number) => (
+                   <div key={i} className="p-3 md:p-4 bg-white/60 backdrop-blur-md rounded-xl border border-white/50 shadow-sm hover:shadow-md transition-all flex flex-row sm:flex-col items-center sm:text-center gap-3">
+                       <div className={cn("p-1.5 md:p-2 rounded-full bg-white shadow-sm shrink-0", textStyles[content.accent])}>
+                            <CheckCircleIcon className="w-4 h-4 md:w-5 md:h-5"/>
+                       </div>
+                       <span className="text-sm font-bold text-gray-700">{benefit}</span>
+                   </div>
+               ))}
            </div>
 
-
-           {/* Right Column: Visuals (Themed) */}
-           <div className="relative flex-1 min-h-[300px] lg:min-h-0 bg-white/[0.02] flex items-center justify-center overflow-hidden py-12 lg:py-0 border-l border-white/5">
-               
-               {/* Center Glow behind cards */}
-               <div className={cn("absolute w-64 h-64 rounded-full blur-[80px] opacity-40 animate-pulse bg-gradient-to-tr", theme.gradientFrom, theme.gradientTo)}></div>
-
-               {/* 3D Cards Simulation */}
-               <div className="relative w-full max-w-xs md:max-w-sm h-64 transform perspective-1000 lg:rotate-y-12 lg:rotate-x-6 scale-90 md:scale-100">
-                    
-                    {/* Back Card */}
-                    <div className={cn("absolute top-0 right-0 w-[260px] md:w-[280px] h-[160px] md:h-[180px] rounded-2xl border border-white/10 shadow-2xl transform translate-x-4 md:translate-x-12 -translate-y-8 flex items-center justify-center bg-gray-900/80 backdrop-blur-xl")}>
-                        <div className="text-center opacity-50">
-                            <div className="w-12 h-12 border-2 border-white/20 rotate-45 mx-auto mb-2 rounded-lg"></div>
-                        </div>
-                    </div>
-
-                    {/* Front Card */}
-                    <div className={cn("absolute bottom-0 left-0 w-[280px] md:w-[320px] h-[180px] md:h-[200px] rounded-2xl shadow-2xl transform md:-translate-x-4 translate-y-4 flex flex-col items-center justify-center z-10 border border-white/20 bg-gradient-to-br backdrop-blur-md p-6 text-center", theme.gradientFrom.replace('from-', 'from-gray-900/90'), theme.gradientTo.replace('to-', 'to-gray-900/90'))}>
-                        
-                        {/* Icon */}
-                        <div className={cn("mb-4 transform transition-transform duration-500 p-4 rounded-2xl bg-gradient-to-br shadow-inner ring-1 ring-white/20", theme.gradientFrom, theme.gradientTo)}>
-                            {theme.icon}
-                        </div>
-                        
-                        <h3 className="text-xl font-bold text-white tracking-widest uppercase drop-shadow-md">
-                            COMING SOON
-                        </h3>
-                    </div>
-
-               </div>
+           {/* Notify Action */}
+           <div className="max-w-xs mx-auto px-4 md:px-0">
+                <button 
+                    onClick={handleJoinWaitlist}
+                    disabled={isPending || joined}
+                    className={cn(
+                        "w-full py-3.5 md:py-4 rounded-xl text-sm md:text-base font-bold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2.5",
+                        joined 
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default" 
+                            : "bg-gray-900 text-white hover:bg-black hover:scale-[1.02] border border-gray-800"
+                    )}
+                >
+                    {isPending ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : joined ? (
+                        <>
+                            <CheckCircleIcon className="w-5 h-5"/>
+                            Waitlist Joined!
+                        </>
+                    ) : (
+                        <>
+                            <BellAlertIcon className="w-5 h-5 text-orange-400 group-hover:animate-swing"/>
+                            Notify Me When Live
+                        </>
+                    )}
+                </button>
+                {joined && (
+                    <p className="mt-3 text-xs text-gray-400 animate-in fade-in slide-in-from-top-1">
+                        Confirmation email sent to your inbox.
+                    </p>
+                )}
            </div>
 
-       </div>
+       </motion.div>
     </div>
   )
 }
+
