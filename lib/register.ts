@@ -8,7 +8,7 @@ import { Tier, TierStatus } from "@prisma/client"
 
 export async function registerUser(formData: FormData) {
   const name = formData.get("name") as string
-  const email = formData.get("email") as string
+  const email = (formData.get("email") as string).toLowerCase().trim()
   const password = formData.get("password") as string
   const country = formData.get("country") as string
   const referralCodeInput = formData.get("referralCode") as string
