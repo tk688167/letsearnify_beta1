@@ -10,7 +10,7 @@ export default function WelcomeHero({ user }: { user: any }) {
   const joinDate = new Date(user?.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   return (
-    <section className="relative py-20 md:py-24 overflow-hidden bg-white">
+    <section className="relative py-12 md:py-24 overflow-hidden bg-white">
        {/* Subtle Grid Background */}
        <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
 
@@ -29,20 +29,20 @@ export default function WelcomeHero({ user }: { user: any }) {
                         Verified Account
                      </div>
                      
-                     <h1 className="text-5xl md:text-7xl font-serif font-bold text-gray-900 leading-[1.1] mb-6">
+                     <h1 className="text-4xl md:text-7xl font-serif font-bold text-gray-900 leading-[1.1] mb-6">
                         Welcome, <br/>
                         <span className="text-gray-500">{userName}</span>
                      </h1>
                      
-                     <p className="text-lg md:text-xl text-gray-500 font-light leading-relaxed max-w-lg mx-auto md:mx-0 mb-8">
+                     <p className="text-base md:text-xl text-gray-500 font-light leading-relaxed max-w-lg mx-auto md:mx-0 mb-8">
                         Your financial command center is ready. You joined us in <span className="text-gray-900 font-medium">{joinDate}</span>—let's make today count.
                      </p>
 
                      <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-                         <a href="#ecosystem" className="px-8 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-xl flex items-center gap-2">
+                         <a href="#ecosystem" className="px-8 py-4 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-xl flex items-center gap-2 w-full sm:w-auto justify-center">
                             Explore Ecosystem <ArrowRightIcon className="w-5 h-5" />
                          </a>
-                         <div className="flex items-center gap-2 px-6 py-4 text-gray-500 font-medium bg-gray-50 rounded-xl border border-gray-100">
+                         <div className="flex items-center gap-2 px-6 py-4 text-gray-500 font-medium bg-gray-50 rounded-xl border border-gray-100 w-full sm:w-auto justify-center">
                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                              System Operational
                          </div>

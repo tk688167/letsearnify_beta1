@@ -8,7 +8,7 @@ export default function BackButton() {
   const pathname = usePathname()
 
   // Hide on Landing Page and Dashboard Overview
-  if (pathname === "/" || pathname === "/dashboard" || pathname === "/welcome") {
+  if (pathname === "/" || pathname === "/dashboard" || pathname === "/dashboard/welcome") {
     return null
   }
 

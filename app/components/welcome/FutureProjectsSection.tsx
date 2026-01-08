@@ -8,7 +8,7 @@ export default function FutureProjectsSection() {
   return (
     <section className="py-24 bg-black text-white relative overflow-hidden">
        {/* Tech Grid Background */}
-       <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
+       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
        
        <div className="max-w-7xl mx-auto px-6 relative z-10">
           

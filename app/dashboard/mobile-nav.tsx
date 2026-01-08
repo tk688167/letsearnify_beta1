@@ -60,7 +60,7 @@ export default function MobileNav({ session }: { session: Session | null }) {
            
            <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
               <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
-              <MobileNavItem href="/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" pathname={pathname} close={closeMenu} color="blue" />
+              <MobileNavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" pathname={pathname} close={closeMenu} color="blue" />
               <MobileNavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" pathname={pathname} close={closeMenu} color="gray" />
               <MobileNavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" pathname={pathname} close={closeMenu} color="purple" />
               <MobileNavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" pathname={pathname} close={closeMenu} color="yellow" />
