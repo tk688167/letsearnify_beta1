@@ -5,6 +5,7 @@ import { Tracker } from "./components/Tracker";
 import BackButton from "./components/BackButton";
 import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
+import CookieConsent from "./components/ui/CookieConsent";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -101,6 +102,7 @@ export default function RootLayout({
         <ScrollToTop />
         <BackButton />
         <Toaster position="top-center" />
+        {/* <CookieConsent /> */}
         {children}
         <script
           type="application/ld+json"

@@ -18,58 +18,98 @@ export default async function AdminVisitsPage() {
           </div>
        </div>
 
-       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-             <table className="w-full text-left border-collapse">
-                <thead>
-                   <tr className="bg-gray-50/50 border-b border-gray-100">
-                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Device & IP</th>
-                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Location</th>
-                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Path</th>
-                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">User</th>
-                      <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Time</th>
-                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                   {visits.map(visit => (
-                      <tr key={visit.id} className="hover:bg-gray-50/50 transition-colors">
-                         <td className="p-6">
-                            <div className="flex items-center gap-3">
-                               <div className="text-gray-400">
+       <div className="space-y-4">
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-4">
+              {visits.map(visit => (
+                  <div key={visit.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-3">
+                      <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 bg-gray-50 rounded-lg text-gray-500">
                                   {visit.device === 'Mobile' ? <DevicePhoneMobileIcon className="w-5 h-5"/> : <ComputerDesktopIcon className="w-5 h-5"/>}
-                               </div>
-                               <div>
+                              </div>
+                              <div>
                                   <div className="font-bold text-gray-900 text-sm">{visit.ip}</div>
-                                  <div className="text-xs text-gray-500">{visit.os} • {visit.browser}</div>
-                               </div>
-                            </div>
-                         </td>
-                         <td className="p-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                               <GlobeAltIcon className="w-4 h-4 text-gray-400" />
-                               {visit.city && visit.country ? `${visit.city}, ${visit.country}` : 'Unknown Location'}
-                            </div>
-                         </td>
-                         <td className="p-6">
-                             <span className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
-                                {visit.path}
-                             </span>
-                         </td>
-                         <td className="p-6 text-sm">
-                            {visit.user ? (
-                               <span className="text-blue-600 font-medium">{visit.user.email}</span>
-                            ) : (
-                               <span className="text-gray-400 italic">Anonymous</span>
-                            )}
-                         </td>
-                         <td className="p-6 text-right text-sm text-gray-500 font-mono">
-                            {format(visit.createdAt, 'HH:mm:ss')} <br/>
-                            <span className="text-xs text-gray-400">{format(visit.createdAt, 'MMM dd')}</span>
-                         </td>
+                                  <div className="text-xs text-gray-400 break-all">{visit.user?.email || "Anonymous"}</div>
+                              </div>
+                          </div>
+                          <div className="text-right">
+                              <div className="font-mono text-xs font-bold text-gray-600">{format(visit.createdAt, 'HH:mm')}</div>
+                              <div className="text-[10px] text-gray-400">{format(visit.createdAt, 'MMM dd')}</div>
+                          </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-50 text-xs">
+                          <div className="flex items-center gap-1.5 text-gray-600">
+                              <GlobeAltIcon className="w-4 h-4 text-gray-400" />
+                              <span className="max-w-[150px] truncate">{visit.city && visit.country ? `${visit.city}, ${visit.country}` : 'Unknown'}</span>
+                          </div>
+                          <span className="px-2 py-1 bg-gray-100 rounded font-mono text-gray-500">
+                              {visit.path}
+                          </span>
+                      </div>
+                      
+                      <div className="text-[10px] text-gray-400 font-mono text-center pt-1">
+                          {visit.os} • {visit.browser}
+                      </div>
+                  </div>
+              ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+             <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                   <thead>
+                      <tr className="bg-gray-50/50 border-b border-gray-100">
+                         <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Device & IP</th>
+                         <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Location</th>
+                         <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Path</th>
+                         <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider">User</th>
+                         <th className="p-6 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Time</th>
                       </tr>
-                   ))}
-                </tbody>
-             </table>
+                   </thead>
+                   <tbody className="divide-y divide-gray-50">
+                      {visits.map(visit => (
+                         <tr key={visit.id} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="p-6">
+                               <div className="flex items-center gap-3">
+                                  <div className="text-gray-400">
+                                     {visit.device === 'Mobile' ? <DevicePhoneMobileIcon className="w-5 h-5"/> : <ComputerDesktopIcon className="w-5 h-5"/>}
+                                  </div>
+                                  <div>
+                                     <div className="font-bold text-gray-900 text-sm">{visit.ip}</div>
+                                     <div className="text-xs text-gray-500">{visit.os} • {visit.browser}</div>
+                                  </div>
+                               </div>
+                            </td>
+                            <td className="p-6">
+                               <div className="flex items-center gap-2 text-sm text-gray-700">
+                                  <GlobeAltIcon className="w-4 h-4 text-gray-400" />
+                                  {visit.city && visit.country ? `${visit.city}, ${visit.country}` : 'Unknown Location'}
+                               </div>
+                            </td>
+                            <td className="p-6">
+                                <span className="px-2 py-1 bg-gray-100 rounded text-xs font-mono text-gray-600">
+                                   {visit.path}
+                                </span>
+                            </td>
+                            <td className="p-6 text-sm">
+                               {visit.user ? (
+                                  <span className="text-blue-600 font-medium">{visit.user.email}</span>
+                               ) : (
+                                  <span className="text-gray-400 italic">Anonymous</span>
+                               )}
+                            </td>
+                            <td className="p-6 text-right text-sm text-gray-500 font-mono">
+                               {format(visit.createdAt, 'HH:mm:ss')} <br/>
+                               <span className="text-xs text-gray-400">{format(visit.createdAt, 'MMM dd')}</span>
+                            </td>
+                         </tr>
+                      ))}
+                   </tbody>
+                </table>
+             </div>
           </div>
        </div>
     </div>

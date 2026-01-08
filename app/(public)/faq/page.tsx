@@ -1,8 +1,12 @@
 import { ChevronDownIcon } from "@heroicons/react/24/outline"
+import InlineBackButton from "../../components/ui/InlineBackButton"
 
 export default function FAQPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 py-20 px-6">
+      <div className="max-w-7xl mx-auto mb-8">
+        <InlineBackButton />
+      </div>
       <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-10 text-center">Frequently Asked Questions</h1>
         

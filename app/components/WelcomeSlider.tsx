@@ -86,7 +86,7 @@ function WelcomeSlider() {
             <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
 
             {/* Marquee Container */}
-            <div className="flex items-center gap-12 whitespace-nowrap animate-marquee group-hover:paused will-change-transform pl-48">
+            <div className="flex items-center gap-12 whitespace-nowrap animate-marquee group-hover:paused will-change-transform pl-[120px] md:pl-48">
                 {displayItems.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-3 select-none">
                         

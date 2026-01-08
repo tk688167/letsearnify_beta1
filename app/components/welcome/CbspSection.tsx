@@ -78,11 +78,11 @@ export default function CbspSection({ user }: { user: any }) {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-white/5 border-b border-white/10 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="px-6 py-5">Tier Level</th>
-                                <th className="px-6 py-5 text-center">Percentage</th>
-                                <th className="px-6 py-5 text-right">Pool Share</th>
-                                <th className="px-6 py-5 text-center">Active Users</th>
-                                <th className="px-6 py-5 text-right text-indigo-300">Est. Per Activity</th>
+                                <th className="px-3 md:px-6 py-5">Tier Level</th>
+                                <th className="px-3 md:px-6 py-5 text-center">Percentage</th>
+                                <th className="px-3 md:px-6 py-5 text-right">Pool Share</th>
+                                <th className="px-3 md:px-6 py-5 text-center">Active Users</th>
+                                <th className="px-3 md:px-6 py-5 text-right text-indigo-300">Est. Per Activity</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -95,7 +95,7 @@ export default function CbspSection({ user }: { user: any }) {
 
                                 return (
                                     <tr key={tier} className={`group transition-colors hover:bg-white/5 ${isCurrent ? "bg-indigo-500/10" : ""}`}>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 md:px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <TierBadge tier={tier} />
                                                 <span className={`font-bold ${isCurrent ? "text-indigo-300" : "text-gray-200"}`}>
@@ -103,7 +103,7 @@ export default function CbspSection({ user }: { user: any }) {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-3 md:px-6 py-4">
                                             <div className="flex flex-col items-center gap-1.5">
                                                 <span className="font-bold text-gray-300">{percent}%</span>
                                                 <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
@@ -111,15 +111,15 @@ export default function CbspSection({ user }: { user: any }) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-mono font-bold text-gray-300">
+                                        <td className="px-3 md:px-6 py-4 text-right font-mono font-bold text-gray-300">
                                             ${tierShareTotal.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-3 md:px-6 py-4 text-center">
                                             <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? "bg-white/10 text-white border border-white/10" : "text-gray-600 bg-white/5"}`}>
                                                 {count}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-3 md:px-6 py-4 text-right">
                                             <span className={`font-mono font-bold text-sm ${count > 0 ? "text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20" : "text-gray-600"}`}>
                                                 {count > 0 ? `$${perUser.toFixed(4)}` : "-"}
                                             </span>

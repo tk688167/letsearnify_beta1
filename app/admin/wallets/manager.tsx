@@ -54,11 +54,11 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
                   </div>
                   <div>
                       <label className="block text-sm font-bold text-gray-500 mb-1">QR Code Image</label>
-                      <div className="flex items-center gap-4">
-                          <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                                <img src={trcQr} alt="QR" className="w-full h-full object-contain" />
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                          <div className="w-full sm:w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                                <img src={trcQr} alt="QR" className="w-full h-full object-contain mx-auto" />
                           </div>
-                          <div className="flex-1">
+                          <div className="flex-1 w-full">
                              <input 
                                 type="file" 
                                 accept="image/*"
@@ -93,9 +93,10 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
                                   file:text-sm file:font-semibold
                                   file:bg-blue-50 file:text-blue-700
                                   hover:file:bg-blue-100
+                                  mb-2
                                 "
                              />
-                             <p className="text-xs text-gray-400 mt-2">Current Path: <span className="font-mono">{trcQr}</span></p>
+                             <p className="text-xs text-gray-400">Current Path: <span className="font-mono break-all">{trcQr}</span></p>
                           </div>
                       </div>
                   </div>

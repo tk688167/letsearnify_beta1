@@ -56,23 +56,23 @@ export default function WelcomeHero({ user }: { user: any }) {
                      initial={{ opacity: 0, scale: 0.95 }}
                      animate={{ opacity: 1, scale: 1 }}
                      transition={{ delay: 0.2, duration: 0.8 }}
-                     className="relative aspect-square md:aspect-[4/3] bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between overflow-hidden"
+                     className="relative aspect-auto min-h-[300px] md:min-h-[350px] md:aspect-[4/3] bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl flex flex-col justify-between overflow-hidden"
                   >
                       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]"></div>
                       
                       <div>
                           <p className="text-indigo-600 font-bold uppercase tracking-widest text-xs mb-2">Current Status</p>
-                          <h3 className="text-3xl font-serif font-bold text-gray-900">Active Investor</h3>
+                          <h3 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">Active Investor</h3>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                           <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
                               <p className="text-xs text-gray-400 font-bold uppercase mb-1">Total Pools</p>
-                              <p className="text-2xl font-bold text-gray-900">4</p>
+                              <p className="text-xl md:text-2xl font-bold text-gray-900">4</p>
                           </div>
                           <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100">
                               <p className="text-xs text-gray-400 font-bold uppercase mb-1">Opportunities</p>
-                              <p className="text-2xl font-bold text-emerald-600">Uncapped</p>
+                              <p className="text-xl md:text-2xl font-bold text-emerald-600">Uncapped</p>
                           </div>
                       </div>
                   </motion.div>

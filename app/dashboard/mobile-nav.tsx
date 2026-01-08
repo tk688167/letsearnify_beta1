@@ -72,6 +72,19 @@ export default function MobileNav({ session }: { session: Session | null }) {
               <div className="pt-8 px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Account</div>
               <MobileNavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="My Profile" pathname={pathname} close={closeMenu} color="gray" />
               <MobileNavItem href="/dashboard/settings" icon={<Cog6ToothIcon className="w-5 h-5"/>} label="Settings" pathname={pathname} close={closeMenu} color="gray" />
+
+              {session?.user?.email === "admin@letsearnify.com" && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <Link 
+                        href="/admin" 
+                        onClick={closeMenu}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-gray-800 to-black hover:from-gray-700 hover:to-gray-900 shadow-md transition-all"
+                    >
+                        <BriefcaseIcon className="w-5 h-5" />
+                        Switch to Admin Portal
+                    </Link>
+                  </div>
+              )}
            </nav>
 
            <div className="p-4 m-4 bg-gray-50 rounded-2xl border border-gray-100">

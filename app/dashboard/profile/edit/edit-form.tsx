@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useRef } from "react"
 import { updateProfile } from "@/lib/actions"
 import { User } from "@prisma/client"
 import { 
@@ -10,7 +10,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  TrashIcon
 } from "@heroicons/react/24/solid"
 import { useRouter } from "next/navigation"
 import { formatUserId } from "@/lib/utils"
@@ -25,6 +26,35 @@ export default function EditForm({ user }: EditFormProps) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const [preview, setPreview] = useState<string | null>(null)
+  const [isRemoved, setIsRemoved] = useState(false)
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setIsRemoved(false) // Reset removal state if new file selected
+      if (file.size > 2 * 1024 * 1024) {
+         setMessage({ type: "error", text: "File size exceeds 2MB limit." })
+         return
+      }
+      
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemovePhoto = () => {
+      setPreview(null)
+      setIsRemoved(true)
+      if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+      }
+  }
 
   async function handleSubmit(formData: FormData) {
     setMessage(null)
@@ -63,24 +93,60 @@ export default function EditForm({ user }: EditFormProps) {
         <form action={handleSubmit} className="space-y-8">
           {/* Profile Picture Section */}
           <div className="flex flex-col sm:flex-row items-center gap-6 pb-8 border-b border-gray-100">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full border-4 border-gray-100 bg-gray-50 overflow-hidden flex items-center justify-center text-gray-300">
-                 {user?.image ? (
-                   <img src={user.image} alt="Profile" className="w-full h-full object-cover" />
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full border-4 border-gray-100 bg-gray-50 overflow-hidden flex items-center justify-center text-gray-300 relative">
+                 {!isRemoved && (preview || user?.image) ? (
+                   <img src={preview || user?.image || ""} alt="Profile" className="w-full h-full object-cover" />
                  ) : (
                    <UserCircleIcon className="w-full h-full" />
                  )}
               </div>
-              <button type="button" className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full text-white flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors">
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full text-white flex items-center justify-center shadow-md hover:bg-blue-700 transition-colors z-10"
+              >
                 <PhotoIcon className="w-4 h-4" />
               </button>
             </div>
             <div className="text-center sm:text-left">
               <h3 className="font-bold text-gray-900">Profile Picture</h3>
               <p className="text-xs text-gray-500 mt-1 mb-3">Supports JPG, PNG or GIF. Max size 2MB.</p>
-              <button type="button" className="text-sm font-bold text-blue-600 px-4 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                Upload New
-              </button>
+              
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <input 
+                type="hidden" 
+                name="image" 
+                value={isRemoved ? "REMOVE" : (preview || user?.image || "")} 
+              />
+
+              <div className="flex items-center gap-4 justify-center sm:justify-start">
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-sm font-bold text-blue-600 px-4 py-2 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    Upload New
+                  </button>
+                  
+                  {/* Show Remove Button if an image exists (either saved or previewed) and not yet removed */}
+                  {!isRemoved && (user?.image || preview) && (
+                      <button 
+                        type="button" 
+                        onClick={handleRemovePhoto}
+                        className="text-sm font-bold text-red-600 px-4 py-2 bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                        Remove
+                      </button>
+                  )}
+              </div>
             </div>
           </div>
 

@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import LandingHeader from "../../components/LandingHeader"
+import Footer from "../../components/Footer"
 import { EnvelopeIcon, ChatBubbleLeftRightIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline"
 
 export default function ContactPageContent() {
@@ -54,43 +55,39 @@ export default function ContactPageContent() {
           <div className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-12">
              
              {/* Contact Info */}
+             {/* Contact Info */}
              <div className="lg:col-span-1 space-y-8">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xl shadow-gray-100/50">
-                   <h3 className="font-bold text-lg mb-6 text-gray-900">Contact Information</h3>
+                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-xl shadow-gray-100/50 h-full">
+                   <h3 className="font-bold text-lg mb-6 text-gray-900 border-b border-gray-100 pb-4">Customer Support</h3>
                    
-                   <div className="space-y-6">
+                   <div className="space-y-8">
                       <div className="flex items-start gap-4">
-                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                         <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
                             <EnvelopeIcon className="w-6 h-6" />
                          </div>
                          <div>
-                            <div className="font-bold text-gray-900 text-sm">Email</div>
+                            <div className="font-bold text-gray-900 text-sm">Email Support</div>
+                            <p className="text-xs text-gray-500 mb-1">For general inquiries and account help.</p>
                             <a href="mailto:support@letsearnify.com" className="text-indigo-600 hover:underline text-sm font-medium">support@letsearnify.com</a>
                          </div>
                       </div>
 
                       <div className="flex items-start gap-4">
-                         <div className="p-3 bg-green-50 text-green-600 rounded-xl">
+                         <div className="p-3 bg-green-50 text-green-600 rounded-xl shrink-0">
                             <ChatBubbleLeftRightIcon className="w-6 h-6" />
                          </div>
                          <div>
-                            <div className="font-bold text-gray-900 text-sm">WhatsApp / Chat</div>
-                            <div className="text-gray-500 text-sm">+1 (555) 123-4567</div>
-                            <span className="text-xs text-green-600 font-bold block mt-1">Available 9am - 5pm EST</span>
+                            <div className="font-bold text-gray-900 text-sm">Live Chat</div>
+                            <p className="text-xs text-gray-500 mb-1">Available for active members.</p>
+                            <span className="text-xs text-green-600 font-bold block mt-1">24/7 Support via Dashboard</span>
                          </div>
                       </div>
-
-                      <div className="flex items-start gap-4">
-                         <div className="p-3 bg-gray-50 text-gray-600 rounded-xl">
-                            <MapPinIcon className="w-6 h-6" />
-                         </div>
-                         <div>
-                            <div className="font-bold text-gray-900 text-sm">Headquarters</div>
-                            <address className="text-gray-500 text-sm not-italic">
-                               123 Digital Nomad St.<br/>
-                               Tech City, TC 90210
-                            </address>
-                         </div>
+                      
+                      <div className="p-4 bg-gray-50 rounded-xl mt-8">
+                        <h4 className="font-bold text-sm text-gray-900 mb-2">Response Time</h4>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                            We aim to respond to all inquiries within 24 hours. For faster assistance, please use the Live Chat widget inside your dashboard.
+                        </p>
                       </div>
                    </div>
                 </div>
@@ -99,7 +96,7 @@ export default function ContactPageContent() {
              {/* Form */}
              <div className="lg:col-span-2 bg-white rounded-[2rem] border border-gray-100 shadow-xl p-8 md:p-10">
                 <div className="mb-8">
-                   <h2 className="text-2xl font-bold text-gray-900 mb-2">Send us a Message</h2>
+                   <h2 className="text-2xl font-bold text-gray-900 mb-2">General Inquiries</h2>
                 </div>
 
                 {submitted ? (
@@ -161,9 +158,7 @@ export default function ContactPageContent() {
 
       </main>
 
-      <footer className="bg-gray-50 py-12 text-center text-gray-400 text-sm border-t border-gray-200">
-        <p>© {new Date().getFullYear()} LetsEarnify. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

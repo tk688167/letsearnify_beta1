@@ -74,12 +74,12 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
             {/* HEADER & STATS */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-serif font-bold text-gray-900">Merchant Settings</h1>
-                    <p className="text-gray-500 mt-2">Manage supported countries, payment methods, and merchant contacts.</p>
+                    <h1 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">Merchant Settings</h1>
+                    <p className="text-gray-500 mt-2 text-sm md:text-base">Manage supported countries, payment methods, and merchant contacts.</p>
                 </div>
-                <div className="flex gap-4">
-                     <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                     <div className="flex-1 sm:flex-initial px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
                             <GlobeAltIcon className="w-5 h-5" />
                         </div>
                         <div>
@@ -87,8 +87,8 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                             <div className="text-xl font-bold text-gray-900">{activeCountries} <span className="text-gray-300 text-sm font-normal">/ {countries.length}</span></div>
                         </div>
                      </div>
-                     <div className="px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                     <div className="flex-1 sm:flex-initial px-6 py-3 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                             <BanknotesIcon className="w-5 h-5" />
                         </div>
                         <div>
@@ -100,13 +100,13 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
             </div>
 
             {/* ACTION BAR */}
-            <div className="flex justify-between items-center bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-                <div className="pl-4 text-sm font-bold text-gray-700">
+            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+                <div className="pl-2 sm:pl-4 text-sm font-bold text-gray-700 text-center sm:text-left">
                     Showing <span className="text-black">{countries.length}</span> Regions
                 </div>
                 <button 
                     onClick={() => setIsAddCountryOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-black transition-all shadow-lg hover:shadow-gray-900/20 font-bold text-sm"
+                    className="flex justify-center items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-black transition-all shadow-lg hover:shadow-gray-900/20 font-bold text-sm"
                 >
                     <PlusIcon className="w-4 h-4" />
                     Add Country
@@ -125,7 +125,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                         }`}
                     >
                         {/* CARD HEADER */}
-                        <div className="p-6 pb-4 flex justify-between items-start border-b border-gray-50">
+                        <div className="p-4 md:p-6 pb-4 flex justify-between items-start border-b border-gray-50">
                             <div className="flex items-center gap-4">
                                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-inner font-bold ${
                                     country.status === "ACTIVE" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-400"
@@ -165,7 +165,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                         </div>
 
                         {/* CARD BODY */}
-                        <div className="p-6 space-y-6 flex-1">
+                        <div className="p-4 md:p-6 space-y-6 flex-1">
                             
                             {/* Payment Methods */}
                             <div>
@@ -307,8 +307,8 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
             {/* ADD COUNTRY MODAL */}
             {isAddCountryOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-                        <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl mx-auto">
+                        <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                             <h3 className="text-lg font-bold">Add Region</h3>
                             <button onClick={() => setIsAddCountryOpen(false)}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600"/></button>
                         </div>
@@ -350,8 +350,8 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                 if(!country) return null
                 return (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                        <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl h-[85vh] flex flex-col">
-                           <div className="p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
+                        <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl h-[85vh] flex flex-col mx-auto">
+                           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
                                 <div>
                                     <h3 className="text-xl font-bold flex items-center gap-2">
                                         Edit Details: {country.name}

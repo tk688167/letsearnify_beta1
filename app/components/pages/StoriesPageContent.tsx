@@ -3,6 +3,7 @@
 import React from "react"
 import { motion } from "framer-motion"
 import LandingHeader from "../../components/LandingHeader"
+import Footer from "../../components/Footer"
 import Link from "next/link"
 import { StarIcon, UserCircleIcon, GlobeAmericasIcon } from "@heroicons/react/24/solid"
 import { CurrencyDollarIcon, ChatBubbleBottomCenterTextIcon, ShieldCheckIcon } from "@heroicons/react/24/outline"
@@ -193,10 +194,7 @@ export default function StoriesPageContent() {
 
       </main>
 
-      {/* Footer Reuse */}
-      <footer className="bg-white border-t border-gray-200 py-12 text-center text-gray-400 text-sm">
-        <p>© {new Date().getFullYear()} LetsEarnify. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

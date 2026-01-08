@@ -92,10 +92,10 @@ function RoadmapCard({ icon, title, date, desc, active }: any) {
        initial={{ opacity: 0, y: 20 }}
        whileInView={{ opacity: 1, y: 0 }}
        viewport={{ once: true }}
-       className={`relative pl-24 pr-8 py-6 rounded-2xl border transition-all hover:bg-white/5 ${active ? "bg-indigo-900/10 border-indigo-500/30" : "border-white/5"}`}
+       className={`relative pl-12 md:pl-24 pr-8 py-6 rounded-2xl border transition-all hover:bg-white/5 ${active ? "bg-indigo-900/10 border-indigo-500/30" : "border-white/5"}`}
     >
        {/* Timeline Node */}
-       <div className={`absolute left-5 top-8 w-6 h-6 rounded-full border-4 border-black z-10 flex items-center justify-center ${active ? "bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-gray-700"}`}></div>
+       <div className={`absolute left-2 md:left-5 top-8 w-6 h-6 rounded-full border-4 border-black z-10 flex items-center justify-center ${active ? "bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]" : "bg-gray-700"}`}></div>
        
        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
           <h3 className={`text-xl font-bold ${active ? "text-white" : "text-gray-300"}`}>{title}</h3>

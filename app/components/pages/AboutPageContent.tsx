@@ -4,6 +4,7 @@ import React from "react"
 import { motion } from "framer-motion"
 import LandingHeader from "../../components/LandingHeader"
 import Link from "next/link"
+import InlineBackButton from "../ui/InlineBackButton"
 import { ArrowRightIcon, CheckCircleIcon, TrophyIcon, UserGroupIcon, HeartIcon } from "@heroicons/react/24/outline"
 
 export default function AboutPageContent() {
@@ -12,6 +13,11 @@ export default function AboutPageContent() {
       <LandingHeader />
 
       <main className="flex-1 pt-24">
+        {/* Back Navigation */}
+        <div className="max-w-7xl mx-auto px-6 pb-4">
+           <InlineBackButton />
+        </div>
+
         {/* Hero Section */}
         <section className="relative py-16 md:py-32 px-6 overflow-hidden bg-gray-50">
            {/* Background Elements */}

@@ -121,8 +121,85 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
           </form>
        </div>
 
-       {/* Users Table */}
-       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden relative min-h-[400px]">
+       {/* Mobile Card View */}
+       <div className="md:hidden space-y-4">
+          {isLoading && (
+              <div className="text-center p-8 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex flex-col items-center gap-3">
+                      <ArrowPathIcon className="w-8 h-8 text-blue-600 animate-spin" />
+                      <span className="text-sm font-bold text-blue-600">Loading users...</span>
+                  </div>
+              </div>
+          )}
+
+          {!isLoading && users.length === 0 && (
+             <div className="text-center p-12 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <div className="flex flex-col items-center gap-2">
+                    <UserCircleIcon className="w-12 h-12 text-gray-200" />
+                    <p className="font-bold text-gray-500">No users found</p>
+                </div>
+             </div>
+          )}
+
+          {!isLoading && users.map((user) => (
+             <div key={user.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4 relative overflow-hidden">
+                <div className="flex justify-between items-start">
+                   <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                          {user.name?.charAt(0) || "U"}
+                      </div>
+                      <div>
+                          <div className="font-bold text-gray-900">{user.name || "Unnamed"}</div>
+                          <div className="text-xs text-gray-500 font-mono">{formatUserId(user.memberId)}</div>
+                      </div>
+                   </div>
+                   <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'}`}>
+                      {user.role}
+                   </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
+                        <span className="text-xs text-gray-400 block mb-0.5 uppercase tracking-wider font-bold">Balance</span>
+                        <div className="font-mono font-bold text-gray-900">${user.balance.toFixed(2)}</div>
+                    </div>
+                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
+                        <span className="text-xs text-gray-400 block mb-0.5 uppercase tracking-wider font-bold">Points</span>
+                        <div className="font-mono font-bold text-gray-900">{(user.points || 0).toFixed(0)}</div>
+                    </div>
+                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
+                        <span className="text-xs text-gray-400 block mb-0.5 uppercase tracking-wider font-bold">Tier</span>
+                        <div className="font-bold text-gray-900 text-xs">{user.tier}</div>
+                    </div>
+                    <div className="bg-gray-50/50 p-3 rounded-xl border border-gray-50">
+                        <span className="text-xs text-gray-400 block mb-0.5 uppercase tracking-wider font-bold">Members</span>
+                        <div className="font-bold text-gray-900">{user.activeMembers}</div>
+                    </div>
+                </div>
+
+                <div className="pt-2 border-t border-gray-50 flex justify-end">
+                    <UserActions user={{
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        balance: user.balance,
+                        points: user.points,
+                        activeMembers: user.activeMembers,
+                        tier: user.tier
+                    }} />
+                </div>
+             </div>
+          ))}
+       </div>
+
+       {/* Check if UserActions needs to be updated. The opacity hover effect in table needs to be removed for mobile or handled differently. 
+           Wait, UserActions is a client component which might return a button or dropdown. 
+           In the card view, I just placed it. In table view, it's opacity-0 group-hover:opacity-100.
+       */}
+
+       {/* Desktop Table View */}
+       <div className="hidden md:block bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden relative min-h-[400px]">
           
           {isLoading && (
               <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] z-10 flex items-center justify-center">
@@ -197,28 +274,28 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                     <span className="text-sm font-bold text-gray-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 min-w-[3rem] text-center">
                                         {user.activeMembers || 0}
                                     </span>
-                                </div>
-                             </td>
-                             <td className="p-6 text-right">
-                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                   <UserActions user={{
-                                       id: user.id,
-                                       name: user.name,
-                                       email: user.email,
-                                       role: user.role,
-                                       balance: user.balance,
-                                       points: user.points,
-                                       activeMembers: user.activeMembers,
-                                       tier: user.tier
-                                   }} />
-                                </div>
-                             </td>
-                          </tr>
-                       ))
-                   )}
-                </tbody>
-             </table>
-          </div>
+                                 </div>
+                              </td>
+                              <td className="p-6 text-right">
+                                 <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <UserActions user={{
+                                        id: user.id,
+                                        name: user.name,
+                                        email: user.email,
+                                        role: user.role,
+                                        balance: user.balance,
+                                        points: user.points,
+                                        activeMembers: user.activeMembers,
+                                        tier: user.tier
+                                    }} />
+                                 </div>
+                              </td>
+                           </tr>
+                        ))
+                    )}
+                 </tbody>
+              </table>
+           </div>
        </div>
     </div>
   )

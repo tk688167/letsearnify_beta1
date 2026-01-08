@@ -13,7 +13,7 @@ export default async function WithdrawalPage() {
     const cooldownUsers = await getUsersWithActiveCooldown()
 
     return (
-        <div className="p-8 space-y-8 animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-500">
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-3">

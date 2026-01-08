@@ -12,7 +12,7 @@ export default async function AdminDashboard(props: { searchParams: Promise<{ ra
   const { overview, trafficData, deployment, recentActivity } = await getAnalytics(range)
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 md:p-10 space-y-10">
+    <div className="min-h-screen bg-gray-50/50 p-4 md:p-10 space-y-8 md:space-y-10">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
          <div>

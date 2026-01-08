@@ -2,6 +2,8 @@
 
 import React from "react"
 import LandingHeader from "../../components/LandingHeader"
+import Footer from "../../components/Footer"
+import InlineBackButton from "../ui/InlineBackButton"
 import { ShieldCheckIcon, BanknotesIcon, UserGroupIcon, ExclamationTriangleIcon, DocumentCheckIcon, CreditCardIcon } from "@heroicons/react/24/outline"
 
 export default function TermsPageContent() {
@@ -11,6 +13,11 @@ export default function TermsPageContent() {
 
       <main className="flex-1 pt-24 pb-24">
         
+        {/* Back Navigation */}
+        <div className="max-w-7xl mx-auto px-6">
+           <InlineBackButton />
+        </div>
+
         {/* Page Header */}
         <section className="py-16 px-6 text-center">
            <div className="max-w-4xl mx-auto">
@@ -125,15 +132,8 @@ export default function TermsPageContent() {
         </div>
       </main>
 
-      {/* Footer Reuse */}
-      <footer className="bg-gray-900 border-t border-gray-800 py-12 text-center text-gray-400 text-sm">
-        <p>© {new Date().getFullYear()} LetsEarnify. All rights reserved.</p>
-        <div className="mt-4 space-x-4">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <span>|</span>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-        </div>
-      </footer>
+      {/* Standard Footer */}
+      <Footer />
     </div>
   )
 }

@@ -153,7 +153,7 @@ export default function CbspHistorySection() {
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex flex-col md:flex-row gap-4 justify-between items-center">
                     <h2 className="text-xl font-bold text-gray-900 dark:text-white">Contribution History</h2>
                     
-                    <div className="flex gap-2 w-full md:w-auto">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
                         <div className="relative flex-grow md:flex-grow-0">
                             <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input 
@@ -164,13 +164,47 @@ export default function CbspHistorySection() {
                                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                             />
                         </div>
-                        <button onClick={fetchData} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors">
+                        <button onClick={fetchData} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors w-full sm:w-auto flex justify-center items-center">
                             <ArrowPathIcon className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
                         </button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="md:hidden">
+                    {loading ? (
+                        <div className="p-8 text-center text-gray-500">Loading records...</div>
+                    ) : data.length === 0 ? (
+                        <div className="p-8 text-center text-gray-500">No contributions found.</div>
+                    ) : (
+                        <div className="space-y-4 p-4">
+                            {data.map((item) => (
+                                <div key={item.id} className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <div className="font-bold text-gray-900 dark:text-white">{item.user?.name || "Unknown"}</div>
+                                            <div className="text-xs text-gray-500">{item.user?.email}</div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="font-bold text-green-600 dark:text-green-400">+${item.contributionAmount.toFixed(2)}</div>
+                                            <div className="text-xs text-gray-400">Contribution</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex justify-between items-center text-xs pt-3 border-t border-gray-50 dark:border-gray-700">
+                                        <div className="text-gray-500 font-mono">
+                                            Dep: ${item.depositAmount.toFixed(2)}
+                                        </div>
+                                        <div className="text-gray-400">
+                                            {new Date(item.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-sm uppercase tracking-wider">

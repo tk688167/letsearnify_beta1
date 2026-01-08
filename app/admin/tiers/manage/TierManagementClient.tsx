@@ -47,18 +47,74 @@ export default function TierManagementPage({ tiers }: { tiers: TierConfig[] }) {
   }
 
   return (
-    <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-       <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
-             <ServerStackIcon className="w-8 h-8" />
-          </div>
-          <div>
-             <h1 className="text-3xl font-bold text-gray-900">Tier Management</h1>
-             <p className="text-gray-500">Configure entry requirements for "Your Journey".</p>
+    <div className="p-4 md:p-10 space-y-6 md:space-y-8 max-w-7xl mx-auto">
+       <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6 md:mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+               <ServerStackIcon className="w-8 h-8" />
+            </div>
+            <div>
+               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Tier Management</h1>
+               <p className="text-sm md:text-base text-gray-500">Configure entry requirements for "Your Journey".</p>
+            </div>
           </div>
        </div>
 
-       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+       {/* Mobile Card Layout */}
+       <div className="md:hidden space-y-4">
+          {tiers.map((tier) => (
+             <div key={tier.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                <div className="flex justify-between items-start">
+                   <h3 className="font-bold text-lg text-gray-900">{tier.tier}</h3>
+                   {editingId !== tier.id && (
+                      <button onClick={() => handleEdit(tier)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                         <PencilSquareIcon className="w-5 h-5" />
+                      </button>
+                   )}
+                </div>
+
+                <div className="space-y-3">
+                   <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Required Points</label>
+                      {editingId === tier.id ? (
+                         <input 
+                            type="number" 
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                            value={formData.points}
+                            onChange={e => setFormData({...formData, points: Number(e.target.value)})}
+                         />
+                      ) : (
+                         <div className="font-mono text-gray-700 font-medium">{tier.points.toLocaleString()} PTS</div>
+                      )}
+                   </div>
+                   
+                   <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Required Members</label>
+                      {editingId === tier.id ? (
+                         <input 
+                            type="number" 
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                            value={formData.members}
+                            onChange={e => setFormData({...formData, members: Number(e.target.value)})}
+                         />
+                      ) : (
+                         <div className="font-mono text-gray-700 font-medium">{tier.members.toLocaleString()} Members</div>
+                      )}
+                   </div>
+                </div>
+
+                {editingId === tier.id && (
+                   <div className="flex gap-2 pt-2">
+                      <button onClick={handleSave} className="flex-1 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 shadow-sm shadow-emerald-200">Save Changes</button>
+                      <button onClick={() => setEditingId(null)} className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-gray-200">Cancel</button>
+                   </div>
+                )}
+             </div>
+          ))}
+       </div>
+
+       {/* Desktop Table Layout */}
+       <div className="hidden md:block bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
           <table className="w-full text-left">
              <thead className="bg-gray-50/50 text-xs font-bold text-gray-400 uppercase tracking-wider">
                 <tr>
@@ -76,26 +132,26 @@ export default function TierManagementPage({ tiers }: { tiers: TierConfig[] }) {
                       <td className="p-6">
                          {editingId === tier.id ? (
                             <input 
-                              type="number" 
-                              className="w-24 px-3 py-2 border rounded-lg"
-                              value={formData.points}
-                              onChange={e => setFormData({...formData, points: Number(e.target.value)})}
+                               type="number" 
+                               className="w-32 px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                               value={formData.points}
+                               onChange={e => setFormData({...formData, points: Number(e.target.value)})}
                             />
                          ) : (
-                            <span className="font-mono text-gray-600">{tier.points.toLocaleString()} PTS</span>
+                            <span className="font-mono text-gray-600 text-base">{tier.points.toLocaleString()} PTS</span>
                          )}
                       </td>
 
                       <td className="p-6">
                          {editingId === tier.id ? (
                             <input 
-                              type="number" 
-                              className="w-24 px-3 py-2 border rounded-lg"
-                              value={formData.members}
-                              onChange={e => setFormData({...formData, members: Number(e.target.value)})}
+                               type="number" 
+                               className="w-32 px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                               value={formData.members}
+                               onChange={e => setFormData({...formData, members: Number(e.target.value)})}
                             />
                          ) : (
-                            <span className="font-mono text-gray-600">{tier.members.toLocaleString()} Members</span>
+                            <span className="font-mono text-gray-600 text-base">{tier.members.toLocaleString()} Members</span>
                          )}
                       </td>
 

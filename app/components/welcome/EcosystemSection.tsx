@@ -30,14 +30,14 @@ export default function EcosystemSection() {
         </div>
         
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-auto md:auto-rows-[300px]">
           
           {/* 1. Mudaraba (Large Feature) */}
           <motion.div 
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              viewport={{ once: true }}
-             className="md:col-span-2 relative group overflow-hidden rounded-[2.5rem] bg-gray-900 text-white p-8 md:p-10 flex flex-col justify-between"
+             className="md:col-span-2 relative group overflow-hidden rounded-[2.5rem] bg-gray-900 text-white p-8 md:p-10 flex flex-col justify-between min-h-[300px]"
           >
              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3"></div>
              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-gray-800 opacity-90 transition-opacity group-hover:opacity-100"></div>
@@ -68,7 +68,7 @@ export default function EcosystemSection() {
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.1 }}
              viewport={{ once: true }}
-             className="md:row-span-2 relative group overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-xl hover:shadow-2xl transition-all p-8 md:p-10 flex flex-col"
+             className="md:row-span-2 relative group overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-xl hover:shadow-2xl transition-all p-8 md:p-10 flex flex-col min-h-[300px]"
           >
              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-auto">
                 <BriefcaseIcon className="w-7 h-7" />
@@ -102,7 +102,7 @@ export default function EcosystemSection() {
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.2 }}
              viewport={{ once: true }}
-             className="relative group overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all p-8 flex flex-col justify-between"
+             className="relative group overflow-hidden rounded-[2.5rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all p-8 flex flex-col justify-between min-h-[300px]"
           >
              <div className="flex justify-between items-start">
                  <div className="w-12 h-12 rounded-2xl bg-pink-50 flex items-center justify-center text-pink-600">
@@ -123,7 +123,7 @@ export default function EcosystemSection() {
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.3 }}
              viewport={{ once: true }}
-             className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 flex flex-col justify-between shadow-lg shadow-blue-900/20"
+             className="relative group overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 flex flex-col justify-between shadow-lg shadow-blue-900/20 min-h-[300px]"
           >
              <div className="absolute top-0 right-0 p-8 opacity-10">
                  <UserGroupIcon className="w-32 h-32 -rotate-12 translate-x-8 -translate-y-8" />

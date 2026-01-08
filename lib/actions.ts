@@ -130,6 +130,16 @@ export async function updateProfile(formData: FormData) {
       phoneNumber 
   }
   
+  // Handle Profile Picture
+  const image = formData.get("image") as string
+  if (image) {
+      if (image === "REMOVE") {
+          data.image = null // remove image from DB
+      } else if (image.startsWith("data:image")) {
+          data.image = image
+      }
+  }
+  
   if (currency) data.currency = currency
   if (language) data.language = language
   if (securityQuestion) data.securityQuestion = securityQuestion

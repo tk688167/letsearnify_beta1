@@ -7,8 +7,45 @@ export default function BackButton() {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Hide on Landing Page and Dashboard Overview
-  if (pathname === "/" || pathname === "/dashboard" || pathname === "/dashboard/welcome") {
+  // exact paths where the back button should NOT appear (Top-level Navigation)
+  const excludedPaths = [
+    "/", // Landing
+    // User Dashboard
+    "/dashboard",
+    "/dashboard/welcome",
+    "/dashboard/referrals",
+    "/dashboard/tiers",
+    "/dashboard/tasks",
+    "/dashboard/investments",
+    "/dashboard/marketplace",
+    "/dashboard/wallet",
+    "/dashboard/profile",
+    "/dashboard/settings",
+    // Admin Dashboard
+    "/admin",
+    "/admin/users",
+    "/admin/deposits",
+    "/admin/withdrawals",
+    "/admin/wallets",
+    "/admin/settings/merchant",
+    "/admin/tiers/audit",
+    "/admin/pools",
+    "/admin/pools/cbspool",
+    "/admin/pools/cbspool",
+    "/admin/visits",
+    // Public Pages (Using InlineBackButton instead)
+    "/about",
+    "/terms",
+    "/faq",
+    "/contact",
+    "/stories",
+    "/security",
+    "/privacy",
+    "/features",
+    "/proofs"
+  ]
+
+  if (excludedPaths.includes(pathname)) {
     return null
   }
 

@@ -16,7 +16,9 @@ import {
   DocumentDuplicateIcon,
   ShieldCheckIcon,
   CheckIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  ChatBubbleLeftRightIcon,
+  ClockIcon
 } from "@heroicons/react/24/outline"
 import { QRCode } from "./qr-code"
 
@@ -486,9 +488,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   )
 }
 
-// Sub-component for Merchants (simplified logic from original)
+// Sub-component for Merchants (Premium Redesign)
 function MerchantSelector({ merchants, selectedId, onSelect, type }: any) {
-    // Process unique active/coming soon merchants similar to original logic
     const processed = (() => {
         const unique = new Map()
         merchants.forEach((m: any) => {
@@ -499,9 +500,6 @@ function MerchantSelector({ merchants, selectedId, onSelect, type }: any) {
              }
         })
         const list = Array.from(unique.values()) as any[]
-        // For Withdrawals: Override Pakistan to Coming Soon if needed (as per user request previously)
-        // I will keep logic simple: show what is in DB for now, unless hard override requested.
-        // Assuming strict "Active" sort.
         return list.sort((a, b) => a.status === "ACTIVE" ? -1 : 1)
     })()
 
@@ -514,59 +512,131 @@ function MerchantSelector({ merchants, selectedId, onSelect, type }: any) {
                     <button 
                         key={m.id}
                         onClick={() => onSelect(m.id)}
-                        className={cn("p-3 rounded-xl border text-left transition-all relative overflow-hidden",
+                        className={cn("p-3 rounded-xl border text-left transition-all relative overflow-hidden group hover:border-blue-400 hover:shadow-md",
                             m.id === selectedId 
-                                ? "bg-green-50 border-green-500 ring-1 ring-green-500 text-green-900" 
-                                : "bg-white border-gray-100 hover:border-green-200 text-gray-500"
+                                ? "bg-blue-50 border-blue-500 ring-1 ring-blue-500 text-blue-900" 
+                                : "bg-white border-gray-100 text-gray-500"
                         )}
                     >
-                        <div className="font-bold text-sm truncate">{m.name}</div>
-                        <div className={cn("text-[10px] font-bold uppercase mt-1 px-1.5 py-0.5 rounded w-fit",
-                             m.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-500"
+                        <div className="flex items-center justify-between mb-1">
+                            <div className="font-bold text-sm truncate">{m.name}</div>
+                            {m.status === "ACTIVE" && (
+                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            )}
+                        </div>
+                        <div className={cn("text-[10px] font-bold uppercase px-1.5 py-0.5 rounded w-fit",
+                             m.status === "ACTIVE" ? "bg-blue-100 text-blue-700" : "bg-gray-200 text-gray-500"
                         )}>
-                            {m.status === "ACTIVE" ? "Active" : "Coming Soon"}
+                            {m.status === "ACTIVE" ? "Verified" : "Coming Soon"}
                         </div>
                     </button>
                 ))}
             </div>
             
-            {/* Expanded Details */}
+            {/* Expanded Premium Modal */}
             {selected && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-                    <div className="bg-white w-full max-w-lg rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 relative">
-                        <button onClick={() => onSelect(null)} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-                            <span className="sr-only">Close</span>
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 relative flex flex-col max-h-[90vh]">
                         
-                        <div className="text-center mb-6">
-                            <h3 className="text-xl font-bold font-serif text-gray-900">{type === "DEPOSIT" ? "Merchant Deposit" : "Merchant Withdrawal"}</h3>
-                            <div className="text-sm text-gray-500 mt-1">{selected.name}</div>
+                        {/* 1. Premium Header */}
+                        <div className="relative h-28 bg-gradient-to-r from-blue-600 to-indigo-700 flex flex-col items-center justify-center overflow-hidden shrink-0">
+                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                             <button onClick={() => onSelect(null)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white backdrop-blur-md transition-all active:scale-95 z-20">
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/></svg>
+                             </button>
+
+                             <h3 className="text-xl font-bold font-serif text-white tracking-wide relative z-10 flex items-center gap-2">
+                                <BanknotesIcon className="w-6 h-6 text-blue-200" />
+                                {selected.name} Merchants
+                             </h3>
                         </div>
 
                         {selected.status === "ACTIVE" ? (
-                            <div className="space-y-4">
-                                <p className="text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 leading-relaxed">
-                                    {type === "DEPOSIT" ? selected.description : selected.withdrawalDescription}
-                                </p>
-                                <div className="space-y-2">
-                                    {selected.contacts.map((c: any) => (
-                                        <a key={c.id} 
-                                           href={`https://wa.me/${c.phone.replace(/\+/g,"").replace(/\s/g,"")}?text=Hi, I want to ${type.toLowerCase()} funds.`}
-                                           target="_blank" rel="noreferrer"
-                                           className="flex items-center justify-center gap-2 w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-500/30 transition-all"
-                                        >
-                                            Chat on WhatsApp
-                                        </a>
-                                    ))}
+                            <div className="flex-1 overflow-y-auto bg-gray-50/50">
+                                <div className="p-6 space-y-6">
+                                    
+                                    {/* 2. Process Info */}
+                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                                <ShieldCheckIcon className="w-5 h-5"/>
+                                            </div>
+                                            <div>
+                                                <div className="text-xs font-bold text-gray-900 uppercase">Verified Agents</div>
+                                                <div className="text-[10px] text-gray-500">Select an agent below to proceed</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full animate-pulse">
+                                                Online
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 3. Merchant List */}
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Available Merchants</h4>
+                                        
+                                        {selected.contacts.map((c: any, index: number) => (
+                                            <div key={c.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:border-blue-400 hover:shadow-md transition-all group">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-xl bg-gray-900 text-white flex items-center justify-center font-bold shadow-md">
+                                                            P{index + 1}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold text-gray-900 text-sm">Merchant Partner {index + 1}</div>
+                                                            <div className="text-[10px] font-bold text-blue-600 flex items-center gap-1">
+                                                                Official Agent • {c.name}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                                    <div className="bg-gray-50 p-2 rounded-lg text-center">
+                                                        <div className="text-[9px] text-gray-400 font-bold uppercase">Method</div>
+                                                        <div className="text-[10px] font-bold text-gray-700">All Banks / Wallets</div>
+                                                    </div>
+                                                    <div className="bg-gray-50 p-2 rounded-lg text-center">
+                                                        <div className="text-[9px] text-gray-400 font-bold uppercase">Limit</div>
+                                                        <div className="text-[10px] font-bold text-gray-700">$3 - Unlimited</div>
+                                                    </div>
+                                                </div>
+
+                                                <a 
+                                                   href={`https://wa.me/${c.phone.replace(/\+/g,"").replace(/\s/g,"")}?text=Hi, I want to confirm a ${type === "DEPOSIT" ? "deposit" : "withdrawal"} with Merchant ${index+1}.`}
+                                                   target="_blank" rel="noreferrer"
+                                                   className="flex items-center justify-center gap-2 w-full py-3 bg-[#25D366] hover:bg-[#1ebc59] text-white text-sm font-bold rounded-xl shadow-lg shadow-green-500/20 active:scale-95 transition-all"
+                                                >
+                                                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                                                    Deposit via Merchant {index + 1}
+                                                </a>
+                                            </div>
+                                        ))}
+                                    </div>
+
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-6">
-                                <p className="text-gray-500 mb-4">Merchant services are coming soon for this region.</p>
-                                <button onClick={() => onSelect(null)} className="text-blue-600 font-bold hover:underline">Close</button>
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white relative z-20">
+                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 border border-gray-100 shadow-inner">
+                                    <ClockIcon className="w-8 h-8 text-gray-300" />
+                                </div>
+                                <h4 className="text-xl font-bold text-gray-900 mb-2 font-serif">Coming Soon</h4>
+                                <p className="text-sm text-gray-500 max-w-xs mx-auto text-center leading-relaxed">
+                                    Merchant services for <span className="font-bold text-gray-900">{selected.name}</span> are currently being onboarded.
+                                </p>
                             </div>
                         )}
+                        
+                        {/* 4. Footer */}
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 shrink-0">
+                             <button onClick={() => onSelect(null)} className="w-full py-3 text-gray-400 text-xs font-bold uppercase tracking-widest hover:text-gray-600 transition-colors">
+                                Close
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             )}

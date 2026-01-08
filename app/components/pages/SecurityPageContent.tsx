@@ -3,6 +3,7 @@
 import React from "react"
 import { motion } from "framer-motion"
 import LandingHeader from "../../components/LandingHeader"
+import Footer from "../../components/Footer"
 import Link from "next/link"
 import { LockClosedIcon, ShieldCheckIcon, ServerIcon, EyeSlashIcon, KeyIcon, CreditCardIcon } from "@heroicons/react/24/outline"
 
@@ -165,10 +166,8 @@ export default function SecurityPageContent() {
 
       </main>
 
-      {/* Footer Reuse */}
-      <footer className="bg-gray-50 border-t border-gray-200 py-12 text-center text-gray-400 text-sm">
-        <p>© {new Date().getFullYear()} LetsEarnify. All rights reserved.</p>
-      </footer>
+      {/* Standard Footer */}
+      <Footer />
     </div>
   )
 }
