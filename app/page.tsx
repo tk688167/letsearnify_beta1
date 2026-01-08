@@ -19,10 +19,15 @@ export const metadata: Metadata = {
 import React, { Suspense } from "react"
 // ... imports
 
-export default function LandingPage() {
+import { getSocialProofStats, getPayoutProofs } from "./actions/admin/social-proof"
+
+export default async function LandingPage() {
+  const stats = await getSocialProofStats()
+  const proofs = await getPayoutProofs()
+
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50"></div>}>
-       <LandingPageContent />
+       <LandingPageContent initialStats={stats} initialProofs={proofs} />
     </Suspense>
   )
 }

@@ -9,8 +9,10 @@ import LandingHeader from "../../components/LandingHeader"
 import SmartPoolsSection from "../../components/landing/SmartPoolsSection"
 import { ArrowRightIcon, XMarkIcon, StarIcon } from "@heroicons/react/24/outline"
 import SignupForm from "../../components/auth/SignupForm"
+import SocialProofStats from "../ui/SocialProofStats"
+import PayoutsCarousel from "../ui/PayoutsCarousel"
 
-export default function LandingPageContent() {
+export default function LandingPageContent({ initialStats, initialProofs }: { initialStats?: any, initialProofs?: any[] }) {
   const searchParams = useSearchParams()
   const [isSignupOpen, setIsSignupOpen] = useState(false)
   const refCode = searchParams.get("ref")
@@ -81,86 +83,123 @@ export default function LandingPageContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
+              className="text-5xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
             >
-              Turn $1 into <br />
-              <span className="text-indigo-600 inline-block relative">
-                Endless Opportunities
-              </span>
+              The Smartest Way to <br />
+              <HeroTextSlider />
             </motion.h1>
 
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-lg md:text-2xl text-gray-500 mb-12 max-w-3xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
             >
-              A comprehensive hybrid ecosystem bridging Micro-Tasks, Freelancing, and Ethical Mudaraba Investments. 
-              Join thousands building financial freedom today.
+              Join the ecosystem where Micro-Tasks meet Ethical Investing. 
+              <span className="block mt-2 text-indigo-600 font-bold flex items-center justify-center gap-2">
+                Start with $1. Scale to <ScaleToSlider />
+              </span>
             </motion.p>
 
             <motion.div 
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ duration: 0.8, delay: 0.6 }}
-               className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+               className="flex flex-col sm:flex-row gap-5 justify-center items-center"
             >
               <Link href="/signup" className="group relative w-full sm:w-auto">
-                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                 <button className="relative w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-2 group-hover:bg-gray-800 transition-all transform group-hover:-translate-y-0.5">
+                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-500 group-hover:duration-200"></div>
+                 <button className="relative w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 group-hover:bg-gray-800 transition-all transform group-hover:-translate-y-1">
                     Start Earning Now
                     <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                  </button>
               </Link>
               <Link href="#features">
-                 <button className="w-full sm:w-auto px-8 py-4 bg-white border border-gray-200 text-gray-600 rounded-xl font-bold text-lg hover:border-gray-300 hover:bg-gray-50 transition-all shadow-sm">
-                    Learn More
+                 <button className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-100 text-gray-600 rounded-xl font-bold text-lg hover:border-indigo-100 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all shadow-sm">
+                    Explore Features
                  </button>
               </Link>
             </motion.div>
+            
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1, duration: 1 }}
+                className="mt-16 md:mt-20 w-full px-2 md:px-4"
+            >
+                <div className="bg-white/60 backdrop-blur-xl border border-indigo-100/50 rounded-2xl md:rounded-[2rem] py-6 md:py-10 shadow-xl md:shadow-2xl shadow-indigo-500/10 max-w-5xl mx-auto overflow-hidden relative hover:shadow-indigo-500/20 transition-all duration-500 group">
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent opacity-50"></div>
+                    
+                    <p className="text-[10px] md:text-xs font-bold text-indigo-400 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-4 md:mb-8 text-center group-hover:text-indigo-500 transition-colors">Trusted Payment Partners</p>
+                    
+                    <div className="relative w-full overflow-hidden mask-gradient-x">
+                         <div className="flex gap-8 md:gap-24 w-max animate-marquee items-center will-change-transform">
+                             {["USDT (TRC20)", "Binance Pay", "Stripe", "Bank Transfer", "PayPal", "Wise"].map((method, i) => (
+                                 <span key={i} className="text-lg md:text-3xl font-black tracking-tight bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mx-2 md:mx-4 whitespace-nowrap hover:scale-110 transition-transform duration-300 cursor-default shadow-sm filter drop-shadow-sm">{method}</span>
+                             ))}
+                             {["USDT (TRC20)", "Binance Pay", "Stripe", "Bank Transfer", "PayPal", "Wise"].map((method, i) => (
+                                 <span key={`dup-${i}`} className="text-lg md:text-3xl font-black tracking-tight bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mx-2 md:mx-4 whitespace-nowrap hover:scale-110 transition-transform duration-300 cursor-default shadow-sm filter drop-shadow-sm">{method}</span>
+                             ))}
+                         </div>
+                    </div>
+                </div>
+            </motion.div>
           </motion.div>
         </section>
+
+        {/* --- STATS SECTION (Reusable) --- */}
+        <SocialProofStats stats={initialStats} />
+
+        {/* --- PAYOUT PROOFS SECTION (Reusable) --- */}
+        <PayoutsCarousel proofs={initialProofs || []} />
 
         {/* Features Grid */}
         <section id="features" className="py-24 md:py-32 bg-white relative">
           <div className="max-w-7xl mx-auto px-6">
             <FadeIn>
               <div className="text-center mb-20">
-                 <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6 text-gray-900">The 4-Pillar Ecosystem</h2>
+                 <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm mb-6 border border-indigo-100">
+                    ECOSYSTEM OVERVIEW
+                 </div>
+                 <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-gray-900">One Account. <span className="text-indigo-600">Four Income Streams.</span></h2>
                  <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-                    Designed to provide multiple income streams regardless of your skill level or investment capital.
+                    Stop relying on a single source of income. Build a diversified portfolio with zero technical skills.
                  </p>
               </div>
             </FadeIn>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <FeatureCard 
-                title="Referral Network" 
-                desc="Turn connections into revenue. Build a team and earn passive commissions from our multi-tier system."
-                icon="👥"
+                title="Referral Empire" 
+                desc="Turn your network into net worth. Earn massive commissions from our deep multi-tier referral system."
+                icon="👑" // Changed icon
                 gradient="from-blue-500 to-indigo-600"
                 delay={0}
+                badge="Passive Income"
               />
               <FeatureCard 
-                title="Task Center" 
-                desc="Time is money. Monetize your spare moments by completing verified micro-tasks for instant rewards."
-                icon="✅"
+                title="Micro-Task Hub" 
+                desc="Get paid for your spare time. engaging tasks that pay instantly upon completion."
+                icon="⚡" // Changed icon
                 gradient="from-emerald-500 to-teal-600"
                 delay={0.1}
+                badge="Instant Pay"
               />
               <FeatureCard 
-                title="Mudaraba Pool" 
-                desc="Grow together. Participate in ethical, profit-sharing investment pools for long-term passive growth."
-                icon="📈"
+                title="Mudaraba Vaults" 
+                desc="Ethical, profit-sharing investment pools. Let your money work for you in verified real-world businesses."
+                icon="🏦" // Changed icon
                 gradient="from-amber-400 to-orange-500"
                 delay={0.2}
+                badge="High Yield"
               />
               <FeatureCard 
-                title="Marketplace" 
-                desc="Your skills, amplified. Offer professional digital services to a global audience and get paid fairly."
-                icon="🛍️"
+                title="Professional Market" 
+                desc="Sell your digital services to a global audience. Freelancing, simpler and fairer than ever."
+                icon="💼" // Changed icon
                 gradient="from-pink-500 to-rose-600"
                 delay={0.3}
+                badge="No Fees"
               />
             </div>
           </div>
@@ -500,7 +539,7 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode, delay?: nu
   )
 }
 
-function FeatureCard({ title, desc, icon, gradient, delay }: { title: string, desc: string, icon: string, gradient: string, delay: number }) {
+function FeatureCard({ title, desc, icon, gradient, delay, badge }: { title: string, desc: string, icon: string, gradient: string, delay: number, badge?: string }) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 30 }}
@@ -508,8 +547,13 @@ function FeatureCard({ title, desc, icon, gradient, delay }: { title: string, de
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -10, transition: { duration: 0.2 } }}
       viewport={{ once: true }}
-      className="p-8 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 group cursor-default"
+      className="p-8 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 group cursor-default relative overflow-hidden"
     >
+      {badge && (
+          <div className="absolute top-6 right-6 px-3 py-1 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {badge}
+          </div>
+      )}
       <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-3xl mb-8 text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
         {icon}
       </div>
@@ -533,5 +577,63 @@ function TrustCard({ title, desc, icon, color, hoverBorder, delay }: { title: st
         <h3 className="font-bold text-xl mb-3">{title}</h3>
         <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
      </motion.div>
+  )
+}
+
+function HeroTextSlider() {
+  const words = ["Earn Online", "Invest Smart", "Unlock Wealth"];
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="h-[1.1em] overflow-hidden inline-flex relative align-top">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ y: "-100%" }}
+          transition={{ duration: 0.5, ease: "backOut" }}
+          className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-indigo-600 animate-gradient-x"
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function ScaleToSlider() {
+  const words = ["Infinity", "Wealth", "Freedom", "Success"];
+  const [index, setIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="h-[1.2em] overflow-hidden inline-flex relative align-bottom min-w-[100px] md:min-w-[120px]">
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={words[index]}
+          initial={{ y: "100%", opacity: 0, scale: 0.8 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: "-100%", opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+          className="absolute inset-0 flex items-center justify-center text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600 font-extrabold"
+        >
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
   )
 }

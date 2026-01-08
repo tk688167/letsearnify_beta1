@@ -31,6 +31,7 @@ const navigation = [
       icon: GlobeAltIcon,
       children: [
           { name: 'Platform Stats', href: '/admin/stats', icon: '📊' },
+          { name: 'Social Proof', href: '/admin/social-proof', icon: '🌟' },
           { name: 'Welcome Page Slider', href: '/admin/welcome-slider', icon: '📢' }
       ]
   },

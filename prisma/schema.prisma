@@ -421,3 +421,24 @@ model TierConfiguration {
   
   updatedAt DateTime @updatedAt
 }
+
+// --- SOCIAL PROOF & FAKE STATS ---
+
+model SocialProofSettings {
+  id              String   @id @default(cuid())
+  totalUsers      Int      @default(12540)
+  totalDeposited  Float    @default(850000.00)
+  totalPayouts    Float    @default(320000.00)
+  activeOnline    Int      @default(345)
+  updatedAt       DateTime @updatedAt
+}
+
+model PayoutProof {
+  id              String   @id @default(cuid())
+  imageUrl        String
+  amount          Float
+  userName        String   // e.g. "Ahmad K."
+  method          String   // e.g. "USDT"
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+}

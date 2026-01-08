@@ -7,6 +7,9 @@ import EcosystemSection from "../../components/welcome/EcosystemSection";
 import FutureProjectsSection from "../../components/welcome/FutureProjectsSection";
 import WelcomeHero from "../../components/welcome/WelcomeHero";
 import React from "react";
+import { getSocialProofStats, getPayoutProofs } from "@/app/actions/admin/social-proof";
+import SocialProofStats from "@/app/components/ui/SocialProofStats";
+import PayoutsCarousel from "@/app/components/ui/PayoutsCarousel";
 
 export const metadata = {
   title: "Welcome - Let'sEarnify",
@@ -15,13 +18,17 @@ export const metadata = {
 
 export default async function WelcomePage() {
   const session = await auth();
-  const pools = await prisma.pool.findMany(); // Assuming this is fast enough, otherwise cache
+  const pools = await prisma.pool.findMany(); 
 
-  // Get rich user data if possible, or just pass session user
-  const user = session?.user ? await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { name: true, createdAt: true, tier: true, totalDeposit: true }
-  }) : null;
+  // Parallel data fetching
+  const [user, stats, proofs] = await Promise.all([
+      session?.user ? prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { name: true, createdAt: true, tier: true, totalDeposit: true }
+      }) : null,
+      getSocialProofStats(),
+      getPayoutProofs()
+  ])
 
   return (
     <main className="min-h-screen bg-white">
@@ -32,6 +39,11 @@ export default async function WelcomePage() {
         {/* 2. Live Ticker / Status Strip */}
         <div className="border-t border-b border-gray-100 bg-gray-50/50">
            <WelcomeSlider />
+        </div>
+
+        {/* --- STATS SECTION --- */}
+        <div className="bg-white">
+            <SocialProofStats stats={stats} />
         </div>
 
         {/* 3. The Ecosystem Grid */}
@@ -55,6 +67,9 @@ export default async function WelcomePage() {
             </div>
         </section>
         
+        {/* --- PAYOUT PROOFS --- */}
+        <PayoutsCarousel proofs={proofs} />
+
         {/* 5. Deep Dive (CBSP) */}
         <section className="py-20 bg-white">
            <div className="max-w-7xl mx-auto px-6">
