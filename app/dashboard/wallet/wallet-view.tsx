@@ -555,20 +555,42 @@ function MerchantSelector({ merchants, selectedId, onSelect, type }: any) {
                             <div className="flex-1 overflow-y-auto bg-gray-50/50">
                                 <div className="p-6 space-y-6">
                                     
-                                    {/* 2. Process Info */}
-                                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                                <ShieldCheckIcon className="w-5 h-5"/>
-                                            </div>
-                                            <div>
-                                                <div className="text-xs font-bold text-gray-900 uppercase">Verified Agents</div>
-                                                <div className="text-[10px] text-gray-500">Select an agent below to proceed</div>
-                                            </div>
+                                    {/* 2. Process Info with Steps */}
+                                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-2 opacity-10">
+                                            <ShieldCheckIcon className="w-24 h-24 text-blue-600"/>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded-full animate-pulse">
-                                                Online
+                                        
+                                        <div className="relative z-10">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 bg-green-100 text-green-700 rounded-lg">
+                                                        <ShieldCheckIcon className="w-4 h-4"/>
+                                                    </div>
+                                                    <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Secure Transaction</span>
+                                                </div>
+                                                <div className="text-[10px] font-bold bg-green-500 text-white px-2 py-0.5 rounded-full animate-pulse shadow-lg shadow-green-500/30">
+                                                    Online Agent
+                                                </div>
+                                            </div>
+
+                                            {/* Visual Steps */}
+                                            <div className="flex items-start justify-between gap-2 text-center relative">
+                                                {/* Connecting Line */}
+                                                <div className="absolute top-3 left-0 right-0 h-0.5 bg-gray-100 -z-10 mx-6"></div>
+
+                                                <div className="flex-1 flex flex-col items-center gap-1.5 group">
+                                                    <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-md group-hover:scale-110 transition-transform">1</div>
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase">Contact</div>
+                                                </div>
+                                                <div className="flex-1 flex flex-col items-center gap-1.5 group">
+                                                    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-colors">2</div>
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase">Deposit</div>
+                                                </div>
+                                                <div className="flex-1 flex flex-col items-center gap-1.5 group">
+                                                    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm group-hover:bg-green-500 group-hover:text-white transition-colors">3</div>
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase">Verify</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

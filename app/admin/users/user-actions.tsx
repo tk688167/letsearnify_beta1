@@ -3,10 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { creditMerchantDeposit } from "@/app/actions/admin/merchant"
 import { signIn } from "next-auth/react"
 import { generateImpersonationToken } from "@/app/actions/admin/impersonate"
-import { PencilSquareIcon, XMarkIcon, UserGroupIcon, BanknotesIcon, TrashIcon, EyeIcon } from "@heroicons/react/24/outline"
+import { PencilSquareIcon, XMarkIcon, UserGroupIcon, TrashIcon, EyeIcon } from "@heroicons/react/24/outline"
 import { updateUserAsAdmin } from "@/lib/actions"
 
 type UserActionsProps = {
@@ -30,11 +29,6 @@ export default function UserActions({ user }: UserActionsProps) {
   
   // Impersonation State
   const [impersonateLoading, setImpersonateLoading] = useState(false)
-
-  
-  // Merchant Deposit State
-  const [isDepositOpen, setIsDepositOpen] = useState(false)
-  const [depositLoading, setDepositLoading] = useState(false)
   
   // Delete State
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
@@ -74,30 +68,6 @@ export default function UserActions({ user }: UserActionsProps) {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleDeposit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault()
-      setDepositLoading(true)
-      const formData = new FormData(e.currentTarget)
-      const amount = parseFloat(formData.get("amount") as string)
-      const note = formData.get("note") as string
-      
-      if (isNaN(amount) || amount <= 0) {
-          alert("Invalid amount")
-          setDepositLoading(false)
-          return
-      }
-
-      const res = await creditMerchantDeposit(user.id, amount, note)
-      if (res.success) {
-          setIsDepositOpen(false)
-          router.refresh()
-          alert("Deposit credited successfully")
-      } else {
-          alert(res.error || "Failed to credit deposit")
-      }
-      setDepositLoading(false)
   }
 
   const handleImpersonate = async () => {
@@ -145,13 +115,6 @@ export default function UserActions({ user }: UserActionsProps) {
         >
             <UserGroupIcon className="w-5 h-5" />
         </Link>
-        <button 
-            onClick={() => setIsDepositOpen(true)}
-            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors" 
-            title="Credit Merchant Deposit"
-        >
-            <BanknotesIcon className="w-5 h-5" />
-        </button>
       <button 
             onClick={() => setIsOpen(true)}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
@@ -331,70 +294,6 @@ export default function UserActions({ user }: UserActionsProps) {
                    >
                      {loading ? "Saving..." : "Save Changes"}
                    </button>
-                </div>
-             </form>
-          </div>
-        </div>
-      )}
-
-      {/* MERCHANT DEPOSIT MODAL */}
-      {isDepositOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-             <div className="px-6 py-4 flex justify-between items-center bg-green-50 border-b border-green-100">
-                <h3 className="text-lg font-bold text-green-900 flex items-center gap-2">
-                    <BanknotesIcon className="w-5 h-5"/>
-                    Merchant Credit
-                </h3>
-                <button onClick={() => setIsDepositOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                   <XMarkIcon className="w-6 h-6" />
-                </button>
-             </div>
-             
-             <form onSubmit={handleDeposit} className="p-6 space-y-6">
-                <div className="p-4 bg-green-50/50 rounded-xl text-sm text-green-800 border border-green-100">
-                    Use this to credit a user's wallet after they have successfully paid via a local merchant (EasyPaisa/JazzCash).
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Amount ($)</label>
-                        <input 
-                            name="amount"
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            required
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-50 outline-none transition-all font-bold text-lg"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Admin Note / Reference</label>
-                        <textarea 
-                            name="note"
-                            placeholder="e.g. Verified by Merchant 1 (EasyPaisa Trx ID: ...)"
-                            required
-                            rows={3}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-green-500 outline-none transition-all text-sm resize-none"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                     <button 
-                        type="button" 
-                        onClick={() => setIsDepositOpen(false)}
-                        className="flex-1 py-3 text-gray-600 font-bold hover:bg-gray-50 rounded-xl transition-colors"
-                     >
-                        Cancel
-                     </button>
-                     <button 
-                        type="submit" 
-                        disabled={depositLoading}
-                        className="flex-1 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
-                     >
-                        {depositLoading ? "Crediting..." : "Credit Funds"}
-                     </button>
                 </div>
              </form>
           </div>

@@ -12,6 +12,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
   { name: 'User Management', href: '/admin/users', icon: UsersIcon },
   { name: 'Deposit Approvals', href: '/admin/deposits', icon: CurrencyDollarIcon },
+  { name: 'Manual Deposit', href: '/admin/manual-deposit', icon: BanknotesIcon },
   { name: 'Withdrawal Requests', href: '/admin/withdrawals', icon: ArrowLeftOnRectangleIcon },
   { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, 
   { name: 'Merchant Settings', href: '/admin/settings/merchant', icon: BanknotesIcon },
