@@ -179,8 +179,8 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                                )}
                           </div>
 
-                          {/* Card Body - Requirements (Only if NOT completed, or if Current to show how far they went) */}
-                          <div className={`p-6 md:p-8 grid md:grid-cols-2 gap-8 ${(isCompleted || (isCurrent && isFinal)) ? 'hidden' : 'block'}`}>
+                          {/* Card Body - Requirements (Show if NOT completed AND NOT the final tier) */}
+                          <div className={`p-6 md:p-8 grid md:grid-cols-2 gap-8 ${(isCompleted || isFinal) ? 'hidden' : 'block'}`}>
                               
                               {/* Points Requirement */}
                               <div>
@@ -224,11 +224,20 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                              </div>
                           )}
 
-                          {isCurrent && isFinal && (
+                          {/* Final Tier Indicator */}
+                          {isFinal && (
                              <div className="px-8 pb-8 pt-2">
-                                 <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 flex items-center justify-center gap-3 text-indigo-800 font-medium">
-                                    <SparklesIcon className="w-5 h-5 text-indigo-500" />
-                                    <span>You have reached the maximum tier. Pinnacle of success!</span>
+                                 <div className={`p-4 rounded-xl border flex items-center justify-center gap-3 font-medium ${
+                                     isCurrent 
+                                        ? "bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-100 text-indigo-800"
+                                        : "bg-gray-50 border-gray-200 text-gray-600"
+                                 }`}>
+                                    <SparklesIcon className={`w-5 h-5 ${isCurrent ? "text-indigo-500" : "text-gray-400"}`} />
+                                    <span>
+                                        {isCurrent 
+                                            ? "You have reached the maximum tier. Pinnacle of success!" 
+                                            : "This is the final tier. The ultimate goal."}
+                                    </span>
                                  </div>
                              </div>
                           )}

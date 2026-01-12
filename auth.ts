@@ -10,7 +10,10 @@ import { generateReferralCode } from "@/lib/mlm"
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma) as any,
-  session: { strategy: "jwt" },
+  session: { 
+    strategy: "jwt",
+    maxAge: 48 * 60 * 60, // 48 hours
+  },
   providers: [
     Credentials({
       async authorize(credentials) {
@@ -40,34 +43,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         if (passwordsMatch) {
             console.log("✅ Login Successful for:", user.email)
-
-            // --- AUTO-RESET LOGIC FOR TEST ACCOUNTS ---
-            const emailLower = user.email?.toLowerCase() || "";
-            if (
-                emailLower.includes("@test.com") || 
-                emailLower.includes("+test") || 
-                emailLower.startsWith("dev_")
-            ) {
-                console.log("🔄 Auto-Resetting Test Account:", user.email);
-                
-                // Keep password and basic info, reset MLM progress
-                await prisma.user.update({
-                    where: { id: user.id },
-                    data: {
-                        tier: "NEWBIE" as any, // Cast to any until Prisma Client is regenerated
-                        tierStatus: "CURRENT" as any, 
-                        points: 0,
-                        activeMembers: 0,
-                        isActiveMember: false,
-                        totalDeposit: 0
-                    }
-                });
-                
-                // Fetch fresh user data to return correct session
-                const refreshedUser = await prisma.user.findUnique({ where: { id: user.id } });
-                return refreshedUser;
-            }
-
             return user
         }
         

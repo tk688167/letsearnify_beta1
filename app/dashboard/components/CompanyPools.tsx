@@ -7,11 +7,12 @@ import {
     InformationCircleIcon,
     ArrowTrendingUpIcon,
     UsersIcon,
-    GiftIcon
+    GiftIcon,
+    LockClosedIcon
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils";
 
-export function CompanyPools({ pools }: { pools: any[] }) {
+export function CompanyPools({ pools, isLocked = false }: { pools: any[], isLocked?: boolean }) {
     
     // Helper to format currency
     const formatMoney = (amount: number) => 
@@ -137,15 +138,27 @@ export function CompanyPools({ pools }: { pools: any[] }) {
                             </div>
                         </div>
                         
-                        {/* Hover Overlay Features */}
-                        <div className="absolute inset-x-0 bottom-0 p-4 bg-gray-50/90 backdrop-blur-sm border-t border-gray-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex justify-between gap-2">
-                            {pool.features.map((feature, i) => (
-                                <div key={i} className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-600 bg-white py-2 rounded-lg border border-gray-200 shadow-sm">
-                                    <SparklesIcon className="w-3 h-3 text-amber-500" />
-                                    {feature}
+                        {/* Hover Overlay Features (Only if NOT locked) */}
+                        {!isLocked && (
+                            <div className="absolute inset-x-0 bottom-0 p-4 bg-gray-50/90 backdrop-blur-sm border-t border-gray-100 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex justify-between gap-2">
+                                {pool.features.map((feature, i) => (
+                                    <div key={i} className="flex-1 flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-600 bg-white py-2 rounded-lg border border-gray-200 shadow-sm">
+                                        <SparklesIcon className="w-3 h-3 text-amber-500" />
+                                        {feature}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Locked Message */}
+                        {isLocked && (
+                             <div className="mt-4 pt-3 border-t border-gray-100/50">
+                                <div className="flex items-center gap-2 justify-center text-xs font-bold text-gray-400 bg-gray-50 py-2 rounded-lg">
+                                    <LockClosedIcon className="w-3 h-3" />
+                                    This pool is not unlocked for you yet
                                 </div>
-                            ))}
-                        </div>
+                             </div>
+                        )}
 
                     </div>
                 </div>

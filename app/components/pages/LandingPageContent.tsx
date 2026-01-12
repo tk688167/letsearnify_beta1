@@ -353,53 +353,88 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
              </FadeIn>
         </section>
 
-        {/* Deposit/CTA Section */}
+        {/* Premium Access / One-Time Fee Section */}
         <section className="py-24 px-6 md:px-12 bg-gray-50">
            <div className="max-w-7xl mx-auto">
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
-                className="bg-gray-900 text-white rounded-[2.5rem] p-8 md:p-24 relative overflow-hidden shadow-2xl text-center md:text-left"
+                className="bg-gray-900 text-white rounded-[3rem] p-8 md:p-20 relative overflow-hidden shadow-2xl"
               >
-                 {/* Background Glows */}
-                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-                 <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-fuchsia-600/20 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2"></div>
+                 {/* Decorative Background Elements */}
+                 <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-b from-indigo-600/20 to-transparent rounded-full blur-[100px] translate-x-1/3 -translate-y-1/3 user-select-none pointer-events-none"></div>
+                 <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-fuchsia-600/10 rounded-full blur-[100px] -translate-x-1/3 translate-y-1/3 user-select-none pointer-events-none"></div>
 
-                 <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                       <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium mb-8 backdrop-blur-sm border border-white/10">
-                          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Premium Access
-                       </div>
-                       <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6">Start Small, <br/> Dream Big.</h2>
-                       <p className="text-gray-300 text-lg md:text-xl mb-10 leading-relaxed max-w-lg">
-                          Unlock the full potential of the platform with a minimal entry deposit. 
-                          Get access to high-value tasks, marketplace posting, and investment pools.
+                 <div className="relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+                    
+                    {/* Left: Value Proposition */}
+                    <div className="text-center lg:text-left space-y-8">
+                       <span className="inline-block py-1.5 px-4 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-xs uppercase tracking-wider border border-indigo-500/30">
+                          One-Time Activation
+                       </span>
+                       
+                       <h2 className="text-4xl md:text-6xl font-serif font-bold leading-tight">
+                          Unlock Your <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-fuchsia-300">Financial Passport</span>
+                       </h2>
+                       
+                       <p className="text-lg text-gray-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                          We believe in accessible opportunity. For the price of a coffee, you get lifetime access to a complete digital earning ecosystem. No hidden subscriptions.
                        </p>
-                       <ul className="space-y-4 mb-12">
-                          {["Instant Account Activation", "Access to all 4 Earning Pillars", "24/7 Priority Support"].map((item, i) => (
-                              <li key={i} className="flex items-center gap-3 text-gray-300">
-                                <span className="w-6 h-6 rounded-full bg-indigo-500/30 flex items-center justify-center text-indigo-300 text-sm">✓</span>
-                                {item}
-                              </li>
+
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                          {[
+                             { title: "Lifetime Access", desc: "Pay once, earn forever." },
+                             { title: "All Features", desc: "Tasks, Pools, Freelancing." },
+                             { title: "Instant Status", desc: "Start earning immediately." },
+                             { title: "Zero Monthly Fees", desc: "Keep 100% of your profits." }
+                          ].map((feat, i) => (
+                             <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors text-left">
+                                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
+                                   <div className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]"></div>
+                                </div>
+                                <div>
+                                   <div className="font-bold text-white text-sm">{feat.title}</div>
+                                   <div className="text-xs text-gray-500 mt-0.5">{feat.desc}</div>
+                                </div>
+                             </div>
                           ))}
-                       </ul>
+                       </div>
                     </div>
                     
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 md:p-12 rounded-[2rem] text-center transform hover:scale-105 transition-transform duration-500 shadow-2xl">
-                       <div className="text-sm uppercase tracking-widest text-gray-400 mb-4">Minimum Deposit</div>
-                       <div className="text-6xl md:text-7xl font-bold mb-4 tracking-tighter">$1<span className="text-2xl text-gray-500">.00</span></div>
-                       <div className="text-gray-400 text-sm mb-10">One-time entry fee</div>
+                    {/* Right: The "Card" Visual */}
+                    <div className="relative mx-auto lg:mx-0">
+                       {/* Glowing Backdrop */}
+                       <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-[2.5rem] blur-xl opacity-40 animate-pulse"></div>
                        
-                       <Link 
-                         href="/signup" 
-                         className="block w-full py-5 bg-white text-gray-900 rounded-2xl font-bold text-xl hover:bg-gray-100 transition-colors shadow-lg shadow-white/10"
-                       >
-                          Get Started Now
-                       </Link>
-                       <p className="mt-6 text-xs text-gray-500 font-medium">Secure payment via Stripe & TRC20</p>
+                       <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-[2.5rem] border border-white/10 p-10 md:p-14 text-center shadow-2xl overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+                          {/* Shine Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                          
+                          <div className="mb-2 text-sm font-bold text-gray-400 uppercase tracking-widest">Entry Fee</div>
+                          <div className="flex items-start justify-center gap-1 mb-4">
+                             <span className="text-4xl font-bold text-gray-500 mt-2">$</span>
+                             <span className="text-8xl font-black text-white tracking-tighter">1</span>
+                          </div>
+                          
+                          <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded-full mb-10 border border-green-500/20">
+                             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                             Standard Global Rate
+                          </div>
+
+                          <Link href="/signup" className="w-full block py-5 rounded-xl bg-white text-gray-900 font-bold text-lg hover:bg-gray-100 transition-all shadow-lg shadow-white/10 active:scale-95">
+                             Get Started Now
+                          </Link>
+                          
+                          <div className="mt-8 grid grid-cols-3 gap-4 border-t border-white/5 pt-6 opacity-60">
+                             <div className="text-[10px] uppercase font-bold text-gray-500">Secure</div>
+                             <div className="text-[10px] uppercase font-bold text-gray-500">Instant</div>
+                             <div className="text-[10px] uppercase font-bold text-gray-500">Global</div>
+                          </div>
+                       </div>
                     </div>
+
                  </div>
               </motion.div>
            </div>

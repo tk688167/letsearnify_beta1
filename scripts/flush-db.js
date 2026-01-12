@@ -5,6 +5,12 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
+    if (process.argv[2] !== '--FORCE-FLUSH') {
+        console.error("⛔ SAFETY LOCK: To flush the database, you must run this script with the '--FORCE-FLUSH' argument.");
+        console.error("Example: node scripts/flush-db.js --FORCE-FLUSH");
+        process.exit(1);
+    }
+
     console.log("⚠️  STARTING DATABASE FLUSH...");
 
     // 1. Delete dependent data first

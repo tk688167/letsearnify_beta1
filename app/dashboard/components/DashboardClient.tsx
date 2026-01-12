@@ -175,7 +175,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
                 </div>
                 <h3 className="text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight">Unlock Your <br/>Full Earnings Potential</h3>
                 <p className="text-blue-100/80 mb-8 leading-relaxed text-lg max-w-lg">
-                   Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features.
+                   Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even $1 can be withdrawn anytime.
                 </p>
                 <div className="flex flex-wrap gap-4">
                    <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
@@ -194,31 +194,10 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
           <div className="flex items-center gap-3 mb-8">
               <h2 className="text-2xl font-bold text-gray-900 font-serif">Community Pools</h2>
 
-                {getFeatureStatus("POOLS") === "LOCKED" && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-500 text-[10px] font-bold uppercase rounded-md tracking-wide border border-gray-200">
-                        Locked
-                    </span>
-                )}
           </div>
           
           <div className="relative">
-              <CompanyPools pools={pools} />
-              
-              {/* Overlay for LOCKED states only */}
-              {getFeatureStatus("POOLS") === "LOCKED" && (
-                 <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center border border-white/20">
-                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 text-center max-w-sm">
-                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <LockClosedIcon className="w-6 h-6 text-gray-400"/>
-                        </div>
-                        <h3 className="font-bold text-gray-900 mb-1">Mudaraba Pools Locked</h3>
-                        <p className="text-sm text-gray-500 mb-4">Deposit $1.00 to unlock investment opportunities.</p>
-                        <Link href="/dashboard/wallet?tab=deposit" className="inline-block px-4 py-2 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-black transition-colors">
-                            Unlock Now
-                        </Link>
-                     </div>
-                 </div>
-              )}
+              <CompanyPools pools={pools} isLocked={getFeatureStatus("POOLS") === "LOCKED"} />
           </div>
       </div>
 

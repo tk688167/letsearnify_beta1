@@ -89,6 +89,7 @@ model User {
   mlmLogs             MLMLog[]
   cbspContributions   CbspContribution[]
   royaltyContributions RoyaltyContribution[]
+  postbackLogs        PostbackLog[]
   passwordResetToken  PasswordResetToken?
 }
 
@@ -228,9 +229,24 @@ model Task {
   reward      Float
   type        String   // SOCIAL, APP, SURVEY
   status      String   // ACTIVE, INACTIVE
+  link        String?  // External URL for the task
+  imageUrl    String?  // Optional thumbnail
   createdAt   DateTime @default(now())
 
   completions TaskCompletion[]
+  
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id])
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  logoUrl     String?
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tasks       Task[]
 }
 
 model TaskCompletion {
@@ -441,4 +457,30 @@ model PayoutProof {
   method          String   // e.g. "USDT"
   date            DateTime @default(now())
   createdAt       DateTime @default(now())
+}
+
+model PostbackLog {
+  id        String   @id @default(cuid())
+  network   String
+  url       String?  @db.Text
+  params    Json?
+  userId    String?
+  status    String   // PROCESSED, FAILED, IGNORED
+  error     String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Network {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  slug          String   @unique
+  type          String   // CPA, REVSHARE
+  apiKey        String?
+  secretKey     String?
+  postbackSecret String?
+  isEnabled     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
