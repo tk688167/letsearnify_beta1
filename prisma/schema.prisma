@@ -3,17 +3,28 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Enums removed for SQLite compatibility
-// enum Tier { ... }
-// enum TierStatus { ... }
+enum Tier {
+  NEWBIE
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  EMERALD
+}
+
+enum TierStatus {
+  CURRENT
+  UPGRADED
+}
 
 model User {
   id            String    @id @default(cuid())
-  memberId      String    @unique @default(cuid()) // SQLite String ID
+  memberId      String    @unique @default(cuid())
   name          String?
   email         String?   @unique
   phoneNumber   String?
@@ -27,8 +38,8 @@ model User {
   balance       Float     @default(0.0)
   
   // MLM Fields
-  tier          String    @default("NEWBIE") // Was Enum Tier
-  tierStatus    String    @default("CURRENT") // Was Enum TierStatus
+  tier          Tier      @default(NEWBIE)
+  tierStatus    TierStatus @default(CURRENT)
   arnBalance    Float     @default(0.0)       // REPLACED: points -> arnBalance
   referralCode  String?   @unique
   referredByCode String?
@@ -123,12 +134,12 @@ model Account {
   type               String
   provider           String
   providerAccountId  String
-  refresh_token      String? /// @db.Text removed for SQLite
-  access_token       String? /// @db.Text removed for SQLite
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
   expires_at         Int?
   token_type         String?
   scope              String?
-  id_token           String? /// @db.Text removed for SQLite
+  id_token           String? @db.Text
   session_state      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -145,7 +156,7 @@ model Distribution {
   amount    Float
   percentage Float
   recipients Int
-  tierRates  String?    // Changed Json to String for SQLite
+  tierRates  Json?
   createdAt DateTime @default(now())
 }
 
@@ -153,15 +164,15 @@ model Distribution {
 model SystemConfig {
   id        String   @id @default(cuid())
   key       String   @unique // e.g., "COMING_SOON_CONFIG"
-  value     String     // Changed Json to String for SQLite
+  value     Json
   updatedAt DateTime @updatedAt
 }
 
 model PostbackLog {
   id        String   @id @default(cuid())
   network   String
-  url       String?  /// @db.Text removed for SQLite
-  params    String?    // Changed Json to String for SQLite
+  url       String?  @db.Text
+  params    Json?
   userId    String?
   status    String   // PROCESSED, FAILED, IGNORED
   error     String?
@@ -472,7 +483,7 @@ model TierConfiguration {
   tier      String   @unique
   requiredArn Float   @default(0.0)
   members   Int
-  levels    String   // Stored as JSON string or CSV, was Float[]
+  levels    Json
   
   updatedAt DateTime @updatedAt
 }
