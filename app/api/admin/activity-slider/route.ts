@@ -27,7 +27,14 @@ export async function GET(req: Request) {
       ])
     }
 
-    return NextResponse.json(config.value)
+    // Parse the JSON string back to object
+    try {
+        const data = JSON.parse(config.value);
+        return NextResponse.json(data);
+    } catch (e) {
+        console.error("Failed to parse slider config", e);
+        return NextResponse.json([]); 
+    }
   } catch (error) {
     console.error("[ADMIN_SLIDER_GET]", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
@@ -48,10 +55,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid data format" }, { status: 400 })
         }
 
+        const valueString = JSON.stringify(body);
+
         await prisma.systemConfig.upsert({
             where: { key: SLIDER_KEY },
-            update: { value: body },
-            create: { key: SLIDER_KEY, value: body }
+            update: { value: valueString },
+            create: { key: SLIDER_KEY, value: valueString }
         })
 
         // Log

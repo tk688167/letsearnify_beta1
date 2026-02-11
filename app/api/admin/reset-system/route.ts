@@ -2,7 +2,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import { Tier } from "@prisma/client"
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -18,8 +17,8 @@ export async function POST(req: Request) {
   try {
       await prisma.user.updateMany({
         data: {
-          tier: Tier.NEWBIE,
-          points: 0,
+          tier: "NEWBIE",
+          arnBalance: 0,
           balance: 0, 
         }
       })

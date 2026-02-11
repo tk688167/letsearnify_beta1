@@ -54,25 +54,25 @@ export async function PUT(req: Request) {
     const updated = await prisma.systemConfig.upsert({
         where: { key: STATS_KEY },
         update: {
-            value: {
+            value: JSON.stringify({
                 totalUsers, 
                 totalDeposited, 
                 totalWithdrawn, 
                 totalRewards, 
                 serviceStatus, 
                 partnersCount
-            }
+            })
         },
         create: {
             key: STATS_KEY,
-            value: {
+            value: JSON.stringify({
                 totalUsers, 
                 totalDeposited, 
                 totalWithdrawn, 
                 totalRewards, 
                 serviceStatus, 
                 partnersCount
-            }
+            })
         }
     })
 

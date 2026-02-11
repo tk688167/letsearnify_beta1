@@ -8,7 +8,7 @@ import {
     TrashIcon,
     PlusIcon
 } from "@heroicons/react/24/outline"
-import { updateSocialProofStats, addPayoutProof, deletePayoutProof } from "@/app/actions/admin/social-proof"
+import { addPayoutProof, deletePayoutProof } from "@/app/actions/admin/social-proof"
 
 type Props = {
     initialStats: any
@@ -37,19 +37,7 @@ export default function SocialProofClient({ initialStats, initialProofs }: Props
 
     // --- HANDLERS ---
 
-    const handleStatsUpdate = (e: React.FormEvent) => {
-        e.preventDefault()
-        startTransition(async () => {
-            const res = await updateSocialProofStats({
-                totalUsers: parseInt(String(stats.totalUsers)),
-                totalDeposited: parseFloat(String(stats.totalDeposited)),
-                totalPayouts: parseFloat(String(stats.totalPayouts)),
-                activeOnline: parseInt(String(stats.activeOnline))
-            })
-            if (res.success) alert("Stats updated successfully!")
-            else alert("Failed to update stats")
-        })
-    }
+
 
     const handleAddProof = (e: React.FormEvent) => {
         e.preventDefault()
@@ -101,55 +89,36 @@ export default function SocialProofClient({ initialStats, initialProofs }: Props
                     </div>
                 </div>
 
-                <form onSubmit={handleStatsUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Total Users</label>
-                        <input 
-                            type="number" 
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold"
-                            value={stats.totalUsers}
-                            onChange={e => setStats({...stats, totalUsers: parseInt(e.target.value) || 0})}
-                        />
+                        <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-gray-700">
+                            {stats.totalUsers}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Active Online</label>
-                        <input 
-                            type="number" 
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold"
-                            value={stats.activeOnline}
-                            onChange={e => setStats({...stats, activeOnline: parseInt(e.target.value) || 0})}
-                        />
+                        <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-gray-700">
+                            {stats.activeOnline}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Total Deposited ($)</label>
-                        <input 
-                            type="number" 
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-green-600"
-                            value={stats.totalDeposited}
-                            onChange={e => setStats({...stats, totalDeposited: parseFloat(e.target.value) || 0})}
-                        />
+                        <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-green-600">
+                            {stats.totalDeposited.toFixed(2)}
+                        </div>
                     </div>
                     <div>
                         <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Total Payouts ($)</label>
-                        <input 
-                            type="number" 
-                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-blue-600"
-                            value={stats.totalPayouts}
-                            onChange={e => setStats({...stats, totalPayouts: parseFloat(e.target.value) || 0})}
-                        />
+                        <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl font-mono font-bold text-blue-600">
+                            {stats.totalPayouts.toFixed(2)}
+                        </div>
                     </div>
                     
-                    <div className="md:col-span-2 flex justify-end">
-                        <button 
-                            disabled={isPending}
-                            type="submit"
-                            className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 disabled:opacity-50"
-                        >
-                            {isPending && <ArrowPathIcon className="w-5 h-5 animate-spin"/>}
-                            Save Statistics
-                        </button>
+                    <div className="md:col-span-2 text-right">
+                        <p className="text-xs text-gray-400 italic">Stats are automatically calculated from system data.</p>
                     </div>
-                </form>
+                </div>
             </section>
 
             {/* PART 2: PAYOUT PROOFS */}

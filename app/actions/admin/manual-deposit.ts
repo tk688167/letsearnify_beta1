@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { processCbspContribution } from "@/lib/cbsp"
+import { finalizeDeposit } from "@/lib/mlm"
 import { revalidatePath } from "next/cache"
 
 export async function processManualDeposit(userId: string, amount: number, note: string) {
@@ -32,43 +32,19 @@ export async function processManualDeposit(userId: string, amount: number, note:
                 }
             });
 
-            // 2. Update User Balance
+            // 2. Update User Balance (Credit ARN & Track Total Deposit - Sync with standard deposit)
+            const arnAmount = amount * 10;
+            
             await prismaTx.user.update({
                 where: { id: userId },
-                data: { balance: { increment: amount } }
+                data: { 
+                    arnBalance: { increment: arnAmount },
+                    totalDeposit: { increment: amount }
+                }
             });
 
-            // 3. Update User Total Deposit
-            const user = await prismaTx.user.update({
-                where: { id: userId },
-                data: { totalDeposit: { increment: amount } }
-            });
-
-            // 4. Check & Unlock Active Status (The "Real Money" effect)
-            if (!user.isActiveMember && user.totalDeposit >= 1.0) {
-                 await prismaTx.user.update({
-                     where: { id: userId },
-                     data: { isActiveMember: true }
-                 });
-                 
-                 // Update Upline - Critical for MLM unlocking
-                 const tree = await prismaTx.referralTree.findUnique({ where: { userId }});
-                 if (tree?.advisorId) {
-                    try {
-                        await prismaTx.user.update({
-                            where: { id: tree.advisorId },
-                            data: { activeMembers: { increment: 1 } }
-                        });
-                    } catch (uplineError) {
-                        console.error("Failed to update upline stats:", uplineError);
-                        // Start non-blocking error, but don't fail the deposit
-                    }
-                 }
-            }
-
-            // 5. CBSP Contribution (Pools)
-            // This ensures the deposit contributes to the community pools
-            await processCbspContribution(userId, amount, tx.txId!, `Manual Deposit #${tx.id}`, prismaTx);
+            // 3. Finalize
+            await finalizeDeposit(userId, amount, tx.txId!, `Manual Deposit #${tx.id}`, prismaTx);
 
             // 6. Log Admin Action
             await prismaTx.adminLog.create({

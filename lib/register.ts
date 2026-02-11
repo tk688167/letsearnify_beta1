@@ -3,8 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { signIn } from "@/auth"
-import { generateReferralCode } from "@/lib/mlm"
-import { Tier, TierStatus } from "@prisma/client"
+import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 
 export async function registerUser(formData: FormData) {
   const name = formData.get("name") as string
@@ -62,20 +61,22 @@ export async function registerUser(formData: FormData) {
     while (attempts < maxAttempts) {
         attempts++;
         const newReferralCode = generateReferralCode();
+        const newMemberId = generateMemberId(); // 7-digit ID
         
         try {
             // Create the user
             const newUser = await prisma.user.create({
               data: {
+                memberId: newMemberId, // Store the numeric ID
                 name,
                 email,
                 password: hashedPassword,
                 country: country || null, 
                 referralCode: newReferralCode,
                 referredByCode: validReferredByCode, 
-                tier: Tier.NEWBIE,
-                tierStatus: TierStatus.CURRENT,
-                points: 0,
+                tier: "NEWBIE",
+                tierStatus: "CURRENT",
+                arnBalance: 0,
                 activeMembers: 0,
                 totalDeposit: 0.0,
                 isActiveMember: false
@@ -120,9 +121,9 @@ export async function registerUser(formData: FormData) {
                     return { error: 'Email already exists', success: false }
                 }
 
-                // If Referral Code collision, retry
-                if (target && (target === 'User_referralCode_key' || target.includes('referralCode'))) {
-                     console.warn(`Referral Code Collision: ${newReferralCode}. Retrying... (${attempts}/${maxAttempts})`);
+                // If Referral Code or Member ID collision, retry
+                if (target && (target.includes('referralCode') || target.includes('memberId'))) {
+                     console.warn(`Collision detected (Ref/ID): ${newReferralCode} / ${newMemberId}. Retrying... (${attempts}/${maxAttempts})`);
                      continue;
                 }
             }
@@ -132,7 +133,7 @@ export async function registerUser(formData: FormData) {
         }
     }
 
-    return { error: "Failed to generate a unique ID. Please try again.", success: false }
+    return { error: "Failed to generate unique credentials. Please try again.", success: false }
   } catch (err) {
     console.error("Registration Unexpected Error:", err);
     return { error: "An unexpected error occurred.", success: false }

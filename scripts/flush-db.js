@@ -67,7 +67,7 @@ async function main() {
             password: hashedPassword,
             role: 'ADMIN',
             referralCode: 'COMPANY',
-            balance: 10000.0, // Give admin some budget
+            balance: 0.0, // Start with 0 as requested
             phoneNumber: "1234567890"
         }
     });
@@ -77,8 +77,8 @@ async function main() {
     const pools = [
         { name: 'CBSP', balance: 0.0, percentage: 5.0 },
         { name: 'Royalty', balance: 0.0, percentage: 2.0 },
-        { name: 'Reward', balance: 3100.0, percentage: 0.0 },
-        { name: 'Emergency', balance: 8900.0, percentage: 0.0 }
+        { name: 'Reward', balance: 0.0, percentage: 0.0 },
+        { name: 'Emergency', balance: 0.0, percentage: 0.0 }
     ];
 
     for (const pool of pools) {

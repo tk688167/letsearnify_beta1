@@ -18,21 +18,21 @@ export default function SmartPoolsSection() {
             Profit Sharing Ecosystem
           </div>
           <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 text-gray-900">
-            Start Earning Pools
+            Core Income Allocations
           </h2>
           <div className="h-1 w-20 bg-blue-600 mx-auto rounded-full mb-6"></div>
           <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
-            Our automated pools distribute profits transparently. Join with just $1 and start earning weekly.
+            Automated Mudaraba distribution channels. Transparent profit routing based on active participation.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
           {/* CBSPool */}
           <PoolCard 
-            title="CBSPool"
-            subtitle="Core Benefit Sharing"
-            desc="The core earning engine where active participants receive weekly profit shares from platform activities."
-            motivation="Deposit just $1 and start receiving 3% weekly profit shares."
+            title="Core Yield (CBSP)"
+            subtitle="Base Profit Share"
+            desc="The fundamental profit-sharing layer. All active participants receive proportional dividends from this pool."
+            motivation="Deposit $1. Activate recurring weekly dividends."
             icon={<BanknotesIcon className="w-7 h-7 text-white" />}
             gradient="from-blue-500 to-cyan-500"
             delay="delay-0"
@@ -40,10 +40,10 @@ export default function SmartPoolsSection() {
 
           {/* RewardPool */}
           <PoolCard 
-            title="RewardPool"
-            subtitle="Performance Incentives"
-            desc="Designed to reward active engagement. Consistent users unlock extra rewards on top of regular earnings."
-            motivation="Stay active and unlock additional rewards every week."
+            title="Incentive Pool"
+            subtitle="Performance Allocation"
+            desc="Variable rewards based on individual task throughput and referral volume."
+            motivation="Higher activity equals higher allocation share."
             icon={<TrophyIcon className="w-7 h-7 text-white" />}
             gradient="from-purple-500 to-pink-500"
             delay="delay-100"
@@ -51,10 +51,10 @@ export default function SmartPoolsSection() {
 
           {/* RoyaltyPool */}
           <PoolCard 
-            title="RoyaltyPool"
-            subtitle="Loyalty Program"
-            desc="A dedicated pool for our long-term supporters. A portion of revenue is reserved for loyal members."
-            motivation="Earn royalties for being an early and loyal supporter."
+            title="Premium Yield"
+            subtitle="Loyalty Dividends"
+            desc="Exclusive profit share for long-term holders and key ecosystem partners."
+            motivation="Compound your tenure into higher yield brackets."
             icon={<SparklesIcon className="w-7 h-7 text-white" />}
             gradient="from-amber-400 to-orange-500"
             delay="delay-200"
@@ -62,10 +62,10 @@ export default function SmartPoolsSection() {
 
           {/* EmergencyFund */}
           <PoolCard 
-            title="EmergencyFund"
-            subtitle="Safety & Protection"
-            desc="Ensures platform stability and user protection. Used to handle unexpected situations and safe operations."
-            motivation="A safety fund built to protect the ecosystem and users."
+            title="Strategic Reserve"
+            subtitle="Risk Management"
+            desc="Non-distributable assets held to ensure platform solvency and operational continuity."
+            motivation="Ensuring the longevity of the entire ecosystem."
             icon={<ShieldCheckIcon className="w-7 h-7 text-white" />}
             gradient="from-emerald-500 to-teal-500"
             delay="delay-300"

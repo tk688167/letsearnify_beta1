@@ -1,4 +1,4 @@
-import { NetworkAdapter, Offer } from "./types";
+import { NetworkAdapter, Offer } from "../types";
 
 export class CpaLeadAdapter implements NetworkAdapter {
   name = "CPA Lead";

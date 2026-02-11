@@ -1,6 +1,5 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { Tier, TierStatus } from "@prisma/client"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -23,9 +22,9 @@ export async function POST(req: Request) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        tier: Tier.NEWBIE,
-        tierStatus: TierStatus.CURRENT,
-        points: 0,
+        tier: "NEWBIE",
+        tierStatus: "CURRENT",
+        arnBalance: 0,
         activeMembers: 0,
         isActiveMember: false,
         totalDeposit: 0 // Optional: Reset deposit history too? The prompt said "progress", but usually totalDeposit is financial. The reset script reset it. I will follow the reset script logic.

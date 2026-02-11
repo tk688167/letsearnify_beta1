@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large files & DB
+*.zip
+*.db
+*.db-journal
+build.log
+build_debug.log
+build_v2.log
+build_v3.log

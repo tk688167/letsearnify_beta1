@@ -54,14 +54,15 @@ export async function GET(req: NextRequest) {
         return new NextResponse("Duplicate transaction", { status: 200 })
     }
 
-    // DB Transaction: Add Balance + Record Transaction
+    // DB Transaction: Add ARN Balance + Record Transaction
+    // amount is in USD from Postback
+    const arnAmount = amount * 10; 
+
     await prisma.$transaction([
         prisma.user.update({
             where: { id: userId },
             data: { 
-                balance: { increment: amount },
-                // Optionally add points if your system uses them separately
-                // points: { increment: amount * 100 } 
+                arnBalance: { increment: arnAmount }
             }
         }),
         prisma.transaction.create({

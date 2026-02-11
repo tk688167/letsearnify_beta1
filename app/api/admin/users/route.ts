@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       if (isMemberIdQuery) {
         whereClause = {
           OR: [
-             { memberId: parseInt(numericPart) },
+             { memberId: { contains: numericPart } }, // Schema is String, use contains/string match
              { name: { contains: query, mode: 'insensitive' } },
              { email: { contains: query, mode: 'insensitive' } },
           ]
@@ -45,6 +45,7 @@ export async function GET(req: Request) {
           OR: [
             { name: { contains: query, mode: 'insensitive' } },
             { email: { contains: query, mode: 'insensitive' } },
+             { memberId: { contains: query, mode: 'insensitive' } } // Also search memberId generically
           ]
         }
       }
@@ -66,7 +67,7 @@ export async function GET(req: Request) {
           createdAt: true,
           balance: true,
           tier: true,
-          points: true,
+          arnBalance: true,
           activeMembers: true,
           memberId: true
         }
@@ -82,8 +83,8 @@ export async function GET(req: Request) {
           const bEmail = b.email?.toLowerCase() || ""
           
           // Exact Match Check
-          const aExact = aName === lowerQ || aEmail === lowerQ || (isMemberIdQuery && a.memberId.toString() === numericPart)
-          const bExact = bName === lowerQ || bEmail === lowerQ || (isMemberIdQuery && b.memberId.toString() === numericPart)
+          const aExact = aName === lowerQ || aEmail === lowerQ || (a.memberId.toString() === numericPart)
+          const bExact = bName === lowerQ || bEmail === lowerQ || (b.memberId.toString() === numericPart)
           
           if (aExact && !bExact) return -1
           if (!aExact && bExact) return 1
@@ -124,7 +125,7 @@ export async function GET(req: Request) {
             createdAt: true,
             balance: true,
             tier: true,
-            points: true,
+            arnBalance: true,
             activeMembers: true,
             memberId: true
           }

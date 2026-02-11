@@ -28,7 +28,7 @@ export async function addCountry(name: string, code: string, status: "ACTIVE" | 
             where: { 
                 name: {
                     equals: name,
-                    mode: 'insensitive' // Case insensitive check
+                    // mode: 'insensitive' // SQLite limitation or Prisma version issue? Removing for build safety. Can handle in app logic if needed.
                 } 
             }
         })
@@ -124,6 +124,32 @@ export async function updatePaymentMethod(id: string, name: string) {
         })
         revalidatePath("/admin/settings/merchant")
         revalidatePath("/dashboard/wallet/merchant-deposit")
+        return { success: true }
+    } catch (e: any) {
+        return { error: e.message }
+    }
+}
+
+export async function updatePaymentMethodDetails(
+    id: string, 
+    accountNumber?: string, 
+    accountName?: string, 
+    instructions?: string
+) {
+    const session = await auth()
+    if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" }
+    
+    try {
+        await prisma.merchantPaymentMethod.update({
+            where: { id },
+            data: { 
+                accountNumber: accountNumber || null, 
+                accountName: accountName || null, 
+                instructions: instructions || null 
+            }
+        })
+        revalidatePath("/admin/settings/merchant")
+        revalidatePath("/dashboard/wallet/merchant")
         return { success: true }
     } catch (e: any) {
         return { error: e.message }

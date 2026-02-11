@@ -66,15 +66,15 @@ export default function AboutPageContent() {
               <div className="mb-6">
                   <span className="text-indigo-600 font-bold uppercase tracking-widest text-xs">The Origin</span>
                   <h2 className="text-3xl font-serif font-bold mt-2">Bridging the Trust Gap</h2>
-                  <p className="text-gray-400 text-lg italic mt-2">We saw a broken system. So we built a new one.</p>
+                  <p className="text-gray-400 text-lg italic mt-2">"We didn't just build a platform; we engineered a solution to digital inequality."</p>
               </div>
               
               <div className="space-y-6 text-gray-600 text-lg leading-relaxed">
                 <p>
-                  The internet is flooded with "get rich quick" schemes and platforms that over-promise and under-deliver. We saw countless hardworking people looking for legitimate ways to earn online, only to be met with hidden fees and unsustainable models.
+                  The digital earning landscape has long been plagued by opacity, where users are often seen as commodities rather than partners. We observed a market saturated with empty promises, hidden fees, and unsustainable "get-rich-quick" schemes that prey on hope.
                 </p>
                 <p>
-                  We believed there had to be a better way—a platform that treats its members as partners, not just users. A place where the mechanics of earning are clear, the math is sustainable, and the opportunities are real.
+                  LetsEarnify was born from a desire to restore dignity to digital work. We engaged financial experts and ethical compliance advisors to design a system where every dollar is accounted for. By integrating the transparency of Mudaraba principles with the efficiency of modern gig-economy tech, we created a hybrid model that works for everyone.
                 </p>
               </div>
             </motion.div>

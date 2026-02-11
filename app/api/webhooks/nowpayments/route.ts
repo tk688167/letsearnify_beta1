@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifySignature } from "@/lib/nowpayments";
+import { finalizeDeposit } from "@/lib/mlm";
 
 export async function POST(req: NextRequest) {
     try {
@@ -46,25 +47,28 @@ export async function POST(req: NextRequest) {
             }
 
             // Update Transaction & User Balance
-            await prisma.$transaction([
-                prisma.transaction.update({
+            // Update Transaction & User Balance & Trigger MLM Logic
+            await prisma.$transaction(async (tx) => {
+                await tx.transaction.update({
                     where: { id: transaction.id },
                     data: {
                         status: "COMPLETED",
                         method: `NOWPayments (${pay_currency})`,
                         description: `[VERIFIED_NOWPAYMENTS] Payment ID: ${payment_id}`,
-                        txId: payment_id.toString() // Store the specialized payment ID as txId now? Or keep original?
-                        // Actually schema says txId is unique string. If we used order_id as ID, txId might be empty initially or placeholder.
-                        // Let's update txId to the actual payment_id from NP.
+                        txId: payment_id.toString()
                     }
-                }),
-                prisma.user.update({
+                });
+
+                await tx.user.update({
                     where: { id: transaction.userId },
                     data: {
-                        balance: { increment: price_amount } // Use price_amount (USD)
+                        balance: { increment: price_amount } 
                     }
-                })
-            ]);
+                });
+
+                // Trigger MLM & Pools
+                await finalizeDeposit(transaction.userId, price_amount, payment_id.toString(), "NOWPayments Deposit", tx);
+            });
             
             console.log(`Payment ${payment_id} confirmed. User ${transaction.userId} credited $${price_amount}.`);
         } else if (payment_status === "failed" || payment_status === "expired") {

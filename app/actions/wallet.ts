@@ -189,7 +189,8 @@ export async function submitWithdrawal(formData: FormData) {
                 where: { id: session.user.id },
                 data: { 
                     // @ts-ignore
-                    lastWithdrawalTime: new Date() 
+                    lastWithdrawalTime: new Date(),
+                    balance: { decrement: amount }
                 }
             })
         ]);

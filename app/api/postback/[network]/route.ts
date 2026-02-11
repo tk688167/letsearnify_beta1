@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { networkManager } from "@/lib/networks/NetworkManager";
 
-export async function GET(req: NextRequest, { params }: { params: { network: string } }) {
-  return handlePostback(req, params.network);
+export async function GET(req: NextRequest, { params }: { params: Promise<{ network: string }> }) {
+  const { network } = await params;
+  return handlePostback(req, network);
 }
 
-export async function POST(req: NextRequest, { params }: { params: { network: string } }) {
-  return handlePostback(req, params.network);
+export async function POST(req: NextRequest, { params }: { params: Promise<{ network: string }> }) {
+  const { network } = await params;
+  return handlePostback(req, network);
 }
 
 async function handlePostback(req: NextRequest, networkSlug: string) {

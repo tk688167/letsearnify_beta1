@@ -11,6 +11,8 @@ import { ArrowRightIcon, XMarkIcon, StarIcon } from "@heroicons/react/24/outline
 import SignupForm from "../../components/auth/SignupForm"
 import SocialProofStats from "../ui/SocialProofStats"
 import PayoutsCarousel from "../ui/PayoutsCarousel"
+import TestimonialsSection from "../../components/landing/TestimonialsSection"
+import FAQSection from "../../components/landing/FAQSection"
 
 export default function LandingPageContent({ initialStats, initialProofs }: { initialStats?: any, initialProofs?: any[] }) {
   const searchParams = useSearchParams()
@@ -76,7 +78,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
               </span>
-              <span className="text-sm font-semibold text-indigo-900 tracking-wide uppercase">The Future of Digital Earning</span>
+              <span className="text-sm font-semibold text-indigo-900 tracking-wide uppercase">Institutional-Grade Digital Earning</span>
             </motion.div>
 
             <motion.h1 
@@ -85,8 +87,8 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-5xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
             >
-              The Smartest Way to <br />
-              <HeroTextSlider />
+              The Premier Ecosystem <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-indigo-600 animate-gradient-x">For Digital Wealth</span>
             </motion.h1>
 
             <motion.p 
@@ -95,9 +97,9 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
             >
-              Join the ecosystem where Micro-Tasks meet Ethical Investing. 
+              Join a regulated, hybrid economy where micro-tasks meet institutional-grade earning pools. 
               <span className="block mt-2 text-indigo-600 font-bold flex items-center justify-center gap-2">
-                Start with $1. Scale to <ScaleToSlider />
+                Start with $1. Scale to Unlimited Potential.
               </span>
             </motion.p>
 
@@ -159,47 +161,47 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             <FadeIn>
               <div className="text-center mb-20">
                  <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm mb-6 border border-indigo-100">
-                    ECOSYSTEM OVERVIEW
+                    5-PILLAR HYBRID EARNING ECOSYSTEM
                  </div>
-                 <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-gray-900">One Account. <span className="text-indigo-600">Four Income Streams.</span></h2>
+                 <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-gray-900">Diversified Income Architecture</h2>
                  <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-                    Stop relying on a single source of income. Build a diversified portfolio with zero technical skills.
+                    Stop relying on a single source of income. Build a robust financial portfolio with zero technical barriers.
                  </p>
               </div>
             </FadeIn>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <FeatureCard 
-                title="Referral Empire" 
-                desc="Turn your network into net worth. Earn massive commissions from our deep multi-tier referral system."
+                title="Referral Matrix" 
+                desc="Leverage your network. Earn compounding commissions through our multi-tier referral structure."
                 icon="👑" // Changed icon
                 gradient="from-blue-500 to-indigo-600"
                 delay={0}
-                badge="Passive Income"
+                badge="Passive Yield"
               />
               <FeatureCard 
-                title="Micro-Task Hub" 
-                desc="Get paid for your spare time. engaging tasks that pay instantly upon completion."
+                title="Micro-Task Arbitrage" 
+                desc="Monetize your time efficienty. High-value tasks that pay instantly upon verification."
                 icon="⚡" // Changed icon
                 gradient="from-emerald-500 to-teal-600"
                 delay={0.1}
-                badge="Instant Pay"
+                badge="Liquid Income"
               />
               <FeatureCard 
                 title="Mudaraba Vaults" 
-                desc="Ethical, profit-sharing investment pools. Let your money work for you in verified real-world businesses."
+                desc="Ethical, profit-sharing investment pools. Capital deployed in verified real-world commerce."
                 icon="🏦" // Changed icon
                 gradient="from-amber-400 to-orange-500"
                 delay={0.2}
-                badge="High Yield"
+                badge="High APY"
               />
               <FeatureCard 
-                title="Professional Market" 
-                desc="Sell your digital services to a global audience. Freelancing, simpler and fairer than ever."
+                title="Service Marketplace" 
+                desc="Professional freelance exchange. Offer digital services to a global client base with escrow protection."
                 icon="💼" // Changed icon
                 gradient="from-pink-500 to-rose-600"
                 delay={0.3}
-                badge="No Fees"
+                badge="Zero Fees"
               />
             </div>
           </div>
@@ -258,38 +260,38 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         {/* Why Users Trust Us Section */}
         <section className="py-24 bg-gray-50 relative">
            <div className="max-w-7xl mx-auto px-6">
-              <FadeIn>
-                <div className="text-center mb-16">
-                   <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Why Users Trust Let'$Earnify</h2>
-                   <p className="text-gray-500 max-w-2xl mx-auto text-lg">Built on transparency, security, and ethical financial principles.</p>
-                </div>
-              </FadeIn>
+               <FadeIn>
+                 <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Built on Financial Trust</h2>
+                    <p className="text-gray-500 max-w-2xl mx-auto text-lg">Engineered for security, compliance, and ethical growth.</p>
+                 </div>
+               </FadeIn>
 
               <div className="grid md:grid-cols-3 gap-8">
-                 <TrustCard 
-                    title="Secure Infrastructure"
-                    desc="Enterprise-grade security measures to protect your wallet and personal data."
-                    icon="🛡️"
-                    color="bg-blue-50 text-blue-600"
-                    hoverBorder="hover:border-blue-200"
-                    delay={0}
-                 />
-                 <TrustCard 
-                    title="Ethical Profit-Sharing"
-                    desc="Our Mudaraba model ensures fair, compliant, and transparent profit distribution."
-                    icon="⚖️"
-                    color="bg-emerald-50 text-emerald-600"
-                    hoverBorder="hover:border-emerald-200"
-                    delay={0.1}
-                 />
-                 <TrustCard 
-                    title="Real-Time Tracking"
-                    desc="Monitor every cent of your earnings, commissions, and deposits instantly."
-                    icon="💳"
-                    color="bg-amber-50 text-amber-600"
-                    hoverBorder="hover:border-amber-200"
-                    delay={0.2}
-                 />
+                  <TrustCard 
+                     title="Bank-Grade Security"
+                     desc="256-bit SSL encryption and cold storage protocols to protect user assets."
+                     icon="🛡️"
+                     color="bg-blue-50 text-blue-600"
+                     hoverBorder="hover:border-blue-200"
+                     delay={0}
+                  />
+                  <TrustCard 
+                     title="Verified Profit Model"
+                     desc="Our Mudaraba yields are derived from audited real-world economic activity."
+                     icon="⚖️"
+                     color="bg-emerald-50 text-emerald-600"
+                     hoverBorder="hover:border-emerald-200"
+                     delay={0.1}
+                  />
+                  <TrustCard 
+                     title="Transparent Auditing"
+                     desc="Real-time ledger access. Track every earning, deposit, and pool distribution."
+                     icon="💳"
+                     color="bg-amber-50 text-amber-600"
+                     hoverBorder="hover:border-amber-200"
+                     delay={0.2}
+                  />
               </div>
            </div>
         </section>
@@ -439,6 +441,12 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               </motion.div>
            </div>
         </section>
+
+        {/* Testimonials Section */}
+        <TestimonialsSection />
+
+        {/* FAQ Section */}
+        <FAQSection />
         
         {/* Final Emotional CTA Section */}
         <section className="py-32 text-center px-6 bg-white">

@@ -8,11 +8,12 @@ export const ROYALTY_POOL_NAME = "ROYALTY";
  * Process a contribution to the Royalty Pool.
  * Logic: 5% of the deposit amount goes to Royalty Pool.
  */
-export async function processRoyaltyContribution(userId: string, depositAmount: number) {
+export async function processRoyaltyContribution(userId: string, depositAmount: number, tx?: any) {
     const contributionAmount = depositAmount * 0.05;
+    const db = tx || prisma;
 
     // 1. Create Contribution Record
-    await prisma.royaltyContribution.create({
+    await db.royaltyContribution.create({
         data: {
             userId,
             depositAmount,
@@ -21,7 +22,7 @@ export async function processRoyaltyContribution(userId: string, depositAmount: 
     });
 
     // 2. Fund the Pool
-    await prisma.pool.upsert({
+    await db.pool.upsert({
         where: { name: ROYALTY_POOL_NAME },
         update: { balance: { increment: contributionAmount } },
         create: { 

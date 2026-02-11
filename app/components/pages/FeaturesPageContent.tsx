@@ -34,7 +34,7 @@ export default function FeaturesPageContent() {
            id="tasks"
            title="Micro-Task Center"
            subtitle="Earn Online Rewards Instantly"
-           desc="Turn your spare time into cash. Complete simple, verified tasks for advertisers—like watching videos, taking surveys, or testing apps—and get paid immediately upon approval."
+           desc="Turn your spare time into cash. Complete simple, verified tasks for advertisers—like watching videos, taking surveys, or testing apps—and get paid in ARN Tokens immediately upon approval."
            points={["Instant Payouts", "No Experience Needed", "High Volume of Tasks"]}
            icon={<CheckBadgeIcon className="w-8 h-8 text-white" />}
            color="bg-emerald-500"

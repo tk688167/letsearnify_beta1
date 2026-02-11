@@ -57,10 +57,10 @@ export default function TermsPageContent() {
                     We provide legitimate earning opportunities, but it is important to understand that income is never guaranteed without effort. Your earnings depend on the specific pillar you participate in:
                  </p>
                  <ul className="list-disc pl-5 space-y-2">
-                    <li><strong>Task Center:</strong> Compensation is strictly based on the successful completion and verification of micro-tasks provided by advertisers.</li>
-                    <li><strong>Marketplace:</strong> Freelancers earn by delivering digital services to clients. LetsEarnify acts only as the intermediary and escrow service.</li>
-                    <li><strong>Mudaraba Pools:</strong> Profit-sharing is derived from actual business activities. Returns are variable and depend on market performance, adhering to ethical financial principles.</li>
-                 </ul>
+                     <li><strong>Task Arbitrage:</strong> Compensation is strictly based on the successful validation of micro-tasks. Payments are held in escrow until verification is complete.</li>
+                     <li><strong>Service Marketplace:</strong> An open exchange for digital services. LetsEarnify provides the dispute resolution framework and secure payment rails.</li>
+                     <li><strong>Mudaraba Pools:</strong> Passive capital allocation. Funds are deployed into ecosystem liquidity and external arbitrage opportunities. Returns are calculated weekly based on realized profits, not fixed interest.</li>
+                  </ul>
               </div>
            </SectionContainer>
 
@@ -98,8 +98,22 @@ export default function TermsPageContent() {
               </div>
            </SectionContainer>
 
-           {/* Withdrawal Policy */}
-           <SectionContainer icon={<CreditCardIcon className="w-8 h-8 text-orange-600" />}>
+            {/* Fee Structure */}
+            <SectionContainer icon={<CreditCardIcon className="w-8 h-8 text-pink-600" />}>
+               <h2 className="text-3xl font-bold text-gray-900 mb-2">Fee Structure & Payments</h2>
+               <p className="text-lg text-pink-600 font-medium italic mb-6">"One-time activation. Zero hidden monthly costs."</p>
+               <div className="prose prose-gray max-w-none text-gray-600 space-y-4">
+                  <p>
+                     <strong>Activation Fee:</strong> A single, non-refundable fee of $1.00 USD is required to activate a fully functional account. This fee covers KYC processing, wallet initialization, and fraud prevention measures.
+                  </p>
+                  <p>
+                     <strong>Platform Fees:</strong> We charge a small service fee (varying by asset class) on withdrawals to cover blockchain network costs and banking gateway charges. There are NO monthly subscription fees for maintaining an account.
+                  </p>
+               </div>
+            </SectionContainer>
+
+            {/* Withdrawal Policy */}
+            <SectionContainer icon={<DocumentCheckIcon className="w-8 h-8 text-orange-600" />}>
               <h2 className="text-3xl font-bold text-gray-900 mb-2">Withdrawal Policy</h2>
               <p className="text-lg text-orange-600 font-medium italic mb-6">"Secure, verified, and timely processing."</p>
               <div className="prose prose-gray max-w-none text-gray-600 space-y-4">

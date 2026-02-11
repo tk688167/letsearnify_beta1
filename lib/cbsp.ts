@@ -227,7 +227,7 @@ export async function executeWeeklyCbspDistribution() {
                     amount: totalDistributedActual,
                     percentage: (totalDistributedActual / pool.balance) * 100, // Effective %
                     recipients: Object.values(countMap).reduce((a, b) => a + b, 0),
-                    tierRates: distributionLog
+                    tierRates: JSON.stringify(distributionLog)
                 }
             });
         }

@@ -50,9 +50,16 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
         }
 
         if (action === "REJECT") {
-            await prisma.transaction.update({
-                where: { id: transactionId },
-                data: { status: "REJECTED" }
+            await prisma.$transaction(async (tx) => {
+                 await tx.transaction.update({
+                    where: { id: transactionId },
+                    data: { status: "REJECTED" }
+                });
+                // Refund
+                await tx.user.update({
+                    where: { id: transaction.userId },
+                    data: { balance: { increment: transaction.amount } }
+                });
             });
             revalidatePath("/admin/withdrawals");
             return { success: true };
@@ -61,19 +68,10 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
         if (action === "APPROVE") {
             // Transactional update: Deduct balance AND update status
             await prisma.$transaction(async (tx) => {
-                const user = await tx.user.findUnique({
-                    where: { id: transaction.userId }
-                });
-
-                if (!user || user.balance < transaction.amount) {
-                    throw new Error("Insufficient user balance for approval.");
-                }
-
-                await tx.user.update({
-                    where: { id: transaction.userId },
-                    data: { balance: { decrement: transaction.amount } }
-                });
-
+                // Funds already locked, just verify solvency check if needed (though already deducted)
+                // Actually they are deducted, so we don't check balance here.
+                
+                // Just update status
                 await tx.transaction.update({
                     where: { id: transactionId },
                     data: { status: "APPROVED" }

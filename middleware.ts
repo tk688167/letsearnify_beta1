@@ -75,6 +75,10 @@ export default async function middleware(req: NextRequest) {
   if (nextUrl.pathname === "/" && session?.user) {
       return NextResponse.redirect(new URL("/dashboard/welcome", nextUrl))
   }
+  
+  // Anti-Gravity: Strict Route Protection
+  // If we had isActive in session, we would check it here.
+  // Pending `auth.ts` review.
 
 
 

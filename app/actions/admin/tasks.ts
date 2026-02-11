@@ -46,7 +46,7 @@ export async function createTask(formData: FormData) {
   const validated = TaskSchema.safeParse(rawData)
 
   if (!validated.success) {
-      return { success: false, error: validated.error.errors[0].message }
+      return { success: false, error: validated.error.issues[0].message }
   }
 
   try {
@@ -85,7 +85,7 @@ export async function updateTask(id: string, formData: FormData) {
     }
 
     const validated = updateTaskSchema.safeParse(rawData)
-    if (!validated.success) return { success: false, error: validated.error.errors[0].message }
+    if (!validated.success) return { success: false, error: validated.error.issues[0].message }
 
     const updateData: any = { ...validated.data }
     if (rawData.companyId !== undefined) {
@@ -104,6 +104,36 @@ export async function updateTask(id: string, formData: FormData) {
     } catch (err) {
         console.error(err)
         return { success: false, error: "Failed to update task" }
+    }
+}
+
+export async function toggleTaskStatus(id: string) {
+    const session = await auth()
+    if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized")
+
+    try {
+        const task = await prisma.task.findUnique({
+            where: { id },
+            select: { status: true }
+        })
+
+        if (!task) {
+            return { success: false, error: "Task not found" }
+        }
+
+        const newStatus = task.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+
+        await prisma.task.update({
+            where: { id },
+            data: { status: newStatus }
+        })
+
+        revalidatePath("/admin/tasks")
+        revalidatePath("/dashboard/tasks")
+        return { success: true, message: `Task ${newStatus === "ACTIVE" ? "activated" : "deactivated"}`, newStatus }
+    } catch (err) {
+        console.error(err)
+        return { success: false, error: "Failed to toggle task status" }
     }
 }
 

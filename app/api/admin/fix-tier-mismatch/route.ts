@@ -1,6 +1,5 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { Tier, TierStatus } from "@prisma/client"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -23,8 +22,8 @@ export async function POST(req: Request) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        tier: targetTier as any,
-        tierStatus: (targetStatus as any) || TierStatus.CURRENT
+        tier: targetTier, // Prisma expecting string locally if schema uses @default("NEWBIE")
+        tierStatus: targetStatus || "CURRENT"
       }
     })
 

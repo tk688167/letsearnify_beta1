@@ -309,13 +309,22 @@ export async function withdraw(amount: number, method: string, details: string) 
     throw new Error("Insufficient funds")
   }
 
-  // 1. Minimum 10% Check
-  const minWithdrawal = user.balance * 0.10;
-  if (amount < minWithdrawal) {
-      throw new Error(`Minimum withdrawal is 10% of balance ($${minWithdrawal.toFixed(2)})`)
+  // 1. Swap Validation (Input `amount` is ARN)
+  const arnAmount = amount;
+  if (user.arnBalance < arnAmount) {
+      throw new Error(`Insufficient ARN Tokens. You have ${user.arnBalance.toFixed(2)} ARN.`)
   }
 
-  // 2. 24h Cooldown Check
+  // 2. Conversion to USD
+  const usdValue = arnAmount / 10; // 10 ARN = 1 USD
+  
+  // 3. Minimum Withdrawal in USD
+  const minWithdrawalUSD = 10.00; // Example min withdrawal $10
+  if (usdValue < minWithdrawalUSD) {
+       throw new Error(`Minimum withdrawal is $${minWithdrawalUSD} (${minWithdrawalUSD * 10} ARN).`)
+  }
+
+  // 4. 24h Cooldown Check
   const lastWithdrawal = await prisma.transaction.findFirst({
       where: {
           userId: session.user.id,
@@ -335,15 +344,21 @@ export async function withdraw(amount: number, method: string, details: string) 
   await prisma.$transaction([
     prisma.user.update({
       where: { id: session.user.id },
-      data: { balance: { decrement: amount } }
+      data: { 
+          arnBalance: { decrement: arnAmount } 
+          // No change to USD balance, as we default to ARN economy. 
+          // If we wanted to "Swap" to USD balance first, we would increment balance. 
+          // But user wants "Withdraw" directly. So we deduct ARN and create a PENDING USD withdrawal.
+      }
     }),
     prisma.transaction.create({
       data: {
         userId: session.user.id,
-        amount,
+        amount: usdValue, // Record in USD for Admin Payout
         type: "WITHDRAWAL",
-        status: "PENDING", // Withdrawals usually verify manually or auto-process
-        method: `${method} - ${details}`
+        status: "PENDING", 
+        method: `${method} - ${details}`,
+        description: `Swapped ${arnAmount} ARN`
       }
     })
   ])
@@ -398,11 +413,13 @@ export async function getPlatformWallets() {
   // Ensure default data exists if empty
   if (wallets.length === 0) {
       // Seed initial data if missing
-      await prisma.platformWallet.createMany({
-          data: [
-              { network: "TRC20", address: "T9y...Placeholder...TRC20", qrCodePath: "/qr-trc20.png" }
-          ]
-      })
+      // Seed initial data if missing (createMany not supported in SQLite)
+      const data = [
+          { network: "TRC20", address: "T9y...Placeholder...TRC20", qrCodePath: "/qr-trc20.png" }
+      ];
+      for (const item of data) {
+        await prisma.platformWallet.create({ data: item });
+      }
       return await prisma.platformWallet.findMany()
   }
   return wallets
@@ -425,7 +442,7 @@ export async function updatePlatformWallet(network: string, address: string, qrC
   return { success: true }
 }
 
-import { checkAndUpgradeTier } from "./mlm"
+import { checkTierUpgrade } from "./mlm"
 import { processCbspContribution } from "@/lib/cbsp"
 
 export async function updateUserAsAdmin(formData: FormData) {
@@ -434,7 +451,7 @@ export async function updateUserAsAdmin(formData: FormData) {
 
   const userId = formData.get("userId") as string
   const balanceRaw = formData.get("balance") as string
-  const pointsRaw = formData.get("points") as string
+  const arnRaw = formData.get("arnBalance") as string
   const activeMembersRaw = formData.get("activeMembers") as string
   const tier = formData.get("tier") as string 
   
@@ -444,7 +461,7 @@ export async function updateUserAsAdmin(formData: FormData) {
   if (isNaN(balance)) throw new Error("Invalid balance")
   if (balance < 0) throw new Error("Balance cannot be negative")
   
-  const points = pointsRaw ? parseFloat(pointsRaw) : 0;
+  let arnBalance = arnRaw ? parseFloat(arnRaw) : 0;
   const activeMembers = activeMembersRaw ? parseInt(activeMembersRaw) : 0;
   
   const oldUser = await prisma.user.findUnique({ where: { id: userId } });
@@ -452,7 +469,7 @@ export async function updateUserAsAdmin(formData: FormData) {
 
   const updates: any = {
     balance,
-    points,
+    arnBalance,
     activeMembers
   };
   
@@ -465,6 +482,12 @@ export async function updateUserAsAdmin(formData: FormData) {
   }
 
   const diff = balance - oldUser.balance;
+
+  // Auto-Credit ARN for USD Deposits (1 USD = 10 ARN)
+  if (diff > 0) {
+      arnBalance += (diff * 10);
+      updates.arnBalance = arnBalance; // Update the value to be saved
+  }
 
   await prisma.$transaction(async (tx) => {
     // 1. Update User
@@ -498,7 +521,7 @@ export async function updateUserAsAdmin(formData: FormData) {
         adminId: session.user.id!,
         targetUserId: userId,
         actionType: "USER_UPDATE",
-        details: `Updated User ${oldUser.email}: Balance ${oldUser.balance}->${balance}, Pts ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}, Tier ${oldUser.tier}->${tier || oldUser.tier}`
+        details: `Updated User ${oldUser.email}: Balance ${oldUser.balance}->${balance}, ARN ${oldUser.arnBalance}->${arnBalance}, Members ${oldUser.activeMembers}->${activeMembers}, Tier ${oldUser.tier}->${tier || oldUser.tier}`
       }
     })
 
@@ -509,20 +532,20 @@ export async function updateUserAsAdmin(formData: FormData) {
     }
 
     // 5. MLM Log
-    if ((tier && tier !== oldUser.tier) || (points !== oldUser.points) || (activeMembers !== oldUser.activeMembers)) {
+    if ((tier && tier !== oldUser.tier) || (arnBalance !== oldUser.arnBalance) || (activeMembers !== oldUser.activeMembers)) {
       await tx.mLMLog.create({
         data: {
            userId: userId,
            type: "ADMIN_UPDATE",
            amount: 0,
-           description: `Admin updated: Tier ${oldUser.tier}->${tier || oldUser.tier}, Points ${oldUser.points}->${points}, Members ${oldUser.activeMembers}->${activeMembers}`
+           description: `Admin updated: Tier ${oldUser.tier}->${tier || oldUser.tier}, ARN ${oldUser.arnBalance}->${arnBalance}, Members ${oldUser.activeMembers}->${activeMembers}`
         }
       })
     }
   })
   
   // Trigger Tier Check after update
-  await checkAndUpgradeTier(userId);
+  await checkTierUpgrade(userId);
 
   revalidatePath("/admin/users")
   revalidatePath("/dashboard") 

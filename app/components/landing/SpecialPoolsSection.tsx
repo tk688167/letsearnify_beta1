@@ -22,7 +22,7 @@ export default function SpecialPoolsSection() {
           className="text-center mb-16"
         >
            <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6 tracking-tight">
-             Join Our Pools & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Secure Your Earnings</span> Today!
+             Diversified Risk-Reward <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Portfolios</span>
            </h2>
            <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
              From high-growth dynamic opportunities to rock-solid safety nets, our ecosystem is designed for every type of earner.
@@ -30,15 +30,15 @@ export default function SpecialPoolsSection() {
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-8 md:gap-12">
-          {/* Chaotic Pool Card */}
+          {/* Dynamic V-Pool Card */}
           <PoolCard 
-             title="Chaotic Pool"
-             subtitle="Dynamic Growth Engine"
-             desc="A high-reward pool driven by community volatility and market activity. Participate in a decentralized, fluctuation-based earning model designed for those seeking accelerated growth."
+             title="Dynamic V-Pool"
+             subtitle="High-Yield Growth Strategy"
+             desc="A variable-return liquidity pool driven by market volume. Designed for participants seeking maximum APY potential through active ecosystem participation."
              benefits={[
-               "High APY potential based on volume",
-               "Daily reward distribution",
-               "Community-driven liquidity events"
+               "Volume-adjusted yield",
+               "Daily compound potential",
+               "Decentralized liquidity distribution"
              ]}
              icon={<ArrowTrendingUpIcon className="w-10 h-10 text-white" />}
              gradient="from-fuchsia-600 to-purple-600"
@@ -47,15 +47,15 @@ export default function SpecialPoolsSection() {
              delay={0.1}
           />
 
-          {/* Emergency Fund Card */}
+          {/* Liquidity Reserve Card */}
           <PoolCard 
-             title="Emergency Fund"
-             subtitle="Safety & Stability Net"
-             desc="Your financial safety net. A portion of platform revenue is secured here to guarantee liquidity, protect user assets during market downturns, and ensure instant withdrawals."
+             title="Liquidity Reserve"
+             subtitle="Capital Preservation Fund"
+             desc="A secured reserve fund ensuring ecosystem stability. Allocated capital protects user balances and guarantees withdrawal liquidity during market fluctuations."
              benefits={[
-               "Guarantees platform liquidity",
-               "Instant withdrawal protection",
-               "Audited reserve backing"
+               "Institutional-grade stability",
+               "Guaranteed withdrawal liquidity",
+               "Audited solvency backing"
              ]}
              icon={<ShieldCheckIcon className="w-10 h-10 text-white" />}
              gradient="from-blue-600 to-cyan-600"

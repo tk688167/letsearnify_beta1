@@ -50,8 +50,8 @@ export async function POST(req: Request) {
 
         await prisma.systemConfig.upsert({
             where: { key: SLIDER_KEY },
-            update: { value: body },
-            create: { key: SLIDER_KEY, value: body }
+            update: { value: JSON.stringify(body) },
+            create: { key: SLIDER_KEY, value: JSON.stringify(body) }
         })
 
         // Log

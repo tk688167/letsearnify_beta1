@@ -40,7 +40,6 @@ export async function GET() {
           isActiveMember: true,
           emailVerified: new Date(),
           referralCode: "ADMIN001", // Special code
-          memberId: 100000 // Special ID if possible, or auto-increment will handle it
         }
       });
     }

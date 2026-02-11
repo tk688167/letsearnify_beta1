@@ -16,7 +16,7 @@ const navigation = [
   { name: 'Manual Deposit', href: '/admin/manual-deposit', icon: BanknotesIcon },
   { name: 'Withdrawal Requests', href: '/admin/withdrawals', icon: ArrowLeftOnRectangleIcon },
   { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, 
-  { name: 'Merchant Settings', href: '/admin/settings/merchant', icon: BanknotesIcon },
+  { name: 'Merchant Settings', href: '/admin/merchant', icon: BanknotesIcon },
   { 
       name: 'Tier System', 
       href: '#', 

@@ -1,6 +1,6 @@
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 import { NetworkAdapter, Offer } from "./types";
-import { CpaLeadAdapter, AdGateAdapter, OffertoroAdapter } from "./adapters";
+import { CpaLeadAdapter, AdGateAdapter, OffertoroAdapter, CpxResearchAdapter } from "./adapters";
 
 export class NetworkManager {
   private adapters: Map<string, NetworkAdapter> = new Map();
@@ -9,6 +9,7 @@ export class NetworkManager {
     this.registerAdapter(new CpaLeadAdapter());
     this.registerAdapter(new AdGateAdapter());
     this.registerAdapter(new OffertoroAdapter());
+    this.registerAdapter(new CpxResearchAdapter());
   }
 
   registerAdapter(adapter: NetworkAdapter) {

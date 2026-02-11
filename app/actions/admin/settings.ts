@@ -41,7 +41,7 @@ const DEFAULT_CONFIG: ComingSoonConfig = {
   tasks: { ...DEFAULT_SECTION, title: "Task Center Is Coming", description: "Get ready to earn by completing simple tasks. Our comprehensive Task Center is under construction.", gradientFrom: "from-blue-950", gradientTo: "to-purple-900", watermarkText: "TASK CENTER" },
   pools: { ...DEFAULT_SECTION, title: "Mudaraba Pool Opening", description: "Invest in ethical, Sharia-compliant pools. The Mudaraba investment platform is being finalized.", gradientFrom: "from-indigo-950", gradientTo: "to-violet-900", watermarkText: "POOLS" },
   marketplace: { ...DEFAULT_SECTION, title: "Marketplace Launching", description: "Buy and sell services in our upcoming Micro-Earning Marketplace. Stay tuned!", gradientFrom: "from-violet-950", gradientTo: "to-fuchsia-900", watermarkText: "MARKET" },
-  tasksEnabled: false,
+  tasksEnabled: true,
   poolsEnabled: false,
   marketplaceEnabled: false
 }
@@ -54,7 +54,16 @@ export async function getComingSoonConfig(): Promise<ComingSoonConfig> {
   // Migration logic: If old config format exists (flat object), migrate it to 'default'
   if (!config) return DEFAULT_CONFIG
   
-  const value = config.value as any
+  let value = config.value as any
+
+  if (typeof value === 'string') {
+      try {
+          value = JSON.parse(value)
+      } catch (e) {
+          console.error("Failed to parse COMING_SOON_CONFIG", e)
+          return DEFAULT_CONFIG
+      }
+  }
 
   // Check if it's the old flat format (has 'title' at top level)
   if (value && typeof value.title === 'string') {
@@ -81,8 +90,8 @@ export async function updateComingSoonConfig(data: Partial<ComingSoonConfig>) {
 
   await prisma.systemConfig.upsert({
     where: { key: KEY_COMING_SOON },
-    update: { value: updated as any },
-    create: { key: KEY_COMING_SOON, value: updated as any }
+    update: { value: JSON.stringify(updated) },
+    create: { key: KEY_COMING_SOON, value: JSON.stringify(updated) }
   })
 
   revalidatePath("/dashboard")

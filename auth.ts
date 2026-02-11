@@ -17,37 +17,61 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        try {
+            if (!credentials?.email || !credentials?.password) {
+                return null
+            }
+
+            const email = (credentials.email as string).toLowerCase().trim();
+            const password = credentials.password as string;
+
+            // --- EMERGENCY ADMIN ACCESS (OFFLINE/RECOVERY) ---
+            const adminEmail = process.env.ADMIN_EMAIL;
+            const adminPassword = process.env.ADMIN_PASSWORD;
+
+            if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+                console.warn("🚨 Emergency Admin Login Used");
+                return {
+                    id: "super-admin-id",
+                    email: adminEmail,
+                    name: "Super Admin",
+                    role: "ADMIN",
+                    image: null,
+                    // Required User Fields
+                    memberId: "777777",
+                    isActiveMember: true,
+                    totalDeposit: 5000.0,
+                    emailVerified: new Date(),
+                    referralCode: "SUPER-ADMIN",
+                    arnBalance: 1000,
+                    tier: "EMERALD",
+                    tierStatus: "CURRENT"
+                } as any
+            }
+            // -------------------------------------------------
+            
+            const user = await prisma.user.findUnique({
+              where: { email }
+            })
+
+            if (!user || !user.password) {
+                return null
+            }
+
+            // --- AUTHENTICATED CHECK ---
+            const passwordsMatch = await bcrypt.compare(password, user.password)
+
+            if (passwordsMatch) {
+                console.log("✅ Login Successful for:", user.email)
+                return user
+            }
+            
+            console.log("❌ Login Failed: Password mismatch")
             return null
+        } catch (error) {
+            console.error("🔥 Auth Error (Authorizing):", error);
+            return null;
         }
-        
-        const email = (credentials.email as string).toLowerCase().trim();
-        
-        const user = await prisma.user.findUnique({
-          where: { email }
-        })
-
-        if (!user) {
-            return null
-        }
-
-        if (!user.password) {
-            return null
-        }
-
-        // --- AUTHENTICATED CHECK ---
-        const passwordsMatch = await bcrypt.compare(
-          credentials.password as string, 
-          user.password
-        )
-
-        if (passwordsMatch) {
-            console.log("✅ Login Successful for:", user.email)
-            return user
-        }
-        
-        console.log("❌ Login Failed: Password mismatch")
-        return null
       }
     }),
     Google,
@@ -120,7 +144,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     referredByCode: validReferredByCode,
                     tier: "NEWBIE" as any,
                     tierStatus: "CURRENT" as any,
-                    points: 0,
+                    arnBalance: 0,
                     activeMembers: 0,
                     totalDeposit: 0.0,
                     isActiveMember: false,
@@ -174,11 +198,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (user) {
         token.role = user.role
         token.id = user.id
+        // Handle Bypass User
+        if (user.id === "super-admin-id") {
+            token.isActiveMember = true
+            token.memberId = "777777"
+        }
         return token
       }
       
       // Subsequent checking - fetch from DB to get latest role
       if (!token.sub) return token
+
+      // --- ADMIN BYPASS PERSISTENCE ---
+      if (token.sub === "super-admin-id") {
+          return token; // Skip DB check for test admin
+      }
       
       try {
         const existingUser = await prisma.user.findUnique({
@@ -188,6 +222,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (existingUser) {
           token.role = existingUser.role
           token.memberId = existingUser.memberId
+          token.isActiveMember = existingUser.isActiveMember
         }
       } catch (error) {
         console.error("Error fetching user in JWT callback:", error)
