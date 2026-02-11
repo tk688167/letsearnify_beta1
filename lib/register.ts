@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { signIn } from "@/auth"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 
 export async function registerUser(formData: FormData) {
@@ -17,10 +16,10 @@ export async function registerUser(formData: FormData) {
   }
 
   try {
-    // Check if user exists
     const existing = await prisma.user.findUnique({
       where: { email }
     })
+    console.log("[Register] Checking existing user:", !!existing)
 
     if (existing) {
       return { error: "Email already exists", success: false }
@@ -43,14 +42,43 @@ export async function registerUser(formData: FormData) {
 
     // 2. Fallback to COMPANY if no valid input
     if (!validReferrer) {
-        const companyReferrer = await prisma.user.findUnique({
+        console.log("[Register] Resolving COMPANY referrer")
+        let companyReferrer = await prisma.user.findUnique({
             where: { referralCode: 'COMPANY' }
         });
+
+        // AUTO-CREATE COMPANY USER IF MISSING (Self-Healing)
+        if (!companyReferrer) {
+            console.log("[Register] Initializing COMPANY system user");
+            try {
+                companyReferrer = await prisma.user.create({
+                    data: {
+                        memberId: "0000000",
+                        name: "LetsEarnify Company",
+                        email: "admin@letsearnify.com",
+                        password: await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin123", 10),
+                        referralCode: "COMPANY",
+                        role: "ADMIN",
+                        isActiveMember: true,
+                        tier: "EMERALD",
+                        tierStatus: "CURRENT",
+                        arnBalance: 0,
+                        activeMembers: 0,
+                        totalDeposit: 0.0
+                    }
+                });
+            } catch (createErr) {
+                console.error("[Register] Failed to create COMPANY user:", createErr);
+                // Continue, validReferrer will be null which is handled
+            }
+        }
+
         if (companyReferrer) {
             validReferrer = companyReferrer;
             validReferredByCode = 'COMPANY';
         }
     }
+    console.log("[Register] Final Referrer:", validReferrer?.email || "None")
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -123,7 +151,7 @@ export async function registerUser(formData: FormData) {
 
                 // If Referral Code or Member ID collision, retry
                 if (target && (target.includes('referralCode') || target.includes('memberId'))) {
-                     console.warn(`Collision detected (Ref/ID): ${newReferralCode} / ${newMemberId}. Retrying... (${attempts}/${maxAttempts})`);
+                     console.warn(`[Register] Collision detected (Ref/ID): ${newReferralCode} / ${newMemberId}. Retrying... (${attempts}/${maxAttempts})`);
                      continue;
                 }
             }
@@ -134,8 +162,13 @@ export async function registerUser(formData: FormData) {
     }
 
     return { error: "Failed to generate unique credentials. Please try again.", success: false }
-  } catch (err) {
-    console.error("Registration Unexpected Error:", err);
-    return { error: "An unexpected error occurred.", success: false }
+  } catch (err: any) {
+    console.error("Registration Unexpected Error (FULL):", err);
+    // Provide a more descriptive error if it's a known issue
+    const message = err?.message || "An unexpected error occurred.";
+    if (message.includes("Prisma")) {
+        return { error: "Database connection error. Please try again later.", success: false }
+    }
+    return { error: message || "An unexpected error occurred.", success: false }
   }
 }
