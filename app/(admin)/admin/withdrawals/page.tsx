@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getWithdrawalRequests } from "@/app/actions/admin/withdrawal"
 import { getUsersWithActiveCooldown } from "@/app/actions/admin/timer"
 import WithdrawalTable from "./withdrawal-table"

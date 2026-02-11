@@ -1,12 +1,11 @@
 "use client"
+export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react"
 import { createTask, deleteTask, updateTask, getAdminTasks } from "@/app/actions/admin/tasks"
 import { createCompany, updateCompany, deleteCompany, getCompanies, toggleCompanyStatus } from "@/app/actions/admin/companies"
 import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon, BuildingOfficeIcon, ClipboardDocumentListIcon } from "@heroicons/react/24/outline"
 import { useFormStatus } from "react-dom"
-
-export const dynamic = 'force-dynamic'
 
 interface Company {
   id: string

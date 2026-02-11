@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 // Force Rebuild: v4
 import { useState, useEffect, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"

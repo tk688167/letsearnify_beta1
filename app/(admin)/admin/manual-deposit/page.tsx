@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 
 import { useState } from "react"
 import { MagnifyingGlassIcon, BanknotesIcon, ShieldCheckIcon, UserIcon } from "@heroicons/react/24/outline"

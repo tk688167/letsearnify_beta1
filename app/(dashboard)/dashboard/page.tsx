@@ -1,10 +1,10 @@
-import React, { Suspense } from "react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
+
+export const dynamic = "force-dynamic";
+
 import DashboardClient from "./DashboardClient"
 import { getDashboardData } from "@/lib/services/dashboard"
-
-export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const session = await auth()

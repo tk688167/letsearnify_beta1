@@ -1,7 +1,7 @@
+export const dynamic = "force-dynamic";
+
 import UserManagementClient from "./user-management-client"
 import { getAdminUsers } from "@/lib/services/admin"
-
-export const dynamic = 'force-dynamic'
 
 export default async function AdminUsersPage() {
   const { users, total, isOffline } = await getAdminUsers();

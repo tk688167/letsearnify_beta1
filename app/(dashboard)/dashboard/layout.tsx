@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { auth } from "@/auth"
 import MobileNav from "./mobile-nav"
 import { Sidebar } from "./sidebar"

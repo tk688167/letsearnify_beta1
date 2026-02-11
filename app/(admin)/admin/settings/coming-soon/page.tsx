@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 
 import { useState, useTransition, useEffect } from "react"
 import { getComingSoonConfig, updateComingSoonConfig, type ComingSoonConfig, type SectionConfig } from "@/app/actions/admin/settings"

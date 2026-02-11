@@ -1,4 +1,6 @@
 
+export const dynamic = "force-dynamic";
+
 import { FeatureGuard } from "@/app/(dashboard)/dashboard/FeatureGuard"
 
 export default function InvestmentsPage() {

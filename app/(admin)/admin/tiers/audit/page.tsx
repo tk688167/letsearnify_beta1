@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma"
 import { getTierRequirements, DEFAULT_TIER_REQUIREMENTS } from "@/lib/mlm"
 import { CheckCircleIcon, ExclamationTriangleIcon, WrenchIcon } from "@heroicons/react/24/outline"
