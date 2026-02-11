@@ -4,6 +4,12 @@ import { NextResponse } from "next/server"
 const SLIDER_KEY = "ACTIVITY_SLIDER"
 export const dynamic = 'force-dynamic'
 
+type SliderMessage = {
+  text: string
+  active: boolean
+  icon?: string
+}
+
 export async function GET(req: Request) {
   try {
     const config = await prisma.systemConfig.findUnique({
@@ -14,9 +20,14 @@ export async function GET(req: Request) {
       return NextResponse.json([])
     }
 
-    // @ts-ignore
-    const messages = config.value as any[]
-    const activeMessages = messages.filter((m: any) => m.active)
+    // config.value is already a Json type (Prisma.JsonValue)
+    // Type guard to ensure it's an array
+    if (!Array.isArray(config.value)) {
+      return NextResponse.json([])
+    }
+
+    // Filter active messages
+    const activeMessages = (config.value as SliderMessage[]).filter(m => m.active)
 
     return NextResponse.json(activeMessages)
   } catch (error) {

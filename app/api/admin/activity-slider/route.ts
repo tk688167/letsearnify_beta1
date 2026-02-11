@@ -5,6 +5,12 @@ import { NextResponse } from "next/server"
 const SLIDER_KEY = "ACTIVITY_SLIDER"
 export const dynamic = 'force-dynamic'
 
+type SliderMessage = {
+  text: string
+  active: boolean
+  icon?: string
+}
+
 export async function GET(req: Request) {
   try {
     const session = await auth()
@@ -27,14 +33,8 @@ export async function GET(req: Request) {
       ])
     }
 
-    // Parse the JSON string back to object
-    try {
-        const data = JSON.parse(config.value);
-        return NextResponse.json(data);
-    } catch (e) {
-        console.error("Failed to parse slider config", e);
-        return NextResponse.json([]); 
-    }
+    // config.value is already a Json object (not a string), no need to parse
+    return NextResponse.json(config.value)
   } catch (error) {
     console.error("[ADMIN_SLIDER_GET]", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
@@ -55,12 +55,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid data format" }, { status: 400 })
         }
 
-        const valueString = JSON.stringify(body);
-
+        // Store directly as Json (Prisma handles serialization)
         await prisma.systemConfig.upsert({
             where: { key: SLIDER_KEY },
-            update: { value: valueString },
-            create: { key: SLIDER_KEY, value: valueString }
+            update: { value: body },
+            create: { key: SLIDER_KEY, value: body }
         })
 
         // Log
