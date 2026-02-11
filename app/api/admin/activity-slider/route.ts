@@ -56,10 +56,11 @@ export async function POST(req: Request) {
         }
 
         // Store directly as Json (Prisma handles serialization)
+        // Cast to Prisma.InputJsonValue for proper type compatibility
         await prisma.systemConfig.upsert({
             where: { key: SLIDER_KEY },
-            update: { value: body },
-            create: { key: SLIDER_KEY, value: body }
+            update: { value: body as any },
+            create: { key: SLIDER_KEY, value: body as any }
         })
 
         // Log

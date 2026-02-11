@@ -4,8 +4,9 @@ import bcrypt from 'bcryptjs';
 
 export async function GET() {
   try {
-    const email = "admin@letsearnify.com";
-    const password = "Admin@123";
+    // Use environment variables for consistency with emergency admin login
+    const email = process.env.ADMIN_EMAIL || "admin@letsearnify.com";
+    const password = process.env.ADMIN_PASSWORD || "Admin@123";
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Check if admin exists
@@ -21,8 +22,7 @@ export async function GET() {
         where: { email },
         data: {
           role: "ADMIN",
-          password: hashedPassword, // Reset password to default
-          // Ensure they are fully unlocked to view dashboard if needed
+          password: hashedPassword, // Reset password to match env variable
           tier: "EMERALD", 
           isActiveMember: true,
           emailVerified: new Date()
@@ -39,7 +39,7 @@ export async function GET() {
           tier: "EMERALD",
           isActiveMember: true,
           emailVerified: new Date(),
-          referralCode: "ADMIN001", // Special code
+          referralCode: "ADMIN001",
         }
       });
     }
