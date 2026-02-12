@@ -440,36 +440,44 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                      </table>
                  </div>
 
-                 {/* Mobile: Swipeable Cards (Slider) */}
-                 <div className="md:hidden flex overflow-x-auto gap-4 pb-6 snap-x snap-mandatory scrollbar-hide">
+                 {/* Mobile: Vertical Stacked Cards */}
+                 <div className="md:hidden space-y-4 pb-6">
                      {filteredTree.map(node => (
-                         <div key={node.id} className="snap-center shrink-0 w-[85vw] bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-4">
-                             <div className="flex items-center gap-4">
-                                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center text-xl font-bold text-indigo-400">
-                                    {node.name?.[0] || "U"}
+                         <div key={node.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                             <div className="flex items-start justify-between">
+                                 <div className="flex items-center gap-3">
+                                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 flex items-center justify-center text-lg font-bold text-indigo-400">
+                                        {node.name?.[0] || "U"}
+                                     </div>
+                                     <div>
+                                         <div className="font-bold text-gray-900">{node.name || "Anonymous"}</div>
+                                         <div className="text-xs text-gray-500">{node.email}</div>
+                                     </div>
                                  </div>
-                                 <div>
-                                     <div className="font-bold text-lg text-gray-900">{node.name || "Anonymous"}</div>
-                                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                                         node.level === 1 ? "bg-blue-50 text-blue-600 border-blue-100" :
-                                         node.level === 2 ? "bg-purple-50 text-purple-600 border-purple-100" : "bg-pink-50 text-pink-600 border-pink-100"
-                                     }`}>Level {node.level} Partner</span>
-                                 </div>
+                                 <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${
+                                     node.level === 1 ? "bg-blue-50 text-blue-600 border-blue-100" :
+                                     node.level === 2 ? "bg-purple-50 text-purple-600 border-purple-100" : "bg-pink-50 text-pink-600 border-pink-100"
+                                 }`}>Level {node.level}</span>
                              </div>
-                             <div className="grid grid-cols-2 gap-3 mt-2">
-                                 <div className="bg-gray-50 p-3 rounded-2xl">
-                                     <div className="text-xs text-gray-400 uppercase font-bold">Status</div>
-                                     <div className="font-bold text-gray-900">{node.tier}</div>
+                             
+                             <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-50">
+                                 <div>
+                                     <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Status</div>
+                                     <span className="inline-block px-2 py-0.5 bg-gray-100 rounded-md text-xs font-bold text-gray-600">
+                                         {node.tier}
+                                     </span>
                                  </div>
-                                 <div className="bg-gray-50 p-3 rounded-2xl">
-                                     <div className="text-xs text-gray-400 uppercase font-bold">Joined</div>
-                                     <div className="font-bold text-gray-900">{format(new Date(node.createdAt), "MMM d, yyyy")}</div>
+                                 <div className="text-right">
+                                     <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Joined</div>
+                                     <div className="text-xs font-bold text-gray-700">{format(new Date(node.createdAt), "MMM d, yyyy")}</div>
                                  </div>
                              </div>
                          </div>
                      ))}
                      {filteredTree.length === 0 && (
-                         <div className="w-full text-center py-10 text-gray-400">No partners found.</div>
+                         <div className="w-full text-center py-10 text-gray-400 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                             No partners found.
+                         </div>
                      )}
                  </div>
              </motion.div>

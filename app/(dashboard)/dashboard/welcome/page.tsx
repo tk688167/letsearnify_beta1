@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import WelcomeSlider from "@/app/components/WelcomeSlider";
-import { CompanyPools } from "@/app/(dashboard)/dashboard/CompanyPools";
+
 import CbspSection from "@/app/components/welcome/CbspSection";
 import EcosystemSection from "@/app/components/welcome/EcosystemSection";
 import FutureProjectsSection from "@/app/components/welcome/FutureProjectsSection";
@@ -20,12 +20,12 @@ export const metadata = {
 
 export default async function WelcomePage() {
   const session = await auth();
-  let pools: any[] = [], user: any = null, stats: any = null, proofs: any[] = [];
+  let user: any = null, stats: any = null, proofs: any[] = [];
 
   try {
       // Parallel data fetching
       const results = await Promise.all([
-          prisma.pool.findMany(),
+
           session?.user ? prisma.user.findUnique({
               where: { id: session.user.id },
               select: { name: true, createdAt: true, tier: true, totalDeposit: true }
@@ -34,12 +34,12 @@ export default async function WelcomePage() {
           getPayoutProofs()
       ]);
       
-      [pools, user, stats, proofs] = results;
+      [user, stats, proofs] = results;
 
   } catch (error) {
       console.error("⚠️ Welcome Page Offline Mode:", error);
       // Mock Data
-      pools = [];
+
       user = session?.user ? { 
           name: session.user.name, 
           createdAt: new Date(), 
@@ -75,21 +75,7 @@ export default async function WelcomePage() {
             <EcosystemSection />
         </div>
 
-        {/* 4. Live Market (Pools) */}
-        <section className="py-20 bg-gray-50 border-t border-gray-200">
-            <div className="max-w-7xl mx-auto px-6">
-                <div className="mb-12 flex items-end justify-between">
-                     <div>
-                        <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-4">Live Markets</h2>
-                        <p className="text-gray-500 max-w-xl">Real-time opportunities. Capital allocation across our secure automated pools.</p>
-                     </div>
-                     <div className="hidden md:block px-4 py-2 bg-white rounded-full border border-gray-200 text-xs font-bold text-gray-500 shadow-sm">
-                        Market Status: <span className="text-emerald-600">Open & Active</span>
-                     </div>
-                </div>
-                <CompanyPools pools={pools} userTier={user?.tier} />
-            </div>
-        </section>
+
         
         {/* --- PAYOUT PROOFS --- */}
         <PayoutsCarousel proofs={proofs} />

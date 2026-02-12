@@ -20,6 +20,7 @@ export default function LandingHeader() {
             <Link href="/#features" className="hover:text-blue-600 transition-colors">Features</Link>
             <Link href="/#how-it-works" className="hover:text-blue-600 transition-colors">How it Works</Link>
             <Link href="/about" className="hover:text-blue-600 transition-colors">About</Link>
+            <Link href="/pools" className="hover:text-blue-600 transition-colors">Reward Pools</Link>
             <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms & Disclosures</Link>
             <Link href="/faq" className="hover:text-blue-600 transition-colors">FAQ</Link>
           </nav>
@@ -54,6 +55,7 @@ export default function LandingHeader() {
                <Link href="/#features" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Features</Link>
                <Link href="/#how-it-works" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">How it Works</Link>
                <Link href="/about" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">About</Link>
+               <Link href="/pools" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Reward Pools</Link>
                <Link href="/terms" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">Terms & Disclosures</Link>
                <Link href="/faq" onClick={() => setIsOpen(false)} className="py-2 border-b border-gray-100">FAQ</Link>
             </nav>

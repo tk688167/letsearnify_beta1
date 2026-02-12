@@ -1,6 +1,6 @@
 import React from "react"
 import { auth } from "@/auth"
-import { FeatureGuard } from "@/app/(dashboard)/dashboard/FeatureGuard"
+
 import TaskPageClient from "./components/TaskPageClient"
 import { CpxResearchAdapter } from "@/lib/networks/adapters/CpxResearchAdapter"
 import { getTaskData } from "@/lib/services/tasks"
@@ -20,6 +20,8 @@ export default async function TasksPage() {
     reward: number
     type: string
     status: string
+    completionStatus?: string | null 
+    completionRemarks?: string | null // Syncing with getUserTasks return type
     link?: string | null
     createdAt: Date
     company?: {
@@ -78,15 +80,35 @@ export default async function TasksPage() {
   // Merge Tasks: Platform (Internal) + External
   const allTasks = [...platformTasks, ...externalTasks].sort((a,b) => b.reward - a.reward) // Sort by highest reward
 
+  // ------------------------------------------------------------------
+  // MANUAL ACCESS CONTROL (Free vs Premium)
+  // ------------------------------------------------------------------
+  const isUnlocked = user && (user.isActiveMember || (user.totalDeposit ?? 0) >= 1.00);
+
+  // Still check for Global "Coming Soon" config, but don't block basic task view
+  const { getComingSoonConfig } = await import("@/app/actions/admin/settings")
+  const config = await getComingSoonConfig()
+  
+  if (config?.tasksEnabled === false) {
+     const { ComingSoon } = await import("@/app/(dashboard)/dashboard/ComingSoon")
+     return (
+        <div className="w-full max-w-5xl mx-auto py-6">
+             <div className="mb-6">
+                 <h1 className="text-3xl font-serif font-bold text-gray-900">Task Marketplace</h1>
+             </div>
+             <ComingSoon feature="tasks" config={config} />
+        </div>
+     )
+  }
+
   return (
-    <FeatureGuard title="Task Marketplace" feature="tasks">
       <div className="w-full max-w-5xl mx-auto py-6">
          <TaskPageClient 
             user={user} 
             platformTasks={allTasks} 
             cfxUrl={cfxUrl} 
+            isUnlocked={isUnlocked}
          />
       </div>
-    </FeatureGuard>
   )
 }

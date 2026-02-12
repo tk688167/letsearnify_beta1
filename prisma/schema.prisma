@@ -91,7 +91,27 @@ model User {
   postbackLogs        PostbackLog[]
   merchantTransactions MerchantTransaction[]
   lastSpinTime      DateTime? // Anti-Gravity: Enforcement of 24h spin cycle
+  dailySpinCount    Int       @default(0) // Track free spins used today
+  premiumBonusSpins Int       @default(0) // Earned via deposits
+  lastPremiumSpinTime DateTime? // Track 24h premium spin cycle
+  lastSurpriseDate  DateTime? // Track monthly surprise gift
   passwordResetToken  PasswordResetToken?
+}
+
+model SpinReward {
+  id          String   @id @default(cuid())
+  label       String
+  value       Float
+  type        String   // "ARN", "BONUS_SPIN", "EMPTY", "MONEY", "SURPRISE", "TRY_AGAIN"
+  probability Float
+  color       String
+  textColor   String?
+  isEnabled   Boolean  @default(true)
+  spinType    String   // "FREE", "PREMIUM"
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model CbspContribution {
@@ -291,6 +311,7 @@ model TaskCompletion {
   taskId    String
   status    String   // PENDING, APPROVED, REJECTED
   proof     String?  // URL or text
+  remarks   String?  // Admin feedback
   pointsEarned Float @default(0.0)
   createdAt DateTime @default(now())
 

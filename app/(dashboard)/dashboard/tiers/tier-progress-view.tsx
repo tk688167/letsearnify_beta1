@@ -54,16 +54,16 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-gray-200">
          <div>
             <div className="flex items-center gap-2 mb-2">
-               <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider border border-indigo-100">
+               <span className="px-2 sm:px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-indigo-100">
                   Career Path
                </span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Your Journey</h1>
-            <p className="text-gray-500 mt-1">Track your progress and unlock higher commission tiers.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Your Journey</h1>
+            <p className="text-sm sm:text-base text-gray-500 mt-1">Track your progress and unlock higher commission tiers.</p>
          </div>
-         <div className="text-right hidden md:block">
-            <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Current Status</div>
-            <div className="text-2xl font-bold text-indigo-600">{user.tier}</div>
+         <div className="flex items-center justify-between md:block">
+            <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1 md:text-right">Current Status</div>
+            <div className="text-xl sm:text-2xl font-bold text-indigo-600 md:text-right">{user.tier}</div>
          </div>
       </div>
 
@@ -75,6 +75,7 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
 
           <div className="space-y-12">
              {TIERS.map((tierName, index) => {
+                // Restore missing definitions
                 const config = tierConfig[tierName] || { arn: 0, directs: 0 }
                 // Use imported commissions or fallback
                 const commissions = TIER_COMMISSIONS[tierName] || { L1: 0, L2: 0, L3: 0 }
@@ -86,9 +87,30 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                 const isCurrent = index === currentTierIndex
                 const isLocked = index > currentTierIndex
                 
-                // For progress calculation
-                const pointsProgress = calcPercent(user.arnBalance, 0, config.arn) 
-                const membersProgress = calcPercent(stats.teamSize, 0, config.directs)
+                // Delta Calculation Logic
+                // Calculate Baseline for this specific tier row by Summing Previous Tiers
+                let baselineArn = 0;
+                let baselineDirects = 0;
+                
+                // Sum configs for all tiers BEFORE this one
+                for (let i = 0; i < index; i++) {
+                     const tName = TIERS[i];
+                     const tConfig = tierConfig[tName] || { arn: 0, directs: 0 };
+                     baselineArn += tConfig.arn;
+                     baselineDirects += tConfig.directs;
+                }
+
+                // Current Tier Config acts as the "Step Size" found in Admin
+                const stepArn = config.arn;
+                const stepDirects = config.directs;
+
+                // User's Progress WITHIN this step
+                const currentArnInStep = Math.max(0, user.arnBalance - baselineArn);
+                const currentDirectsInStep = Math.max(0, stats.teamSize - baselineDirects);
+
+                const pointsProgress = calcPercent(currentArnInStep, 0, stepArn)
+                const membersProgress = calcPercent(currentDirectsInStep, 0, stepDirects)
+
                 const isFinal = index === TIERS.length - 1
 
                 return (
@@ -99,14 +121,13 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                      viewport={{ once: true, margin: "-50px" }}
                      className="relative md:pl-24"
                    >
-                      {/* Timeline Dot */}
+                      {/* ... (Timeline Dot and Card Container preserved) ... */}
                       <div className={`absolute left-[-5px] md:left-4 top-8 w-3 h-3 rounded-full border-2 bg-white z-10 transition-colors duration-500 ${
                           isCompleted ? "border-emerald-500 bg-emerald-500" :
                           isCurrent ? "border-indigo-500 animate-pulse scale-125" :
                           "border-gray-300"
                       }`}></div>
 
-                      {/* Content Card */}
                       <div className={`group rounded-[1.5rem] border transition-all duration-300 ${
                           isCurrent 
                             ? "bg-white border-indigo-200 shadow-xl shadow-indigo-100/50 ring-1 ring-indigo-50" 
@@ -115,8 +136,8 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                                 : "bg-gray-50/50 border-gray-200/60"
                       }`}>
                           
-                          {/* Card Header */}
-                          <div className="p-6 md:p-8 flex flex-col md:flex-row justify-between gap-6 md:items-center border-b border-gray-100/50">
+                          {/* Card Header (Preserved) */}
+                          <div className="p-5 sm:p-6 md:p-8 flex flex-col md:flex-row justify-between gap-4 sm:gap-6 md:items-center border-b border-gray-100/50">
                                <div className="flex items-center gap-5">
                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-sm border border-gray-100 ${
                                        isLocked ? "bg-gray-100 grayscale opacity-50" : "bg-white"
@@ -130,17 +151,17 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                                            {isCurrent && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full uppercase font-bold tracking-wide">Active</span>}
                                            {isLocked && <LockClosedIcon className="w-4 h-4 text-gray-400" />}
                                        </h3>
-                                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-gray-500 mt-1">
                                            <span>Level 1: <strong className="text-gray-700">{levels[0]}%</strong></span>
-                                           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                           <span className="hidden sm:inline w-1 h-1 bg-gray-300 rounded-full"></span>
                                            <span>Level 2: <strong className="text-gray-700">{levels[1]}%</strong></span>
-                                           <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                                           <span className="hidden sm:inline w-1 h-1 bg-gray-300 rounded-full"></span>
                                            <span>Level 3: <strong className="text-gray-700">{levels[2]}%</strong></span>
                                        </div>
                                    </div>
                                </div>
 
-                               {/* Right Side: Status or Quick Stats */}
+                               {/* Right Side Status (Preserved) */}
                                {isCurrent ? (
                                    <div className="text-center md:text-right">
                                        <div className="text-sm font-medium text-indigo-600 flex items-center gap-1 justify-center md:justify-end">
@@ -155,15 +176,15 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                                )}
                           </div>
 
-                          {/* Card Body - Requirements (Show if NOT completed AND NOT the final tier) */}
-                          <div className={`p-6 md:p-8 grid md:grid-cols-2 gap-8 ${(isCompleted || isFinal) ? 'hidden' : 'block'}`}>
+                          {/* Card Body - Requirements */}
+                          <div className={`p-5 sm:p-6 md:p-8 grid md:grid-cols-2 gap-6 sm:gap-8 ${(isCompleted || isFinal) ? 'hidden' : 'block'}`}>
                               
                               {/* Points Requirement */}
                               <div>
                                   <div className="flex justify-between items-end mb-2">
                                       <span className="text-sm font-medium text-gray-500">Required ARN</span>
                                       <span className={`text-sm font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-700'}`}>
-                                          {user.arnBalance.toLocaleString()} <span className="text-gray-400 font-normal">/ {config.arn.toLocaleString()}</span>
+                                          {currentArnInStep.toLocaleString()} <span className="text-gray-400 font-normal">/ {stepArn.toLocaleString()}</span>
                                       </span>
                                   </div>
                                   <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -179,7 +200,7 @@ export default function TierProgressView({ user, stats, tierConfig }: TierProgre
                                   <div className="flex justify-between items-end mb-2">
                                       <span className="text-sm font-medium text-gray-500">Required Team Size</span>
                                       <span className={`text-sm font-bold ${isCurrent ? 'text-indigo-600' : 'text-gray-700'}`}>
-                                          {stats.teamSize.toLocaleString()} <span className="text-gray-400 font-normal">/ {config.directs.toLocaleString()}</span>
+                                          {currentDirectsInStep.toLocaleString()} <span className="text-gray-400 font-normal">/ {stepDirects.toLocaleString()}</span>
                                       </span>
                                   </div>
                                   <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">

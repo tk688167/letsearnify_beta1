@@ -32,16 +32,21 @@ export default function TierManagementPage({ tiers }: { tiers: TierConfig[] }) {
   const handleSave = async () => {
      if (!editingId || !formData) return
 
+     // Find the tier object to get the name
+     const targetTier = tiers.find(t => t.id === editingId)
+     if (!targetTier) return
+
      try {
-       await updateTierConfig(editingId, {
+       // Pass tier name explicitly
+       await updateTierConfig(targetTier.tier, {
           points: Number(formData.points),
           members: Number(formData.members)
        })
        toast.success("Tier updated successfully")
        setEditingId(null)
-       // Optimistic update or router.refresh() handled by parent/action
-       window.location.reload() // Simple refresh for now
+       window.location.reload()
      } catch (e) {
+       console.error(e)
        toast.error("Failed to update tier")
      }
   }

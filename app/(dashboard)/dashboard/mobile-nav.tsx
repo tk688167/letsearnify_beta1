@@ -14,7 +14,9 @@ import {
   Cog6ToothIcon, 
   GlobeAltIcon,
   ArrowLeftStartOnRectangleIcon,
-  CreditCardIcon
+  CreditCardIcon,
+  SparklesIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/outline"
 import { Session } from "next-auth"
 import { signOut } from "next-auth/react" 
@@ -62,9 +64,11 @@ export default function MobileNav({ session }: { session: Session | null }) {
               <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
               <MobileNavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" pathname={pathname} close={closeMenu} color="blue" />
               <MobileNavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" pathname={pathname} close={closeMenu} color="gray" />
+              <MobileNavItem href="/dashboard/spin" icon={<SparklesIcon className="w-5 h-5"/>} label="Spin & Win" pathname={pathname} close={closeMenu} color="pink" />
               <MobileNavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" pathname={pathname} close={closeMenu} color="purple" />
               <MobileNavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" pathname={pathname} close={closeMenu} color="yellow" />
               <MobileNavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" pathname={pathname} close={closeMenu} color="emerald" />
+              <MobileNavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" pathname={pathname} close={closeMenu} color="blue" />
               <MobileNavItem href="/dashboard/investments" icon={<BanknotesIcon className="w-5 h-5"/>} label="Mudaraba Pool" pathname={pathname} close={closeMenu} color="teal" />
               <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
               <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="Wallet" pathname={pathname} close={closeMenu} color="indigo" />
@@ -121,7 +125,8 @@ function MobileNavItem({ href, icon, label, pathname, close, color }: { href: st
     teal: { active: "bg-teal-50 text-teal-700", hover: "hover:text-teal-600 hover:bg-teal-50", text: "text-teal-600" },
     orange: { active: "bg-orange-50 text-orange-700", hover: "hover:text-orange-600 hover:bg-orange-50", text: "text-orange-600" },
     indigo: { active: "bg-indigo-50 text-indigo-700", hover: "hover:text-indigo-600 hover:bg-indigo-50", text: "text-indigo-600" },
-    gray: { active: "bg-gray-100 text-gray-900", hover: "hover:text-gray-900 hover:bg-gray-100", text: "text-gray-900" }
+    gray: { active: "bg-gray-100 text-gray-900", hover: "hover:text-gray-900 hover:bg-gray-100", text: "text-gray-900" },
+    pink: { active: "bg-pink-50 text-pink-700", hover: "hover:text-pink-600 hover:bg-pink-50", text: "text-pink-600" }
   }
 
   const theme = themeStyles[color] || themeStyles.blue

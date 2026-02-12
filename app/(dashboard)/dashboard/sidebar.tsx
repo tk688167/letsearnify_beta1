@@ -9,7 +9,9 @@ import {
   UserIcon, 
   Cog6ToothIcon, 
   GlobeAltIcon, 
-  CreditCardIcon 
+  CreditCardIcon,
+  SparklesIcon,
+  ChartBarIcon
 } from "@heroicons/react/24/outline"
 import { formatUserId } from "@/lib/utils"
 
@@ -29,9 +31,11 @@ export function Sidebar({ session }: { session: any }) {
         <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
         <NavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" color="blue" />
         <NavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" color="gray" />
+        <NavItem href="/dashboard/spin" icon={<SparklesIcon className="w-5 h-5"/>} label="Spin & Win" color="pink" />
         <NavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" color="purple" />
         <NavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" color="yellow" />
         <NavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" color="emerald" />
+        <NavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" color="blue" />
         <NavItem href="/dashboard/investments" icon={<BanknotesIcon className="w-5 h-5"/>} label="Mudaraba Pool" color="teal" />
         <NavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" color="orange" />
         <NavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="Wallet" color="indigo" />
@@ -87,7 +91,8 @@ function NavItem({ href, icon, label, color }: { href: string, icon: React.React
     orange: "hover:text-orange-600 hover:bg-orange-50 group-hover:text-orange-500",
     indigo: "hover:text-indigo-600 hover:bg-indigo-50 group-hover:text-indigo-500",
     gray: "hover:text-gray-900 hover:bg-gray-100 group-hover:text-gray-600",
-    yellow: "hover:text-yellow-600 hover:bg-yellow-50 group-hover:text-yellow-500"
+    yellow: "hover:text-yellow-600 hover:bg-yellow-50 group-hover:text-yellow-500",
+    pink: "hover:text-pink-600 hover:bg-pink-50 group-hover:text-pink-500"
   }
 
   const activeClass = colorStyles[color] || colorStyles.blue

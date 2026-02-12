@@ -24,7 +24,8 @@ export async function getUserTasks() {
           },
           select: {
             id: true,
-            status: true
+            status: true,
+            remarks: true // Added info
           }
         }
       },
@@ -36,7 +37,8 @@ export async function getUserTasks() {
     return tasks.map(task => ({
       ...task,
       isCompleted: task.completions.length > 0,
-      completionStatus: task.completions[0]?.status || null
+      completionStatus: task.completions[0]?.status || null,
+      completionRemarks: task.completions[0]?.remarks || null // Added info
     }))
   } catch (error) {
     console.error("Failed to fetch user tasks:", error)
@@ -44,11 +46,15 @@ export async function getUserTasks() {
   }
 }
 
-// Complete a task and credit ARN tokens
-export async function completeTask(taskId: string) {
+// Submit a task for review (Proof required)
+export async function completeTask(taskId: string, proof: string) {
   const session = await auth()
   if (!session?.user?.id) {
     return { success: false, error: "Unauthorized" }
+  }
+
+  if (!proof || proof.trim().length === 0) {
+      return { success: false, error: "Proof is required to complete this task." }
   }
 
   try {
@@ -80,54 +86,55 @@ export async function completeTask(taskId: string) {
     })
 
     if (existingCompletion) {
-      return { success: false, error: "You have already completed this task" }
+        if (existingCompletion.status === "PENDING") {
+             // Block if already pending
+             return { success: false, error: "Task is already pending review." }
+        } else if (existingCompletion.status === "APPROVED") {
+             // Block if already approved
+             return { success: false, error: "You have already completed this task" }
+        }
+        
+        // If REJECTED, allow re-submission by updating the existing record
+        // Status -> PENDING, Update Proof, Clear Remarks
+        await prisma.taskCompletion.update({
+            where: { id: existingCompletion.id },
+            data: {
+                status: "PENDING",
+                proof: proof,
+                remarks: null, // Clear previous rejection remarks
+                createdAt: new Date() // Refresh timestamp to show as new
+            }
+        })
+        
+        revalidatePath("/dashboard/tasks")
+        return {
+            success: true,
+            message: `Task re-submitted! use will review your proof again.`,
+            pending: true
+        }
+
     }
 
-    // Credit ARN tokens and create records in a transaction
-    await prisma.$transaction(async (tx) => {
-      // 1. Credit ARN to user balance
-      await tx.user.update({
-        where: { id: session.user.id },
-        data: {
-          arnBalance: {
-            increment: task.reward
-          }
-        }
-      })
-
-      // 2. Create task completion record
-      await tx.taskCompletion.create({
+    // Create pending completion record
+    await prisma.taskCompletion.create({
         data: {
           userId: session.user.id,
           taskId: taskId,
-          status: "APPROVED", // Auto-approve simple tasks
-          pointsEarned: task.reward
+          status: "PENDING",
+          proof: proof,
+          pointsEarned: 0 // No points yet
         }
-      })
-
-      // 3. Create transaction record for audit trail
-      await tx.transaction.create({
-        data: {
-          userId: session.user.id,
-          type: "TASK_REWARD",
-          amount: task.reward,
-          status: "COMPLETED",
-          description: `Task completed: ${task.title}`
-        }
-      })
     })
 
     revalidatePath("/dashboard/tasks")
-    revalidatePath("/dashboard/wallet")
-    revalidatePath("/dashboard")
 
     return {
       success: true,
-      message: `Congratulations! You earned ${task.reward.toFixed(0)} ARN tokens!`,
-      arnEarned: task.reward
+      message: `Task submitted! We will review your proof shortly.`,
+      pending: true
     }
   } catch (error) {
     console.error("Failed to complete task:", error)
-    return { success: false, error: "Failed to complete task. Please try again." }
+    return { success: false, error: "Failed to submit task. Please try again." }
   }
 }

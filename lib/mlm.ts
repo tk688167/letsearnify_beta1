@@ -69,9 +69,24 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
 
     // 2. Activate User if >= $1 (Redundant if mintArn does it, but safer here too if logic varies)
     if (amount >= 1.0) {
+        // Award Premium Spins (User Requirement: 1-2 free spins for depositors)
+        // Let's award 2 spins for activation.
         await db.user.update({
             where: { id: userId },
-            data: { isActiveMember: true }
+            data: { 
+                isActiveMember: true,
+                premiumBonusSpins: { increment: 2 } 
+            }
+        });
+        
+        // Log the bonus
+        await db.mLMLog.create({
+            data: {
+                userId: userId,
+                type: "BONUS_SPIN",
+                amount: 2,
+                description: "Deposit Bonus: 2 Premium Spins Awarded"
+            }
         });
     }
 
@@ -195,12 +210,49 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
     // Check next tiers
     const tierRules = await getTierRequirements(db);
 
+    // Calculate Cumulative Thresholds based on Implicit Order
+    // Threshold to REACH Tier X = Sum(Requirements of all tiers BEFORE X)
+    // Example: 
+    // Newbie Req: 400 (Means need 400 to finish Newbie -> Reach Bronze)
+    // Bronze Req: 1000 (Means need 400 + 1000 = 1400 to finish Bronze -> Reach Silver)
+    
+    let cumulativeArn = 0;
+    let cumulativeDirects = 0;
+
+    // We calculate thresholds for ALL tiers first to simplify lookup
+    const tierThresholds: Record<string, { arn: number, directs: number }> = {};
+    
+    for (const tierName of TIER_ORDER) {
+        // The requirement of this tier acts as the "gate" to the NEXT tier.
+        // So the threshold to ENTER this tier is the cumulative sum of PREVIOUS tiers.
+        tierThresholds[tierName] = { 
+            arn: cumulativeArn, 
+            directs: cumulativeDirects 
+        };
+
+        const rule = tierRules[tierName] || DEFAULT_TIER_REQUIREMENTS[tierName] || { arn: 0, directs: 0 };
+        cumulativeArn += rule.arn;
+        cumulativeDirects += rule.directs;
+    }
+
+    // Now check if user qualifies for higher tiers
+    // Iterate from next tier upwards
     for (let i = currentTierIndex + 1; i < TIER_ORDER.length; i++) {
         const nextTier = TIER_ORDER[i];
-        const reqs = tierRules[nextTier] || DEFAULT_TIER_REQUIREMENTS[nextTier];
+        
+        // The threshold to ENTTER 'nextTier' is what we calculated above
+        const threshold = tierThresholds[nextTier];
 
-        if (currentArn >= reqs.arn && activeDirects >= reqs.directs) {
-            // QUALIFIED! Upgrade.
+        // Strict Check: User Total >= Cumulative Threshold
+        if (currentArn >= threshold.arn && activeDirects >= threshold.directs) {
+            // QUALIFIED for this tier!
+            // But we continue loop? No, usually we upgrade step by step or jump?
+            // If we jump, we should check the HIGHEST usage.
+            // But for safety, let's just upgrade to this one and let the next event (or loop) handle further jumps.
+            // Or simpler: Update to this tier, then continue checking? 
+            // Better: Find the HIGHEST reachable tier.
+            
+            // Actually, safe approach: Upgrade to this tier.
             console.log(`[MLM] UPGRADE: User ${userId} promoted to ${nextTier}`);
             
             await db.user.update({
@@ -213,10 +265,11 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
                     userId: userId,
                     type: "TIER_UPGRADE",
                     amount: 0,
-                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}, Directs: ${activeDirects})`
+                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Directs: ${activeDirects}/${threshold.directs})`
                 }
             });
         } else {
+            // Cannot reach this tier, stop checking higher ones
             break;
         }
     }

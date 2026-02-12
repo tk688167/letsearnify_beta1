@@ -1,8 +1,10 @@
-
-export const dynamic = "force-dynamic";
-
 import { FeatureGuard } from "@/app/(dashboard)/dashboard/FeatureGuard"
+import MudarabaContent from "./MudarabaContent"
 
 export default function InvestmentsPage() {
-  return <FeatureGuard title="Mudaaraba Pool Page" feature="pools" />
+  return (
+    <FeatureGuard title="Mudaraba Pool" feature="default">
+        <MudarabaContent />
+    </FeatureGuard>
+  )
 }

@@ -186,7 +186,7 @@ export default function UserActions({ user }: UserActionsProps) {
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">
                     Personal & Account Info
                   </h4>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Name</label>
                         <div className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-700 text-sm font-medium">
@@ -199,9 +199,9 @@ export default function UserActions({ user }: UserActionsProps) {
                            {user.role}
                         </div>
                      </div>
-                     <div className="col-span-2 space-y-1">
+                     <div className="sm:col-span-2 space-y-1">
                         <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Email</label>
-                        <div className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-700 text-sm font-medium font-mono">
+                        <div className="w-full px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-gray-700 text-sm font-medium font-mono break-all">
                            {user.email || "N/A"}
                         </div>
                      </div>
@@ -232,7 +232,7 @@ export default function UserActions({ user }: UserActionsProps) {
                       </div>
                    </div>
 
-                   <div className="grid grid-cols-2 gap-4">
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* ARN Tokens */}
                       <div className="space-y-1">
                           <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">ARN Tokens</label>
@@ -260,7 +260,7 @@ export default function UserActions({ user }: UserActionsProps) {
                       </div>
                       
                       {/* Tier */}
-                      <div className="space-y-1">
+                      <div className="sm:col-span-2 space-y-1">
                           <label className="text-xs font-bold text-gray-700 uppercase tracking-wide">Tier</label>
                           <select 
                             name="tier" 

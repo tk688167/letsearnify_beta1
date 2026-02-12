@@ -10,6 +10,10 @@ import {
   ArrowRightIcon 
 } from "@heroicons/react/24/outline"
 
+import Link from "next/link"
+
+const MotionLink = motion(Link)
+
 export default function EcosystemSection() {
   return (
     <section className="py-12 md:py-20 relative">
@@ -33,7 +37,8 @@ export default function EcosystemSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-auto md:auto-rows-[300px]">
           
           {/* 1. Mudaraba (Large Feature) */}
-          <motion.div 
+          <MotionLink 
+             href="/dashboard/investments"
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              viewport={{ once: true }}
@@ -60,10 +65,11 @@ export default function EcosystemSection() {
                    Explore Pools <ArrowRightIcon className="w-4 h-4" />
                 </div>
              </div>
-          </motion.div>
+          </MotionLink>
 
           {/* 2. Tasks (Tall Feature) */}
-          <motion.div 
+          <MotionLink 
+             href="/dashboard/tasks"
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.1 }}
@@ -94,10 +100,11 @@ export default function EcosystemSection() {
                    Start Earning
                 </button>
              </div>
-          </motion.div>
+          </MotionLink>
 
           {/* 3. Marketplace (Standard) */}
-          <motion.div 
+          <MotionLink 
+             href="/dashboard/marketplace"
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.2 }}
@@ -115,10 +122,11 @@ export default function EcosystemSection() {
                    Sell your professional services or digital assets to a global audience.
                 </p>
              </div>
-          </motion.div>
+          </MotionLink>
 
           {/* 4. Referral (Standard) */}
-          <motion.div 
+          <MotionLink 
+             href="/dashboard/tiers"
              initial={{ opacity: 0, y: 20 }}
              whileInView={{ opacity: 1, y: 0 }}
              transition={{ delay: 0.3 }}
@@ -138,7 +146,7 @@ export default function EcosystemSection() {
                    Build your team. Earn lifelong commissions from our 7-tier affiliate system.
                 </p>
              </div>
-          </motion.div>
+          </MotionLink>
 
         </div>
       </div>

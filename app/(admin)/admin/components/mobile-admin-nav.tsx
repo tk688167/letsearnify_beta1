@@ -15,7 +15,8 @@ import {
   CheckCircleIcon,
   GlobeAltIcon,
   ChevronDownIcon, 
-  ChevronUpIcon
+  ChevronUpIcon,
+  GiftIcon
 } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react" 
 import { motion, AnimatePresence } from "framer-motion"
@@ -23,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion"
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: HomeIcon },
   { name: 'User Management', href: '/admin/users', icon: UsersIcon },
+  { name: 'Spin Management', href: '/admin/spin', icon: GiftIcon },
   { name: 'Tasks & Companies', href: '/admin/tasks', icon: UsersIcon }, // Using UsersIcon as fallback for ClipboardDocumentListIcon
   { name: 'Deposit Approvals', href: '/admin/deposits', icon: CurrencyDollarIcon },
   { name: 'Merchant Deposits', href: '/admin/merchant/deposits', icon: BanknotesIcon },

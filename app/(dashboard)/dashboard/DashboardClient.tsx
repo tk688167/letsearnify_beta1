@@ -23,12 +23,12 @@ import { formatCurrency, formatUserId, cn } from "@/lib/utils"
 import { CompanyPools } from "./CompanyPools"
 import { TierProgress } from "./TierProgress"
 import { CopyableText } from "./copyable-text"
-import { SpinWheel } from "./SpinWheel"
 
 // Feature Configuration (Can be moved to DB/Env later)
 const FEATURE_FLAGS = {
     TASKS: true,      // Set to true when ready to go Live
     MARKETPLACE: false, // Set to true when ready to go Live
+    MUDARABA: false,    // Set to true when ready to go Live
     POOLS: false       // Set to true when ready to go Live
 }
 
@@ -115,28 +115,8 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
           />
       </div>
 
-      {/* 2.5 DAILY SPIN (New) */}
-      {isUnlocked && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
-                <SpinWheel onComplete={() => window.location.reload()} />
-            </div>
-            {/* Quick Tips or Ad Placeholder can go here */}
-             <div className="md:col-span-2 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-2xl p-6 text-white flex flex-col justify-center shadow-lg relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
-                <div className="relative z-10">
-                    <h3 className="text-xl font-bold font-serif mb-2">Boost Your Earnings</h3>
-                    <p className="text-blue-100 mb-4">Complete daily tasks to multiply your spin rewards. Higher tiers = Bigger payouts.</p>
-                     <Link href="/dashboard/tasks" className="inline-flex items-center gap-2 text-sm font-bold bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors border border-white/10 w-fit">
-                        Go to Tasks <ArrowUpTrayIcon className="w-4 h-4 rotate-90"/>
-                     </Link>
-                </div>
-             </div>
-        </div>
-      )}
-
       {/* 3. ACTION HUB */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <ActionTile 
               href="/dashboard/wallet?tab=deposit" 
               icon={ArrowDownTrayIcon} 
@@ -170,6 +150,15 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
               color="orange" 
               delay={0.4}
               status={getFeatureStatus("MARKETPLACE")}
+          />
+          <ActionTile 
+              href="/dashboard/mudaraba" 
+              icon={ChartBarIcon} 
+              label="Mudaraba Pool" 
+              sub="Investment" 
+              color="indigo" 
+              delay={0.5}
+              status={getFeatureStatus("MUDARABA")}
           />
       </div>
 
@@ -269,12 +258,14 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
         purple: "group-hover:text-purple-600 group-hover:border-purple-200 group-hover:bg-purple-50",
         emerald: "group-hover:text-emerald-600 group-hover:border-emerald-200 group-hover:bg-emerald-50",
         orange: "group-hover:text-orange-600 group-hover:border-orange-200 group-hover:bg-orange-50",
+        indigo: "group-hover:text-indigo-600 group-hover:border-indigo-200 group-hover:bg-indigo-50",
     }
     const iconColors: any = {
         blue: "text-blue-500 bg-blue-50",
         purple: "text-purple-500 bg-purple-50",
         emerald: "text-emerald-500 bg-emerald-50",
         orange: "text-orange-500 bg-orange-50",
+        indigo: "text-indigo-500 bg-indigo-50",
     }
 
     // Locked/Dev State UI Overrides

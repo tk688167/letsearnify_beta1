@@ -73,62 +73,116 @@ export default function CbspSection({ user }: { user: any }) {
              </div>
 
              {/* DETAILED TIER TABLE */}
-             <div className="overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-white/5 backdrop-blur-md">
-                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-white/5 border-b border-white/10 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="px-3 md:px-6 py-5">Tier Level</th>
-                                <th className="px-3 md:px-6 py-5 text-center">Percentage</th>
-                                <th className="px-3 md:px-6 py-5 text-right">Pool Share</th>
-                                <th className="px-3 md:px-6 py-5 text-center">Active Users</th>
-                                <th className="px-3 md:px-6 py-5 text-right text-indigo-300">Est. Per Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {tiers.map((tier) => {
-                                const percent = CBSP_TIER_PERCENTAGES[tier] || 0
-                                const tierShareTotal = weeklyDistributable * (percent / 100)
-                                const count = stats?.tierMap?.[tier] || 0
-                                const perUser = count > 0 ? tierShareTotal / count : 0
-                                const isCurrent = user?.tier === tier
+             <div className="space-y-4">
+                 
+                 {/* Mobile: Stacked Cards */}
+                 <div className="md:hidden space-y-4">
+                     {tiers.map((tier) => {
+                         const percent = CBSP_TIER_PERCENTAGES[tier] || 0
+                         const tierShareTotal = weeklyDistributable * (percent / 100)
+                         const count = stats?.tierMap?.[tier] || 0
+                         const perUser = count > 0 ? tierShareTotal / count : 0
+                         const isCurrent = user?.tier === tier
 
-                                return (
-                                    <tr key={tier} className={`group transition-colors hover:bg-white/5 ${isCurrent ? "bg-indigo-500/10" : ""}`}>
-                                        <td className="px-3 md:px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <TierBadge tier={tier} />
-                                                <span className={`font-bold ${isCurrent ? "text-indigo-300" : "text-gray-200"}`}>
-                                                    {tier} {isCurrent && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm">You</span>}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-3 md:px-6 py-4">
-                                            <div className="flex flex-col items-center gap-1.5">
-                                                <span className="font-bold text-gray-300">{percent}%</span>
-                                                <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: `${(percent / 25) * 100}%` }}></div>
+                         return (
+                             <div key={tier} className={`p-5 rounded-2xl border ${isCurrent ? "bg-indigo-500/20 border-indigo-500/50 shadow-lg shadow-indigo-500/10" : "bg-white/5 border-white/10"}`}>
+                                 <div className="flex items-center justify-between mb-4">
+                                     <div className="flex items-center gap-3">
+                                         <TierBadge tier={tier} />
+                                         <span className={`font-bold ${isCurrent ? "text-indigo-300" : "text-gray-200"}`}>
+                                             {tier}
+                                         </span>
+                                     </div>
+                                     {isCurrent && <span className="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide font-bold">Current</span>}
+                                 </div>
+                                 
+                                 <div className="space-y-3">
+                                     <div className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                                         <span className="text-xs text-gray-400 font-bold uppercase">Pool Share</span>
+                                         <span className="font-mono font-bold text-indigo-300 text-lg">${tierShareTotal.toFixed(2)}</span>
+                                     </div>
+                                     
+                                     <div className="grid grid-cols-2 gap-3">
+                                         <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                                             <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Percentage</div>
+                                             <div className="font-bold text-white">{percent}%</div>
+                                         </div>
+                                         <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                                              <div className="text-[10px] text-gray-400 font-bold uppercase mb-1">Active Users</div>
+                                              <div className="font-bold text-white">{count}</div>
+                                         </div>
+                                     </div>
+
+                                     <div className="flex justify-between items-center pt-2 border-t border-white/10">
+                                         <span className="text-xs text-gray-400">Est. Per Activity</span>
+                                         <span className={`font-mono font-bold ${count > 0 ? "text-emerald-400" : "text-gray-600"}`}>
+                                              {count > 0 ? `$${perUser.toFixed(4)}` : "-"}
+                                         </span>
+                                     </div>
+                                 </div>
+                             </div>
+                         )
+                     })}
+                 </div>
+
+                 {/* Desktop: Table */}
+                 <div className="hidden md:block overflow-hidden rounded-3xl border border-white/10 shadow-2xl bg-white/5 backdrop-blur-md">
+                     <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-white/5 border-b border-white/10 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <th className="px-6 py-5">Tier Level</th>
+                                    <th className="px-6 py-5 text-center">Percentage</th>
+                                    <th className="px-6 py-5 text-right">Pool Share</th>
+                                    <th className="px-6 py-5 text-center">Active Users</th>
+                                    <th className="px-6 py-5 text-right text-indigo-300">Est. Per Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {tiers.map((tier) => {
+                                    const percent = CBSP_TIER_PERCENTAGES[tier] || 0
+                                    const tierShareTotal = weeklyDistributable * (percent / 100)
+                                    const count = stats?.tierMap?.[tier] || 0
+                                    const perUser = count > 0 ? tierShareTotal / count : 0
+                                    const isCurrent = user?.tier === tier
+
+                                    return (
+                                        <tr key={tier} className={`group transition-colors hover:bg-white/5 ${isCurrent ? "bg-indigo-500/10" : ""}`}>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <TierBadge tier={tier} />
+                                                    <span className={`font-bold ${isCurrent ? "text-indigo-300" : "text-gray-200"}`}>
+                                                        {tier} {isCurrent && <span className="ml-2 text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded-full uppercase tracking-wide shadow-sm">You</span>}
+                                                    </span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-3 md:px-6 py-4 text-right font-mono font-bold text-gray-300">
-                                            ${tierShareTotal.toFixed(2)}
-                                        </td>
-                                        <td className="px-3 md:px-6 py-4 text-center">
-                                            <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? "bg-white/10 text-white border border-white/10" : "text-gray-600 bg-white/5"}`}>
-                                                {count}
-                                            </span>
-                                        </td>
-                                        <td className="px-3 md:px-6 py-4 text-right">
-                                            <span className={`font-mono font-bold text-sm ${count > 0 ? "text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20" : "text-gray-600"}`}>
-                                                {count > 0 ? `$${perUser.toFixed(4)}` : "-"}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                )
-                            })}
-                        </tbody>
-                    </table>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex flex-col items-center gap-1.5">
+                                                    <span className="font-bold text-gray-300">{percent}%</span>
+                                                    <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" style={{ width: `${(percent / 25) * 100}%` }}></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-300">
+                                                ${tierShareTotal.toFixed(2)}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${count > 0 ? "bg-white/10 text-white border border-white/10" : "text-gray-600 bg-white/5"}`}>
+                                                    {count}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <span className={`font-mono font-bold text-sm ${count > 0 ? "text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-md border border-emerald-500/20" : "text-gray-600"}`}>
+                                                    {count > 0 ? `$${perUser.toFixed(4)}` : "-"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                     </div>
                  </div>
              </div>
              

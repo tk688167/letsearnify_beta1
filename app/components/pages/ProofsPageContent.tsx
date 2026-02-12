@@ -58,7 +58,49 @@ export default function ProofsPageContent() {
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                 <div className="overflow-x-auto">
+                 {/* Mobile: Payout Cards */}
+                 <div className="md:hidden divide-y divide-gray-100">
+                     {payouts.map((tx, idx) => (
+                          <motion.div 
+                            key={idx}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="p-5 flex flex-col gap-3"
+                          >
+                             <div className="flex justify-between items-start">
+                                 <div className="flex items-center gap-2 font-mono text-indigo-600 font-bold text-sm">
+                                     {tx.id}
+                                     <ArrowTopRightOnSquareIcon className="w-3 h-3 text-indigo-400" />
+                                 </div>
+                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                                    tx.status === 'Completed' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'
+                                 }`}>
+                                    {tx.status}
+                                 </span>
+                             </div>
+                             
+                             <div className="flex justify-between items-center">
+                                 <div>
+                                     <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Amount</div>
+                                     <div className="text-lg font-bold text-gray-900">{tx.amount}</div>
+                                 </div>
+                                 <div className="text-right">
+                                     <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Method</div>
+                                     <div className="text-sm font-medium text-gray-700">{tx.method}</div>
+                                 </div>
+                             </div>
+                             
+                             <div className="text-xs text-gray-400 flex items-center gap-1 mt-1">
+                                 <ClockIcon className="w-3.5 h-3.5" />
+                                 {tx.date}
+                             </div>
+                          </motion.div>
+                     ))}
+                 </div>
+
+                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left text-sm text-gray-600">
                        <thead className="bg-gray-50 text-gray-900 font-bold uppercase text-xs">
                           <tr>

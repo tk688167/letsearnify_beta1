@@ -40,14 +40,38 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
     let nextTierName = "MAX LEVEL";
     let targetPoints = 0;
     let targetMembers = 0;
+    
+    // Adjusted values for display
+    let displayPoints = 0;
+    let displayTargetPoints = 0;
+    let displayMembers = 0;
+    let displayTargetMembers = 0;
+
+    const currentConfig = tierRules[currentTierName] || { points: 0, members: 0 };
 
     if (nextTier && tierRules[nextTier]) {
         nextTierName = nextTier;
-        targetPoints = tierRules[nextTier].points;
-        targetMembers = tierRules[nextTier].members;
+        const nextConfig = tierRules[nextTier];
+        
+        targetPoints = nextConfig.points;
+        targetMembers = nextConfig.members;
 
-        const pointPercent = Math.min(points / targetPoints, 1);
-        const memberPercent = Math.min(activeMembers / targetMembers, 1);
+        // Delta Calculation
+        // Step 1: Baseline is the *Current* Tier's requirement (since we passed it)
+        const baselinePoints = currentConfig.points;
+        const baselineMembers = currentConfig.members;
+
+        // Step 2: Calculate Delta Adjustments
+        displayPoints = Math.max(0, points - baselinePoints);
+        displayTargetPoints = Math.max(0, targetPoints - baselinePoints);
+        
+        displayMembers = Math.max(0, activeMembers - baselineMembers);
+        displayTargetMembers = Math.max(0, targetMembers - baselineMembers);
+
+        // Step 3: Calculate Percentages based on Delta
+        // Prevent division by zero if delta is 0
+        const pointPercent = displayTargetPoints > 0 ? Math.min(displayPoints / displayTargetPoints, 1) : 1;
+        const memberPercent = displayTargetMembers > 0 ? Math.min(displayMembers / displayTargetMembers, 1) : 1;
         
         progress = Math.round(((pointPercent + memberPercent) / 2) * 100);
     } else {

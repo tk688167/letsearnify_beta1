@@ -1,7 +1,7 @@
 "use client"
 export const dynamic = "force-dynamic";
 // Force Rebuild: v4
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, useRef } from "react"
 import { 
   PlusIcon, 
   TrashIcon, 
@@ -16,6 +16,105 @@ import Link from "next/link"
 import { createCountry, deleteCountry, updateCountry, getCountries } from "@/app/actions/admin/merchant"
 import { useRouter } from "next/navigation"
 import toast, { Toaster } from "react-hot-toast"
+import { getAllCountries } from "@/app/actions/admin/merchant-settings"
+import { ChevronUpDownIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
+
+function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
+    const [query, setQuery] = useState("")
+    const [allCountries, setAllCountries] = useState<any[]>([])
+    const [filteredCountries, setFilteredCountries] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isOpen, setIsOpen] = useState(false)
+    const wrapperRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        // Fetch all countries on mount
+        getAllCountries().then(data => {
+            setAllCountries(data)
+            setFilteredCountries(data)
+            setIsLoading(false)
+        })
+
+        // Click outside listener
+        function handleClickOutside(event: MouseEvent) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setIsOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    useEffect(() => {
+        if (query === "") {
+            setFilteredCountries(allCountries)
+        } else {
+            const lowerQuery = query.toLowerCase()
+            const filtered = allCountries.filter(c => 
+                c.name.toLowerCase().includes(lowerQuery) || 
+                c.code.toLowerCase().includes(lowerQuery)
+            )
+            setFilteredCountries(filtered)
+        }
+    }, [query, allCountries])
+
+    return (
+        <div className="relative" ref={wrapperRef}>
+             <div className="relative">
+                <input 
+                    className="w-full p-4 pr-10 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 cursor-pointer"
+                    placeholder={isLoading ? "Loading countries..." : "Select a country to auto-fill..."}
+                    value={query}
+                    onChange={(e) => {
+                        setQuery(e.target.value)
+                        setIsOpen(true)
+                    }}
+                    // Show dropdown on focus even if empty query (shows all)
+                    onFocus={() => setIsOpen(true)}
+                    disabled={isLoading}
+                />
+                <div className="absolute right-4 top-4 text-gray-400 pointer-events-none">
+                    {isLoading ? (
+                        <ArrowPathIcon className="w-5 h-5 animate-spin"/>
+                    ) : (
+                        <ChevronUpDownIcon className="w-5 h-5"/>
+                    )}
+                </div>
+             </div>
+
+            {isOpen && !isLoading && (
+                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+                    {filteredCountries.length > 0 ? (
+                        filteredCountries.map((c: any) => (
+                            <div 
+                                key={c.code}
+                                className="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between border-b border-gray-50 last:border-0"
+                                onClick={() => {
+                                    setQuery(c.name)
+                                    onSelect(c)
+                                    setIsOpen(false)
+                                }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <img src={c.flag} alt={c.code} className="w-6 h-4 object-cover rounded shadow-sm" />
+                                    <div>
+                                        <div className="text-sm font-bold text-gray-900">{c.name}</div>
+                                        <div className="text-xs text-gray-500">{c.code} • {c.currency}</div>
+                                    </div>
+                                </div>
+                                <PlusIcon className="w-4 h-4 text-gray-300"/>
+                            </div>
+                        ))
+                    ) : (
+                         <div className="p-4 text-center text-sm text-gray-500">
+                            No country found.
+                         </div>
+                    )}
+                </div>
+            )}
+        </div>
+    )
+}
 
 export default function AdminMerchantPage() {
   const [countries, setCountries] = useState<any[]>([])
@@ -273,6 +372,31 @@ export default function AdminMerchantPage() {
                 </div>
                 
                 <div className="space-y-5">
+
+                  
+                    {/* Country Search & Auto-fill */}
+                    <div className="relative z-50">
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Search Country</label>
+                        <CountryAutocomplete 
+                            onSelect={(c) => {
+                                setFormData({
+                                    ...formData,
+                                    name: c.name,
+                                    code: c.code,
+                                    currency: c.currency,
+                                    // Fetch rate immediately
+                                })
+                                // Fetch exchange rate
+                                import("@/app/actions/admin/merchant-settings").then(mod => {
+                                    mod.fetchExchangeRate(c.currency).then(rate => {
+                                        setFormData(prev => ({ ...prev, exchangeRate: rate }))
+                                    })
+                                })
+                            }}
+                        />
+                        <p className="text-xs text-gray-400 mt-1">Select from list to auto-fill details.</p>
+                    </div>
+
                   <div>
                      <label className="block text-sm font-bold text-gray-700 mb-2">Country Name</label>
                      <input 
@@ -317,8 +441,11 @@ export default function AdminMerchantPage() {
                                 type="number" 
                                 placeholder="280.0"
                                 className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
-                                value={formData.exchangeRate}
-                                onChange={(e) => setFormData({...formData, exchangeRate: parseFloat(e.target.value)})}
+                                value={isNaN(formData.exchangeRate) ? "" : formData.exchangeRate}
+                                onChange={(e) => {
+                                   const val = parseFloat(e.target.value)
+                                   setFormData({...formData, exchangeRate: isNaN(val) ? 0 : val})
+                                }}
                                 step="0.01"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">/ USD</span>
@@ -331,8 +458,11 @@ export default function AdminMerchantPage() {
                                 type="number" 
                                 placeholder="20"
                                 className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
-                                value={formData.serviceFee}
-                                onChange={(e) => setFormData({...formData, serviceFee: parseFloat(e.target.value)})}
+                                value={isNaN(formData.serviceFee) ? "" : formData.serviceFee}
+                                onChange={(e) => {
+                                   const val = parseFloat(e.target.value)
+                                   setFormData({...formData, serviceFee: isNaN(val) ? 0 : val})
+                                }}
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">{formData.currency || 'Curr'}</span>
                           </div>

@@ -1,5 +1,5 @@
 "use client"
-export const dynamic = "force-dynamic";
+
 
 import { useState, useEffect } from "react"
 import { createTask, deleteTask, updateTask, getAdminTasks } from "@/app/actions/admin/tasks"
@@ -75,7 +75,14 @@ export default function AdminPortalPage() {
             <h1 className="text-3xl font-serif font-bold text-gray-900">Platform Management</h1>
             <p className="text-gray-500">Manage earning opportunities and partners.</p>
          </div>
-         <div className="flex gap-2">
+        <div className="flex gap-2">
+             <a 
+               href="/admin/tasks/approvals"
+               className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-indigo-700 transition-colors shadow-lg"
+             >
+                <ClipboardDocumentListIcon className="w-5 h-5" /> 
+                Review Approvals
+             </a>
              <button 
                onClick={() => activeTab === 'tasks' ? (setEditingTask(null), setIsTaskModalOpen(true)) : (setEditingCompany(null), setIsCompanyModalOpen(true))}
                className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-black transition-colors shadow-lg"
