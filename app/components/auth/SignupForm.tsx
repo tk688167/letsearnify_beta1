@@ -61,11 +61,11 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   }
 
   return (
-    <div className={`bg-white ${isModal ? "" : "py-8 px-4 shadow-xl shadow-blue-900/5 sm:rounded-2xl sm:px-10 border border-gray-100"}`}>
+    <div className={`bg-card ${isModal ? "" : "py-8 px-4 shadow-xl shadow-muted/5 sm:rounded-2xl sm:px-10 border border-border"}`}>
       
       {error && (
-         <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-             <div className="w-2 h-2 bg-red-500 rounded-full shrink-0" />
+         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+             <div className="w-2 h-2 bg-destructive rounded-full shrink-0" />
              {error}
          </div>
       )}
@@ -74,12 +74,12 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
         
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-bold text-gray-700 mb-1">
+          <label htmlFor="name" className="block text-sm font-bold text-foreground mb-1">
             Full Name
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <UserIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <UserIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="name"
@@ -87,19 +87,19 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               type="text"
               required
               placeholder="John Doe"
-              className="block w-full h-11 pl-10 pr-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 sm:text-sm transition-all outline-none"
+              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
             />
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-bold text-foreground mb-1">
             Email Address
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <EnvelopeIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <EnvelopeIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="email"
@@ -108,24 +108,24 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               autoComplete="email"
               required
               placeholder="name@example.com"
-              className="block w-full h-11 pl-10 pr-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 sm:text-sm transition-all outline-none"
+              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
             />
           </div>
         </div>
 
         {/* Country */}
         <div>
-          <label htmlFor="country" className="block text-sm font-bold text-gray-700 mb-1">
+          <label htmlFor="country" className="block text-sm font-bold text-foreground mb-1">
             Country
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <GlobeAltIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <GlobeAltIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <select 
                 id="country"
                 name="country" 
-                className="block w-full h-11 pl-10 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white sm:text-sm transition-all outline-none appearance-none" 
+                className="block w-full h-11 pl-10 pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary text-foreground sm:text-sm transition-all outline-none appearance-none" 
                 required
             >
                 <option value="">Select your country</option>
@@ -205,7 +205,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 <option value="YE">Yemen</option>
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                 <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                  </svg>
             </div>
@@ -214,12 +214,12 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
 
         {/* Password */}
         <div>
-          <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-1">
+          <label htmlFor="password" className="block text-sm font-bold text-foreground mb-1">
             Password
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockClosedIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <LockClosedIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="password"
@@ -229,11 +229,11 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               required
               placeholder="Min 8 characters"
               minLength={8}
-              className="block w-full h-11 pl-10 pr-10 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 sm:text-sm transition-all outline-none"
+              className="block w-full h-11 pl-10 pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -247,12 +247,12 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
 
         {/* Referral */}
         <div>
-          <label htmlFor="referralCode" className="block text-sm font-bold text-gray-700 mb-1">
-             Referral Code <span className="text-gray-400 font-normal text-xs">(optional)</span>
+          <label htmlFor="referralCode" className="block text-sm font-bold text-foreground mb-1">
+             Referral Code <span className="text-muted-foreground font-normal text-xs">(optional)</span>
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <TagIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+              <TagIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="referralCode"
@@ -260,7 +260,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               type="text"
               defaultValue={referralCode}
               placeholder="Enter code"
-              className="block w-full h-11 pl-10 pr-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 sm:text-sm transition-all outline-none uppercase placeholder:normal-case"
+              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none uppercase placeholder:normal-case"
             />
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
           <button
             type="submit"
             disabled={loading || isGoogleLoading}
-            className="w-full flex justify-center py-3 px-4 h-11 border border-transparent rounded-xl shadow-lg shadow-blue-500/20 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none"
+            className="w-full flex justify-center py-3 px-4 h-11 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none"
           >
             {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -283,10 +283,10 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-200" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500">
+            <span className="px-4 bg-card text-muted-foreground">
               Or continue with
             </span>
           </div>
@@ -297,10 +297,10 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 type="button"
                 onClick={handleGoogleSignup}
                 disabled={isGoogleLoading || loading}
-                className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 border-2 border-gray-100 p-3 h-11 rounded-xl hover:bg-gray-50 hover:border-gray-200 transition font-bold shadow-sm"
+                className="w-full flex items-center justify-center gap-3 bg-card text-foreground border-2 border-border p-3 h-11 rounded-xl hover:bg-muted/50 hover:border-primary/20 transition font-bold shadow-sm"
              >
                  {isGoogleLoading ? (
-                     <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+                     <div className="w-5 h-5 border-2 border-border border-t-primary rounded-full animate-spin"></div>
                  ) : (
                      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
                  )}
@@ -310,9 +310,9 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
       </div>
 
       {!isModal && (
-        <p className="mt-8 text-center text-sm text-gray-600">
+        <p className="mt-8 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="font-bold text-blue-600 hover:text-blue-500 hover:underline">
+            <Link href="/login" className="font-bold text-primary hover:text-primary/80 hover:underline">
                Sign in
             </Link>
         </p>

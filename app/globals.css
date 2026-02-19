@@ -5,37 +5,142 @@ html {
 }
 
 :root {
-  /* Startup / Premium Light Theme */
-  --background: #f8f9fa; /* Clean Off-White */
-  --foreground: #111827; /* Near Black */
+  /* Premium Fintech Light Theme */
+  --background: #ffffff;
+  --foreground: #0f172a; /* Slate 900 */
+  
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+ 
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+ 
+  --primary: #2563eb; /* Royal Blue */
+  --primary-foreground: #ffffff;
+ 
+  --secondary: #f1f5f9; /* Slate 100 */
+  --secondary-foreground: #0f172a;
+ 
+  --muted: #f8fafc; /* Slate 50 */
+  --muted-foreground: #64748b; /* Slate 500 */
+ 
+  --accent: #eff6ff; /* Blue 50 */
+  --accent-foreground: #1d4ed8; /* Blue 700 */
+ 
+  --destructive: #ef4444; /* Red 500 */
+  --destructive-foreground: #ffffff;
 
-  --color-primary: #2563eb; /* Royal Blue (Modern Startup) */
+  --border: #e2e8f0; /* Slate 200 */
+  --input: #e2e8f0;
+  --ring: #2563eb;
+  
+  --radius: 0.75rem;
+
+  /* Legacy Compat */
+  --color-primary: #2563eb;
   --color-primary-hover: #1d4ed8;
-
-  --color-accent: #ec407a; /* Pink Accent */
-  --color-gold: #f59e0b; /* Amber/Gold */
-
-  --color-surface: #ffffff;
-  --color-surface-hover: #f3f4f6;
-
+  --color-accent: #ec407a;
+  --color-gold: #f59e0b;
+  --color-surface: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  --color-border: #e2e8f0;
+  
   --font-inter: var(--font-inter);
   --font-playfair: var(--font-playfair);
+}
+
+.dark {
+  /* Premium Fintech Dark Theme - Deep Navy/Black */
+  --background: #020617; /* Slate 950 - Deepest Blue/Black */
+  --foreground: #f8fafc; /* Slate 50 - High contrast text */
+ 
+  --card: #0f172a; /* Slate 900 */
+  --card-foreground: #f8fafc;
+ 
+  --popover: #0f172a;
+  --popover-foreground: #f8fafc;
+ 
+  --primary: #3b82f6; /* Blue 500 - Vivid for dark mode */
+  --primary-foreground: #ffffff;
+ 
+  --secondary: #1e293b; /* Slate 800 */
+  --secondary-foreground: #f8fafc;
+ 
+  --muted: #1e293b; /* Slate 800 */
+  --muted-foreground: #94a3b8; /* Slate 400 */
+ 
+  --accent: #1e293b; /* Slate 800 */
+  --accent-foreground: #f8fafc;
+ 
+  --destructive: #ef4444; /* Red 500 */
+  --destructive-foreground: #ffffff;
+ 
+  --border: #1e293b; /* Slate 800 */
+  --input: #1e293b;
+  --ring: #3b82f6;
+
+  /* Legacy Compat */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #60a5fa;
+  --color-accent: #f472b6;
+  --color-gold: #fbbf24;
+  --color-surface: #0f172a;
+  --color-surface-hover: #1e293b;
+  --color-border: #1e293b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --color-primary: var(--color-primary);
-  --color-primary-hover: var(--color-primary-hover);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+ 
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+ 
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+ 
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+ 
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+ 
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+ 
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+ 
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  --color-accent: var(--color-accent);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  /* Legacy Mappings to keep existing components working */
   --color-gold: var(--color-gold);
-
   --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
 }
 
 body {
@@ -53,8 +158,14 @@ body {
     0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.6); /* Slate 900 with opacity */
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
 .text-gradient {
-  background: linear-gradient(135deg, var(--color-primary) 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--color-primary, #2563eb) 0%, #4f46e5 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -84,8 +195,8 @@ body {
 
 .animate-rainbow {
   position: relative;
-  background: white;
-  color: #1f2937; /* gray-800 */
+  background: var(--background);
+  color: var(--foreground);
   border: 1px solid transparent; /* Reserve space */
   background-clip: padding-box; /* Separate bg from border */
   z-index: 1;
@@ -107,7 +218,7 @@ body {
   content: "";
   position: absolute;
   inset: 1px; /* Inner spacing */
-  background: white;
+  background: var(--background);
   border-radius: 11px; /* Match button radius */
   z-index: -1;
 }

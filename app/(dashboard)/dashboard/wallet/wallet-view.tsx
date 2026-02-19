@@ -178,7 +178,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
           className={cn(
               "flex-1 flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-300 border backdrop-blur-sm min-w-[80px]",
               activeTab === id 
-                  ? "bg-white text-blue-600 border-white shadow-lg shadow-black/5 scale-[1.02]" 
+                  ? "bg-card text-blue-600 border-border shadow-lg shadow-black/5 scale-[1.02]" 
                   : "bg-white/10 text-blue-50 border-white/10 hover:bg-white/20 hover:border-white/20"
           )}
       >
@@ -198,14 +198,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         <button 
             onClick={onClick}
             className={cn(
-                "w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between group bg-white",
+                "w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between group bg-card hover:bg-accent/5",
                 colorStyles[color],
-                !isSelected && "border-gray-100"
+                !isSelected && "border-border"
             )}
         >
             <div className="flex items-center gap-4">
                 <div className={cn("p-3 rounded-xl transition-colors", 
-                    isSelected ? "bg-white shadow-sm" : "bg-gray-50 text-gray-400 group-hover:bg-gray-100"
+                    isSelected ? "bg-card shadow-sm" : "bg-muted/50 text-muted-foreground group-hover:bg-muted"
                 )}>
                     <Icon className={cn("w-6 h-6", isSelected ? `text-${color}-600` : "text-gray-400")}/>
                 </div>
@@ -231,8 +231,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        </h3>
                   </div>
                   {merchantSettings.length === 0 ? (
-                      <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                          <p className="text-gray-500 text-sm">No merchant countries available.</p>
+                      <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+                          <p className="text-muted-foreground text-sm">No merchant countries available.</p>
                       </div>
                   ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -249,22 +249,22 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                       setSelectedCountry(country)
                                   }}
                                   className={cn(
-                                      "flex items-center gap-3 p-4 bg-white border rounded-xl transition-all group text-left relative overflow-hidden",
+                                      "flex items-center gap-3 p-4 bg-card border rounded-xl transition-all group text-left relative overflow-hidden",
                                       isComingSoon 
-                                          ? "border-gray-100 opacity-70 cursor-not-allowed grayscale-[0.5]" 
-                                          : "border-gray-100 hover:border-green-500 hover:shadow-md"
+                                          ? "border-border opacity-70 cursor-not-allowed grayscale-[0.5]" 
+                                          : "border-border hover:border-green-500 hover:shadow-md"
                                   )}
                               >
                                   <div className={cn(
                                       "w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-colors",
                                       isComingSoon 
-                                          ? "bg-gray-100 text-gray-500" 
-                                          : "bg-gray-50 text-gray-700 group-hover:bg-green-50 group-hover:text-green-600"
+                                          ? "bg-muted text-muted-foreground" 
+                                          : "bg-muted/50 text-foreground group-hover:bg-green-50 dark:group-hover:bg-green-900/30 group-hover:text-green-600"
                                   )}>
                                       {country.code}
                                   </div>
                                   <div>
-                                      <div className="font-bold text-gray-900 flex items-center gap-2">
+                                      <div className="font-bold text-foreground flex items-center gap-2">
                                           {country.name}
                                           {isComingSoon && (
                                               <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wide">
@@ -272,7 +272,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                               </span>
                                           )}
                                       </div>
-                                      <div className="text-xs text-gray-500">{country.methods ? country.methods.length : 0} Methods</div>
+                                      <div className="text-xs text-muted-foreground">{country.methods ? country.methods.length : 0} Methods</div>
                                   </div>
                                   {!isComingSoon && <ChevronRightIcon className="w-4 h-4 ml-auto text-gray-300 group-hover:text-green-500"/>}
                               </button>
@@ -301,7 +301,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                               <button
                                   key={method.id}
                                   onClick={() => setSelectedPaymentMethod(method)}
-                                  className="w-full text-left p-4 rounded-xl border border-gray-200 hover:border-green-500 hover:bg-green-50/10 transition-all group bg-white"
+                                  className="w-full text-left p-4 rounded-xl border border-border hover:border-green-500 hover:bg-green-50/10 transition-all group bg-card"
                               >
                                   <div className="flex justify-between items-start">
                                       <div className="flex items-center gap-3">
@@ -309,11 +309,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                               <BanknotesIcon className="w-6 h-6"/>
                                           </div>
                                           <div>
-                                              <div className="font-bold text-gray-900 text-lg">{method.name}</div>
-                                              <div className="text-xs text-gray-500">{method.accountName}</div>
+                                              <div className="font-bold text-foreground text-lg">{method.name}</div>
+                                              <div className="text-xs text-muted-foreground">{method.accountName}</div>
                                           </div>
                                       </div>
-                                      <div className="px-3 py-1 bg-gray-100 text-gray-600 rounded text-xs font-mono font-bold group-hover:bg-white border border-transparent group-hover:border-green-200">
+                                      <div className="px-3 py-1 bg-muted text-muted-foreground rounded text-xs font-mono font-bold group-hover:bg-card border border-transparent group-hover:border-green-200">
                                           {method.accountNumber}
                                       </div>
                                   </div>
@@ -321,8 +321,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                           ))}
                       </div>
                   ) : (
-                      <div className="p-6 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                          <p className="text-sm text-gray-500">No payment methods configured for this country.</p>
+                      <div className="p-6 text-center bg-muted/30 rounded-xl border border-dashed border-border">
+                          <p className="text-sm text-muted-foreground">No payment methods configured for this country.</p>
                       </div>
                   )}
               </div>
@@ -347,9 +347,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                       </div>
                       <span className="font-bold text-sm">Back</span>
                   </button>
-                  <div className="h-6 w-px bg-gray-200"></div>
-                  <h3 className="font-bold text-lg text-gray-900 flex items-center gap-2">
-                     <span className="text-gray-400 font-medium">Deposit via</span> {selectedPaymentMethod.name}
+                  <div className="h-6 w-px bg-border"></div>
+                  <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
+                     <span className="text-muted-foreground font-medium">Deposit via</span> {selectedPaymentMethod.name}
                   </h3>
               </div>
 
@@ -410,8 +410,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                           </div>
                        )}
 
-                      <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-sm space-y-8">
-                          <h4 className="font-bold text-gray-900 text-lg border-b border-gray-100 pb-4">Transaction Details</h4>
+                      <div className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-sm space-y-8">
+                          <h4 className="font-bold text-foreground text-lg border-b border-border pb-4">Transaction Details</h4>
                           
                           <div className="space-y-8">
                               {/* Amount Input Section */}
@@ -424,18 +424,18 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                               type="number" 
                                               value={amount}
                                               onChange={(e) => setAmount(e.target.value)}
-                                              className="w-full pl-8 pr-4 py-4 rounded-xl border border-gray-200 outline-none focus:border-green-500 font-bold text-xl transition-all bg-gray-50 focus:bg-white"
+                                              className="w-full pl-8 pr-4 py-4 rounded-xl border border-input outline-none focus:border-green-500 font-bold text-xl transition-all bg-muted/30 focus:bg-card text-foreground"
                                               placeholder="0.00"
                                           />
                                       </div>
                                   </div>
                                   
                                   {/* Professional Currency Conversation Card - ALWAYS VISIBLE */}
-                                  <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                  <div className="bg-muted/30 rounded-2xl border border-border overflow-hidden animate-in fade-in slide-in-from-top-2">
                                       {/* Header */}
-                                      <div className="bg-gray-100 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
-                                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Conversion Details</span>
-                                          <span className="text-xs font-bold bg-white text-gray-600 px-2 py-1 rounded border border-gray-200 shadow-sm">
+                                      <div className="bg-muted px-5 py-3 border-b border-border flex justify-between items-center">
+                                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Conversion Details</span>
+                                          <span className="text-xs font-bold bg-card text-foreground px-2 py-1 rounded border border-border shadow-sm">
                                               Rate: 1 USD = {rate} {selectedCountry.currency}
                                           </span>
                                       </div>
@@ -444,23 +444,23 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                       <div className="p-5 space-y-4">
                                           {/* Breakdown */}
                                           <div className="space-y-2 text-sm">
-                                              <div className="flex justify-between text-gray-500">
+                                              <div className="flex justify-between text-muted-foreground">
                                                   <span>Base Amount ({amount || '0'} USD)</span>
                                                   <span className="font-mono font-medium">
                                                       {totalPayable.toLocaleString()} {selectedCountry.currency}
                                                   </span>
                                               </div>
-                                              <div className="h-px bg-gray-200 my-2"></div>
+                                              <div className="h-px bg-border my-2"></div>
                                           </div>
 
                                           {/* Total */}
                                           <div>
-                                              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Payable Amount</p>
+                                              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">Total Payable Amount</p>
                                               <div className="flex items-baseline gap-2">
-                                                  <span className="text-3xl font-black text-gray-900 tracking-tight">
+                                                  <span className="text-3xl font-black text-foreground tracking-tight">
                                                       {totalPayable.toLocaleString()}
                                                   </span>
-                                                  <span className="text-lg font-bold text-gray-500">{selectedCountry.currency}</span>
+                                                  <span className="text-lg font-bold text-muted-foreground">{selectedCountry.currency}</span>
                                               </div>
                                           </div>
                                           
@@ -487,8 +487,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                       />
                                       <div className={`w-full min-h-[200px] rounded-3xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-4 p-8 text-center ${
                                           screenshot 
-                                          ? "border-green-500 bg-green-50/30 ring-4 ring-green-500/10" 
-                                          : "border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 group-hover:scale-[1.01]"
+                                          ? "border-green-500 bg-green-50/10 ring-4 ring-green-500/10" 
+                                          : "border-border bg-muted/30 hover:bg-muted/50 hover:border-muted-foreground/30 group-hover:scale-[1.01]"
                                       }`}>
                                           {screenshot ? (
                                               <div className="animate-in zoom-in duration-300">
@@ -500,11 +500,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                               </div>
                                           ) : (
                                               <div className="space-y-2">
-                                                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-all group-hover:bg-blue-200">
+                                                  <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-all group-hover:bg-blue-500/20">
                                                       <ArrowUpTrayIcon className="w-8 h-8 text-blue-600 group-hover:scale-110 transition-transform"/>
                                                   </div>
-                                                  <h5 className="font-bold text-gray-900 text-lg">Upload Payment Screenshot</h5>
-                                                  <p className="text-gray-500 text-sm max-w-xs mx-auto">
+                                                  <h5 className="font-bold text-foreground text-lg">Upload Payment Screenshot</h5>
+                                                  <p className="text-muted-foreground text-sm max-w-xs mx-auto">
                                                       Click to browse or drag and drop your receipt here. 
                                                       <br/><span className="text-xs opacity-70">(Supports JPG, PNG, PDF)</span>
                                                   </p>
@@ -527,38 +527,38 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               ) : (
                   // WITHDRAWAL FORM
                   <div className="space-y-8">
-                       <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-sm space-y-6">
+                       <div className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-sm space-y-6">
                           <div className="grid grid-cols-1 gap-6">
                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Account Number</label>
+                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Account Number</label>
                                   <input 
                                       type="text" 
                                       value={accountNumber}
                                       onChange={(e) => setAccountNumber(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-green-500 bg-gray-50 focus:bg-white font-mono font-bold transition-all"
+                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground"
                                       placeholder={`Enter your ${selectedPaymentMethod.name} number`}
                                   />
                               </div>
                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Account Title / Name</label>
+                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
                                   <input 
                                       type="text" 
                                       value={accountName}
                                       onChange={(e) => setAccountName(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-green-500 bg-gray-50 focus:bg-white transition-all"
+                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground"
                                       placeholder="Name on account"
                                   />
                               </div>
                               <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Amount (USD)</label>
+                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
                                   <input 
                                       type="number" 
                                       value={amount}
                                       onChange={(e) => setAmount(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-gray-200 outline-none focus:border-green-500 font-bold text-xl bg-gray-50 focus:bg-white transition-all"
+                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 font-bold text-xl bg-muted/30 focus:bg-card transition-all text-foreground"
                                       placeholder="0.00"
                                   />
-                                  <p className="text-xs text-gray-500 mt-2 font-medium">Available: ${user.balance.toFixed(2)}</p>
+                                  <p className="text-xs text-muted-foreground mt-2 font-medium">Available: ${user.balance.toFixed(2)}</p>
                               </div>
                           </div>
 
@@ -614,12 +614,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        className={cn(
                            "flex flex-col md:flex-row items-center justify-center gap-2 p-3 md:px-8 md:py-4 rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
                            activeTab === item.id 
-                               ? "bg-white border-blue-500 ring-2 ring-blue-100 shadow-lg scale-[1.02]" 
-                               : "bg-white border-gray-100 hover:bg-gray-50 shadow-sm hover:shadow-md"
+                               ? "bg-card border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30 shadow-lg scale-[1.02]" 
+                               : "bg-card border-border hover:bg-muted/50 shadow-sm hover:shadow-md"
                        )}
                    >
                        <item.icon className={cn("w-6 h-6", activeTab === item.id ? item.color : "text-gray-400")} />
-                       <span className={cn("text-[10px] md:text-sm font-bold uppercase tracking-wider", activeTab === item.id ? "text-gray-900" : "text-gray-500")}>
+                       <span className={cn("text-[10px] md:text-sm font-bold uppercase tracking-wider", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>
                            {item.label}
                        </span>
                    </button>
@@ -627,18 +627,18 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
            </div>
 
            {/* 2. ACTION FORM PANEL */}
-           <div className="bg-white rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="bg-card rounded-[2rem] border border-border shadow-lg shadow-black/5 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-bold font-serif text-gray-900 capitalize flex items-center gap-3">
+                  <h3 className="text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-3">
                       {activeTab === 'deposit' && <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><ArrowDownTrayIcon className="w-6 h-6"/></div>}
                       {activeTab === 'withdraw' && <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><ArrowUpTrayIcon className="w-6 h-6"/></div>}
                       {activeTab === 'transfer' && <div className="p-2 bg-orange-100 rounded-lg text-orange-600"><ArrowPathIcon className="w-6 h-6"/></div>}
                       {activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}
                   </h3>
                   {(activeTab === 'deposit') && (
-                     <div className="hidden sm:flex px-3 py-1.5 bg-green-50 text-green-700 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100">
+                     <div className="hidden sm:flex px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100 dark:border-green-800">
                         <ShieldCheckIcon className="w-4 h-4"/>
                         <span>1 USD = 10 ARN</span>
                      </div>
@@ -676,7 +676,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
                         {/* TRC-20 Form */}
                         {depositMethod === "TRC20" && (
-                           <div className="bg-gray-50/50 rounded-2xl p-4 md:p-6 border border-gray-100 space-y-6">
+                           <div className="bg-muted/30 rounded-2xl p-4 md:p-6 border border-border space-y-6">
                               {/* QR & Address */}
                               <div className="flex flex-col md:flex-row gap-6">
                                  <div className="flex-shrink-0 mx-auto md:mx-0">
@@ -703,25 +703,25 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                               {/* Inputs */}
                               <div className="space-y-4">
                                  <div>
-                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Transaction ID (Hash)</label>
+                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Transaction ID (Hash)</label>
                                      <input 
                                         type="text" 
                                         value={txHash}
                                         onChange={(e) => setTxHash(e.target.value)}
                                         placeholder="Paste your transaction hash..."
-                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-white font-mono text-sm"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-mono text-sm text-foreground"
                                      />
                                  </div>
                                  <div>
-                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Amount (USD)</label>
+                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
                                      <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
                                         <input 
                                            type="number" 
                                            value={amount}
                                            onChange={(e) => setAmount(e.target.value)}
                                            placeholder="0.00"
-                                           className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-white font-bold text-lg"
+                                           className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-bold text-lg text-foreground"
                                         />
                                      </div>
                                      {amount && !isNaN(parseFloat(amount)) && (
@@ -742,10 +742,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                         
                         {/* Card Form */}
                         {depositMethod === "CARD" && (
-                            <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                <CreditCardIcon className="w-12 h-12 text-gray-300 mx-auto mb-3"/>
-                                <h4 className="font-bold text-gray-900">Coming Soon</h4>
-                                <p className="text-sm text-gray-500 max-w-xs mx-auto mt-1">Direct card payments are currently under maintenance. Please use TRC-20 or a Merchant.</p>
+                            <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+                                <CreditCardIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3"/>
+                                <h4 className="font-bold text-foreground">Coming Soon</h4>
+                                <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-1">Direct card payments are currently under maintenance. Please use TRC-20 or a Merchant.</p>
                             </div>
                         )}
                     </div>
@@ -757,7 +757,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     <div className="space-y-8 animate-in fade-in">
                         {/* Method Selector */}
                         <div className="space-y-3">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Withdrawal Method</label>
+                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Withdrawal Method</label>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Global • Fast" icon={QrCodeIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("TRC20")} color="blue"/>
                                <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("MERCHANT")} color="green"/>
@@ -768,29 +768,29 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                         {withdrawalMethod === "TRC20" && (
                              <div className="space-y-4">
                                  <div>
-                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Destination Address</label>
+                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label>
                                      <input 
                                         type="text" 
                                         value={details}
                                         onChange={(e) => setDetails(e.target.value)}
                                         placeholder="Enter USDT TRC-20 address..."
-                                        className="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-white font-mono text-sm"
+                                        className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-mono text-sm text-foreground"
                                      />
                                  </div>
                                  <div>
-                                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Amount to Swap (ARN)</label>
+                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label>
                                      <div className="relative">
                                         <input 
                                            type="number" 
                                            value={amount}
                                            onChange={(e) => setAmount(e.target.value)}
                                            placeholder="0"
-                                           className="w-full px-4 py-3.5 rounded-xl border border-gray-200 outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-white font-bold text-lg"
+                                           className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-bold text-lg text-foreground"
                                         />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">ARN</span>
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span>
                                      </div>
                                      <div className="flex justify-between mt-2 px-1">
-                                        <span className="text-xs text-gray-400 font-medium">Available: {user.arnBalance?.toFixed(2) || 0} ARN</span>
+                                        <span className="text-xs text-muted-foreground font-medium">Available: {user.arnBalance?.toFixed(2) || 0} ARN</span>
                                         <span className="text-xs font-bold text-purple-600">
                                             {amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}
                                         </span>

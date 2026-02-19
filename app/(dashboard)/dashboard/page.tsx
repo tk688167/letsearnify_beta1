@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const { user, pools, isOffline } = await getDashboardData(session.user.id);
 
   // Handle case where DB works but user not found (should be handled by auth redir normally)
-  if (!user && !isOffline) {
+  if (!user && !isOffline && (session.user as any)?.id !== "super-admin-id") {
        // Force logout or error page?
        // For now, redirect to login as session might be stale
        redirect("/login")

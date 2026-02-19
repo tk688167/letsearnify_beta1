@@ -33,7 +33,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
   const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 overflow-x-hidden font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden font-sans selection:bg-primary/20 selection:text-primary">
       {/* Navbar */}
       <LandingHeader />
       
@@ -72,7 +72,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-indigo-100 shadow-sm mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-primary/20 shadow-sm mb-8"
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -85,7 +85,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-5xl md:text-8xl font-serif font-bold text-gray-900 mb-8 leading-[1.1] tracking-tight"
+              className="text-5xl md:text-8xl font-serif font-bold text-foreground mb-8 leading-[1.1] tracking-tight"
             >
               The Premier Ecosystem <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-fuchsia-600 to-indigo-600 animate-gradient-x">For Digital Wealth</span>
@@ -95,10 +95,10 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
+              className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed font-medium"
             >
               Join a regulated, hybrid economy where micro-tasks meet institutional-grade earning pools. 
-              <span className="block mt-2 text-indigo-600 font-bold flex items-center justify-center gap-2">
+              <span className="block mt-2 text-primary font-bold flex items-center justify-center gap-2">
                 Start with $1. Scale to Unlimited Potential.
               </span>
             </motion.p>
@@ -111,13 +111,13 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             >
               <Link href="/signup" className="group relative w-full sm:w-auto">
                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-2xl blur opacity-30 group-hover:opacity-100 transition duration-500 group-hover:duration-200"></div>
-                 <button className="relative w-full sm:w-auto px-8 py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 group-hover:bg-gray-800 transition-all transform group-hover:-translate-y-1">
+                 <button className="relative w-full sm:w-auto px-8 py-4 bg-foreground text-background rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 group-hover:bg-foreground/90 transition-all transform group-hover:-translate-y-1">
                     Start Earning Now
                     <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                  </button>
               </Link>
               <Link href="#features">
-                 <button className="w-full sm:w-auto px-8 py-4 bg-white border-2 border-gray-100 text-gray-600 rounded-xl font-bold text-lg hover:border-indigo-100 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all shadow-sm">
+                 <button className="w-full sm:w-auto px-8 py-4 bg-card border-2 border-border text-muted-foreground rounded-xl font-bold text-lg hover:border-primary/20 hover:text-primary hover:bg-primary/5 transition-all shadow-sm">
                     Explore Features
                  </button>
               </Link>
@@ -129,7 +129,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 transition={{ delay: 1, duration: 1 }}
                 className="mt-16 md:mt-20 w-full px-2 md:px-4"
             >
-                <div className="bg-white/60 backdrop-blur-xl border border-indigo-100/50 rounded-2xl md:rounded-[2rem] py-6 md:py-10 shadow-xl md:shadow-2xl shadow-indigo-500/10 max-w-5xl mx-auto overflow-hidden relative hover:shadow-indigo-500/20 transition-all duration-500 group">
+                <div className="bg-card/60 backdrop-blur-xl border border-primary/20 rounded-2xl md:rounded-[2rem] py-6 md:py-10 shadow-xl md:shadow-2xl shadow-primary/10 max-w-5xl mx-auto overflow-hidden relative hover:shadow-primary/20 transition-all duration-500 group">
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-200 to-transparent opacity-50"></div>
                     
                     <p className="text-[10px] md:text-xs font-bold text-indigo-400 uppercase tracking-[0.2em] md:tracking-[0.3em] mb-4 md:mb-8 text-center group-hover:text-indigo-500 transition-colors">Trusted Payment Partners</p>
@@ -156,15 +156,15 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         <PayoutsCarousel proofs={initialProofs || []} />
 
         {/* Features Grid */}
-        <section id="features" className="py-24 md:py-32 bg-white relative">
+        <section id="features" className="py-24 md:py-32 bg-background relative">
           <div className="max-w-7xl mx-auto px-6">
             <FadeIn>
               <div className="text-center mb-20">
-                 <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-600 font-bold text-sm mb-6 border border-indigo-100">
+                 <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm mb-6 border border-primary/20">
                     5-PILLAR HYBRID EARNING ECOSYSTEM
                  </div>
-                 <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-gray-900">Diversified Income Architecture</h2>
-                 <p className="text-xl text-gray-500 max-w-2xl mx-auto">
+                 <h2 className="text-4xl md:text-6xl font-serif font-bold mb-6 text-foreground">Diversified Income Architecture</h2>
+                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                     Stop relying on a single source of income. Build a robust financial portfolio with zero technical barriers.
                  </p>
               </div>
@@ -211,19 +211,19 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         <SpecialPoolsSection />
 
         {/* Smart Pools Section (Existing Component Wrapper) */}
-        <div className="bg-gray-50">
+        <div className="bg-muted/50">
              <SmartPoolsSection />
         </div>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-24 relative overflow-hidden bg-white">
-           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-b from-indigo-50/50 to-transparent rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+        <section id="how-it-works" className="py-24 relative overflow-hidden bg-background">
+           <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-b from-primary/5 to-transparent rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
            
            <div className="max-w-7xl mx-auto px-6">
               <FadeIn>
                 <div className="text-center mb-20">
                    <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">How It Works</h2>
-                   <p className="text-gray-500 max-w-2xl mx-auto text-lg">Start your earning journey in four simple steps.</p>
+                   <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Start your earning journey in four simple steps.</p>
                 </div>
               </FadeIn>
 
@@ -258,12 +258,12 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         </section>
 
         {/* Why Users Trust Us Section */}
-        <section className="py-24 bg-gray-50 relative">
+        <section className="py-24 bg-muted/30 relative">
            <div className="max-w-7xl mx-auto px-6">
                <FadeIn>
                  <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-serif font-bold mb-6">Built on Financial Trust</h2>
-                    <p className="text-gray-500 max-w-2xl mx-auto text-lg">Engineered for security, compliance, and ethical growth.</p>
+                    <p className="text-muted-foreground max-w-2xl mx-auto text-lg">Engineered for security, compliance, and ethical growth.</p>
                  </div>
                </FadeIn>
 
@@ -297,44 +297,44 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         </section>
 
         {/* Customer Support Section */}
-        <section className="py-24 px-6 relative bg-white">
+        <section className="py-24 px-6 relative bg-background">
              <FadeIn>
-               <div className="max-w-6xl mx-auto bg-gradient-to-br from-white to-gray-50 border border-gray-100 rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-10 opacity-50"></div>
+               <div className="max-w-6xl mx-auto bg-gradient-to-br from-card to-muted border border-border rounded-[2.5rem] p-8 md:p-16 shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 -z-10 opacity-50"></div>
                   
                   <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
-                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                       <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold uppercase tracking-wider">
                           💬 We're Here To Help
                        </div>
-                       <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900">Dedicated Support & Resources</h2>
-                       <p className="text-gray-500 text-lg leading-relaxed">
+                       <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground">Dedicated Support & Resources</h2>
+                       <p className="text-muted-foreground text-lg leading-relaxed">
                           Your success is our priority. We provide multiple channels to ensure you never feel stuck or alone on your journey.
                        </p>
                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <a href="mailto:LetsEarnify@gmail.com" className="flex flex-col gap-2 p-5 bg-white border border-gray-100 rounded-2xl hover:border-indigo-200 hover:shadow-lg transition-all group cursor-pointer">
+                          <a href="mailto:LetsEarnify@gmail.com" className="flex flex-col gap-2 p-5 bg-card border border-border rounded-2xl hover:border-primary/50 hover:shadow-lg transition-all group cursor-pointer">
                              <div className="flex items-center gap-3">
-                                <span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg text-xl group-hover:scale-110 transition-transform">📧</span>
-                                <span className="font-bold text-gray-900 text-sm">Email Support</span>
+                                <span className="p-2 bg-primary/10 text-primary rounded-lg text-xl group-hover:scale-110 transition-transform">📧</span>
+                                <span className="font-bold text-foreground text-sm">Email Support</span>
                              </div>
-                             <span className="text-xs text-gray-400 pl-11">Opens default mail app</span>
+                             <span className="text-xs text-muted-foreground pl-11">Opens default mail app</span>
                           </a>
                           
-                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors">
-                             <span className="p-2 bg-purple-50 text-purple-600 rounded-lg text-xl">🎫</span>
-                             <span className="font-bold text-gray-900 text-sm">Ticket System</span>
+                          <div className="flex items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-border transition-colors">
+                             <span className="p-2 bg-purple-500/10 text-purple-600 rounded-lg text-xl">🎫</span>
+                             <span className="font-bold text-foreground text-sm">Ticket System</span>
                           </div>
 
-                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl hover:border-gray-200 transition-colors">
-                             <span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg text-xl">📚</span>
-                             <span className="font-bold text-gray-900 text-sm">Knowledge Base</span>
+                          <div className="flex items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-border transition-colors">
+                             <span className="p-2 bg-emerald-500/10 text-emerald-600 rounded-lg text-xl">📚</span>
+                             <span className="font-bold text-foreground text-sm">Knowledge Base</span>
                           </div>
 
-                          <div className="flex items-center gap-3 p-5 bg-white border border-gray-100 rounded-2xl opacity-80">
-                             <span className="p-2 bg-gray-50 text-gray-600 rounded-lg text-xl">💬</span>
+                          <div className="flex items-center gap-3 p-5 bg-card border border-border rounded-2xl opacity-80">
+                             <span className="p-2 bg-muted text-muted-foreground rounded-lg text-xl">💬</span>
                              <div>
-                                <span className="font-bold text-gray-900 text-sm block">Live Chat</span>
-                                <span className="inline-block text-[10px] uppercase font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mt-0.5">Coming Soon</span>
+                                <span className="font-bold text-foreground text-sm block">Live Chat</span>
+                                <span className="inline-block text-[10px] uppercase font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded mt-0.5">Coming Soon</span>
                              </div>
                           </div>
                        </div>
@@ -449,11 +449,11 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         <FAQSection />
         
         {/* Final Emotional CTA Section */}
-        <section className="py-32 text-center px-6 bg-white">
+        <section className="py-32 text-center px-6 bg-background">
            <FadeIn>
              <div className="max-w-4xl mx-auto">
-                <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8">Ready to start your journey?</h2>
-                <p className="text-xl md:text-2xl text-gray-500 mb-12 font-light">
+                <h2 className="text-4xl md:text-6xl font-serif font-bold text-foreground mb-8">Ready to start your journey?</h2>
+                <p className="text-xl md:text-2xl text-muted-foreground mb-12 font-light">
                    Your financial freedom journey doesn't need a fortune to begin. 
                    Consistency is the key to unlocking digital opportunities.
                 </p>
@@ -477,43 +477,43 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
 
       </main>
 
-      <footer className="bg-white border-t border-gray-100 pt-20 pb-10">
+      <footer className="bg-card border-t border-border pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-6">
            <div className="grid md:grid-cols-4 gap-12 mb-16">
               <div className="col-span-1 md:col-span-1">
                  <Link href="/" className="text-2xl font-serif font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-6 inline-block">
                     Let'$Earnify
                  </Link>
-                 <p className="text-gray-500 text-sm leading-relaxed mt-4">
+                 <p className="text-muted-foreground text-sm leading-relaxed mt-4">
                     The ultimate platform for financial freedom. Join thousands of users growing their wealth today.
                  </p>
               </div>
               <div>
-                 <h4 className="font-bold mb-6 text-gray-900">Platform</h4>
-                 <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="/#features" className="hover:text-indigo-600 transition-colors">Features</Link></li>
-                    <li><Link href="/security" className="hover:text-indigo-600 transition-colors">Security & Trust</Link></li>
-                    <li><Link href="/about#how-it-works" className="hover:text-indigo-600 transition-colors">How it Works</Link></li>
+                 <h4 className="font-bold mb-6 text-foreground">Platform</h4>
+                 <ul className="space-y-4 text-sm text-muted-foreground">
+                    <li><Link href="/#features" className="hover:text-primary transition-colors">Features</Link></li>
+                    <li><Link href="/security" className="hover:text-primary transition-colors">Security & Trust</Link></li>
+                    <li><Link href="/about#how-it-works" className="hover:text-primary transition-colors">How it Works</Link></li>
                  </ul>
               </div>
               <div>
-                 <h4 className="font-bold mb-6 text-gray-900">Company</h4>
-                 <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="/about" className="hover:text-indigo-600 transition-colors">About Us</Link></li>
-                    <li><Link href="/stories" className="hover:text-indigo-600 transition-colors">Success Stories</Link></li>
-                    <li><Link href="/support" className="hover:text-indigo-600 transition-colors">Contact</Link></li>
+                 <h4 className="font-bold mb-6 text-foreground">Company</h4>
+                 <ul className="space-y-4 text-sm text-muted-foreground">
+                    <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                    <li><Link href="/stories" className="hover:text-primary transition-colors">Success Stories</Link></li>
+                    <li><Link href="/support" className="hover:text-primary transition-colors">Contact</Link></li>
                  </ul>
               </div>
               <div>
-                 <h4 className="font-bold mb-6 text-gray-900">Legal</h4>
-                 <ul className="space-y-4 text-sm text-gray-500">
-                    <li><Link href="/security" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link></li>
-                    <li><Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms of Service</Link></li>
-                    <li><Link href="/terms#risk-disclosure" className="hover:text-indigo-600 transition-colors">Risk Disclosure</Link></li>
+                 <h4 className="font-bold mb-6 text-foreground">Legal</h4>
+                 <ul className="space-y-4 text-sm text-muted-foreground">
+                    <li><Link href="/security" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                    <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                    <li><Link href="/terms#risk-disclosure" className="hover:text-primary transition-colors">Risk Disclosure</Link></li>
                  </ul>
               </div>
            </div>
-           <div className="text-center text-sm text-gray-400 border-t border-gray-100 pt-10">
+           <div className="text-center text-sm text-muted-foreground border-t border-border pt-10">
               © {new Date().getFullYear()} Let'$Earnify. All rights reserved.
            </div>
         </div>
@@ -590,18 +590,18 @@ function FeatureCard({ title, desc, icon, gradient, delay, badge }: { title: str
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -10, transition: { duration: 0.2 } }}
       viewport={{ once: true }}
-      className="p-8 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 group cursor-default relative overflow-hidden"
+      className="p-8 bg-card rounded-[2rem] shadow-sm border border-border hover:shadow-2xl transition-all duration-300 group cursor-default relative overflow-hidden"
     >
       {badge && (
-          <div className="absolute top-6 right-6 px-3 py-1 bg-gray-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute top-6 right-6 px-3 py-1 bg-foreground text-background text-[10px] font-bold uppercase tracking-widest rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {badge}
           </div>
       )}
       <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-3xl mb-8 text-white shadow-lg group-hover:scale-110 transition-transform duration-300`}>
         {icon}
       </div>
-      <h3 className="font-bold text-xl mb-4 text-gray-900 font-serif">{title}</h3>
-      <p className="text-gray-500 leading-relaxed text-sm">{desc}</p>
+      <h3 className="font-bold text-xl mb-4 text-foreground font-serif">{title}</h3>
+      <p className="text-muted-foreground leading-relaxed text-sm">{desc}</p>
     </motion.div>
   )
 }
@@ -614,11 +614,11 @@ function TrustCard({ title, desc, icon, color, hoverBorder, delay }: { title: st
        whileHover={{ scale: 1.02 }}
        transition={{ duration: 0.5, delay }}
        viewport={{ once: true }}
-       className={`p-10 bg-white rounded-[2rem] shadow-sm border border-gray-100 flex flex-col items-center text-center ${hoverBorder} transition-colors group`}
+       className={`p-10 bg-card rounded-[2rem] shadow-sm border border-border flex flex-col items-center text-center ${hoverBorder} transition-colors group`}
      >
         <div className={`w-20 h-20 ${color.split(' ')[0]} rounded-full flex items-center justify-center text-3xl mb-8 ${color.split(' ')[1]} group-hover:scale-110 transition-transform`}>{icon}</div>
         <h3 className="font-bold text-xl mb-3">{title}</h3>
-        <p className="text-gray-500 text-sm leading-relaxed">{desc}</p>
+        <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
      </motion.div>
   )
 }

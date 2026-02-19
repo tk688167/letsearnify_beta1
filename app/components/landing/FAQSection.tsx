@@ -29,11 +29,11 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-    <section className="py-24 bg-gray-50">
+    <section className="py-24 bg-muted/30">
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-          <p className="text-gray-500 text-lg">Clear answers to your most common questions.</p>
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-6">Frequently Asked Questions</h2>
+          <p className="text-muted-foreground text-lg">Clear answers to your most common questions.</p>
         </div>
 
         <div className="space-y-4">
@@ -50,14 +50,14 @@ function FAQItem({ faq }: { faq: { question: string, answer: string } }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-indigo-100 transition-colors">
+    <div className="bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/50 transition-colors">
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-6 text-left"
       >
-        <span className="font-bold text-lg text-gray-900">{faq.question}</span>
+        <span className="font-bold text-lg text-foreground">{faq.question}</span>
         <ChevronDownIcon 
-          className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} 
+          className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} 
         />
       </button>
       <AnimatePresence>
@@ -68,7 +68,7 @@ function FAQItem({ faq }: { faq: { question: string, answer: string } }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="px-6 pb-6 pt-0 text-gray-600 leading-relaxed border-t border-gray-50 mt-2 pt-4">
+            <div className="px-6 pb-6 pt-0 text-muted-foreground leading-relaxed border-t border-border/50 mt-2 pt-4">
               {faq.answer}
             </div>
           </motion.div>

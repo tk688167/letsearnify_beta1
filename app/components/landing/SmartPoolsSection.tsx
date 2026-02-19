@@ -10,18 +10,18 @@ import {
 
 export default function SmartPoolsSection() {
   return (
-    <section className="py-24 bg-gradient-to-b from-gray-50 to-white text-gray-900 relative overflow-hidden animate-in fade-in duration-700 slide-in-from-bottom-8">
+    <section className="py-24 bg-gradient-to-b from-muted to-background text-foreground relative overflow-hidden animate-in fade-in duration-700 slide-in-from-bottom-8">
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
             Profit Sharing Ecosystem
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 text-gray-900">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 text-foreground">
             Core Income Allocations
           </h2>
-          <div className="h-1 w-20 bg-blue-600 mx-auto rounded-full mb-6"></div>
-          <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+          <div className="h-1 w-20 bg-primary mx-auto rounded-full mb-6"></div>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
             Automated Mudaraba distribution channels. Transparent profit routing based on active participation.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function SmartPoolsSection() {
           >
             Start with $1 Today <span aria-hidden="true">&rarr;</span>
           </Link>
-          <p className="mt-4 text-sm text-gray-400">Secure & Transparent • Automated Distribution</p>
+          <p className="mt-4 text-sm text-muted-foreground">Secure & Transparent • Automated Distribution</p>
         </div>
       </div>
     </section>
@@ -88,17 +88,17 @@ export default function SmartPoolsSection() {
 
 function PoolCard({ title, subtitle, desc, motivation, icon, gradient, delay }: any) {
   return (
-    <div className={`p-8 bg-white rounded-3xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group flex flex-col ${delay} animate-in fade-in slide-in-from-bottom-4`}>
+    <div className={`p-8 bg-card rounded-3xl shadow-sm border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group flex flex-col ${delay} animate-in fade-in slide-in-from-bottom-4`}>
       <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform`}>
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-gray-900 mb-1 font-serif group-hover:text-blue-600 transition-colors">{title}</h3>
-      <div className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">{subtitle}</div>
-      <p className="text-gray-500 text-sm leading-relaxed mb-6 flex-1">
+      <h3 className="text-xl font-bold text-foreground mb-1 font-serif group-hover:text-primary transition-colors">{title}</h3>
+      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{subtitle}</div>
+      <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1">
         {desc}
       </p>
-      <div className="pt-6 border-t border-gray-50 mt-auto">
-        <p className="text-sm font-medium text-blue-600 italic">
+      <div className="pt-6 border-t border-border mt-auto">
+        <p className="text-sm font-medium text-primary italic">
           "{motivation}"
         </p>
       </div>

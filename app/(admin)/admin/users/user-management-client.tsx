@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { UserCircleIcon, ShieldCheckIcon, MagnifyingGlassIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
-import UserActions from "./user-actions"
+import UserActions from "@/app/(admin)/admin/users/user-actions"
 import { formatUserId } from "@/lib/utils"
 
 type User = {

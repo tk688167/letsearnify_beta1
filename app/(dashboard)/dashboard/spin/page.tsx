@@ -16,11 +16,13 @@ export default async function SpinPage() {
   const session = await auth()
   
   // Fetch everything in parallel
-  const [user, freeRewardsDB, premiumRewardsDB, spinSettings] = await Promise.all([
+  let [user, freeRewardsDB, premiumRewardsDB, spinSettings] = await Promise.all([
       prisma.user.findUnique({
           where: { id: session?.user?.id },
           select: { 
               id: true, 
+              name: true,
+              email: true,
               isActiveMember: true, 
               lastSpinTime: true,
               lastPremiumSpinTime: true,
@@ -47,7 +49,21 @@ export default async function SpinPage() {
       textColor: r.textColor || undefined
   })) : PREMIUM_REWARDS
 
-  if (!user) return <div>User not found</div>
+  if (!user) {
+      if (session?.user?.id === "super-admin-id") {
+          user = {
+              id: "super-admin-id",
+              name: "Super Admin",
+              email: "admin@letsearnify.com",
+              isActiveMember: true,
+              lastSpinTime: null,
+              lastPremiumSpinTime: null,
+              premiumBonusSpins: 0
+          };
+      } else {
+          return <div>User not found</div>
+      }
+  }
 
   const now = new Date()
 
@@ -86,11 +102,11 @@ export default async function SpinPage() {
             }}
           ></div>
           <div className="relative z-10">
-              <h1 className="text-2xl md:text-5xl font-black tracking-tight drop-shadow-md flex items-center justify-center gap-2 md:gap-3">
-                 <SparklesIcon className="w-6 h-6 md:w-10 md:h-10 text-yellow-400 animate-pulse" />
+              <h1 className="text-xl md:text-3xl font-black tracking-tight drop-shadow-md flex items-center justify-center gap-2 md:gap-3">
+                 <SparklesIcon className="w-5 h-5 md:w-8 md:h-8 text-yellow-400 animate-pulse" />
                  Spin & Win <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">Rewards</span>
               </h1>
-              <p className="text-gray-300 text-xs md:text-lg max-w-2xl mx-auto px-4">
+              <p className="text-gray-300 text-[10px] md:text-sm max-w-2xl mx-auto px-4">
                   Free Spin every <span className="font-bold text-white">{spinSettings.freeSpinCooldownHours} hours</span>. Join Premium to spin <span className="font-bold text-yellow-400">Daily</span>!
               </p>
           </div>
@@ -114,7 +130,7 @@ export default async function SpinPage() {
                    </div>
                    
                    {/* Free Spin Tab */}
-                   <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-gradient-to-b from-white to-gray-50 outline-none animate-in fade-in zoom-in-95 duration-300">
+                   <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-2 md:p-8 bg-gradient-to-b from-white to-gray-50 outline-none animate-in fade-in zoom-in-95 duration-300">
                        <div className="mb-6 flex flex-col items-center gap-2">
                             {freeCooldownDate ? (
                                 <div className="flex flex-col items-center gap-1">
@@ -139,7 +155,7 @@ export default async function SpinPage() {
                    </TabsContent>
 
                    {/* Premium Spin Tab */}
-                   <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-50 via-white to-gray-50 outline-none animate-in fade-in zoom-in-95 duration-300 relative">
+                   <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-2 md:p-8 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-50 via-white to-gray-50 outline-none animate-in fade-in zoom-in-95 duration-300 relative">
                        {/* Premium Info Overlay if locked */}
                        {!user.isActiveMember && (
                            <div className="absolute inset-0 z-40 bg-white/60 backdrop-blur-md flex flex-col items-center justify-center text-center p-6">

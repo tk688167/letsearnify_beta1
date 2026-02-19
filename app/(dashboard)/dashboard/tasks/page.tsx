@@ -33,7 +33,18 @@ export default async function TasksPage() {
 
   const { platformTasks: platformTasksRaw, user, isOffline } = await getTaskData(session.user.id);
   
-  // Filter platform tasks (company status check could be moved to service, but keeping here for safety)
+  if (!user) {
+      return (
+          <div className="flex items-center justify-center min-h-[400px]">
+              <div className="text-center">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Account Not Ready</h2>
+                  <p className="text-gray-500">Please contact support if this persists.</p>
+              </div>
+          </div>
+      )
+  }
+
+  // Filter platform tasks
   const platformTasks = (platformTasksRaw as unknown as PlatformTask[]).filter(t => !t.company || t.company.status === "ACTIVE")
 
   // ------------------------------------------------------------------

@@ -132,196 +132,176 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     }
 
     return (
-        <div className="space-y-6 md:space-y-8 max-w-6xl mx-auto pb-12 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
             
-            {/* Feedback Toast */}
-            <AnimatePresence>
-                {feedback && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: -50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -50 }}
-                        className="fixed top-4 left-4 right-4 sm:top-6 sm:right-6 sm:left-auto z-[60]"
-                    >
-                        <div className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl shadow-2xl ${feedback.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white font-bold flex items-center gap-2 sm:gap-3 text-sm sm:text-base`}>
-                            {feedback.type === 'success' && <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6" />}
-                            {feedback.message}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Proof Submission Modal */}
-            <AnimatePresence>
-                {selectedTask && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            onClick={() => setSelectedTask(null)}
-                        />
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white rounded-[2rem] p-6 sm:p-8 w-full max-w-lg relative z-50 shadow-2xl overflow-hidden"
-                        >
-                             <button onClick={() => setSelectedTask(null)} className="absolute top-4 right-4 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5 text-gray-500">
-                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                 </svg>
-                             </button>
-
-                             <h3 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 mb-2">Submit Proof</h3>
-                             <p className="text-gray-500 text-sm mb-6">
-                                 Upload a screenshot or provide proof that you completed: <span className="font-bold text-indigo-600">{selectedTask.title}</span>
-                             </p>
-
-                             {/* Tabs */}
-                             <div className="flex p-1 bg-gray-100 rounded-xl mb-6">
-                                 <button 
-                                    onClick={() => setProofType('image')}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${proofType === 'image' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                                 >
-                                     Screenshot
-                                 </button>
-                                 <button 
-                                    onClick={() => setProofType('text')}
-                                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${proofType === 'text' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                                 >
-                                     Text / Link
-                                 </button>
-                             </div>
-
-                             <form action={handleSubmitProof} className="space-y-4">
-                                 {proofType === 'image' ? (
-                                     <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:border-indigo-300 hover:bg-indigo-50/50 transition-colors cursor-pointer relative group">
-                                         <input 
-                                            type="file" 
-                                            name="file" // Changed to 'file' to match server action
-                                            accept="image/*"
-                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                         />
-                                         <div className="flex flex-col items-center gap-2 pointer-events-none">
-                                              <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
-                                                  <ArrowTopRightOnSquareIcon className="w-6 h-6 rotate-[-45deg]" /> {/* Access generic upload icon via generic icon lol */}
-                                                  {/* Actually use CloudArrowUpIcon if available, else generic */}
-                                              </div>
-                                              <span className="text-sm font-bold text-gray-700">Click to Upload Screenshot</span>
-                                              <span className="text-xs text-gray-400">Supports JPG, PNG (Max 5MB)</span>
-                                         </div>
-                                     </div>
-                                 ) : (
-                                     <div>
-                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Proof Details</label>
-                                         <textarea 
-                                             value={proofText}
-                                             onChange={(e) => setProofText(e.target.value)}
-                                             placeholder="Enter username, URL, or details..."
-                                             className="w-full h-32 px-4 py-3 rounded-2xl border border-gray-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none text-sm"
-                                         />
-                                     </div>
-                                 )}
-
-                                 <button 
-                                     disabled={isPending}
-                                     className="w-full py-3.5 bg-gray-900 hover:bg-indigo-600 text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-indigo-500/25 disabled:opacity-50 flex items-center justify-center gap-2"
-                                 >
-                                     {isPending ? <span className="animate-pulse">Submitting...</span> : 'Submit for Review'}
-                                 </button>
-                             </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* Hero Section ... */}
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-violet-700 text-white p-6 sm:p-8 md:p-12 shadow-2xl"
-            >
-                {/* Animated Background */}
-                <div className="absolute inset-0 opacity-20">
-                    <div className="absolute top-0 left-0 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse" />
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl animate-pulse delay-700" />
-                </div>
+            {/* ENHANCED HEADER SECTION */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 via-gray-900 to-black text-white shadow-xl">
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
+                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-amber-500 rounded-full blur-3xl opacity-20"></div>
                 
-                <div className="relative z-10">
-                    <div className="flex items-center gap-2 sm:gap-3 mb-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 backdrop-blur-md rounded-xl sm:rounded-2xl flex items-center justify-center">
-                            <BoltIcon className="w-5 h-5 sm:w-7 sm:h-7 text-blue-200" />
+                <div className="relative px-6 py-8 sm:px-10 sm:py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="text-center md:text-left max-w-xl">
+                        <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider text-amber-300 border border-white/10">
+                                Official Task Hub
+                            </span>
                         </div>
-                        <span className="px-3 py-1 sm:px-4 bg-white/20 backdrop-blur-md rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider">💰 Earning Opportunities</span>
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight">
+                            Earn More, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400">Faster.</span>
+                        </h1>
+                        <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
+                            Complete verified tasks to instantly earn ARN tokens. Access inclusive <span className="text-white font-bold">Premium Opportunities</span> and daily <span className="text-white font-bold">Basic Tasks</span> to accelerate your tier upgrades.
+                        </p>
                     </div>
-                    
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-3 sm:mb-4 leading-tight">
-                        Turn Your Time Into <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">ARN Earnings.</span>
-                    </h1>
-                    
-                    <p className="text-sm sm:text-base md:text-lg lg:text-xl text-indigo-100 max-w-2xl mb-6 sm:mb-8 leading-relaxed">
-                        Each task you complete credits <strong>real ARN tokens</strong> directly to your account. ARN gives you purchasing power within our ecosystem—upgrade tiers, unlock premium pools, and accelerate your earning potential.
-                    </p>
 
-                    {/* ARN Token Benefits */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
-                            <GiftIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 mb-1 sm:mb-2" />
-                            <h3 className="font-bold text-sm sm:text-base mb-1">Instant Payouts</h3>
-                            <p className="text-xs sm:text-sm text-indigo-100">ARN credited immediately</p>
+                    {/* DASHBOARD STYLE STATS */}
+                    <div className="flex gap-3 sm:gap-4 w-full md:w-auto justify-center">
+                        <div className="flex-1 md:flex-none min-w-[140px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center hover:bg-white/15 transition-colors">
+                             <div className="w-10 h-10 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-2 text-green-400">
+                                <CheckCircleIcon className="w-6 h-6" />
+                             </div>
+                             <div className="text-2xl font-bold text-white">{Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}</div>
+                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tasks Completed</div>
                         </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
-                            <TrophyIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 mb-1 sm:mb-2" />
-                            <h3 className="font-bold text-sm sm:text-base mb-1">Higher Tier = More Income</h3>
-                            <p className="text-xs sm:text-sm text-indigo-100">Spend ARN to unlock bigger rewards</p>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-white/20">
-                            <SparklesIcon className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 mb-1 sm:mb-2" />
-                            <h3 className="font-bold text-sm sm:text-base mb-1">Real Value</h3>
-                            <p className="text-xs sm:text-sm text-indigo-100">ARN has utility across the platform</p>
+                        <div className="flex-1 md:flex-none min-w-[140px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center hover:bg-white/15 transition-colors">
+                             <div className="w-10 h-10 mx-auto bg-indigo-500/20 rounded-full flex items-center justify-center mb-2 text-indigo-400">
+                                <SparklesIcon className="w-6 h-6" />
+                             </div>
+                             <div className="text-2xl font-bold text-white">{platformTasks.reduce((sum, t) => sum + t.reward, 0).toFixed(0)}</div>
+                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Earnings (ARN)</div>
                         </div>
                     </div>
-                </div>
-            </motion.div>
-
-            {/* Task Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
-                    <div className="text-xl sm:text-2xl font-bold text-gray-900">{platformTasks.length}</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wider">Earning Opportunities</div>
-                </div>
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">{Object.values(taskStates).filter(s => s.status === 'APPROVED').length}</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wider">Tasks Completed</div>
-                </div>
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
-                    <div className="text-xl sm:text-2xl font-bold text-blue-600">{platformTasks.reduce((sum, t) => sum + t.reward, 0).toFixed(0)} ARN</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wider leading-tight">Total Earnings Available</div>
-                </div>
-                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-sm">
-                    <div className="text-xl sm:text-2xl font-bold text-green-600">{Object.keys(taskStates).reduce((sum, id) => {
-                         const state = taskStates[id]
-                         if (state.status === 'APPROVED') {
-                             return sum + (platformTasks.find(t => t.id === id)?.reward || 0)
-                         }
-                         return sum
-                    }, 0).toFixed(0)} ARN</div>
-                    <div className="text-[10px] sm:text-xs text-gray-500 font-medium uppercase tracking-wider">Your Total Earnings</div>
                 </div>
             </div>
 
-            {/* Tasks Grid */}
+            {/* TASKS CONTAINER */}
             <div className="space-y-12">
-                {/* 1. BASIC TASKS (Free) */}
-                <div>
-                    <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
-                           <GiftIcon className="w-6 h-6 text-indigo-500" />
-                           Basic Tasks
-                           <span className="text-xs font-sans font-normal bg-green-100 text-green-700 px-2 py-1 rounded-full uppercase tracking-wider">Free Access</span>
-                        </h2>
+                
+                {/* 1. PREMIUM TASKS (Highlighted & Modern) */}
+                <section>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl text-amber-700 shadow-sm">
+                                 <TrophyIcon className="w-6 h-6" />
+                            </div>
+                            <div>
+                                 <h2 className="text-2xl font-bold text-gray-900">Premium Tasks</h2>
+                                 <p className="text-sm text-gray-500 font-medium">Exclusive high-reward opportunities.</p>
+                            </div>
+                        </div>
+                        {!userIsActive && (
+                            <div className="w-full sm:w-auto bg-amber-50 border border-amber-100 px-4 py-2 rounded-lg flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wide">
+                                    <BoltIcon className="w-4 h-4" /> Locked Access
+                                </div>
+                                <a href="/dashboard/wallet" className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-md transition-colors shadow-sm">
+                                    Unlock Now
+                                </a>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                        {platformTasks.filter(t => t.type !== 'SOCIAL').map((task, index) => {
+                            const state = taskStates[task.id]
+                            const isApproved = state?.status === 'APPROVED'
+                            const isPending = state?.status === 'PENDING'
+                            const isCompleted = isApproved 
+                            
+                            // Locked State Overlay
+                            if (!userIsActive) {
+                                return (
+                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-6 flex flex-col items-center justify-center text-center gap-4 overflow-hidden shadow-sm">
+                                        {/* Background Decoration */}
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                                        
+                                        <div className="relative z-20 flex flex-col items-center">
+                                            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
+                                                <TrophyIcon className="w-7 h-7" />
+                                            </div>
+                                            <h3 className="font-bold text-gray-900 text-lg">Premium Opportunity</h3>
+                                            <div className="flex items-center gap-2 text-sm font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
+                                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                                Reward: {task.reward.toFixed(0)} ARN
+                                            </div>
+                                            <p className="text-xs text-gray-400 max-w-[200px] mt-2 leading-relaxed">
+                                                Unlock this task and others by upgrading your account status.
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <a href="/dashboard/wallet" className="scale-110 shadow-xl px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 transform transition-transform hover:scale-115">
+                                                <BoltIcon className="w-4 h-4 text-amber-400" /> Unlock Access
+                                            </a>
+                                        </div>
+                                    </div>
+                                )
+                            }
+
+                            return (
+                                <motion.div
+                                    key={task.id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className={`relative bg-gradient-to-br from-card to-amber-50/50 dark:from-card dark:to-amber-900/10 rounded-2xl p-6 border transition-all duration-300 ${
+                                        isCompleted 
+                                            ? 'border-green-200 shadow-none' 
+                                            : 'border-amber-100 shadow-sm hover:shadow-lg hover:shadow-amber-100/50 hover:border-amber-300 hover:-translate-y-1'
+                                    }`}
+                                >
+                                    {isCompleted && (
+                                        <div className="absolute top-4 right-4 text-green-500 bg-green-50 rounded-full p-1">
+                                            <CheckCircleIcon className="w-5 h-5" />
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-start justify-between mb-4">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">
+                                            {task.type}
+                                        </span>
+                                    </div>
+                                    
+                                    <h3 className="font-bold text-gray-900 text-lg mb-3 leading-tight">
+                                        {task.title}
+                                    </h3>
+                                    
+                                    <div className="flex items-center justify-between pt-4 border-t border-amber-100/50">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] uppercase font-bold text-gray-400">Reward</span>
+                                            <div className="text-lg font-bold text-amber-600 flex items-center gap-1">
+                                                <SparklesIcon className="w-5 h-5 text-amber-500" />
+                                                {task.reward.toFixed(0)} ARN
+                                            </div>
+                                        </div>
+                                        
+                                        {!isCompleted && !isPending && (
+                                            <button
+                                                onClick={() => handleTaskClick(task)}
+                                                className="px-5 py-2.5 bg-gray-900 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                            >
+                                                Start <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        {isPending && <span className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold border border-blue-100">Verifying...</span>}
+                                        {isCompleted && <span className="px-4 py-2 bg-green-50 text-green-600 rounded-lg text-xs font-bold border border-green-100">Paid out</span>}
+                                    </div>
+                                </motion.div>
+                            )
+                        })}
+                    </div>
+                </section>
+
+                {/* 2. BASIC TASKS (Clean & Professional) */}
+                <section>
+                    <div className="flex items-center gap-4 mb-6 border-t border-gray-100 pt-10">
+                        <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100">
+                             <GiftIcon className="w-6 h-6" />
+                        </div>
+                        <div>
+                             <h2 className="text-2xl font-bold text-gray-900">Basic Tasks</h2>
+                             <p className="text-sm text-gray-500 font-medium">Steady growth for everyone. No restrictions.</p>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -334,272 +314,71 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             return (
                                 <motion.div
                                     key={task.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className={`group relative bg-white rounded-xl sm:rounded-[2rem] p-4 sm:p-6 border-2 transition-all duration-300 ${
-                                        isApproved
-                                            ? 'border-green-200 bg-green-50/50' 
-                                            : isPending
-                                            ? 'border-blue-200 bg-blue-50/50'
-                                            : isRejected
-                                            ? 'border-red-200 bg-red-50/50'
-                                            : 'border-gray-100 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-100/50'
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className={`group relative bg-card rounded-2xl p-5 border transition-all duration-300 hover:shadow-md ${
+                                        isApproved ? 'border-green-200 bg-green-50/20 dark:border-green-800 dark:bg-green-900/10' : 
+                                        isPending ? 'border-blue-200 bg-blue-50/20 dark:border-blue-800 dark:bg-blue-900/10' :
+                                        isRejected ? 'border-red-200 bg-red-50/20 dark:border-red-800 dark:bg-red-900/10' : 'border-border hover:border-indigo-200 dark:hover:border-indigo-800'
                                     }`}
                                 >
-                                    {/* Completion Badge */}
-                                    {isApproved && (
-                                        <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-10">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 sm:border-4 border-white">
-                                                <CheckCircleIcon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Task Header */}
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                                                {task.type}
-                                            </span>
-                                            {task.company && (
-                                                <div className="flex items-center gap-1">
-                                                    {task.company.logoUrl && (
-                                                        <img src={task.company.logoUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
-                                                    )}
-                                                    <span className="text-xs text-gray-400 font-medium">{task.company.name}</span>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-3">
+                                            {task.company?.logoUrl ? (
+                                                <img src={task.company.logoUrl} alt="" className="w-8 h-8 rounded-full shadow-sm" />
+                                            ) : (
+                                                <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs font-bold border border-indigo-100">
+                                                    {task.company?.name?.[0] || 'L'}
                                                 </div>
                                             )}
+                                            <div className="flex flex-col">
+                                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wide">{task.company?.name || 'Platform'}</span>
+                                                <span className="text-[10px] text-gray-400">Sponsored</span>
+                                            </div>
                                         </div>
-                                        {/* Status Text for non-approved states */}
-                                        {isPending && <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-2 py-1 rounded-lg">Under Review</span>}
-                                        {isRejected && <span className="text-[10px] font-bold uppercase tracking-wider text-red-600 bg-red-100 px-2 py-1 rounded-lg">Action Required</span>}
+                                        {isApproved && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
+                                        {isRejected && <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded">Failed</span>}
                                     </div>
 
-                                    {/* ARN Reward Badge - Prominent */}
-                                    <div className="mb-3 sm:mb-4">
-                                        <div className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">You'll Earn:</div>
-                                        <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl ${
-                                            isApproved
-                                                ? 'bg-green-100 text-green-700' 
-                                                : isPending
-                                                ? 'bg-blue-100 text-blue-700'
-                                                : isRejected
-                                                ? 'bg-red-100 text-red-700'
-                                                : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg'
-                                        }`}>
-                                            <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                                            {task.reward.toFixed(0)} ARN
-                                        </div>
-                                    </div>
-
-                                    {/* Task Content */}
-                                    <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2 leading-tight">
+                                    <h3 className="font-bold text-gray-900 text-sm mb-4 min-h-[40px] line-clamp-2 leading-snug">
                                         {task.title}
                                     </h3>
-                                    <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 leading-relaxed line-clamp-3">
-                                        {task.description}
-                                    </p>
-                                    
-                                    {/* Rejection Remarks */}
-                                    {isRejected && state.remarks && (
-                                        <div className="mb-4 text-xs p-3 bg-white/60 border border-red-200 rounded-lg text-red-700">
-                                            <span className="font-bold">Admin Feedback:</span> {state.remarks}
-                                        </div>
-                                    )}
 
-                                    {/* Action Button */}
-                                    {isApproved ? (
-                                        <div className="w-full py-3 sm:py-3.5 bg-green-100 text-green-700 rounded-xl font-bold flex items-center justify-center gap-2 text-sm sm:text-base">
-                                            <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                                            ✓ Completed
+                                    <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-auto">
+                                        <div className="text-sm font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md">
+                                            +{task.reward} ARN
                                         </div>
-                                    ) : isPending ? (
-                                        <div className="w-full py-3 sm:py-3.5 bg-blue-100 text-blue-700 rounded-xl font-bold flex items-center justify-center gap-2 text-sm sm:text-base cursor-not-allowed">
-                                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                                            Pending Review
-                                        </div>
-                                     ) : (
-                                        <button
-                                            onClick={() => handleTaskClick(task)}
-                                            disabled={isPending} // Global loading state
-                                            className={`w-full py-3 sm:py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-50 text-sm sm:text-base ${
-                                                isRejected 
-                                                ? 'bg-red-600 text-white hover:bg-red-700' 
-                                                : 'bg-gray-900 hover:bg-indigo-600 text-white'
-                                            }`}
-                                        >
-                                            {task.link && <ArrowTopRightOnSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                                            {isRejected ? 'Fix & Resubmit' : `Earn ${task.reward.toFixed(0)} ARN`}
-                                            {!task.link && <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                                        </button>
-                                    )}
+                                        
+                                        {!isApproved && !isPending && (
+                                            <button
+                                                onClick={() => handleTaskClick(task)}
+                                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                    isRejected 
+                                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+                                                    : 'bg-card text-foreground border border-border hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
+                                                }`}
+                                            >
+                                                {isRejected ? 'Retry Task' : 'Start Task'}
+                                            </button>
+                                        )}
+                                        {isPending && <span className="text-xs font-medium text-blue-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
+                                        {isApproved && <span className="text-xs font-medium text-green-600">Completed</span>}
+                                    </div>
                                 </motion.div>
                             )
                         })}
                     </div>
-                </div>
-
-                {/* 2. PREMIUM TASKS (Locked unless active member) */}
-                <div>
-                     <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <h2 className="text-xl sm:text-2xl font-serif font-bold text-gray-900 flex items-center gap-2">
-                           <TrophyIcon className="w-6 h-6 text-amber-500" />
-                           Premium Tasks
-                           {!userIsActive && (
-                               <span className="text-xs font-sans font-normal bg-amber-100 text-amber-800 px-2 py-1 rounded-full uppercase tracking-wider">Locked</span>
-                           )}
-                        </h2>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                        {platformTasks.filter(t => t.type !== 'SOCIAL').map((task, index) => {
-                            const state = taskStates[task.id]
-                            const isApproved = state?.status === 'APPROVED'
-                            const isPending = state?.status === 'PENDING'
-                            const isRejected = state?.status === 'REJECTED'
-                            
-                            const isCompleted = isApproved // For backward compatibility with variable name in current scope
-                            
-                            // Locked State Overlay
-                            if (!userIsActive) {
-                                return (
-                                    <div key={task.id} className="relative group bg-gray-50 rounded-xl sm:rounded-[2rem] p-4 sm:p-6 border-2 border-dashed border-gray-200 opacity-75 hover:opacity-100 transition-all overflow-hidden">
-                                        <div className="absolute inset-0 z-20 backdrop-blur-[2px] bg-white/40 flex flex-col items-center justify-center text-center p-4">
-                                            <div className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center mb-3 shadow-xl">
-                                                <BoltIcon className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="font-bold text-gray-900 mb-1">Unlock Premium Task</h3>
-                                            <p className="text-xs text-gray-600 mb-3 max-w-[200px]">Deposit $1.00 or more to access high-reward tasks.</p>
-                                            <a href="/dashboard/wallet" className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-lg hover:bg-indigo-700 transition-colors">
-                                                Unlock Now
-                                            </a>
-                                        </div>
-                                        {/* Blurred Content Preview */}
-                                        <div className="blur-sm select-none pointer-events-none">
-                                            <div className="flex justify-between mb-4">
-                                                <span className="px-3 py-1 bg-gray-200 text-gray-500 text-[10px] font-bold rounded-full">{task.type}</span>
-                                            </div>
-                                            <div className="mb-4">
-                                                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">You'll Earn:</div>
-                                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-xl font-bold text-lg">
-                                                    <SparklesIcon className="w-5 h-5" />
-                                                    {task.reward.toFixed(0)} ARN
-                                                </div>
-                                            </div>
-                                            <h3 className="font-bold text-gray-800 text-lg mb-2">{task.title}</h3>
-                                            <p className="text-gray-400 text-xs line-clamp-2">{task.description}</p>
-                                        </div>
-                                    </div>
-                                )
-                            }
-
-                            // Unlocked Premium Task
-                            return (
-                                <motion.div
-                                    key={task.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className={`group relative bg-white rounded-xl sm:rounded-[2rem] p-4 sm:p-6 border-2 transition-all duration-300 ${
-                                        isCompleted 
-                                            ? 'border-green-200 bg-green-50/50' 
-                                            : 'border-amber-100 hover:border-amber-300 hover:shadow-2xl hover:shadow-amber-100/50'
-                                    }`}
-                                >
-                                    {/* Premium Badge */}
-                                    <div className="absolute top-0 right-0 bg-amber-400 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-[1.8rem]">
-                                        PREMIUM
-                                    </div>
-
-                                    {/* Completion Badge */}
-                                    {isCompleted && (
-                                        <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-10">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 sm:border-4 border-white">
-                                                <CheckCircleIcon className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Task Header */}
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                                                {task.type}
-                                            </span>
-                                            {task.company && (
-                                                <div className="flex items-center gap-1">
-                                                    {task.company.logoUrl && (
-                                                        <img src={task.company.logoUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
-                                                    )}
-                                                    <span className="text-xs text-gray-400 font-medium">{task.company.name}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* ARN Reward Badge - Prominent */}
-                                    <div className="mb-3 sm:mb-4">
-                                        <div className="text-xs sm:text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2">You'll Earn:</div>
-                                        <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl ${
-                                            isCompleted 
-                                                ? 'bg-green-100 text-green-700' 
-                                                : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg'
-                                        }`}>
-                                            <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                                            {task.reward.toFixed(0)} ARN
-                                        </div>
-                                    </div>
-
-                                    {/* Task Content */}
-                                    <h3 className="font-bold text-gray-900 text-base sm:text-lg mb-2 leading-tight">
-                                        {task.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-xs sm:text-sm mb-4 sm:mb-6 leading-relaxed line-clamp-3">
-                                        {task.description}
-                                    </p>
-
-                                    {/* Action Button */}
-                                    {isCompleted ? (
-                                        <div className="w-full py-3 sm:py-3.5 bg-green-100 text-green-700 rounded-xl font-bold flex items-center justify-center gap-2 text-sm sm:text-base">
-                                            <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                                            ✓ Submitted / Paid
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleTaskClick(task)}
-                                            disabled={isPending}
-                                            className="w-full py-3 sm:py-4 bg-gray-900 hover:bg-amber-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-50 text-sm sm:text-base"
-                                        >
-                                            {task.link && <ArrowTopRightOnSquareIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                                            {isPending ? 'Processing...' : `Earn ${task.reward.toFixed(0)} ARN`}
-                                            {!task.link && <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
-                                        </button>
-                                    )}
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                </div>
+                </section>
             </div>
-
-            {/* ARN Info Footer */}
-            <div className="bg-gradient-to-r from-gray-50 to-indigo-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-100">
-                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
-                    <InformationCircleIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600" />
-                    Why ARN Tokens Have Value
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 text-xs sm:text-sm text-gray-600 leading-relaxed">
-                    <div>
-                        <h4 className="font-bold text-gray-900 mb-1.5 sm:mb-2 text-sm sm:text-base">💰 What Makes ARN Valuable?</h4>
-                        <p>ARN is our platform's native digital asset with <strong>real utility</strong>. Every ARN token you earn can be spent to upgrade your tier, unlock premium investment pools, access exclusive features, and multiply your earning potential. It's not just points—it's purchasing power.</p>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-gray-900 mb-1.5 sm:mb-2 text-sm sm:text-base">🚀 How to Maximize Your ARN Earnings?</h4>
-                        <p>Complete all available tasks to accumulate ARN, then strategically invest your ARN to upgrade tiers. <strong>Higher tiers = higher commissions, bigger pool shares, and faster wealth growth.</strong> Your ARN balance is your key to financial acceleration.</p>
-                    </div>
-                </div>
-            </div>
+            
+            {/* Minimal Footer Info */}
+             <div className="mt-8 pt-8 border-t border-gray-100 text-center text-xs text-gray-400">
+                 <p className="flex items-center justify-center gap-2">
+                     <InformationCircleIcon className="w-4 h-4" />
+                     Tasks are verified within 24 hours. Rewards are credited immediately upon approval.
+                 </p>
+             </div>
         </div>
     )
 }

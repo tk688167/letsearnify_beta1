@@ -39,7 +39,33 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             }
         });
 
-        if (!user) return { user: null, referralTree: [], stats: { teamSize: 0, totalEarnings: 0, todayEarnings: 0 }, isOffline: false };
+        if (!user) {
+            if (userId === "super-admin-id") {
+                return {
+                    user: {
+                        id: userId,
+                        name: "Super Admin",
+                        email: "admin@letsearnify.com",
+                        tier: "EMERALD",
+                        memberId: "777777",
+                        referralCode: "SUPER-ADMIN",
+                        isActiveMember: true,
+                        balance: 5000.0,
+                        arnBalance: 1000,
+                        activeMembers: 10,
+                        referralsMade: []
+                    },
+                    referralTree: [],
+                    stats: {
+                        teamSize: 10,
+                        totalEarnings: 1500.0,
+                        todayEarnings: 25.0
+                    },
+                    isOffline: false
+                };
+            }
+            return { user: null, referralTree: [], stats: { teamSize: 0, totalEarnings: 0, todayEarnings: 0 }, isOffline: false };
+        }
 
         // Process Referral Tree
         let referralTree: any[] = [];

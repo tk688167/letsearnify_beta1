@@ -87,16 +87,17 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                 })
             }
             
-        } catch (e) {
-            setError("Network error")
+        } catch (e: any) {
+            controls.stop()
+            setError(e.message || "Network error. Please try again.")
         } finally {
             setIsSpinning(false)
         }
     }
 
     return (
-        <div className="flex flex-col items-center justify-center gap-6">
-            <div className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96">
+        <div className="flex flex-col items-center justify-center gap-4 sm:gap-6">
+            <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
                 {/* Visual Pointer */}
                 <div className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 z-20">
                     <div className="w-6 h-6 md:w-8 md:h-8 bg-white border-4 border-gray-800 rotate-45 transform shadow-lg" />
@@ -107,11 +108,10 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                     ref={wheelRef}
                     animate={controls}
                     className={`w-full h-full rounded-full border-4 md:border-8 shadow-2xl overflow-hidden relative ${
-                        type === "PREMIUM" ? "border-yellow-500 shadow-yellow-500/20" : "border-indigo-500 shadow-indigo-500/20"
+                        type === "PREMIUM" 
+                            ? "border-yellow-500 shadow-yellow-500/20 bg-[#1a1a1a]" 
+                            : "border-indigo-500 shadow-indigo-500/20 bg-white dark:bg-slate-900"
                     }`}
-                    style={{
-                        background: type === "PREMIUM" ? "#1a1a1a" : "#fff" 
-                    }}
                 >
                     {/* SVG Implementation for Perfect Segments */}
                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
@@ -144,14 +144,22 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                         x="50"
                                         y="50"
                                         fill={reward.textColor || (type === "PREMIUM" ? "#fff" : "#333")}
-                                        fontSize="6.5" 
-                                        fontWeight="800" 
+                                        fontSize="4.8" 
+                                        fontWeight="900" 
                                         textAnchor="middle" 
-                                        alignmentBaseline="middle"
-                                        transform={`rotate(${(i * segmentAngle) + (segmentAngle/2)}, 50, 50) translate(34, 0)`}
-                                        style={{ pointerEvents: 'none', userSelect: 'none' }} 
+                                        transform={`rotate(${(i * segmentAngle) + (segmentAngle/2)}, 50, 50) translate(35, 0)`}
+                                        style={{ pointerEvents: 'none', userSelect: 'none', letterSpacing: '-0.1px' }} 
                                      >
-                                         {reward.label}
+                                         {reward.label.split(' ').map((word, idx, arr) => (
+                                             <tspan 
+                                                 key={idx} 
+                                                 x="50" 
+                                                 dy={idx === 0 ? (arr.length > 1 ? "-1.8" : "1.5") : "4.8"}
+                                                 dominantBaseline="middle"
+                                             >
+                                                 {word}
+                                             </tspan>
+                                         ))}
                                      </text>
                                  </g>
                              )

@@ -6,6 +6,7 @@ import BackButton from "./components/BackButton";
 import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "./components/ui/CookieConsent";
+import { ThemeProvider } from "./components/theme-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -95,20 +96,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-gray-50 text-gray-900`}
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
       >
-        <ScrollToTop />
-        <BackButton />
-        <Toaster position="top-center" />
-        {/* <CookieConsent /> */}
-        {children}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <Tracker />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ScrollToTop />
+          <BackButton />
+          <Toaster position="top-center" />
+          {/* <CookieConsent /> */}
+          {children}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+          <Tracker />
+        </ThemeProvider>
       </body>
     </html>
   );

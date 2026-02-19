@@ -30,22 +30,41 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
                   orderBy: { createdAt: 'asc' }
               })
           ]);
+      } else if (session.user.id === "super-admin-id") {
+          // Handle Emergency Admin when not in DB
+          user = {
+              id: "super-admin-id",
+              name: "Super Admin",
+              email: "admin@letsearnify.com",
+              balance: 5000.0,
+              tier: "EMERALD",
+              arnBalance: 1000,
+              isActiveMember: true,
+              totalDeposit: 5000.0
+          };
+          [wallets, merchantSettings] = await Promise.all([
+              prisma.platformWallet.findMany(),
+              prisma.merchantCountry.findMany({
+                  include: { methods: true, contacts: true },
+                  orderBy: { createdAt: 'asc' }
+              })
+          ]);
       }
   } catch (error) {
       console.error("⚠️ Wallet Offline Mode:", error);
       user = {
           id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
+          name: session.user.name || "User",
+          email: session.user.email || "offline@local",
           balance: 0,
           tier: "NEWBIE",
-          arnBalance: 0
+          arnBalance: 0,
+          isActiveMember: false,
+          totalDeposit: 0
       } as any;
   }
   
-  
   if (!user) {
-      // Session exists but user not in DB (likely after flush)
       redirect("/login")
   }
 

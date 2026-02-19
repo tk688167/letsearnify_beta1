@@ -37,13 +37,29 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         getSpinSettings()
     ])
     
-    if (!user) throw new Error("User not found")
+    let userRecord = user;
+    if (!userRecord && userId === "super-admin-id") {
+        userRecord = {
+            id: userId,
+            createdAt: new Date(),
+            lastSpinTime: null,
+            lastPremiumSpinTime: null,
+            dailySpinCount: 0,
+            premiumBonusSpins: 0,
+            lastSurpriseDate: null,
+            isActiveMember: true,
+            arnBalance: 1000,
+            balance: 5000.0
+        } as any;
+    }
+
+    if (!userRecord) throw new Error("User not found")
 
     // 1. Cooldown Checks (Server Side)
     const now = new Date()
     
     if (type === "FREE") {
-        const lastSpin = user.lastSpinTime ? new Date(user.lastSpinTime) : null
+        const lastSpin = userRecord.lastSpinTime ? new Date(userRecord.lastSpinTime) : null
         
         // Dynamic Cooldown Check
         if (lastSpin) {
@@ -56,21 +72,18 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             }
         }
     } else if (type === "PREMIUM") {
-        // Dynamic Unlock Check (Active Member Logic usually handles this, but let's be safe if we want to change logic later)
-        if (!user.isActiveMember) {
-             // In future, could check totalDeposit >= spinSettings.premiumUnlockAmount specifically
+        if (!userRecord.isActiveMember) {
             return { success: false, message: `Unlock Premium Spins by depositing at least $${spinSettings.premiumUnlockAmount}.` }
         }
         
-        // Dynamic 24h Cooldown Check
-        const lastPremiumSpin = user.lastPremiumSpinTime ? new Date(user.lastPremiumSpinTime) : null
+        const lastPremiumSpin = userRecord.lastPremiumSpinTime ? new Date(userRecord.lastPremiumSpinTime) : null
         
         if (lastPremiumSpin) {
             const diffMs = now.getTime() - lastPremiumSpin.getTime()
             const diffHours = diffMs / (1000 * 60 * 60)
             
             if (diffHours < spinSettings.premiumSpinCooldownHours) {
-                if (user.premiumBonusSpins > 0) {
+                if (userRecord.premiumBonusSpins > 0) {
                     // Use bonus spin
                 } else {
                      const remainingHours = Math.ceil(spinSettings.premiumSpinCooldownHours - diffHours)
@@ -87,9 +100,9 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         textColor: r.textColor || undefined
     })) : (type === "FREE" ? FREE_REWARDS : PREMIUM_REWARDS)
     
-    // A. Newbie Logic (First X Days -> Better Odds)
+    // A. Newbie Logic
     if (type === "FREE") {
-        const createdAt = new Date(user.createdAt) 
+        const createdAt = new Date(userRecord.createdAt) 
         const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
         
         if (daysSinceCreation <= spinSettings.welcomeBonusDays) {
@@ -97,8 +110,8 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
     }
 
-    // B. Monthly Surprise Logic (Dynamic Interval)
-    const lastSurprise = user.lastSurpriseDate ? new Date(user.lastSurpriseDate) : null
+    // B. Monthly Surprise Logic
+    const lastSurprise = userRecord.lastSurpriseDate ? new Date(userRecord.lastSurpriseDate) : null
     let forceSurprise = false
     
     if (!lastSurprise || (Date.now() - lastSurprise.getTime()) > (spinSettings.surpriseGiftIntervalDays * 24 * 60 * 60 * 1000)) {
@@ -109,17 +122,13 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
 
     // RNG Selection
     let selectedReward: SpinReward | undefined
-    
     if (forceSurprise) {
         selectedReward = rewards.find(r => r.type === "SURPRISE")
     }
 
     if (!selectedReward) {
-        // Standard Weighted RNG
         const rand = Math.random()
         let cumulative = 0
-        
-        // Normalize probabilities if we filtered the list (for Newbies)
         const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
         const normalize = 1 / totalProb
 
@@ -132,10 +141,14 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
     }
     
-    if (!selectedReward) selectedReward = rewards[rewards.length - 1] // Fallback
+    if (!selectedReward) selectedReward = rewards[rewards.length - 1]
 
     // Apply Rewards
     try {
+        if (userId === "super-admin-id") {
+            return { success: true, reward: selectedReward, message: `[ADMIN SIM] You won ${selectedReward.label}!` }
+        }
+
         let logDescription = `Won ${selectedReward.label} in ${type} Spin`
 
         if (selectedReward.type === "ARN") {
@@ -151,8 +164,6 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                  data: { premiumBonusSpins: { increment: selectedReward.value } }
              })
         } else if (selectedReward.type === "SURPRISE") {
-             // Handle Surprise: Give a chunk of ARN or Money
-             // Implementation: Random gift
              const giftType = Math.random() > 0.5 ? "ARN" : "MONEY"
              const giftValue = giftType === "ARN" ? 25 : 0.50
              
@@ -161,29 +172,23 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
              
              logDescription = `Won SURPRISE GIFT (${giftType}: ${giftValue})`
              
-             // Update lastSurpriseDate
              await prisma.user.update({
                  where: { id: userId },
                  data: { lastSurpriseDate: new Date() }
              })
         }
         
-        // Update User State (Cooldowns / Counts)
         const updateData: any = {}
         if (type === "FREE") {
              updateData.lastSpinTime = new Date()
              updateData.dailySpinCount = { increment: 1 }
         } else if (type === "PREMIUM") {
-             // Independent tracking: Use lastPremiumSpinTime
-             // Only decrement bonus spins if we used one (bypass logic), otherwise just set timer
-             const lastPremiumSpin = user.lastPremiumSpinTime ? new Date(user.lastPremiumSpinTime) : null
+             const lastPremiumSpin = userRecord.lastPremiumSpinTime ? new Date(userRecord.lastPremiumSpinTime) : null
              const diffHours = lastPremiumSpin ? (now.getTime() - lastPremiumSpin.getTime()) / (1000 * 60 * 60) : 999
              
              if (diffHours >= spinSettings.premiumSpinCooldownHours) {
-                 // Used Daily Spin
                  updateData.lastPremiumSpinTime = new Date()
              } else {
-                 // Used Bonus Spin
                  updateData.premiumBonusSpins = { decrement: 1 }
              }
         }
@@ -193,7 +198,6 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             data: updateData
         })
         
-        // Log Activity
         await prisma.mLMLog.create({
             data: {
                 userId,

@@ -6,7 +6,7 @@ import { ArrowTrendingUpIcon, ShieldCheckIcon, ArrowRightIcon } from "@heroicons
 
 export default function SpecialPoolsSection() {
   return (
-    <section className="py-24 relative overflow-hidden bg-gray-50/50">
+    <section className="py-24 relative overflow-hidden bg-muted/30">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
          <div className="absolute top-1/4 -left-64 w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-[100px]"></div>
@@ -21,10 +21,10 @@ export default function SpecialPoolsSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-           <h2 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 mb-6 tracking-tight">
+           <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6 tracking-tight">
              Diversified Risk-Reward <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Portfolios</span>
            </h2>
-           <p className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
              From high-growth dynamic opportunities to rock-solid safety nets, our ecosystem is designed for every type of earner.
            </p>
         </motion.div>
@@ -42,7 +42,7 @@ export default function SpecialPoolsSection() {
              ]}
              icon={<ArrowTrendingUpIcon className="w-10 h-10 text-white" />}
              gradient="from-fuchsia-600 to-purple-600"
-             accent="bg-fuchsia-50 text-fuchsia-700"
+             accent="bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400"
              buttonColor="bg-fuchsia-600 hover:bg-fuchsia-700 shadow-fuchsia-500/20"
              delay={0.1}
           />
@@ -59,7 +59,7 @@ export default function SpecialPoolsSection() {
              ]}
              icon={<ShieldCheckIcon className="w-10 h-10 text-white" />}
              gradient="from-blue-600 to-cyan-600"
-             accent="bg-blue-50 text-blue-700"
+             accent="bg-blue-500/10 text-blue-600 dark:text-blue-400"
              buttonColor="bg-blue-600 hover:bg-blue-700 shadow-blue-500/20"
              delay={0.2}
           />
@@ -77,7 +77,7 @@ function PoolCard({ title, subtitle, desc, benefits, icon, gradient, accent, but
       whileHover={{ y: -8 }}
       transition={{ duration: 0.5, delay }}
       viewport={{ once: true }}
-      className="bg-white rounded-[2.5rem] p-8 md:p-12 border border-gray-100 shadow-xl shadow-gray-200/40 flex flex-col h-full relative overflow-hidden group"
+      className="bg-card rounded-[2.5rem] p-8 md:p-12 border border-border shadow-xl shadow-muted/20 flex flex-col h-full relative overflow-hidden group"
     >
        <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${gradient} opacity-5 rounded-bl-[100%] transition-opacity group-hover:opacity-10`}></div>
 
@@ -87,14 +87,14 @@ function PoolCard({ title, subtitle, desc, benefits, icon, gradient, accent, but
                 <div className={`inline-block px-4 py-1.5 rounded-full ${accent} text-xs font-bold uppercase tracking-wider mb-4`}>
                    {subtitle}
                 </div>
-                <h3 className="text-3xl font-bold font-serif text-gray-900">{title}</h3>
+                <h3 className="text-3xl font-bold font-serif text-foreground">{title}</h3>
              </div>
              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                 {icon}
              </div>
           </div>
           
-          <p className="text-gray-500 text-lg leading-relaxed mb-10 flex-1">
+          <p className="text-muted-foreground text-lg leading-relaxed mb-10 flex-1">
              {desc}
           </p>
           
@@ -102,7 +102,7 @@ function PoolCard({ title, subtitle, desc, benefits, icon, gradient, accent, but
              {benefits.map((benefit: string, i: number) => (
                <div key={i} className="flex items-center gap-3">
                   <div className={`w-5 h-5 rounded-full ${accent} flex items-center justify-center text-xs`}>✓</div>
-                  <span className="text-gray-600 font-medium">{benefit}</span>
+                  <span className="text-muted-foreground font-medium">{benefit}</span>
                </div>
              ))}
           </div>

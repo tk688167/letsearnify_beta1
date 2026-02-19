@@ -17,60 +17,60 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const email = (credentials.email as string).toLowerCase().trim();
+        const password = credentials.password as string;
+
+        // --- EMERGENCY ADMIN ACCESS (OFFLINE/RECOVERY) ---
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+
+        if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+          console.warn(`🚨 EMERGENCY BYPASS: Admin login detected (${adminEmail})`);
+          return {
+            id: "super-admin-id",
+            email: adminEmail,
+            name: "Super Admin",
+            role: "ADMIN",
+            image: null,
+            memberId: "777777",
+            isActiveMember: true,
+            totalDeposit: 5000.0,
+            emailVerified: new Date(),
+            referralCode: "SUPER-ADMIN",
+            arnBalance: 1000,
+            tier: "EMERALD",
+            tierStatus: "CURRENT"
+          } as any
+        }
+        // -------------------------------------------------
+
         try {
-            if (!credentials?.email || !credentials?.password) {
-                return null
-            }
+          const user = await prisma.user.findUnique({
+            where: { email }
+          })
 
-            const email = (credentials.email as string).toLowerCase().trim();
-            const password = credentials.password as string;
-
-            // --- EMERGENCY ADMIN ACCESS (OFFLINE/RECOVERY) ---
-            const adminEmail = process.env.ADMIN_EMAIL;
-            const adminPassword = process.env.ADMIN_PASSWORD;
-
-            if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
-                console.warn("🚨 Emergency Admin Login Used");
-                return {
-                    id: "super-admin-id",
-                    email: adminEmail,
-                    name: "Super Admin",
-                    role: "ADMIN",
-                    image: null,
-                    // Required User Fields
-                    memberId: "777777",
-                    isActiveMember: true,
-                    totalDeposit: 5000.0,
-                    emailVerified: new Date(),
-                    referralCode: "SUPER-ADMIN",
-                    arnBalance: 1000,
-                    tier: "EMERALD",
-                    tierStatus: "CURRENT"
-                } as any
-            }
-            // -------------------------------------------------
-            
-            const user = await prisma.user.findUnique({
-              where: { email }
-            })
-
-            if (!user || !user.password) {
-                return null
-            }
-
-            // --- AUTHENTICATED CHECK ---
-            const passwordsMatch = await bcrypt.compare(password, user.password)
-
-            if (passwordsMatch) {
-                console.log("✅ Login Successful for:", user.email)
-                return user
-            }
-            
-            console.log("❌ Login Failed: Password mismatch")
+          if (!user || !user.password) {
             return null
-        } catch (error) {
-            console.error("🔥 Auth Error (Authorizing):", error);
-            return null;
+          }
+
+          const passwordsMatch = await bcrypt.compare(password, user.password)
+
+          if (passwordsMatch) {
+            console.log("✅ Login Successful for:", user.email)
+            return user
+          }
+
+          console.log("❌ Login Failed: Password mismatch")
+          return null
+        } catch (dbError: any) {
+          console.error("💾 Database Connection Error during auth:", dbError.message);
+          // If we are here, it means the bypass failed (wrong creds) and DB is down.
+          // We throw a specific error that the frontend can catch
+          throw new Error("DATABASE_UNAVAILABLE");
         }
       }
     }),

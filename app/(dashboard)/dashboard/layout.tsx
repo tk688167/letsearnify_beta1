@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/auth"
 import MobileNav from "./mobile-nav"
 import { Sidebar } from "./sidebar"
+import { BottomNav } from "./BottomNav"
+import { SwipeContainer } from "./SwipeContainer"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   let session;
@@ -18,14 +20,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex h-screen bg-gray-50/50">
+    <div className="flex h-screen bg-background overflow-hidden transition-colors duration-300">
       {/* Sidebar */}
       <Sidebar session={session} />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-gray-50/50">
+      <main className="flex-1 overflow-y-auto bg-background pb-[80px] md:pb-0 relative transition-colors duration-300">
         <MobileNav session={session} />
-        {children}
+        
+        {/* Mobile Swipe Container + Children */}
+        <div className="md:block hidden h-full">
+            {children}
+        </div>
+        <div className="md:hidden block">
+            <SwipeContainer>
+                {children}
+            </SwipeContainer>
+        </div>
+
+        <BottomNav />
       </main>
     </div>
   )

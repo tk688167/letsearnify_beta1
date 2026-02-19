@@ -20,15 +20,64 @@ interface TierProgressProps {
 
 const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 
-// Refined Professional Themes (Subtle Accents)
+// Refined Professional Themes (Subtle Accents with Dark Mode Support)
 const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string }> = {
-    NEWBIE: { badge: "bg-gray-100 text-gray-700", border: "border-gray-200", text: "text-gray-900", icon: "🚀", bg: "from-gray-50 to-white", ring: "ring-gray-100" },
-    BRONZE: { badge: "bg-orange-50 text-orange-800", border: "border-orange-200", text: "text-orange-900", icon: "🥉", bg: "from-orange-50/50 to-white", ring: "ring-orange-100" },
-    SILVER: { badge: "bg-slate-100 text-slate-700", border: "border-slate-200", text: "text-slate-900", icon: "🥈", bg: "from-slate-50 to-white", ring: "ring-slate-100" },
-    GOLD:   { badge: "bg-yellow-50 text-yellow-800", border: "border-yellow-200", text: "text-yellow-900", icon: "🥇", bg: "from-yellow-50/50 to-white", ring: "ring-yellow-100" },
-    PLATINUM: { badge: "bg-slate-50 text-slate-800", border: "border-slate-300", text: "text-slate-900", icon: "💎", bg: "from-slate-100/50 to-white", ring: "ring-slate-200" },
-    DIAMOND: { badge: "bg-blue-50 text-blue-800", border: "border-blue-200", text: "text-blue-900", icon: "💠", bg: "from-blue-50/50 to-white", ring: "ring-blue-100" },
-    EMERALD: { badge: "bg-emerald-50 text-emerald-800", border: "border-emerald-200", text: "text-emerald-900", icon: "✳️", bg: "from-emerald-50/50 to-white", ring: "ring-emerald-100" },
+    NEWBIE: { 
+        badge: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300", 
+        border: "border-gray-200 dark:border-gray-700", 
+        text: "text-foreground", 
+        icon: "🚀", 
+        bg: "from-gray-50 to-white dark:from-gray-900 dark:to-gray-800", 
+        ring: "ring-gray-100 dark:ring-gray-800" 
+    },
+    BRONZE: { 
+        badge: "bg-orange-50 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200", 
+        border: "border-orange-200 dark:border-orange-800/50", 
+        text: "text-orange-900 dark:text-orange-100", 
+        icon: "🥉", 
+        bg: "from-orange-50/50 to-white dark:from-orange-950/40 dark:to-slate-900", 
+        ring: "ring-orange-100 dark:ring-orange-900/30" 
+    },
+    SILVER: { 
+        badge: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300", 
+        border: "border-slate-200 dark:border-slate-700", 
+        text: "text-slate-900 dark:text-white", 
+        icon: "🥈", 
+        bg: "from-slate-50 to-white dark:from-slate-900 dark:to-slate-950", 
+        ring: "ring-slate-100 dark:ring-slate-800" 
+    },
+    GOLD: { 
+        badge: "bg-yellow-50 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200", 
+        border: "border-yellow-200 dark:border-yellow-800/50", 
+        text: "text-yellow-900 dark:text-yellow-100", 
+        icon: "🥇", 
+        bg: "from-yellow-50/50 to-white dark:from-yellow-950/40 dark:to-slate-900", 
+        ring: "ring-yellow-100 dark:ring-yellow-900/30" 
+    },
+    PLATINUM: { 
+        badge: "bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-300", 
+        border: "border-slate-300 dark:border-slate-600", 
+        text: "text-slate-900 dark:text-white", 
+        icon: "💎", 
+        bg: "from-slate-100/50 to-white dark:from-slate-800/50 dark:to-slate-900", 
+        ring: "ring-slate-200 dark:ring-slate-800" 
+    },
+    DIAMOND: { 
+        badge: "bg-blue-50 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200", 
+        border: "border-blue-200 dark:border-blue-800/50", 
+        text: "text-blue-900 dark:text-blue-100", 
+        icon: "💠", 
+        bg: "from-blue-50/50 to-white dark:from-blue-950/40 dark:to-slate-900", 
+        ring: "ring-blue-100 dark:ring-blue-900/30" 
+    },
+    EMERALD: { 
+        badge: "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-200", 
+        border: "border-emerald-200 dark:border-emerald-800/50", 
+        text: "text-emerald-900 dark:text-emerald-100", 
+        icon: "✳️", 
+        bg: "from-emerald-50/50 to-white dark:from-emerald-950/40 dark:to-slate-900", 
+        ring: "ring-emerald-100 dark:ring-emerald-900/30" 
+    },
 }
 
 export function TierProgress({ currentTier, points, activeMembers, tierRules, referralCode }: TierProgressProps) {
@@ -89,99 +138,45 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
     }
 
     return (
-        <div className={`relative overflow-hidden rounded-[2rem] border ${style.border} bg-gradient-to-br ${style.bg} shadow-xl shadow-gray-200/50 col-span-full`}>
+        <div className={`relative overflow-hidden rounded-2xl border ${style.border} bg-gradient-to-br ${style.bg} shadow-sm col-span-full`}>
             
-            {/* Top Pattern Decoration */}
-            <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none select-none text-9xl">
-                {style.icon}
-            </div>
-
-            <div className="relative z-10 flex flex-col lg:flex-row">
+            <div className="relative z-10 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                 
-                {/* LEFT: Identity Section */}
-                <div className="flex-1 p-8 md:p-10 flex flex-col justify-center space-y-6">
+                {/* Identity & Status */}
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div className="text-4xl filter drop-shadow-sm">{style.icon}</div>
                     <div>
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 ${style.badge} border ${style.border}`}>
-                            <SparklesIcon className="w-3.5 h-3.5" />
-                            Current Status
-                        </span>
-                        <h2 className={`text-4xl md:text-5xl font-bold tracking-tight ${style.text} flex items-center gap-3`}>
-                            {currentTierName}
-                            <span className="text-4xl filter drop-shadow-sm">{style.icon}</span>
-                        </h2>
-                        <p className="text-gray-500 mt-3 max-w-md text-sm md:text-base leading-relaxed">
-                            You&apos;re currently earning at the <strong className={style.text}>{currentTierName}</strong> level. 
-                            {nextTier ? ` Upgrade to ${nextTierName} to unlock higher rewards.` : " You have reached the pinnacle of success!"}
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <h2 className={`text-xl font-bold tracking-tight ${style.text}`}>
+                                {currentTierName}
+                            </h2>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${style.badge} border ${style.border}`}>
+                                Current
+                            </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-medium">
+                            {nextTier ? " Keep climbing to unlock more rewards!" : "You have reached the top!"}
                         </p>
                     </div>
-
-                    {/* Referral Box (Styled) */}
-                    {referralCode && (
-                        <div className="w-full max-w-md">
-                             <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Your Referral Code</span>
-                             </div>
-                             <div className="flex items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md group">
-                                 <div className="flex-1 px-3 py-1 text-lg font-mono font-bold text-gray-800 tracking-wider">
-                                     {referralCode}
-                                 </div>
-                                 <button 
-                                    onClick={copyToClipboard}
-                                    className="px-4 py-2 bg-gray-50 hover:bg-indigo-50 text-gray-600 hover:text-indigo-600 rounded-lg text-xs font-bold uppercase tracking-wide border border-gray-200 transition-colors"
-                                 >
-                                     Copy
-                                 </button>
-                             </div>
-                        </div>
-                    )}
                 </div>
 
-                {/* RIGHT: Progress Section (Desktop Split) */}
+                {/* Progress Section */}
                 {nextTier && (
-                    <div className="lg:w-[400px] bg-white/50 backdrop-blur-md border-t lg:border-t-0 lg:border-l border-gray-100 p-8 md:p-10 flex flex-col justify-center gap-6">
+                    <div className="w-full sm:max-w-xs bg-white/60 dark:bg-black/20 rounded-xl border border-border/50 p-3">
+                       <div className="flex justify-between items-center mb-2">
+                           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Next: <span className={style.text}>{nextTierName}</span></span>
+                           <span className="text-xs font-bold text-foreground">{progress}%</span>
+                       </div>
                        
-                       <div className="flex items-center justify-between">
-                           <div>
-                               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-1">Next Milestone</h3>
-                               <div className="text-2xl font-bold text-gray-900">{nextTierName}</div>
-                           </div>
-                           <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white border border-gray-100 shadow-sm text-2xl`}>
-                               <ArrowTrendingUpIcon className="w-6 h-6 text-gray-400" />
-                           </div>
+                       <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                           <div 
+                               className={`h-full rounded-full transition-all duration-1000 ${style.badge.replace('text-', 'bg-').split(' ')[0]}`} 
+                               style={{ width: `${progress}%` }}
+                           ></div>
                        </div>
-
-                       {/* Progress Bar */}
-                       <div className="space-y-2">
-                           <div className="flex justify-between text-xs font-bold text-gray-500">
-                               <span>Progress</span>
-                               <span>{progress}%</span>
-                           </div>
-                           <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                               <div 
-                                   className={`h-full rounded-full transition-all duration-1000 ${style.badge.replace('text-', 'bg-').split(' ')[0]}`} 
-                                   style={{ width: `${progress}%` }}
-                               ></div>
-                           </div>
-                       </div>
-
-                       {/* Requirements Grid */}
-                       <div className="grid grid-cols-2 gap-4 pt-2">
-                           <div className="p-3 rounded-xl bg-white border border-gray-100 shadow-sm">
-                               <div className="text-xs text-gray-400 uppercase font-bold mb-1">ARN Tokens</div>
-                               <div className="text-lg font-bold text-gray-900">
-                                   {points} <span className="text-gray-400 text-xs font-normal">/ {targetPoints}</span>
-                               </div>
-                           </div>
-                           <div className="p-3 rounded-xl bg-white border border-gray-100 shadow-sm">
-                               <div className="text-xs text-gray-400 uppercase font-bold mb-1">Members</div>
-                               <div className="text-lg font-bold text-gray-900">
-                                   {activeMembers} <span className="text-gray-400 text-xs font-normal">/ {targetMembers}</span>
-                               </div>
-                           </div>
-                       </div>
-
                     </div>
                 )}
+
             </div>
         </div>
     )

@@ -69,11 +69,11 @@ function WelcomeSlider() {
     }, [])
 
     return (
-        <div className="w-full bg-white border-y border-gray-100/50 relative group h-10 sm:h-12 md:h-14 flex items-center overflow-hidden">
+        <div className="w-full bg-card border-y border-border relative group h-10 sm:h-12 md:h-14 flex items-center overflow-hidden">
             
             {/* Live Badge (Static) */}
-            <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center pl-2 sm:pl-4 pr-4 sm:pr-6 bg-gradient-to-r from-white via-white to-transparent">
-                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-red-50 text-red-600 rounded-md border border-red-100 shadow-sm">
+            <div className="absolute left-0 top-0 bottom-0 z-20 flex items-center pl-2 sm:pl-4 pr-4 sm:pr-6 bg-gradient-to-r from-card via-card to-transparent">
+                <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md border border-red-500/20 shadow-sm">
                     <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-red-500"></span>
@@ -83,7 +83,7 @@ function WelcomeSlider() {
             </div>
 
             {/* Gradient Fade Mask Right */}
-            <div className="absolute top-0 right-0 w-16 sm:w-32 h-full bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-16 sm:w-32 h-full bg-gradient-to-l from-card to-transparent z-20 pointer-events-none"></div>
 
             {/* Marquee Container */}
             <div className="flex items-center gap-6 sm:gap-8 md:gap-12 whitespace-nowrap animate-marquee group-hover:paused will-change-transform pl-[80px] sm:pl-[120px] md:pl-48">
@@ -96,26 +96,26 @@ function WelcomeSlider() {
                         </div>
                         
                         {/* Text Content */}
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-600">
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                             <span className={`text-[8px] sm:text-[10px] font-bold uppercase tracking-wider ${item.color} opacity-80`}>
                                 {item.category}
                             </span>
-                            <span className="w-0.5 h-2 sm:h-3 bg-gray-200 rounded-full"></span>
-                            <span className="font-medium text-gray-700 hidden sm:inline">
+                            <span className="w-0.5 h-2 sm:h-3 bg-border rounded-full"></span>
+                            <span className="font-medium text-foreground hidden sm:inline">
                                 {item.text}
                             </span>
-                            <span className="font-medium text-gray-700 sm:hidden text-[11px]">
+                            <span className="font-medium text-foreground sm:hidden text-[11px]">
                                 {item.text.length > 25 ? item.text.substring(0, 25) + '...' : item.text}
                             </span>
                             {item.amount && (
-                                <span className="font-mono font-bold text-gray-900 bg-gray-50 px-1 sm:px-1.5 py-0.5 rounded border border-gray-100 text-[10px] sm:text-xs">
+                                <span className="font-mono font-bold text-foreground bg-muted px-1 sm:px-1.5 py-0.5 rounded border border-border text-[10px] sm:text-xs">
                                     {item.amount}
                                 </span>
                             )}
                         </div>
 
                         {/* Separator */}
-                        <div className="w-1 h-1 rounded-full bg-gray-300 ml-4 sm:ml-6 md:ml-8 opacity-40"></div>
+                        <div className="w-1 h-1 rounded-full bg-muted-foreground/30 ml-4 sm:ml-6 md:ml-8"></div>
                     </div>
                 ))}
             </div>

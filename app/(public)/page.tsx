@@ -26,7 +26,7 @@ export default async function LandingPage() {
   const proofs = await getPayoutProofs()
 
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50"></div>}>
+    <Suspense fallback={<div className="min-h-screen bg-muted"></div>}>
        <LandingPageContent initialStats={stats} initialProofs={proofs} />
     </Suspense>
   )

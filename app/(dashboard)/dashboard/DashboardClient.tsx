@@ -22,7 +22,6 @@ import {
 import { formatCurrency, formatUserId, cn } from "@/lib/utils"
 import { CompanyPools } from "./CompanyPools"
 import { TierProgress } from "./TierProgress"
-import { CopyableText } from "./copyable-text"
 
 // Feature Configuration (Can be moved to DB/Env later)
 const FEATURE_FLAGS = {
@@ -53,10 +52,10 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
         >
            <div className="flex items-center gap-3 mb-2">
              <div className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border shadow-sm",
-                 user.tier === 'DIAMOND' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                 user.tier === 'PLATINUM' ? 'bg-slate-50 text-slate-700 border-slate-100' :
-                 user.tier === 'GOLD' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                 'bg-white text-gray-700 border-gray-100'
+                 user.tier === 'DIAMOND' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-800' :
+                 user.tier === 'PLATINUM' ? 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700' :
+                 user.tier === 'GOLD' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800' :
+                 'bg-card text-muted-foreground border-border'
              )}>
                 <span className={cn("w-2 h-2 rounded-full animate-pulse", 
                     user.tier === 'DIAMOND' ? 'bg-blue-500' :
@@ -65,22 +64,22 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
                 )}></span>
                 {user.tier} Member
              </div>
-             <div className="px-3 py-1 rounded-full bg-white border border-gray-100 text-[10px] font-bold text-gray-500 flex items-center gap-1.5 shadow-sm">
+             <div className="px-3 py-1 rounded-full bg-card border border-border text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 shadow-sm">
                 <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500"/>
                 Network Live
              </div>
            </div>
-           <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 leading-tight">
-             Hello, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{user.name?.split(' ')[0] || 'Partner'}</span>
+           <h1 className="text-md md:text-2xl font-serif font-bold text-foreground leading-tight">
+             Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 font-extrabold">{user.name || 'Partner'}</span>
            </h1>
-           <p className="text-gray-500 mt-1 text-sm md:text-base">Here is your financial command center.</p>
+           <p className="text-muted-foreground mt-1 text-xs md:text-sm">Here is your financial command center.</p>
         </motion.div>
 
         {/* Desktop Quick Actions (Optional, or can keep strictly in grid below) */}
       </header>
 
-      {/* 2. STATS OVERVIEW GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {/* 2. STATS OVERVIEW GRID (Desktop) */}
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatCard 
              title="Total ARN" 
              value={(user.arnBalance || 0).toFixed(0)} 
@@ -98,25 +97,102 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
              delay={0.2}
           />
           <StatCard 
-             title="Active Team" 
-             value={user.activeMembers.toString()} 
-             sub="Verified Referrals" 
-             icon={UserGroupIcon} 
-             color="indigo"
+             title="Pending Withdrawal" 
+             value={formatCurrency(user.pendingWithdrawal || 0)} 
+             sub="Processing" 
+             icon={ArrowUpTrayIcon} 
+             color="orange"
              delay={0.3}
           />
           <StatCard 
-             title="Current Tier" 
-             value={user.tier} 
-             sub="Member Status" 
-             icon={ShieldCheckIcon} 
+             title="Total Withdrawn" 
+             value={formatCurrency(user.totalWithdrawal || 0)} 
+             sub="Successful Payouts" 
+             icon={CheckIcon} 
              color="emerald"
              delay={0.4}
           />
       </div>
 
+      {/* 2b. STATS OVERVIEW (Mobile Redesign) - Fixed Hydration */}
+      <div className="md:hidden space-y-3">
+          {/* Main ARN Card (Wallet Style) - Compact */}
+          <motion.div 
+             initial={{ opacity: 0, y: 10 }}
+             animate={{ opacity: 1, y: 0 }}
+             className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-4 text-white shadow-lg shadow-blue-500/20"
+          >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none"></div>
+              
+              <div className="relative z-10 flex justify-between items-start">
+                  <div>
+                      <h3 className="text-blue-200 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1">
+                          <StarIcon className="w-3 h-3"/> Total ARN Balance
+                      </h3>
+                      <div className="text-3xl font-bold font-serif tracking-tight leading-none mb-1">
+                          {(user.arnBalance || 0).toFixed(0)} <span className="text-sm text-blue-200 font-sans">ARN</span>
+                      </div>
+                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm">
+                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency((user.arnBalance || 0) / 10)} USD</span>
+                      </div>
+                  </div>
+                  <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
+                      <SparklesIcon className="w-4 h-4 text-yellow-300"/>
+                  </div>
+              </div>
+          </motion.div>
+
+          {/* Compact 3-Grid - Reduced Text Sizes */}
+          <div className="grid grid-cols-3 gap-2">
+              {/* Earnings */}
+              <motion.div 
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: 0.1 }}
+                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5"
+              >
+                  <BanknotesIcon className="w-6 h-6 text-amber-500 mb-1.5"/>
+                  <div className="font-bold text-foreground text-xs leading-tight">{formatCurrency(user.totalDeposit || 0)}</div>
+                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Deposited</div>
+              </motion.div>
+
+              {/* Team */}
+              <motion.div 
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: 0.2 }}
+                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5"
+              >
+                  <UserGroupIcon className="w-5 h-5 text-indigo-500 mb-1.5"/>
+                  <div className="font-bold text-foreground text-xs leading-tight">{user.activeMembers}</div>
+                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Team</div>
+              </motion.div>
+
+              {/* Tier */}
+              <motion.div 
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 transition={{ delay: 0.3 }}
+                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5 relative overflow-hidden"
+              >
+                  <div className={cn("absolute inset-0 opacity-5", 
+                      user.tier === 'DIAMOND' ? 'bg-blue-500' :
+                      user.tier === 'PLATINUM' ? 'bg-slate-500' :
+                      user.tier === 'GOLD' ? 'bg-amber-500' : 'bg-green-500'
+                  )}></div>
+                  <ShieldCheckIcon className={cn("w-5 h-5 mb-1.5",
+                      user.tier === 'DIAMOND' ? 'text-blue-500' :
+                      user.tier === 'PLATINUM' ? 'text-slate-500' :
+                      user.tier === 'GOLD' ? 'text-amber-500' : 'text-emerald-500'
+                  )}/>
+                  <div className="font-bold text-foreground text-xs leading-tight truncate w-full px-1">{user.tier}</div>
+                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Tier</div>
+              </motion.div>
+          </div>
+      </div>
+
       {/* 3. ACTION HUB */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
           <ActionTile 
               href="/dashboard/wallet?tab=deposit" 
               icon={ArrowDownTrayIcon} 
@@ -154,7 +230,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
           <ActionTile 
               href="/dashboard/mudaraba" 
               icon={ChartBarIcon} 
-              label="Mudaraba Pool" 
+              label="Mudaraba" 
               sub="Investment" 
               color="indigo" 
               delay={0.5}
@@ -200,8 +276,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
       {/* 7. POOLS SECTION */}
       <div className="pt-8 relative">
           <div className="flex items-center gap-3 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 font-serif">Community Pools</h2>
-
+              <h2 className="text-2xl font-bold text-foreground font-serif">Community Pools</h2>
           </div>
           
           <div className="relative">
@@ -223,17 +298,17 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
 
 function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
     const colors: any = {
-        blue: "text-blue-600 bg-blue-50",
-        amber: "text-amber-600 bg-amber-50",
-        indigo: "text-indigo-600 bg-indigo-50",
-        emerald: "text-emerald-600 bg-emerald-50",
+        blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10",
+        amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10",
+        indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/10",
+        emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",
     }
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay, duration: 0.4 }}
-            className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all group"
+            className="p-6 bg-card rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all group"
         >
             <div className="flex justify-between items-start mb-4">
                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colors[color])}>
@@ -241,8 +316,8 @@ function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
                 </div>
             </div>
             <div className="space-y-1">
-                <div className="text-2xl font-bold text-gray-900 font-serif">{value}</div>
-                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</div>
+                <div className="text-2xl font-bold text-foreground font-serif">{value}</div>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{title}</div>
             </div>
         </motion.div>
     )
@@ -254,18 +329,18 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
     
     // Base colors
     const hoverColors: any = {
-        blue: "group-hover:text-blue-600 group-hover:border-blue-200 group-hover:bg-blue-50",
-        purple: "group-hover:text-purple-600 group-hover:border-purple-200 group-hover:bg-purple-50",
-        emerald: "group-hover:text-emerald-600 group-hover:border-emerald-200 group-hover:bg-emerald-50",
-        orange: "group-hover:text-orange-600 group-hover:border-orange-200 group-hover:bg-orange-50",
-        indigo: "group-hover:text-indigo-600 group-hover:border-indigo-200 group-hover:bg-indigo-50",
+        blue: "group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10",
+        purple: "group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:border-purple-200 dark:group-hover:border-purple-800/50 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/10",
+        emerald: "group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-200 dark:group-hover:border-emerald-800/50 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/10",
+        orange: "group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:border-orange-200 dark:group-hover:border-orange-800/50 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/10",
+        indigo: "group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-200 dark:group-hover:border-indigo-800/50 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/10",
     }
     const iconColors: any = {
-        blue: "text-blue-500 bg-blue-50",
-        purple: "text-purple-500 bg-purple-50",
-        emerald: "text-emerald-500 bg-emerald-50",
-        orange: "text-orange-500 bg-orange-50",
-        indigo: "text-indigo-500 bg-indigo-50",
+        blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
+        purple: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
+        emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+        orange: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
+        indigo: "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
     }
 
     // Locked/Dev State UI Overrides
@@ -275,32 +350,32 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: delay, duration: 0.4 }}
             className={cn(
-                "h-full p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden",
-                isLive ? cn("bg-white border-gray-100 cursor-pointer", hoverColors[color]) : "bg-gray-50 border-gray-200 cursor-not-allowed opacity-90"
+                "h-full p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden",
+                isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) : "bg-muted/50 border-border cursor-not-allowed opacity-90"
             )}
         >
-            <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors", 
-                isLive ? cn(iconColors[color], "group-hover:bg-white") : "bg-gray-200 text-gray-400"
+            <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mb-3 transition-colors", 
+                isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : "bg-muted text-muted-foreground"
             )}>
-                {isLocked ? <LockClosedIcon className="w-5 h-5"/> : isLive ? <Icon className="w-5 h-5"/> : <WrenchScrewdriverIcon className="w-5 h-5"/>}
+                {isLocked ? <LockClosedIcon className="w-4 h-4 md:w-5 md:h-5"/> : isLive ? <Icon className="w-4 h-4 md:w-5 md:h-5"/> : <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5"/>}
             </div>
             
-            <h3 className={cn("font-bold text-sm md:text-base transition-colors", isLive ? "text-gray-900 group-hover:text-inherit" : "text-gray-500")}>
+            <h3 className={cn("font-bold text-xs md:text-base transition-colors", isLive ? "text-foreground group-hover:text-inherit" : "text-muted-foreground")}>
                 {label}
             </h3>
-            <p className={cn("text-xs transition-colors", isLive ? "text-gray-400 group-hover:text-inherit/70" : "text-gray-400")}>
+            <p className={cn("text-[10px] md:text-xs transition-colors truncate", isLive ? "text-muted-foreground group-hover:text-inherit/70" : "text-muted-foreground/70")}>
                 {sub}
             </p>
 
             {/* Status Overlay Badge */}
             {!isLive && (
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-3 right-3 md:top-4 md:right-4">
                      {isLocked ? (
-                         <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
-                             <LockClosedIcon className="w-3 h-3 text-gray-500"/>
+                         <div className="w-5 h-5 md:w-6 md:h-6 bg-muted/80 rounded-full flex items-center justify-center">
+                             <LockClosedIcon className="w-3 h-3 text-muted-foreground"/>
                          </div>
                      ) : (
-                         <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-200">
+                         <span className="px-1.5 py-0.5 md:px-2 md:py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[8px] md:text-[9px] font-bold uppercase rounded border border-amber-200 dark:border-amber-800">
                              Dev
                          </span>
                      )}
@@ -315,27 +390,28 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
 
 function IdentityCard({ user }: any) {
     return (
-        <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-center">
-             <div className="flex items-center gap-5">
-                <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-xl shadow-inner border border-white">
+        <div className="p-6 bg-card rounded-2xl border border-border shadow-sm flex flex-col justify-center transition-colors">
+             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                <div className="w-16 h-16 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-xl shadow-inner border border-white dark:border-gray-700 shrink-0">
                     {user.name?.[0]?.toUpperCase() || "U"}
                 </div>
-                <div className="min-w-0 flex-1">
-                   <h3 className="font-bold text-gray-900 font-serif text-lg">Identity Card</h3>
-                   <p className="text-sm text-gray-500 mb-4">Your digital access keys.</p>
+                <div className="min-w-0 flex-1 w-full">
+                   <h3 className="font-bold text-foreground font-serif text-lg">Identity Card</h3>
+                   <p className="text-sm text-muted-foreground mb-6 sm:mb-4">Your digital access keys.</p>
                    
-                   <div className="space-y-3">
-                      <div className="flex items-center gap-3 justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
-                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">User ID</span>
-                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-bold text-gray-700">{formatUserId(user.memberId)}</span>
+                   <div className="space-y-4 sm:space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between p-3 sm:p-2 bg-muted/30 rounded-lg border border-border">
+                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">User ID</span>
+                         <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+                            <span className="font-mono text-sm font-bold text-foreground break-all">{formatUserId(user.memberId)}</span>
                             <CopyButton text={formatUserId(user.memberId)} />
                          </div>
                       </div>
-                      <div className="flex items-center gap-3 justify-between p-2 bg-gray-50 rounded-lg border border-gray-100">
-                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pl-1">Email</span>
-                         <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-sm font-medium text-gray-700 truncate">{user.email}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between p-3 sm:p-2 bg-muted/30 rounded-lg border border-border">
+                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">Email</span>
+                         <div className="flex items-center justify-between w-full sm:w-auto gap-3 min-w-0">
+                            <span className="text-sm font-medium text-foreground truncate">{user.email}</span>
+                            <CopyButton text={user.email} />
                          </div>
                       </div>
                    </div>
@@ -357,17 +433,17 @@ function ReferralCard({ user }: any) {
     const referralLink = origin ? `${origin}/?ref=${user.referralCode}` : "Loading..."
 
     return (
-        <div className="p-6 bg-gradient-to-br from-indigo-50 to-white rounded-2xl border border-indigo-100 flex flex-col justify-center shadow-sm relative overflow-hidden group">
+        <div className="p-6 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 rounded-2xl border border-indigo-100 dark:border-slate-800 flex flex-col justify-center shadow-sm relative overflow-hidden group transition-colors">
              {/* Decor */}
-             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100/50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-200/50 transition-colors"></div>
+             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/30 transition-colors"></div>
              
              <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
                    <div>
-                       <h3 className="font-bold text-indigo-900 font-serif text-lg">Partner Program</h3>
-                       <p className="text-sm text-indigo-600/80">Share your link to earn lifelong commissions.</p>
+                       <h3 className="font-bold text-indigo-900 dark:text-indigo-100 font-serif text-lg">Partner Program</h3>
+                       <p className="text-sm text-indigo-600/80 dark:text-indigo-300/80">Share your link to earn lifelong commissions.</p>
                    </div>
-                   <div className="p-2 bg-white rounded-lg shadow-sm text-indigo-500">
+                   <div className="p-2 bg-white dark:bg-indigo-900/20 rounded-lg shadow-sm text-indigo-500">
                        <UserGroupIcon className="w-6 h-6"/>
                    </div>
                 </div>
@@ -375,11 +451,11 @@ function ReferralCard({ user }: any) {
                 {user.referralCode ? (
                     <div className="space-y-3">
                         {/* 1. Referral Link (Primary) */}
-                        <div className="bg-white p-3 rounded-xl border border-indigo-100 shadow-sm">
+                        <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-indigo-100 dark:border-gray-700 shadow-sm">
                             <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Your Personal Link</label>
                             <div className="flex items-center gap-2">
                                 <div className="flex-1 overflow-hidden">
-                                     <p className="text-sm font-medium text-indigo-900 truncate bg-indigo-50/50 px-2 py-1.5 rounded-lg border border-indigo-100/50">
+                                     <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 truncate bg-indigo-50/50 dark:bg-indigo-900/30 px-2 py-1.5 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50">
                                         {referralLink}
                                      </p>
                                 </div>
@@ -391,13 +467,13 @@ function ReferralCard({ user }: any) {
                         <div className="flex items-center justify-between gap-3 px-1">
                              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Referral Code:</span>
                              <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-indigo-700">{user.referralCode}</span>
+                                <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300">{user.referralCode}</span>
                                 <CopyButton text={user.referralCode} />
                              </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">Referral code generating...</div>
+                    <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">Referral code generating...</div>
                 )}
              </div>
         </div>
@@ -418,7 +494,7 @@ function CopyButton({ text, color = "gray" }: { text: string, color?: string }) 
            className={cn("p-2 rounded-lg transition-all", 
                copied 
                    ? "bg-green-100 text-green-700 scale-110" 
-                   : color === "indigo" ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200" : "bg-white border border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                   : color === "indigo" ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200" : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
            )}
         >
             {copied ? <CheckIcon className="w-4 h-4"/> : <DocumentDuplicateIcon className="w-4 h-4"/>}

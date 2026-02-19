@@ -29,11 +29,11 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-24 bg-white overflow-hidden relative">
+    <section className="py-24 bg-background overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 mb-6">Trusted by Global Earners</h2>
-          <p className="text-gray-500 max-w-2xl mx-auto text-lg leading-relaxed">
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-foreground mb-6">Trusted by Global Earners</h2>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
             Join a community of thousands who are already building their digital wealth with transparency and security.
           </p>
         </div>
@@ -46,21 +46,21 @@ export default function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
               viewport={{ once: true }}
-              className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100 hover:shadow-lg transition-shadow"
+              className="bg-card rounded-[2rem] p-8 border border-border hover:shadow-lg transition-shadow"
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} className={`w-5 h-5 ${i < item.rating ? "text-amber-400" : "text-gray-300"}`} />
+                  <StarIcon key={i} className={`w-5 h-5 ${i < item.rating ? "text-amber-400" : "text-muted"}`} />
                 ))}
               </div>
-              <p className="text-gray-700 text-lg italic mb-6 leading-relaxed">"{item.content}"</p>
+              <p className="text-muted-foreground text-lg italic mb-6 leading-relaxed">"{item.content}"</p>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center font-bold text-indigo-700 text-xl">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xl">
                   {item.name.charAt(0)}
                 </div>
                 <div>
-                  <div className="font-bold text-gray-900">{item.name}</div>
-                  <div className="text-xs text-gray-500">{item.role} • {item.location}</div>
+                  <div className="font-bold text-foreground">{item.name}</div>
+                  <div className="text-xs text-muted-foreground">{item.role} • {item.location}</div>
                 </div>
               </div>
             </motion.div>

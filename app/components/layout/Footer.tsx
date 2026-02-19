@@ -10,6 +10,8 @@ import {
   PhoneIcon
 } from "@heroicons/react/24/outline"
 
+import Logo from "@/app/components/ui/Logo"
+
 export default function Footer() {
   return (
     <footer className="bg-gray-900 text-gray-300 py-12 border-t border-gray-800">
@@ -18,7 +20,9 @@ export default function Footer() {
           
           {/* 1. Brand & Mission */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-serif text-white font-bold tracking-tight">Let'$Earnify</h2>
+            <div className="mb-4">
+              <Logo variant="light" size="md" asLink={false} />
+            </div>
             <p className="text-sm leading-relaxed text-gray-400">
               The trusted digital ecosystem for earning online rewards, freelancing, and ethical investments. We bridge the gap between effort and financial freedom.
             </p>
