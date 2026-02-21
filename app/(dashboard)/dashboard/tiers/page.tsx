@@ -57,8 +57,7 @@ export default async function TierPage() {
               where: { earnerId: user.id },
               _sum: { amount: true }
            })
-           totalEarnings = totalEarningsAgg._sum.amount || 0
-      }
+       }
   } catch (error) {
       console.error("⚠️ Tiers Page Offline Mode:", error);
       tierConfig = { 
@@ -73,6 +72,15 @@ export default async function TierPage() {
       user = {
           tier: "NEWBIE",
           arnBalance: 0,
+          activeMembers: 0,
+      } as any;
+  }
+
+  // Anti-Gravity: Handle Super Admin
+  if (!user && session?.user?.id === "super-admin-id") {
+      user = {
+          tier: "EMERALD",
+          arnBalance: 1000,
           activeMembers: 0,
       } as any;
   }

@@ -2,7 +2,7 @@
 
 import React from "react"
 import LandingHeader from "../../components/LandingHeader"
-import Footer from "../../components/Footer"
+import Footer from "../layout/Footer"
 import InlineBackButton from "../ui/InlineBackButton"
 import { LockClosedIcon, EyeIcon, CircleStackIcon, ServerIcon } from "@heroicons/react/24/outline"
 
@@ -25,7 +25,7 @@ export default function PrivacyPageContent() {
                  Your privacy is not an option; it's a fundamental right. Here is how we protect it.
               </p>
               <div className="mt-8 text-sm text-gray-400">
-                 Effective Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                 Effective Date: <span suppressHydrationWarning>{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               </div>
            </div>
         </section>

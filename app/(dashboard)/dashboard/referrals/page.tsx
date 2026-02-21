@@ -13,7 +13,24 @@ export default async function ReferralsPage() {
   let tierConfig = await getTierRules();
   const { user, referralTree, stats, isOffline } = await getMlmData(session.user.id);
  
-  if (!user && !isOffline && (session.user as any)?.id !== "super-admin-id") redirect("/login")
+  let displayUser = user;
+  
+  // Anti-Gravity: Handle Super Admin
+  if (!displayUser && session.user.id === "super-admin-id") {
+      displayUser = {
+          name: "Super Admin",
+          tier: "EMERALD",
+          arnBalance: 1000,
+          referralCode: "SUPER-ADMIN",
+          balance: 5000,
+          activeMembers: 0,
+          referralsMade: []
+      } as any;
+      stats.teamSize = 0;
+      stats.totalEarnings = 5000;
+  }
+
+  if (!displayUser && !isOffline) redirect("/login")
   
   // Offline Fallback for Tier Config if needed (though getTierRules is likely static/lib)
   if (isOffline && !tierConfig) {
@@ -26,18 +43,18 @@ export default async function ReferralsPage() {
   const teamSize = stats.teamSize;
 
   return (
-    <div className="p-4 md:p-10 min-h-screen bg-gray-50/50">
+    <div className="p-4 md:p-10 min-h-screen bg-background">
 
        <ReferralView 
           user={{
-             name: user.name,
-             tier: user.tier,
-             arnBalance: user.arnBalance,
-             referralCode: user.referralCode,
-             balance: user.balance
+             name: displayUser.name,
+             tier: displayUser.tier,
+             arnBalance: displayUser.arnBalance,
+             referralCode: displayUser.referralCode,
+             balance: displayUser.balance
           }}
           stats={{
-             teamSize: user.activeMembers || stats.teamSize, // Use DB count if available (handles admin overrides), else tree
+             teamSize: displayUser.activeMembers || stats.teamSize, // Use DB count if available (handles admin overrides), else tree
              totalEarnings: stats.totalEarnings,
              todayEarnings: stats.todayEarnings
           }}
@@ -51,13 +68,13 @@ export default async function ReferralsPage() {
              createdAt: n.createdAt,
              level: n.level
           }))}
-          commissions={user.referralsMade.map((c: any) => ({
+          commissions={displayUser.referralsMade?.map((c: any) => ({
              id: c.id,
              amount: c.amount,
              level: c.level,
              sourceUser: c.sourceUser,
              createdAt: c.createdAt
-          }))}
+          })) || []}
        />
     </div>
   )

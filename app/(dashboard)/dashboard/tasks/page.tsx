@@ -33,12 +33,24 @@ export default async function TasksPage() {
 
   const { platformTasks: platformTasksRaw, user, isOffline } = await getTaskData(session.user.id);
   
-  if (!user) {
+  // Anti-Gravity: Handle Super Admin
+  let displayUser = user;
+  if (!displayUser && session.user.id === "super-admin-id") {
+      displayUser = {
+          id: "super-admin-id",
+          name: "Super Admin",
+          email: "admin@letsearnify.com",
+          isActiveMember: true,
+          totalDeposit: 5000
+      } as any;
+  }
+  
+  if (!displayUser) {
       return (
           <div className="flex items-center justify-center min-h-[400px]">
               <div className="text-center">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Account Not Ready</h2>
-                  <p className="text-gray-500">Please contact support if this persists.</p>
+                  <h2 className="text-xl font-bold text-foreground mb-2">Account Not Ready</h2>
+                  <p className="text-muted-foreground">Please contact support if this persists.</p>
               </div>
           </div>
       )
@@ -61,7 +73,7 @@ export default async function TasksPage() {
       // 2. Fetch Live Offers
       try {
           // Note: using '127.0.0.1' as fallback IP, but in prod you should get real IP from headers
-          const offers = await cpxAdapter.fetchOffers({ userId: user.id })
+          const offers = await cpxAdapter.fetchOffers({ userId: displayUser.id })
           
           // Map 'Offer' -> 'PlatformTask'
           externalTasks = offers.map(offer => ({
@@ -85,7 +97,7 @@ export default async function TasksPage() {
       }
 
       // 3. Generate Secure Wall URL
-      cfxUrl = cpxAdapter.getWallUrl(user.id, user.name || "User", user.email || "")
+      cfxUrl = cpxAdapter.getWallUrl(displayUser.id, displayUser.name || "User", displayUser.email || "")
   }
 
   // Merge Tasks: Platform (Internal) + External
@@ -94,7 +106,7 @@ export default async function TasksPage() {
   // ------------------------------------------------------------------
   // MANUAL ACCESS CONTROL (Free vs Premium)
   // ------------------------------------------------------------------
-  const isUnlocked = user && (user.isActiveMember || (user.totalDeposit ?? 0) >= 1.00);
+  const isUnlocked = displayUser && (displayUser.isActiveMember || (displayUser.totalDeposit ?? 0) >= 1.00);
 
   // Still check for Global "Coming Soon" config, but don't block basic task view
   const { getComingSoonConfig } = await import("@/app/actions/admin/settings")

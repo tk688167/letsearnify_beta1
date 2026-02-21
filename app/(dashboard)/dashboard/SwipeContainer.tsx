@@ -16,6 +16,17 @@ export function SwipeContainer({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [direction, setDirection] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768)
+    
+    // Initial check
+    handleResize()
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Find current index in nav list
   const currentIndex = navItems.indexOf(pathname)
@@ -28,6 +39,11 @@ export function SwipeContainer({ children }: { children: React.ReactNode }) {
       setDirection(swipeDirection)
       router.push(navItems[nextIndex])
     }
+  }
+
+  // Desktop: Render children directly without animation wrapper to avoid conflicts
+  if (isDesktop) {
+      return <div className="h-full w-full">{children}</div>
   }
 
   return (

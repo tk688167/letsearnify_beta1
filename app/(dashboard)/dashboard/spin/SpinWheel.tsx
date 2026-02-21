@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { SpinReward } from "@/lib/spin-config"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
@@ -48,27 +48,10 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
             }
 
             const wonReward = response.reward
-            // Find index of reward to calculate stop angle
-            // Note: Canvas/CSS rotation usually goes clockwise. 0 degrees is often at 3 o'clock or 12 o'clock.
-            // We need to align the winning segment to the pointer (usually at top/12 o'clock).
             const index = rewards.findIndex(r => r.label === wonReward.label)
             
-            // Calculate stop angle
-            // We want the winning segment to be at -90deg (top) or 270deg.
-            // Let's rely on relatively simple math:
-            // 360 - (index * angle) puts the start of the segment at 0.
-            // We want the MIDDLE of the segment at the top.
-            
-            const randomOffset = Math.random() * (segmentAngle - 4) + 2 // Random scatter within segment
+            const randomOffset = Math.random() * (segmentAngle - 4) + 2
             const fullRotations = 5 * 360 
-            
-            // If segment 0 is at 0-60deg. Center is 30deg.
-            // To get 30deg to top (270 or -90), we rotate backwards by 30+90 = 120?
-            // Let's stick to standard: Target Rotation = (360 * Rotations) - (Index * Angle) - (Angle / 2)
-            // But we need to account for the pointer position.
-            // Pointer is at Top (12 o'clock).
-            // CSS Rotate starts at 12 o'clock if we set initial CSS correctly? 
-            // Usually 0 is 12 o'clock in standard CSS transform if we don't adjust.
             
             const targetRotation = 360 * 5 + (360 - (index * segmentAngle) - (segmentAngle / 2))
             
@@ -98,9 +81,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     return (
         <div className="flex flex-col items-center justify-center gap-4 sm:gap-6">
             <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
-                {/* Visual Pointer */}
+                {/* Visual Pointer - dark mode aware */}
                 <div className="absolute -top-3 md:-top-4 left-1/2 -translate-x-1/2 z-20">
-                    <div className="w-6 h-6 md:w-8 md:h-8 bg-white border-4 border-gray-800 rotate-45 transform shadow-lg" />
+                    <div className="w-6 h-6 md:w-8 md:h-8 bg-secondary border-4 border-foreground/30 rotate-45 transform shadow-lg" />
                 </div>
 
                 {/* The Wheel */}
@@ -108,9 +91,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                     ref={wheelRef}
                     animate={controls}
                     className={`w-full h-full rounded-full border-4 md:border-8 shadow-2xl overflow-hidden relative ${
-                        type === "PREMIUM" 
+                        type === "PREMIUM"
                             ? "border-yellow-500 shadow-yellow-500/20 bg-[#1a1a1a]" 
-                            : "border-indigo-500 shadow-indigo-500/20 bg-white dark:bg-slate-900"
+                            : "border-indigo-500 shadow-indigo-500/20 bg-card"
                     }`}
                 >
                     {/* SVG Implementation for Perfect Segments */}
@@ -133,17 +116,14 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                      <path 
                                         d={pathData} 
                                         fill={reward.color.includes("gradient") ? "url(#grad_premium)" : reward.color} 
-                                        stroke="white"
+                                        stroke="rgba(0,0,0,0.15)"
                                         strokeWidth="0.5"
                                      />
-                                     {/* Text Label */}
-                                     {/* We need to position text in the middle of the segment */}
                                      {/* Text Label - Radially Aligned */}
-                                     {/* Rotate around center to point to segment, then move out */}
                                      <text
                                         x="50"
                                         y="50"
-                                        fill={reward.textColor || (type === "PREMIUM" ? "#fff" : "#333")}
+                                        fill={reward.textColor || "#fff"}
                                         fontSize="4.8" 
                                         fontWeight="900" 
                                         textAnchor="middle" 
@@ -177,9 +157,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
 
                 </motion.div>
 
-                {/* Center Cap */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center z-10 border-4 border-gray-100">
-                    <span className="font-bold text-gray-800 text-xs text-center leading-tight">
+                {/* Center Cap - dark mode aware */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-card rounded-full shadow-lg flex items-center justify-center z-10 border-4 border-border">
+                    <span className="font-bold text-card-foreground text-xs text-center leading-tight">
                         {type}<br/>WIN
                     </span>
                 </div>
@@ -191,11 +171,11 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                             initial={{ opacity: 0 }} 
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-black/60 rounded-full backdrop-blur-sm flex flex-col items-center justify-center text-white z-30"
+                            className="absolute inset-0 bg-black/70 rounded-full backdrop-blur-sm flex flex-col items-center justify-center text-white z-30"
                         >
                             {isLocked ? (
                                 <>
-                                    <LockClosedIcon className="w-12 h-12 mb-2 text-gray-400" />
+                                    <LockClosedIcon className="w-12 h-12 mb-2 text-gray-300" />
                                     <span className="font-bold text-lg">LOCKED</span>
                                 </>
                             ) : (
@@ -225,15 +205,15 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
             </button>
 
             {/* Messages */}
-            {error && <p className="text-red-500 font-medium text-sm animate-pulse">{error}</p>}
+            {error && <p className="text-red-400 font-medium text-sm animate-pulse">{error}</p>}
             {result && (
                 <motion.div 
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="p-4 bg-white rounded-xl shadow-lg border border-green-100 text-center"
+                    className="p-4 bg-card rounded-xl shadow-lg border border-border text-center"
                 >
-                    <p className="text-gray-500 text-xs uppercase tracking-wider font-semibold">You Won</p>
-                    <p className={`text-2xl font-black ${result.textColor ? `text-[${result.textColor}]` : "text-green-600"}`}>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider font-semibold">You Won</p>
+                    <p className="text-2xl font-black text-green-600 dark:text-green-400">
                         {result.label}
                     </p>
                 </motion.div>

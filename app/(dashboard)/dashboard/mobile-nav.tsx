@@ -60,18 +60,18 @@ export default function MobileNav({ session }: { session: Session | null }) {
       `}</style>
       
       {/* Mobile Header - Refined */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center md:hidden h-[64px] transition-colors duration-300">
+      <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center md:hidden h-[64px] transition-colors duration-300">
          <div className="flex items-center gap-3">
             {/* Modern Menu Trigger */}
             <button 
               onClick={toggleMenu}
-              className="flex items-center justify-center w-10 h-10 rounded-xl bg-card border border-border shadow-sm text-foreground active:scale-95 transition-all hover:bg-muted"
+              className="flex items-center justify-center w-8 h-8 rounded-lg bg-card border border-border shadow-sm text-foreground active:scale-95 transition-all hover:bg-muted"
             >
-               <Bars3BottomLeftIcon className="w-6 h-6" />
+               <Bars3BottomLeftIcon className="w-5 h-5" />
             </button>
              
-             <div className="pt-1 flex items-center gap-3">
-               <Logo size="md" />
+             <div className="flex items-center gap-3">
+               <Logo size="sm" />
                <ThemeToggle />
              </div>
          </div>
@@ -120,13 +120,13 @@ export default function MobileNav({ session }: { session: Session | null }) {
       {/* Drawer Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 top-[64px] z-30 bg-black/50 backdrop-blur-[2px] md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 top-[64px] z-[55] bg-black/50 backdrop-blur-[2px] md:hidden animate-in fade-in duration-200"
           onClick={closeMenu}
         />
       )}
 
       {/* Drawer Panel - Reduced Width (w-64 = 256px) */}
-      <div className={`fixed inset-y-0 left-0 top-[64px] z-40 w-64 bg-background/95 backdrop-blur-xl border-r border-border shadow-2xl transform transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-y-0 left-0 top-[64px] z-[58] w-64 bg-background/95 backdrop-blur-xl border-r border-border shadow-2xl transform transition-transform duration-300 ease-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col h-full">
              <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
                 <div className="px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Platform</div>

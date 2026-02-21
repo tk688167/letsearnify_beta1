@@ -29,14 +29,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <MobileNav session={session} />
         
         {/* Mobile Swipe Container + Children */}
-        <div className="md:block hidden h-full">
+        {/* Responsive Container */}
+        <SwipeContainer>
             {children}
-        </div>
-        <div className="md:hidden block">
-            <SwipeContainer>
-                {children}
-            </SwipeContainer>
-        </div>
+        </SwipeContainer>
 
         <BottomNav />
       </main>

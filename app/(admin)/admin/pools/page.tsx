@@ -1,5 +1,5 @@
 
-import { PoolManagerCard } from "@/app/admin/components/PoolManagerCard"
+import { PoolManagerCard } from "@/app/(admin)/admin/components/PoolManagerCard"
 import { getPools } from "@/app/actions/admin/pools"
 
 export const dynamic = 'force-dynamic'

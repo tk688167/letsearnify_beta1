@@ -14,7 +14,7 @@ export default function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div className="w-9 h-9 rounded-xl bg-secondary animate-pulse border border-border" />
+      <div className="w-[56px] h-8 rounded-full bg-secondary animate-pulse border border-border" />
     )
   }
 
@@ -24,36 +24,38 @@ export default function ThemeToggle() {
     <button
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       className={`
-        relative overflow-hidden group flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300
-        border border-border
-        bg-secondary
-        hover:border-primary/50
-        hover:shadow-sm dark:hover:shadow-md dark:hover:shadow-primary/10
-        active:scale-95
-        cursor-pointer
+        relative inline-flex items-center h-8 w-[56px] rounded-full p-1 transition-colors duration-300 ease-in-out
+        border outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+        ${isDark 
+          ? 'bg-slate-900 border-slate-700/80 shadow-[inset_0_1px_4px_rgba(0,0,0,0.5)]' 
+          : 'bg-slate-100 border-slate-200 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]'}
       `}
       aria-label="Toggle theme"
     >
-      <div className="relative z-10">
-        <SunIcon 
-          className={`w-5 h-5 text-amber-500 transition-all duration-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
-            isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'
-          }`} 
-        />
-        <MoonIcon 
-          className={`w-5 h-5 text-primary transition-all duration-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
-            isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'
-          }`} 
-        />
-      </div>
+      <span className="sr-only">Toggle theme</span>
       
-      {/* Background Glow Effect */}
-      <div className={`absolute inset-0 transition-opacity duration-300 ${
-        isDark ? 'opacity-0' : 'opacity-0 group-hover:opacity-100 bg-amber-500/10'
-      }`} />
-      <div className={`absolute inset-0 transition-opacity duration-300 ${
-        isDark ? 'opacity-0 group-hover:opacity-100 bg-primary/10' : 'opacity-0'
-      }`} />
+      {/* Background Track Icons */}
+      <div className="absolute inset-0 flex items-center justify-between px-2 w-full h-full pointer-events-none">
+         <SunIcon className={`w-3.5 h-3.5 text-amber-500 transition-all duration-300 ${isDark ? 'opacity-40 scale-100' : 'opacity-0 scale-75'}`} />
+         <MoonIcon className={`w-3.5 h-3.5 text-indigo-400 transition-all duration-300 ${!isDark ? 'opacity-40 scale-100' : 'opacity-0 scale-75'}`} />
+      </div>
+
+      {/* The thumb */}
+      <div
+        className={`
+          flex items-center justify-center w-6 h-6 rounded-full transform transition-transform duration-500 z-10
+          ${isDark 
+            ? 'translate-x-[24px] bg-slate-800 shadow-[0_2px_8px_rgba(0,0,0,0.4)] ring-1 ring-white/10' 
+            : 'translate-x-0 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)] ring-1 ring-slate-900/5'}
+        `}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+      >
+        {isDark ? (
+           <MoonIcon className="w-3.5 h-3.5 text-indigo-300" />
+        ) : (
+           <SunIcon className="w-3.5 h-3.5 text-amber-500" />
+        )}
+      </div>
     </button>
   )
 }

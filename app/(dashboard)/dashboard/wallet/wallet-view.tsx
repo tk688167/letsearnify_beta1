@@ -18,10 +18,8 @@ import {
   ShieldCheckIcon,
   CheckIcon,
   ChevronRightIcon,
-  ChatBubbleLeftRightIcon,
-  ClockIcon,
+  XMarkIcon,
   ArrowLeftIcon,
-  PhotoIcon,
   CheckCircleIcon,
   MapPinIcon
 } from "@heroicons/react/24/outline"
@@ -54,6 +52,21 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [screenshot, setScreenshot] = useState<string | null>(null)
   const [accountNumber, setAccountNumber] = useState("")
   const [accountName, setAccountName] = useState("")
+
+  // Merchant Modal State
+  const [merchantModalOpen, setMerchantModalOpen] = useState(false)
+  const [merchantModalType, setMerchantModalType] = useState<'DEPOSIT' | 'WITHDRAWAL'>('DEPOSIT')
+
+  const closeMerchantModal = () => {
+    setMerchantModalOpen(false)
+    setSelectedCountry(null)
+    setSelectedPaymentMethod(null)
+    setScreenshot(null)
+    setAccountNumber("")
+    setAccountName("")
+    setAmount("")
+    setMessage(null)
+  }
   
   // Helper to find wallet data
   const currentWallet = platformWallets.find(w => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
@@ -190,9 +203,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const MethodOption = ({ id, label, icon: Icon, sub, selected, onClick, color = "blue" }: any) => {
       const isSelected = selected === id;
       const colorStyles: any = {
-          blue: isSelected ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500" : "hover:border-blue-200",
-          green: isSelected ? "border-green-500 bg-green-50 ring-1 ring-green-500" : "hover:border-green-200",
-          gray: isSelected ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900" : "hover:border-gray-300"
+          blue: isSelected ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-500" : "hover:border-blue-200 dark:hover:border-blue-700",
+          green: isSelected ? "border-green-500 bg-green-50 dark:bg-green-900/20 ring-1 ring-green-500" : "hover:border-green-200 dark:hover:border-green-700",
+          gray: isSelected ? "border-border bg-muted ring-1 ring-border" : "hover:border-border"
       }
       return (
         <button 
@@ -210,8 +223,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     <Icon className={cn("w-6 h-6", isSelected ? `text-${color}-600` : "text-gray-400")}/>
                 </div>
                 <div className="text-left">
-                    <div className={cn("font-bold text-sm md:text-base transition-colors", isSelected ? `text-${color}-900` : "text-gray-900")}>{label}</div>
-                    <div className="text-xs text-gray-500 font-medium">{sub}</div>
+                    <div className={cn("font-bold text-sm md:text-base transition-colors", isSelected ? `text-${color}-600 dark:text-${color}-400` : "text-foreground")}>{label}</div>
+                    <div className="text-xs text-muted-foreground font-medium">{sub}</div>
                 </div>
             </div>
             {isSelected && <div className={cn("w-5 h-5 rounded-full flex items-center justify-center", `bg-${color}-500`)}><CheckIcon className="w-3 h-3 text-white"/></div>}
@@ -219,357 +232,412 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
   }
 
-  // --- Merchant UI Render Function ---
+  // --- Merchant UI Render Function (Redesigned) ---
   const renderMerchantUI = (type: 'DEPOSIT' | 'WITHDRAWAL') => {
-      // 1. Country Selection
-      if (!selectedCountry) {
-          return (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                  <div className="flex items-center justify-between mb-2">
-                       <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
-                           <MapPinIcon className="w-4 h-4"/> Select Country
-                       </h3>
-                  </div>
-                  {merchantSettings.length === 0 ? (
-                      <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
-                          <p className="text-muted-foreground text-sm">No merchant countries available.</p>
-                      </div>
-                  ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {merchantSettings.map(country => {
-                              const isComingSoon = country.status === "COMING_SOON"
-                              return (
-                              <button
-                                  key={country.id}
-                                  onClick={() => {
-                                      if (isComingSoon) {
-                                          setMessage({ type: 'error', text: "This country is coming soon!" })
-                                          return
-                                      }
-                                      setSelectedCountry(country)
-                                  }}
-                                  className={cn(
-                                      "flex items-center gap-3 p-4 bg-card border rounded-xl transition-all group text-left relative overflow-hidden",
-                                      isComingSoon 
-                                          ? "border-border opacity-70 cursor-not-allowed grayscale-[0.5]" 
-                                          : "border-border hover:border-green-500 hover:shadow-md"
-                                  )}
-                              >
-                                  <div className={cn(
-                                      "w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-colors",
-                                      isComingSoon 
-                                          ? "bg-muted text-muted-foreground" 
-                                          : "bg-muted/50 text-foreground group-hover:bg-green-50 dark:group-hover:bg-green-900/30 group-hover:text-green-600"
-                                  )}>
-                                      {country.code}
-                                  </div>
-                                  <div>
-                                      <div className="font-bold text-foreground flex items-center gap-2">
-                                          {country.name}
-                                          {isComingSoon && (
-                                              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                                                  Soon
-                                              </span>
-                                          )}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">{country.methods ? country.methods.length : 0} Methods</div>
-                                  </div>
-                                  {!isComingSoon && <ChevronRightIcon className="w-4 h-4 ml-auto text-gray-300 group-hover:text-green-500"/>}
-                              </button>
-                              )
-                          })}
-                      </div>
-                  )}
-              </div>
-          )
-      }
 
-      // 2. Method Selection
-      if (!selectedPaymentMethod) {
-          return (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
-                  <button onClick={() => setSelectedCountry(null)} className="text-xs text-gray-500 hover:text-gray-900 flex items-center gap-1 mb-2">
-                      <ArrowLeftIcon className="w-3 h-3"/> Back to Countries
-                  </button>
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">
-                      Select Payment Method in {selectedCountry.name}
-                  </h3>
-                  
-                  {selectedCountry.methods && selectedCountry.methods.length > 0 ? (
-                      <div className="space-y-3">
-                          {selectedCountry.methods.map((method: any) => (
-                              <button
-                                  key={method.id}
-                                  onClick={() => setSelectedPaymentMethod(method)}
-                                  className="w-full text-left p-4 rounded-xl border border-border hover:border-green-500 hover:bg-green-50/10 transition-all group bg-card"
-                              >
-                                  <div className="flex justify-between items-start">
-                                      <div className="flex items-center gap-3">
-                                          <div className="p-2 bg-green-50 text-green-600 rounded-lg">
-                                              <BanknotesIcon className="w-6 h-6"/>
-                                          </div>
-                                          <div>
-                                              <div className="font-bold text-foreground text-lg">{method.name}</div>
-                                              <div className="text-xs text-muted-foreground">{method.accountName}</div>
-                                          </div>
-                                      </div>
-                                      <div className="px-3 py-1 bg-muted text-muted-foreground rounded text-xs font-mono font-bold group-hover:bg-card border border-transparent group-hover:border-green-200">
-                                          {method.accountNumber}
-                                      </div>
-                                  </div>
-                              </button>
-                          ))}
-                      </div>
-                  ) : (
-                      <div className="p-6 text-center bg-muted/30 rounded-xl border border-dashed border-border">
-                          <p className="text-sm text-muted-foreground">No payment methods configured for this country.</p>
-                      </div>
-                  )}
-              </div>
-          )
-      }
-
-      // 3. Action Form
-      const rate = selectedCountry.currency === 'PKR' ? 300 : (selectedCountry.exchangeRate || 1);
-      const val = parseFloat(amount);
-      const totalPayable = !isNaN(val) ? val * rate : 0;
-
+    // ── STEP 1: Country Selection ──────────────────────────────────────────────
+    if (!selectedCountry) {
       return (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-              {/* Header with Back Button */}
-              <div className="flex items-center gap-4">
-                  <button 
-                    onClick={() => setSelectedPaymentMethod(null)} 
-                    className="group flex items-center gap-2 px-3 py-2 -ml-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all"
+        <div className="space-y-5 animate-in fade-in duration-300">
+          {/* Step Header */}
+          <div className="flex items-center gap-3 pb-1">
+            <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 1 of 3</p>
+              <h3 className="text-base font-bold text-foreground">Select Your Country</h3>
+            </div>
+          </div>
+
+          {merchantSettings.length === 0 ? (
+            <div className="p-10 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+              <MapPinIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3"/>
+              <p className="text-muted-foreground text-sm font-medium">No merchant countries available yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {merchantSettings.map(country => {
+                const isComingSoon = country.status === "COMING_SOON"
+                const methodCount = country.methods?.length || 0
+                return (
+                  <button
+                    key={country.id}
+                    onClick={() => {
+                      if (isComingSoon) { setMessage({ type: 'error', text: "This country is coming soon!" }); return }
+                      setSelectedCountry(country)
+                    }}
+                    className={cn(
+                      "flex items-center gap-4 p-4 sm:p-5 bg-card border-2 rounded-2xl transition-all text-left group relative overflow-hidden",
+                      isComingSoon
+                        ? "border-border opacity-60 cursor-not-allowed"
+                        : "border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98]"
+                    )}
                   >
-                      <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center group-hover:border-gray-300 shadow-sm">
-                        <ArrowLeftIcon className="w-4 h-4"/> 
+                    {/* Country Code Avatar */}
+                    <div className={cn(
+                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-lg font-black shrink-0 transition-colors",
+                      isComingSoon
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 text-green-700 dark:text-green-400 group-hover:from-green-100 group-hover:to-emerald-200 dark:group-hover:from-green-900/40 dark:group-hover:to-emerald-900/30"
+                    )}>
+                      {country.code}
+                    </div>
+
+                    {/* Country Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-foreground text-sm sm:text-base">{country.name}</span>
+                        {isComingSoon && (
+                          <span className="text-[9px] font-black bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-200 dark:border-amber-700/30">
+                            Coming Soon
+                          </span>
+                        )}
                       </div>
-                      <span className="font-bold text-sm">Back</span>
+                      <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                        {methodCount} payment {methodCount === 1 ? "method" : "methods"} • {country.currency}
+                      </p>
+                    </div>
+
+                    {/* Arrow */}
+                    {!isComingSoon && (
+                      <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0 group-hover:translate-x-0.5 transition-transform"/>
+                    )}
                   </button>
-                  <div className="h-6 w-px bg-border"></div>
-                  <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-                     <span className="text-muted-foreground font-medium">Deposit via</span> {selectedPaymentMethod.name}
-                  </h3>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // ── STEP 2: Payment Method Selection ──────────────────────────────────────
+    if (!selectedPaymentMethod) {
+      return (
+        <div className="space-y-5 animate-in fade-in duration-300">
+          {/* Breadcrumb Nav */}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+            <button onClick={() => setSelectedCountry(null)} className="hover:text-foreground font-medium transition-colors flex items-center gap-1">
+              <ArrowLeftIcon className="w-3 h-3"/> All Countries
+            </button>
+            <ChevronRightIcon className="w-3 h-3 shrink-0"/>
+            <span className="font-bold text-foreground">{selectedCountry.name}</span>
+          </div>
+
+          {/* Step Header */}
+          <div className="flex items-center gap-3 pb-1">
+            <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
+            <div>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 2 of 3</p>
+              <h3 className="text-base font-bold text-foreground">Choose Payment Method</h3>
+            </div>
+          </div>
+
+          {selectedCountry.methods && selectedCountry.methods.length > 0 ? (
+            <div className="space-y-3">
+              {selectedCountry.methods.map((method: any, idx: number) => {
+                const gradients = [
+                  "from-green-500 to-emerald-600",
+                  "from-blue-500 to-indigo-600",
+                  "from-violet-500 to-purple-600",
+                  "from-orange-500 to-amber-600",
+                ]
+                const grad = gradients[idx % gradients.length]
+                return (
+                  <button
+                    key={method.id}
+                    onClick={() => setSelectedPaymentMethod(method)}
+                    className="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 transition-all group bg-card active:scale-[0.99]"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-md shrink-0`}>
+                        <BanknotesIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white"/>
+                      </div>
+
+                      {/* Name + Account */}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-black text-foreground text-sm sm:text-base">{method.name}</div>
+                        <div className="text-[11px] sm:text-xs text-muted-foreground font-medium mt-0.5 truncate">
+                          {method.accountName}
+                        </div>
+                      </div>
+
+                      {/* Number + Arrow */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="hidden sm:block text-right">
+                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Account</div>
+                          <div className="text-xs font-mono font-bold text-foreground">{method.accountNumber}</div>
+                        </div>
+                        <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors group-hover:translate-x-0.5 transition-transform"/>
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+              <BanknotesIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3"/>
+              <p className="text-sm text-muted-foreground font-medium">No payment methods configured for {selectedCountry.name}.</p>
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    // ── STEP 3: Action Form ────────────────────────────────────────────────────
+    const rate = selectedCountry.currency === 'PKR' ? 300 : (selectedCountry.exchangeRate || 1)
+    const val = parseFloat(amount)
+    const totalPayable = !isNaN(val) && val > 0 ? val * rate : 0
+
+    return (
+      <div className="space-y-5 animate-in fade-in duration-300">
+
+        {/* Breadcrumb Nav */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+          <button onClick={() => setSelectedCountry(null)} className="hover:text-foreground font-medium transition-colors flex items-center gap-1">
+            <ArrowLeftIcon className="w-3 h-3"/> Countries
+          </button>
+          <ChevronRightIcon className="w-3 h-3 shrink-0"/>
+          <button onClick={() => setSelectedPaymentMethod(null)} className="hover:text-foreground font-medium transition-colors">
+            {selectedCountry.name}
+          </button>
+          <ChevronRightIcon className="w-3 h-3 shrink-0"/>
+          <span className="font-bold text-foreground">{selectedPaymentMethod.name}</span>
+        </div>
+
+        {/* Step Header */}
+        <div className="flex items-center gap-3 pb-1">
+          <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 3 of 3</p>
+            <h3 className="text-base font-bold text-foreground">
+              {type === 'DEPOSIT' ? 'Complete Your Deposit' : 'Enter Withdrawal Details'}
+            </h3>
+          </div>
+        </div>
+
+        {type === 'DEPOSIT' ? (
+          <div className="space-y-4 sm:space-y-5">
+
+            {/* ── Account Details Card ──────────────────────── */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white shadow-2xl p-5 sm:p-6">
+              {/* Subtle glow */}
+              <div className="absolute -top-20 -right-20 w-48 h-48 bg-green-500/10 rounded-full blur-3xl pointer-events-none"/>
+              <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"/>
+
+              <div className="relative z-10 space-y-4">
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
+                      <BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-300"/>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Payment Via</p>
+                      <p className="text-sm sm:text-base font-black text-white truncate">{selectedPaymentMethod.name}</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-black bg-green-500/20 text-green-300 border border-green-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">
+                    {selectedCountry.currency}
+                  </span>
+                </div>
+
+                <div className="h-px bg-white/10"/>
+
+                {/* Account Title */}
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Account Holder</p>
+                  <p className="text-base sm:text-lg font-bold text-white">{selectedPaymentMethod.accountName}</p>
+                </div>
+
+                {/* Account Number */}
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Number / IBAN</p>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <p className="text-lg sm:text-2xl font-mono font-black text-white tracking-wider break-all flex-1 min-w-0">
+                      {selectedPaymentMethod.accountNumber}
+                    </p>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedPaymentMethod.accountNumber)
+                        setMessage({ type: 'success', text: "Account number copied!" })
+                        setTimeout(() => setMessage(null), 2000)
+                      }}
+                      className="p-2 sm:p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 hover:border-white/30 shrink-0"
+                      title="Copy Account Number"
+                    >
+                      <DocumentDuplicateIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Instructions ─────────────────────────────── */}
+            {selectedPaymentMethod.instructions && (
+              <div className="flex gap-3 items-start p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
+                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-white font-black text-[10px]">i</span>
+                </div>
+                <div className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                  <span className="font-bold block mb-0.5">Instructions</span>
+                  {selectedPaymentMethod.instructions}
+                </div>
+              </div>
+            )}
+
+            {/* ── Transaction Details ───────────────────────── */}
+            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 bg-muted/40 border-b border-border">
+                <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Transaction Details</h4>
               </div>
 
-              {type === 'DEPOSIT' ? (
-                  <div className="space-y-8">
-                      {/* Premium Account Details Card */}
-                      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white shadow-2xl p-8">
-                          {/* Decorative Elements */}
-                          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
-                          <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/10 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
-                          
-                          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
-                              <div className="space-y-6 flex-1">
-                                  <div>
-                                      <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Account Title</p>
-                                      <p className="text-xl md:text-2xl font-medium tracking-tight text-white">{selectedPaymentMethod.accountName}</p>
-                                  </div>
-                                  
-                                  <div>
-                                      <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Account Number / IBAN</p>
-                                      <div className="flex items-center gap-3">
-                                          <p className="text-2xl md:text-3xl font-mono font-bold text-white tracking-wider">
-                                              {selectedPaymentMethod.accountNumber}
-                                          </p>
-                                          <button 
-                                            onClick={() => {
-                                                navigator.clipboard.writeText(selectedPaymentMethod.accountNumber)
-                                                setMessage({ type: 'success', text: "Account number copied!" })
-                                                setTimeout(() => setMessage(null), 2000)
-                                            }}
-                                            className="p-2 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 hover:border-white/30 backdrop-blur-md"
-                                            title="Copy Account Number"
-                                          >
-                                              <DocumentDuplicateIcon className="w-5 h-5"/>
-                                          </button>
-                                      </div>
-                                  </div>
-                              </div>
-
-                              <div className="hidden md:block">
-                                  <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center backdrop-blur-md">
-                                      <BanknotesIcon className="w-8 h-8 text-blue-200"/>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-
-                       {/* Instructions (if any) */}
-                       {selectedPaymentMethod.instructions && (
-                          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 flex gap-4 items-start">
-                              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
-                                  <span className="text-blue-600 font-bold text-xs">i</span>
-                              </div>
-                              <div className="text-sm text-blue-800 leading-relaxed">
-                                  <span className="font-bold block mb-1">Instructions:</span> 
-                                  {selectedPaymentMethod.instructions}
-                              </div>
-                          </div>
-                       )}
-
-                      <div className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-sm space-y-8">
-                          <h4 className="font-bold text-foreground text-lg border-b border-border pb-4">Transaction Details</h4>
-                          
-                          <div className="space-y-8">
-                              {/* Amount Input Section */}
-                              <div className="space-y-6">
-                                  <div>
-                                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Amount to Deposit (USD)</label>
-                                      <div className="relative group">
-                                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                                          <input 
-                                              type="number" 
-                                              value={amount}
-                                              onChange={(e) => setAmount(e.target.value)}
-                                              className="w-full pl-8 pr-4 py-4 rounded-xl border border-input outline-none focus:border-green-500 font-bold text-xl transition-all bg-muted/30 focus:bg-card text-foreground"
-                                              placeholder="0.00"
-                                          />
-                                      </div>
-                                  </div>
-                                  
-                                  {/* Professional Currency Conversation Card - ALWAYS VISIBLE */}
-                                  <div className="bg-muted/30 rounded-2xl border border-border overflow-hidden animate-in fade-in slide-in-from-top-2">
-                                      {/* Header */}
-                                      <div className="bg-muted px-5 py-3 border-b border-border flex justify-between items-center">
-                                          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Conversion Details</span>
-                                          <span className="text-xs font-bold bg-card text-foreground px-2 py-1 rounded border border-border shadow-sm">
-                                              Rate: 1 USD = {rate} {selectedCountry.currency}
-                                          </span>
-                                      </div>
-
-                                      {/* Body */}
-                                      <div className="p-5 space-y-4">
-                                          {/* Breakdown */}
-                                          <div className="space-y-2 text-sm">
-                                              <div className="flex justify-between text-muted-foreground">
-                                                  <span>Base Amount ({amount || '0'} USD)</span>
-                                                  <span className="font-mono font-medium">
-                                                      {totalPayable.toLocaleString()} {selectedCountry.currency}
-                                                  </span>
-                                              </div>
-                                              <div className="h-px bg-border my-2"></div>
-                                          </div>
-
-                                          {/* Total */}
-                                          <div>
-                                              <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">Total Payable Amount</p>
-                                              <div className="flex items-baseline gap-2">
-                                                  <span className="text-3xl font-black text-foreground tracking-tight">
-                                                      {totalPayable.toLocaleString()}
-                                                  </span>
-                                                  <span className="text-lg font-bold text-muted-foreground">{selectedCountry.currency}</span>
-                                              </div>
-                                          </div>
-                                          
-                                          {/* Note */}
-                                          <div className="flex gap-2 items-start bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                                              <div className="w-1 h-10 bg-blue-400 rounded-full shrink-0"></div>
-                                              <p className="text-xs text-blue-700 leading-relaxed">
-                                                  <span className="font-bold">Important:</span> Please transfer exactly <span className="font-bold">{totalPayable.toLocaleString()} {selectedCountry.currency}</span> to the details above.
-                                              </p>
-                                          </div>
-                                      </div>
-                                  </div>
-                              </div>
-
-                              {/* Full Width Proof of Payment Upload */}
-                              <div>
-                                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Proof of Payment</label>
-                                  <div className="relative group">
-                                      <input 
-                                          type="file" 
-                                          accept="image/*"
-                                          onChange={handleFileUpload}
-                                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                                      />
-                                      <div className={`w-full min-h-[200px] rounded-3xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-4 p-8 text-center ${
-                                          screenshot 
-                                          ? "border-green-500 bg-green-50/10 ring-4 ring-green-500/10" 
-                                          : "border-border bg-muted/30 hover:bg-muted/50 hover:border-muted-foreground/30 group-hover:scale-[1.01]"
-                                      }`}>
-                                          {screenshot ? (
-                                              <div className="animate-in zoom-in duration-300">
-                                                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                                      <CheckCircleIcon className="w-8 h-8 text-green-600"/>
-                                                  </div>
-                                                  <h5 className="font-bold text-green-800 text-lg mb-1">Receipt Attached Successfully</h5>
-                                                  <p className="text-green-600 text-sm opacity-80">Click or Drag to replace file</p>
-                                              </div>
-                                          ) : (
-                                              <div className="space-y-2">
-                                                  <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm group-hover:shadow-md transition-all group-hover:bg-blue-500/20">
-                                                      <ArrowUpTrayIcon className="w-8 h-8 text-blue-600 group-hover:scale-110 transition-transform"/>
-                                                  </div>
-                                                  <h5 className="font-bold text-foreground text-lg">Upload Payment Screenshot</h5>
-                                                  <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                                                      Click to browse or drag and drop your receipt here. 
-                                                      <br/><span className="text-xs opacity-70">(Supports JPG, PNG, PDF)</span>
-                                                  </p>
-                                              </div>
-                                          )}
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                          
-                          <button 
-                            onClick={handleAction} 
-                            disabled={!amount || !screenshot || isPending} 
-                            className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg mt-4"
-                          >
-                              {isPending ? "Submitting Request..." : "Submit Deposit Request"}
-                          </button>
-                      </div>
+              <div className="p-4 sm:p-5 space-y-5">
+                {/* Amount Input */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Deposit (USD)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">$</span>
+                    <input
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-black text-xl transition-all bg-muted/30 focus:bg-card text-foreground placeholder:text-muted-foreground/40"
+                      placeholder="0.00"
+                    />
                   </div>
-              ) : (
-                  // WITHDRAWAL FORM
-                  <div className="space-y-8">
-                       <div className="bg-card rounded-3xl border border-border p-6 md:p-8 shadow-sm space-y-6">
-                          <div className="grid grid-cols-1 gap-6">
-                              <div>
-                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Account Number</label>
-                                  <input 
-                                      type="text" 
-                                      value={accountNumber}
-                                      onChange={(e) => setAccountNumber(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground"
-                                      placeholder={`Enter your ${selectedPaymentMethod.name} number`}
-                                  />
-                              </div>
-                              <div>
-                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
-                                  <input 
-                                      type="text" 
-                                      value={accountName}
-                                      onChange={(e) => setAccountName(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground"
-                                      placeholder="Name on account"
-                                  />
-                              </div>
-                              <div>
-                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
-                                  <input 
-                                      type="number" 
-                                      value={amount}
-                                      onChange={(e) => setAmount(e.target.value)}
-                                      className="w-full p-4 rounded-xl border border-input outline-none focus:border-green-500 font-bold text-xl bg-muted/30 focus:bg-card transition-all text-foreground"
-                                      placeholder="0.00"
-                                  />
-                                  <p className="text-xs text-muted-foreground mt-2 font-medium">Available: ${user.balance.toFixed(2)}</p>
-                              </div>
-                          </div>
+                </div>
 
-                          <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending} className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-lg">
-                              {isPending ? "Processing..." : "Submit Withdrawal Request"}
-                          </button>
+                {/* Live Conversion */}
+                {val > 0 && (
+                  <div className="rounded-xl bg-muted/40 border border-border overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="flex justify-between items-center px-4 py-2.5 bg-muted/60 border-b border-border">
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Conversion</span>
+                      <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">
+                        1 USD = {rate} {selectedCountry.currency}
+                      </span>
+                    </div>
+                    <div className="p-4 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Pay</p>
+                        <p className="text-2xl sm:text-3xl font-black text-foreground">{totalPayable.toLocaleString()} <span className="text-sm font-bold text-muted-foreground">{selectedCountry.currency}</span></p>
                       </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Exchange</p>
+                        <p className="text-sm font-bold text-green-600 dark:text-green-400">{val} USD × {rate}</p>
+                      </div>
+                    </div>
+                    <div className="mx-4 mb-4 flex gap-2 items-start bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                      <div className="w-1 h-8 bg-amber-500 rounded-full shrink-0 mt-0.5"/>
+                      <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                        <span className="font-bold">Transfer exactly </span>{totalPayable.toLocaleString()} {selectedCountry.currency} to the account above.
+                      </p>
+                    </div>
                   </div>
-              )}
+                )}
+
+                {/* Proof of Payment Upload */}
+                <div>
+                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Proof of Payment</label>
+                  <div className="relative group">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                    />
+                    <div className={`w-full min-h-[160px] sm:min-h-[180px] rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-3 p-6 text-center ${
+                      screenshot
+                        ? "border-green-500 bg-green-50/10 dark:bg-green-900/10"
+                        : "border-border bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"
+                    }`}>
+                      {screenshot ? (
+                        <div className="animate-in zoom-in duration-300 space-y-2">
+                          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                            <CheckCircleIcon className="w-7 h-7 text-green-600 dark:text-green-400"/>
+                          </div>
+                          <p className="font-black text-green-700 dark:text-green-400 text-sm">Receipt Attached!</p>
+                          <p className="text-green-600 dark:text-green-500 text-xs">Tap to replace</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="w-12 h-12 bg-blue-500/10 dark:bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
+                            <ArrowUpTrayIcon className="w-6 h-6 text-blue-600 dark:text-blue-400"/>
+                          </div>
+                          <p className="font-bold text-foreground text-sm">Upload Payment Screenshot</p>
+                          <p className="text-muted-foreground text-xs">JPG, PNG or PDF • Tap to browse</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleAction}
+                  disabled={!amount || !screenshot || isPending}
+                  className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg active:scale-[0.98]"
+                >
+                  {isPending ? "Submitting..." : "Confirm & Submit Deposit"}
+                </button>
+              </div>
+            </div>
+
           </div>
-      )
+        ) : (
+          // ── WITHDRAWAL FORM ──────────────────────────────────────────────────
+          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+            <div className="px-4 sm:px-5 py-3 bg-muted/40 border-b border-border">
+              <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Withdrawal Details</h4>
+            </div>
+            <div className="p-4 sm:p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Number</label>
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground text-sm"
+                  placeholder={`Enter your ${selectedPaymentMethod.name} number`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
+                <input
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground text-sm"
+                  placeholder="Name on account"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-black text-xl bg-muted/30 focus:bg-card transition-all text-foreground"
+                    placeholder="0.00"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: ${user.arnBalance?.toFixed(2) || "0.00"} ARN</p>
+              </div>
+              <button
+                onClick={handleAction}
+                disabled={!amount || !accountNumber || !accountName || isPending}
+                className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg active:scale-[0.98]"
+              >
+                {isPending ? "Processing..." : "Confirm Withdrawal Request"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -667,7 +735,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Select Method</label>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Automated • Instant" icon={QrCodeIcon} selected={depositMethod} onClick={() => setDepositMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Deposit" sub="Local Agents" icon={BanknotesIcon} selected={depositMethod} onClick={() => setDepositMethod("MERCHANT")} color="green"/>
+                               <MethodOption id="MERCHANT" label="Merchant Deposit" sub="Local Agents" icon={BanknotesIcon} selected={depositMethod} onClick={() => { setMerchantModalType('DEPOSIT'); setMerchantModalOpen(true) }} color="green"/>
                                <div className="md:col-span-2">
                                  <MethodOption id="CARD" label="Debit / Credit Card" sub="Visa • Mastercard" icon={CreditCardIcon} selected={depositMethod} onClick={() => setDepositMethod("CARD")} color="gray"/>
                                </div>
@@ -684,12 +752,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                  </div>
                                  <div className="flex-1 space-y-4 min-w-0">
                                     <div className="space-y-2">
-                                       <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">Wallet Address</label>
-                                       <div className="flex items-center gap-2 p-1 bg-white border border-gray-200 rounded-xl">
-                                          <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-gray-600 truncate">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wallet Address</label>
+                                       <div className="flex items-center gap-2 p-1 bg-card border border-border rounded-xl">
+                                          <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-foreground truncate">
                                              {currentWallet?.address}
                                           </div>
-                                          <button onClick={copyAddress} className="p-2 bg-gray-900 text-white rounded-lg hover:bg-black transition-colors">
+                                          <button onClick={copyAddress} className="p-2 bg-foreground text-background rounded-lg hover:opacity-80 transition-colors shrink-0">
                                              <DocumentDuplicateIcon className="w-4 h-4"/>
                                           </button>
                                        </div>
@@ -737,8 +805,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            </div>
                         )}
 
-                        {/* Merchant Form - NEW INTEGRATION */}
-                        {depositMethod === "MERCHANT" && renderMerchantUI("DEPOSIT")}
+                        {/* Merchant — opens modal */}
                         
                         {/* Card Form */}
                         {depositMethod === "CARD" && (
@@ -760,7 +827,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Withdrawal Method</label>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Global • Fast" icon={QrCodeIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("MERCHANT")} color="green"/>
+                               <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => { setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} color="green"/>
                            </div>
                         </div>
                         
@@ -842,36 +909,36 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
        </div>
 
        {/* RIGHT COLUMN: HISTORY */}
-       <div className="lg:w-80 xl:w-96 flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
-          <div className="bg-white rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-100/50 p-6 sticky top-24">
-              <h3 className="text-lg font-bold font-serif text-gray-900 mb-6 flex items-center justify-between">
+       <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
+          <div className="bg-card rounded-2xl border border-border shadow-md p-5 sm:p-6 lg:sticky lg:top-24">
+              <h3 className="text-base sm:text-lg font-bold font-serif text-foreground mb-5 flex items-center justify-between">
                   Recent Activity
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-3">
                   {transactions.length === 0 ? (
-                      <div className="text-center py-12">
-                          <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-300">
+                      <div className="text-center py-10">
+                          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
                               <ArrowPathIcon className="w-6 h-6"/>
                           </div>
-                          <p className="text-sm text-gray-400 font-medium">No transactions yet</p>
+                          <p className="text-sm text-muted-foreground font-medium">No transactions yet</p>
                       </div>
                   ) : (
                       transactions.slice(0, 5).map((tx, i) => (
-                          <div key={tx.id || i} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors group cursor-default">
+                          <div key={tx.id || i} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors cursor-default">
                               <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shadow-sm">
-                                      {tx.type === 'DEPOSIT' ? <ArrowDownTrayIcon className="w-5 h-5 text-green-600"/> : 
-                                       tx.type === 'WITHDRAWAL' ? <ArrowUpTrayIcon className="w-5 h-5 text-purple-600"/> : <ArrowPathIcon className="w-5 h-5 text-orange-600"/>}
+                                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center shadow-sm shrink-0">
+                                      {tx.type === 'DEPOSIT' ? <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400"/> : 
+                                       tx.type === 'WITHDRAWAL' ? <ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400"/> : <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400"/>}
                                   </div>
-                                  <div>
-                                      <div className="text-xs font-bold text-gray-900">{tx.type}</div>
-                                      <div className="text-[10px] text-gray-400" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                  <div className="min-w-0">
+                                      <div className="text-xs font-bold text-foreground">{tx.type}</div>
+                                      <div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
                                   </div>
                               </div>
-                              <div className="text-right">
+                              <div className="text-right shrink-0">
                                   <div className={cn("text-sm font-bold", 
-                                      tx.type === 'DEPOSIT' ? "text-green-600" : "text-gray-900"
+                                      tx.type === 'DEPOSIT' ? "text-green-600 dark:text-green-400" : "text-foreground"
                                   )}>
                                       {tx.type === 'DEPOSIT' ? '+' : '-'}{formatCurrency(tx.amount)}
                                   </div>
@@ -887,6 +954,72 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
           </div>
        </div>
 
+      {/* ════════════════════════════ MERCHANT MODAL ════════════════════════════ */}
+      {merchantModalOpen && (
+        <>
+          {/* Backdrop — starts below nav bar, never covers it */}
+          <div
+            className="fixed inset-x-0 top-[64px] bottom-[64px] md:bottom-0 z-[45] bg-black/60 backdrop-blur-[3px] animate-in fade-in duration-200"
+            onClick={closeMerchantModal}
+          />
+
+          {/* Panel — slides down from below top nav, stops above bottom nav on mobile */}
+          <div className="fixed inset-x-0 top-[64px] z-[46] flex flex-col sm:inset-auto sm:top-4 sm:right-4 sm:left-auto animate-in slide-in-from-top-4 duration-300">
+            <div
+              className="w-full sm:w-[440px] bg-background rounded-b-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border sm:max-h-[calc(100vh-80px)]"
+              style={{ maxHeight: 'calc(100vh - 128px)' }}
+            >
+
+              {/* ── Sticky Modal Header ─────────────────────────────────── */}
+              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border shrink-0 bg-background/95 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  {/* Step indicator dots */}
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3].map(step => {
+                      const currentStep = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3
+                      return (
+                        <div
+                          key={step}
+                          className={cn(
+                            "rounded-full transition-all duration-300",
+                            step === currentStep
+                              ? "w-5 h-2 bg-green-500"
+                              : step < currentStep
+                              ? "w-2 h-2 bg-green-500/50"
+                              : "w-2 h-2 bg-muted-foreground/25"
+                          )}
+                        />
+                      )
+                    })}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                      {merchantModalType === 'DEPOSIT' ? 'Merchant Deposit' : 'Merchant Withdrawal'}
+                    </p>
+                    <h2 className="text-sm font-black text-foreground">
+                      {!selectedCountry ? 'Select Country' : !selectedPaymentMethod ? 'Payment Method' : merchantModalType === 'DEPOSIT' ? 'Deposit Details' : 'Withdrawal Details'}
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Close button */}
+                <button
+                  onClick={closeMerchantModal}
+                  className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <XMarkIcon className="w-4 h-4"/>
+                </button>
+              </div>
+
+              {/* ── Scrollable Body ──────────────────────────────────────── */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 overscroll-contain">
+                {renderMerchantUI(merchantModalType)}
+              </div>
+
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

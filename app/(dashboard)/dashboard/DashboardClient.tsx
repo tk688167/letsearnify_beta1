@@ -28,7 +28,8 @@ const FEATURE_FLAGS = {
     TASKS: true,      // Set to true when ready to go Live
     MARKETPLACE: false, // Set to true when ready to go Live
     MUDARABA: false,    // Set to true when ready to go Live
-    POOLS: false       // Set to true when ready to go Live
+    POOLS: false,       // Set to true when ready to go Live
+    PLAY_EARN: false    // Set to true when ready to go Live
 }
 
 export default function DashboardClient({ user, pools, stats }: { user: any, pools: any[], stats: any }) {
@@ -192,7 +193,7 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
       </div>
 
       {/* 3. ACTION HUB */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
           <ActionTile 
               href="/dashboard/wallet?tab=deposit" 
               icon={ArrowDownTrayIcon} 
@@ -235,6 +236,15 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
               color="indigo" 
               delay={0.5}
               status={getFeatureStatus("MUDARABA")}
+          />
+          <ActionTile 
+              href="/dashboard/games" 
+              icon={SparklesIcon} 
+              label="Play & Earn" 
+              sub="Web3 Games" 
+              color="fuchsia" 
+              delay={0.6}
+              status={getFeatureStatus("PLAY_EARN")}
           />
       </div>
 
@@ -326,6 +336,7 @@ function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
 function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE" }: any) {
     const isLive = status === "LIVE"
     const isLocked = status === "LOCKED"
+    const isDev = status === "DEV"
     
     // Base colors
     const hoverColors: any = {
@@ -334,6 +345,7 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
         emerald: "group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-200 dark:group-hover:border-emerald-800/50 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/10",
         orange: "group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:border-orange-200 dark:group-hover:border-orange-800/50 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/10",
         indigo: "group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-200 dark:group-hover:border-indigo-800/50 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/10",
+        fuchsia: "group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 group-hover:border-fuchsia-200 dark:group-hover:border-fuchsia-800/50 group-hover:bg-fuchsia-50 dark:group-hover:bg-fuchsia-900/10",
     }
     const iconColors: any = {
         blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
@@ -341,6 +353,7 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
         emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
         orange: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
         indigo: "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
+        fuchsia: "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20",
     }
 
     // Locked/Dev State UI Overrides
@@ -350,37 +363,59 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: delay, duration: 0.4 }}
             className={cn(
-                "h-full p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden",
-                isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) : "bg-muted/50 border-border cursor-not-allowed opacity-90"
+                "h-full p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden flex flex-col items-start",
+                isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) :
+                isDev ? "bg-card border-border cursor-pointer hover:border-indigo-200/50 dark:hover:border-indigo-800/50" : 
+                "bg-muted/50 border-border cursor-not-allowed opacity-90"
             )}
         >
-            <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mb-3 transition-colors", 
-                isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : "bg-muted text-muted-foreground"
-            )}>
-                {isLocked ? <LockClosedIcon className="w-4 h-4 md:w-5 md:h-5"/> : isLive ? <Icon className="w-4 h-4 md:w-5 md:h-5"/> : <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5"/>}
+            {/* Top Row: Icon and Badge */}
+            <div className="flex justify-between items-start w-full mb-3 relative z-10">
+                <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors shrink-0", 
+                    isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : 
+                    isDev ? cn(iconColors[color], "bg-indigo-50 dark:bg-indigo-900/20") :
+                    "bg-muted text-muted-foreground"
+                )}>
+                    {isLocked ? <LockClosedIcon className="w-4 h-4 md:w-5 md:h-5"/> : isDev ? <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5 text-indigo-500"/> : <Icon className="w-4 h-4 md:w-5 md:h-5"/>}
+                </div>
+
+                {/* Status Badge */}
+                {!isLive && (
+                    <div className="shrink-0 ml-2 mt-0.5">
+                         {isLocked ? (
+                             <div className="w-5 h-5 bg-muted/80 rounded-full flex items-center justify-center">
+                                 <LockClosedIcon className="w-3 h-3 text-muted-foreground"/>
+                             </div>
+                         ) : (
+                             <span className="flex items-center gap-1.5 px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[6.5px] md:text-[7.5px] font-bold uppercase tracking-wider rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                                 {/* The Blinking Dot */}
+                                 <span className="relative flex h-1 w-1 md:h-1.5 md:w-1.5 align-middle">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-1 w-1 md:h-1.5 md:w-1.5 bg-indigo-500"></span>
+                                 </span>
+                                 Built Soon
+                             </span>
+                         )}
+                    </div>
+                )}
             </div>
             
-            <h3 className={cn("font-bold text-xs md:text-base transition-colors", isLive ? "text-foreground group-hover:text-inherit" : "text-muted-foreground")}>
-                {label}
-            </h3>
-            <p className={cn("text-[10px] md:text-xs transition-colors truncate", isLive ? "text-muted-foreground group-hover:text-inherit/70" : "text-muted-foreground/70")}>
-                {sub}
-            </p>
-
-            {/* Status Overlay Badge */}
-            {!isLive && (
-                <div className="absolute top-3 right-3 md:top-4 md:right-4">
-                     {isLocked ? (
-                         <div className="w-5 h-5 md:w-6 md:h-6 bg-muted/80 rounded-full flex items-center justify-center">
-                             <LockClosedIcon className="w-3 h-3 text-muted-foreground"/>
-                         </div>
-                     ) : (
-                         <span className="px-1.5 py-0.5 md:px-2 md:py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[8px] md:text-[9px] font-bold uppercase rounded border border-amber-200 dark:border-amber-800">
-                             Dev
-                         </span>
-                     )}
-                </div>
-            )}
+            <div className="relative z-10 w-full min-w-0 pr-1">
+                <h3 className={cn("font-bold text-xs md:text-sm lg:text-base transition-colors truncate", 
+                     isLive ? "text-foreground group-hover:text-inherit" : 
+                     isDev ? "text-foreground" : 
+                     "text-muted-foreground"
+                )}>
+                    {label}
+                </h3>
+                <p className={cn("text-[10px] md:text-[11px] lg:text-xs transition-colors truncate mt-0.5", 
+                     isLive ? "text-muted-foreground group-hover:text-inherit/70" : 
+                     isDev ? "text-muted-foreground" : 
+                     "text-muted-foreground/70"
+                )}>
+                    {sub}
+                </p>
+            </div>
         </motion.div>
     )
 
@@ -440,7 +475,7 @@ function ReferralCard({ user }: any) {
              <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
                    <div>
-                       <h3 className="font-bold text-indigo-900 dark:text-indigo-100 font-serif text-lg">Partner Program</h3>
+                       <h3 className="font-bold text-indigo-900 dark:text-indigo-400 font-serif text-lg">Partner Program</h3>
                        <p className="text-sm text-indigo-600/80 dark:text-indigo-300/80">Share your link to earn lifelong commissions.</p>
                    </div>
                    <div className="p-2 bg-white dark:bg-indigo-900/20 rounded-lg shadow-sm text-indigo-500">
@@ -451,11 +486,11 @@ function ReferralCard({ user }: any) {
                 {user.referralCode ? (
                     <div className="space-y-3">
                         {/* 1. Referral Link (Primary) */}
-                        <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-indigo-100 dark:border-gray-700 shadow-sm">
-                            <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Your Personal Link</label>
+                        <div className="bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-indigo-100 dark:border-slate-700 shadow-sm">
+                            <label className="text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-wider mb-1 block">Your Personal Link</label>
                             <div className="flex items-center gap-2">
                                 <div className="flex-1 overflow-hidden">
-                                     <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 truncate bg-indigo-50/50 dark:bg-indigo-900/30 px-2 py-1.5 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50">
+                                     <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 truncate bg-indigo-50/50 dark:bg-slate-800/50 px-2 py-1.5 rounded-lg border border-indigo-100/50 dark:border-slate-600">
                                         {referralLink}
                                      </p>
                                 </div>

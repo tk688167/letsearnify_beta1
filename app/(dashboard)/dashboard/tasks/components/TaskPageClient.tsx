@@ -132,76 +132,70 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8 sm:space-y-12">
             
             {/* ENHANCED HEADER SECTION */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 via-gray-900 to-black text-white shadow-xl">
                 <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
                 <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-amber-500 rounded-full blur-3xl opacity-20"></div>
                 
-                <div className="relative px-6 py-8 sm:px-10 sm:py-12 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="relative px-4 py-4 sm:px-6 sm:py-6 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
                     <div className="text-center md:text-left max-w-xl">
-                        <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
-                            <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-bold uppercase tracking-wider text-amber-300 border border-white/10">
+                        <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                            <span className="px-2 py-0.5 bg-white/10 backdrop-blur-sm rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-white/10">
                                 Official Task Hub
                             </span>
                         </div>
-                        <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-white mb-4 leading-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-white mb-2 leading-tight">
                             Earn More, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400">Faster.</span>
                         </h1>
-                        <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-                            Complete verified tasks to instantly earn ARN tokens. Access inclusive <span className="text-white font-bold">Premium Opportunities</span> and daily <span className="text-white font-bold">Basic Tasks</span> to accelerate your tier upgrades.
+                        <p className="text-gray-300 text-[10px] sm:text-xs leading-relaxed max-w-md mx-auto md:mx-0">
+                            Complete verified tasks to earn ARN. Access <span className="text-white font-bold">Premium Opportunities</span> and <span className="text-white font-bold">Basic Tasks</span>.
                         </p>
                     </div>
 
                     {/* DASHBOARD STYLE STATS */}
-                    <div className="flex gap-3 sm:gap-4 w-full md:w-auto justify-center">
-                        <div className="flex-1 md:flex-none min-w-[140px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center hover:bg-white/15 transition-colors">
-                             <div className="w-10 h-10 mx-auto bg-green-500/20 rounded-full flex items-center justify-center mb-2 text-green-400">
-                                <CheckCircleIcon className="w-6 h-6" />
-                             </div>
-                             <div className="text-2xl font-bold text-white">{Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}</div>
-                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tasks Completed</div>
+                    <div className="flex gap-2 sm:gap-3 w-full md:w-auto justify-center">
+                        <div className="flex-1 md:flex-none min-w-[110px] sm:min-w-[130px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 text-center transition-colors">
+                             <div className="text-2xl sm:text-3xl font-bold text-green-400 mb-0.5">{Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}</div>
+                             <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Completed Tasks</div>
                         </div>
-                        <div className="flex-1 md:flex-none min-w-[140px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center hover:bg-white/15 transition-colors">
-                             <div className="w-10 h-10 mx-auto bg-indigo-500/20 rounded-full flex items-center justify-center mb-2 text-indigo-400">
-                                <SparklesIcon className="w-6 h-6" />
-                             </div>
-                             <div className="text-2xl font-bold text-white">{platformTasks.reduce((sum, t) => sum + t.reward, 0).toFixed(0)}</div>
-                             <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Earnings (ARN)</div>
+                        <div className="flex-1 md:flex-none min-w-[110px] sm:min-w-[130px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 text-center transition-colors">
+                             <div className="text-2xl sm:text-3xl font-bold text-amber-400 mb-0.5">{(platformTasks.reduce((sum, t) => sum + t.reward, 0)).toFixed(0)}</div>
+                             <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Earnings (ARN)</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* TASKS CONTAINER */}
-            <div className="space-y-12">
+            <div className="space-y-8 sm:space-y-12">
                 
                 {/* 1. PREMIUM TASKS (Highlighted & Modern) */}
                 <section>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl text-amber-700 shadow-sm">
-                                 <TrophyIcon className="w-6 h-6" />
+                            <div className="p-2 sm:p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl text-amber-700 shadow-sm">
+                                 <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                             </div>
                             <div>
-                                 <h2 className="text-2xl font-bold text-gray-900">Premium Tasks</h2>
-                                 <p className="text-sm text-gray-500 font-medium">Exclusive high-reward opportunities.</p>
+                                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">Premium Tasks</h2>
+                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium">Exclusive high-reward opportunities.</p>
                             </div>
                         </div>
                         {!userIsActive && (
-                            <div className="w-full sm:w-auto bg-amber-50 border border-amber-100 px-4 py-2 rounded-lg flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wide">
-                                    <BoltIcon className="w-4 h-4" /> Locked Access
+                            <div className="w-full sm:w-auto bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 px-3 sm:px-4 py-2 rounded-lg flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">
+                                    <BoltIcon className="w-4 h-4" /> Locked
                                 </div>
-                                <a href="/dashboard/wallet" className="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-md transition-colors shadow-sm">
+                                <a href="/dashboard/wallet" className="text-[10px] sm:text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-md transition-colors shadow-sm">
                                     Unlock Now
                                 </a>
                             </div>
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                         {platformTasks.filter(t => t.type !== 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
@@ -211,27 +205,27 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             // Locked State Overlay
                             if (!userIsActive) {
                                 return (
-                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-6 flex flex-col items-center justify-center text-center gap-4 overflow-hidden shadow-sm">
+                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 overflow-hidden shadow-sm">
                                         {/* Background Decoration */}
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
+                                        <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
                                         
                                         <div className="relative z-20 flex flex-col items-center">
-                                            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3 text-gray-400 group-hover:bg-amber-50 group-hover:text-amber-500 transition-colors">
-                                                <TrophyIcon className="w-7 h-7" />
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 sm:mb-2 text-gray-400 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 group-hover:text-amber-500 transition-colors">
+                                                <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                                             </div>
-                                            <h3 className="font-bold text-gray-900 text-lg">Premium Opportunity</h3>
-                                            <div className="flex items-center gap-2 text-sm font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                            <h3 className="font-bold text-foreground text-sm sm:text-base">Premium Opportunity</h3>
+                                            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-muted-foreground bg-gray-50 dark:bg-gray-800/50 px-2 sm:px-2.5 py-1 sm:py-1 rounded-full border border-gray-100 dark:border-gray-800 mt-1">
+                                                <span className="w-1.5 h-1.5 sm:w-1.5 sm:h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                                                 Reward: {task.reward.toFixed(0)} ARN
                                             </div>
-                                            <p className="text-xs text-gray-400 max-w-[200px] mt-2 leading-relaxed">
-                                                Unlock this task and others by upgrading your account status.
+                                            <p className="text-[9px] sm:text-[10px] text-muted-foreground max-w-[180px] mt-1.5 leading-relaxed">
+                                                Unlock this task and others by upgrading your status.
                                             </p>
                                         </div>
                                         
-                                        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <a href="/dashboard/wallet" className="scale-110 shadow-xl px-6 py-2.5 bg-gray-900 text-white rounded-xl font-bold text-sm flex items-center gap-2 transform transition-transform hover:scale-115">
-                                                <BoltIcon className="w-4 h-4 text-amber-400" /> Unlock Access
+                                        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                            <a href="/dashboard/wallet" className="scale-[1.05] shadow-xl px-4 sm:px-5 py-2 sm:py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 transform transition-transform hover:scale-110">
+                                                <BoltIcon className="w-3.5 h-3.5 text-amber-400 dark:text-amber-500" /> Unlock
                                             </a>
                                         </div>
                                     </div>
@@ -244,10 +238,10 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className={`relative bg-gradient-to-br from-card to-amber-50/50 dark:from-card dark:to-amber-900/10 rounded-2xl p-6 border transition-all duration-300 ${
+                                    className={`relative bg-gradient-to-br from-card to-amber-50/50 dark:from-card dark:to-amber-900/10 rounded-2xl p-4 sm:p-6 border transition-all duration-300 ${
                                         isCompleted 
-                                            ? 'border-green-200 shadow-none' 
-                                            : 'border-amber-100 shadow-sm hover:shadow-lg hover:shadow-amber-100/50 hover:border-amber-300 hover:-translate-y-1'
+                                            ? 'border-green-200 dark:border-green-800 shadow-none' 
+                                            : 'border-amber-100 dark:border-amber-800/50 shadow-sm hover:shadow-lg hover:shadow-amber-100/50 dark:hover:shadow-amber-900/20 hover:border-amber-300 hover:-translate-y-1'
                                     }`}
                                 >
                                     {isCompleted && (
@@ -256,21 +250,30 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                         </div>
                                     )}
 
-                                    <div className="flex items-start justify-between mb-4">
-                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 border border-amber-200">
+                                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                                        <div className="flex items-center gap-2 sm:gap-3">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold border border-amber-100 dark:border-amber-800/50">
+                                                {task.title.charAt(0)}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wide">Premium Partner</span>
+                                                <span className="text-[8px] sm:text-[10px] text-amber-500 dark:text-amber-400">Verified</span>
+                                            </div>
+                                        </div>
+                                        <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
                                             {task.type}
                                         </span>
                                     </div>
                                     
-                                    <h3 className="font-bold text-gray-900 text-lg mb-3 leading-tight">
+                                    <h3 className="font-bold text-foreground text-sm sm:text-lg mb-2 sm:mb-3 leading-tight">
                                         {task.title}
                                     </h3>
                                     
-                                    <div className="flex items-center justify-between pt-4 border-t border-amber-100/50">
+                                    <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-amber-100/50 dark:border-amber-800/30">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] uppercase font-bold text-gray-400">Reward</span>
-                                            <div className="text-lg font-bold text-amber-600 flex items-center gap-1">
-                                                <SparklesIcon className="w-5 h-5 text-amber-500" />
+                                            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground">Reward</span>
+                                            <div className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                                <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
                                                 {task.reward.toFixed(0)} ARN
                                             </div>
                                         </div>
@@ -278,13 +281,13 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                         {!isCompleted && !isPending && (
                                             <button
                                                 onClick={() => handleTaskClick(task)}
-                                                className="px-5 py-2.5 bg-gray-900 hover:bg-amber-600 text-white text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-900 dark:bg-amber-600 hover:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 sm:gap-2"
                                             >
-                                                Start <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+                                                Start <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                             </button>
                                         )}
-                                        {isPending && <span className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold border border-blue-100">Verifying...</span>}
-                                        {isCompleted && <span className="px-4 py-2 bg-green-50 text-green-600 rounded-lg text-xs font-bold border border-green-100">Paid out</span>}
+                                        {isPending && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] sm:text-xs font-bold border border-blue-100 dark:border-blue-800/50">Verifying...</span>}
+                                        {isCompleted && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-[10px] sm:text-xs font-bold border border-green-100 dark:border-green-800/50">Paid out</span>}
                                     </div>
                                 </motion.div>
                             )
@@ -294,17 +297,17 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
 
                 {/* 2. BASIC TASKS (Clean & Professional) */}
                 <section>
-                    <div className="flex items-center gap-4 mb-6 border-t border-gray-100 pt-10">
-                        <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600 border border-indigo-100">
-                             <GiftIcon className="w-6 h-6" />
+                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 border-t border-border pt-8 sm:pt-10">
+                        <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">
+                             <GiftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                         </div>
                         <div>
-                             <h2 className="text-2xl font-bold text-gray-900">Basic Tasks</h2>
-                             <p className="text-sm text-gray-500 font-medium">Steady growth for everyone. No restrictions.</p>
+                             <h2 className="text-xl sm:text-2xl font-bold text-foreground">Basic Tasks</h2>
+                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">Steady growth for everyone. No restrictions.</p>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                         {platformTasks.filter(t => t.type === 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
@@ -317,68 +320,153 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     initial={{ opacity: 0, scale: 0.98 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className={`group relative bg-card rounded-2xl p-5 border transition-all duration-300 hover:shadow-md ${
+                                    className={`group relative bg-card rounded-2xl p-4 sm:p-5 border transition-all duration-300 hover:shadow-md ${
                                         isApproved ? 'border-green-200 bg-green-50/20 dark:border-green-800 dark:bg-green-900/10' : 
                                         isPending ? 'border-blue-200 bg-blue-50/20 dark:border-blue-800 dark:bg-blue-900/10' :
                                         isRejected ? 'border-red-200 bg-red-50/20 dark:border-red-800 dark:bg-red-900/10' : 'border-border hover:border-indigo-200 dark:hover:border-indigo-800'
                                     }`}
                                 >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="flex items-center gap-3">
+                                    <div className="flex justify-between items-start mb-3 sm:mb-4">
+                                        <div className="flex items-center gap-2 sm:gap-3">
                                             {task.company?.logoUrl ? (
-                                                <img src={task.company.logoUrl} alt="" className="w-8 h-8 rounded-full shadow-sm" />
+                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full shadow-sm" />
                                             ) : (
-                                                <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 text-xs font-bold border border-indigo-100">
+                                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-[10px] sm:text-xs font-bold border border-indigo-100 dark:border-indigo-800/50">
                                                     {task.company?.name?.[0] || 'L'}
                                                 </div>
                                             )}
                                             <div className="flex flex-col">
-                                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wide">{task.company?.name || 'Platform'}</span>
-                                                <span className="text-[10px] text-gray-400">Sponsored</span>
+                                                <span className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wide">{task.company?.name || 'Platform'}</span>
+                                                <span className="text-[8px] sm:text-[10px] text-gray-400 dark:text-gray-500">Sponsored</span>
                                             </div>
                                         </div>
-                                        {isApproved && <CheckCircleIcon className="w-5 h-5 text-green-500" />}
-                                        {isRejected && <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded">Failed</span>}
+                                        {isApproved && <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
+                                        {isRejected && <span className="text-[9px] sm:text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded">Failed</span>}
                                     </div>
 
-                                    <h3 className="font-bold text-gray-900 text-sm mb-4 min-h-[40px] line-clamp-2 leading-snug">
+                                    <h3 className="font-bold text-foreground text-xs sm:text-sm mb-3 sm:mb-4 min-h-[32px] sm:min-h-[40px] line-clamp-2 leading-snug">
                                         {task.title}
                                     </h3>
 
-                                    <div className="flex items-center justify-between border-t border-gray-50 pt-4 mt-auto">
-                                        <div className="text-sm font-bold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md">
+                                    <div className="flex items-center justify-between border-t border-border pt-3 sm:pt-4 mt-auto">
+                                        <div className="text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-indigo-100 dark:border-indigo-800/50">
                                             +{task.reward} ARN
                                         </div>
                                         
                                         {!isApproved && !isPending && (
                                             <button
                                                 onClick={() => handleTaskClick(task)}
-                                                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
                                                     isRejected 
-                                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
-                                                    : 'bg-card text-foreground border border-border hover:bg-indigo-600 hover:text-white hover:border-indigo-600'
+                                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 hover:dark:bg-red-900/40'
+                                                    : 'bg-indigo-600 dark:bg-indigo-600 text-white border border-transparent hover:bg-indigo-700 dark:hover:bg-indigo-500'
                                                 }`}
                                             >
                                                 {isRejected ? 'Retry Task' : 'Start Task'}
                                             </button>
                                         )}
-                                        {isPending && <span className="text-xs font-medium text-blue-500 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
-                                        {isApproved && <span className="text-xs font-medium text-green-600">Completed</span>}
+                                        {isPending && <span className="text-[10px] sm:text-xs font-medium text-blue-500 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
+                                        {isApproved && <span className="text-[10px] sm:text-xs font-medium text-green-600 dark:text-green-500">Completed</span>}
                                     </div>
                                 </motion.div>
                             )
                         })}
                     </div>
                 </section>
-            </div>
-            
-            {/* Minimal Footer Info */}
-             <div className="mt-8 pt-8 border-t border-gray-100 text-center text-xs text-gray-400">
-                 <p className="flex items-center justify-center gap-2">
-                     <InformationCircleIcon className="w-4 h-4" />
+             {/* Minimal Footer Info */}
+             <div className="mt-8 pt-8 border-t border-gray-100 dark:border-border text-center text-[10px] sm:text-xs text-muted-foreground">
+                 <p className="flex items-center justify-center gap-1.5 sm:gap-2">
+                     <InformationCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                      Tasks are verified within 24 hours. Rewards are credited immediately upon approval.
                  </p>
              </div>
+            </div>
+
+            {/* Task Submission Modal */}
+            <AnimatePresence>
+                {selectedTask && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !isPending && setSelectedTask(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        
+                        {/* Modal Content */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            className="relative w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border p-5 sm:p-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+                        >
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 mb-2">
+                                        {selectedTask?.type}
+                                    </span>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                                        {selectedTask?.title}
+                                    </h2>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">Reward</span>
+                                    <div className="text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end">
+                                        <SparklesIcon className="w-4 h-4" />
+                                        {selectedTask?.reward} ARN
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-muted/50 rounded-xl p-4 mb-6 text-sm text-foreground leading-relaxed whitespace-pre-wrap border border-border">
+                                {selectedTask?.description || "Click the 'Start' button again to open the task link (if available). Then, complete the task instructions and upload your proof here."}
+                            </div>
+
+                            <form action={handleSubmitProof} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-foreground mb-2">Upload Screenshot Proof</label>
+                                    <div className="border-2 border-dashed border-border rounded-xl p-4 sm:p-6 text-center hover:bg-muted/50 transition-colors">
+                                        <input 
+                                            type="file" 
+                                            name="file" 
+                                            accept="image/*" 
+                                            required
+                                            className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 cursor-pointer"
+                                        />
+                                    </div>
+                                </div>
+
+                                {feedback && (
+                                    <div className={`p-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 ${feedback?.type === 'error' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-100 dark:border-red-900/50' : 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-900/50'}`}>
+                                        {feedback?.type === 'error' ? <span>⚠️</span> : <CheckCircleIcon className="w-5 h-5" />}
+                                        {feedback?.message}
+                                    </div>
+                                )}
+
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedTask(null)}
+                                        disabled={isPending}
+                                        className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-sm font-bold text-foreground bg-muted hover:bg-muted/80 transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isPending}
+                                        className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {isPending ? 'Submitting...' : 'Submit Proof'}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

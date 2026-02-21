@@ -72,8 +72,8 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
   return (
     <div className="p-6 max-w-7xl mx-auto">
        <div className="mb-8">
-         <h1 className="text-3xl font-serif font-bold text-gray-900">My Wallet</h1>
-         <p className="text-gray-500">Manage your funds and transactions.</p>
+         <h1 className="text-2xl sm:text-3xl font-serif font-bold text-foreground">My Wallet</h1>
+         <p className="text-muted-foreground text-sm sm:text-base">Manage your funds and transactions.</p>
        </div>
        
        <WalletClient 

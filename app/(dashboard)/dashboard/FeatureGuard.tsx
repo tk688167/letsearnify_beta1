@@ -17,10 +17,15 @@ export async function FeatureGuard({ title, feature = 'default', children }: Fea
     return null 
   }
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { totalDeposit: true, balance: true, isActiveMember: true }
   })
+
+  // Anti-Gravity: Super Admin Bypass
+  if (!user && session.user.id === "super-admin-id") {
+      user = { totalDeposit: 5000, balance: 5000, isActiveMember: true } as any;
+  }
 
   // 1. Check Deposit Requirement ($1.00)
   // "Unlocked" means they have paid the entry fee (deposit >= 1 or manual active)

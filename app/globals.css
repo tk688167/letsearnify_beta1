@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Wire Tailwind v4 dark: variant to next-themes .dark class (NOT prefers-color-scheme) */
+@variant dark (&:where(.dark, .dark *));
+
+
 html {
   scroll-behavior: smooth;
 }

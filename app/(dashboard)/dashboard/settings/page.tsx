@@ -15,12 +15,21 @@ export default async function SettingsPage() {
   let user;
   
   try {
-      user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-           paymentMethods: true
-        }
-      })
+      if (session.user.id === "super-admin-id") {
+          user = {
+              id: "super-admin-id",
+              name: "Super Admin",
+              email: "admin@letsearnify.com",
+              paymentMethods: []
+          } as any;
+      } else {
+          user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: {
+               paymentMethods: true
+            }
+          })
+      }
   } catch (error) {
       console.error("⚠️ Settings Page Offline Mode:", error);
       user = {

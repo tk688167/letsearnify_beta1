@@ -152,45 +152,90 @@ export default function CbspPoolContent() {
 
       {/* Example Calculation */}
       <section>
-        <div className="flex items-start gap-3 mb-6">
-          <InformationCircleIcon className="w-6 h-6 text-blue-500 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-2xl font-bold text-foreground mb-2">Distribution Example</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              <em className="text-muted-foreground/80">Note: The figures below are for illustration purposes only to help you understand the distribution logic. Actual amounts vary based on real pool balance.</em>
-            </p>
-          </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+           <div>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2 flex items-center gap-3">
+                 <CalculatorIcon className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400" />
+                 Distribution Example
+              </h3>
+              <p className="text-muted-foreground leading-relaxed max-w-2xl text-sm sm:text-base">
+                 See exactly how weekly rewards are calculated and securely distributed. <em className="text-muted-foreground/80">(Figures are for illustration purposes only)</em>
+              </p>
+           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-lg md:rounded-xl p-5 sm:p-6 md:p-8 text-white shadow-lg">
-          <div className="flex items-center gap-2 mb-4 sm:mb-6">
-            <CalculatorIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-200" />
-            <h4 className="font-bold text-base sm:text-lg">Weekly Calculation Breakdown</h4>
-          </div>
+        <div className="relative rounded-[2rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl overflow-hidden group">
+          {/* Glassmorphic Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900"></div>
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 mix-blend-overlay"></div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-5 border border-white/20">
-              <p className="text-blue-200 text-xs sm:text-sm mb-1 sm:mb-2">Pool Balance</p>
-              <p className="text-white font-bold text-xl sm:text-2xl md:text-3xl font-mono">$10,000</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-blue-200 text-sm mb-2">Rate</p>
-              <p className="text-white font-bold text-3xl font-mono">3%</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-blue-200 text-sm mb-2">Distributed</p>
-              <p className="text-emerald-300 font-bold text-3xl font-mono">$300</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-blue-200 text-sm mb-2">Remaining</p>
-              <p className="text-blue-300 font-bold text-3xl font-mono">$9,700</p>
-            </div>
-          </div>
+          {/* Animated Glows */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-400/30 transition-colors duration-700"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 group-hover:bg-indigo-400/30 transition-colors duration-700"></div>
 
-          <div className="bg-white/5 rounded-lg p-5 border border-white/10">
-            <p className="text-blue-50 text-sm leading-relaxed">
-              <strong className="text-white">Simple Math:</strong> If the pool has $10,000, we distribute 3% = $300 to members. The remaining $9,700 (97%) stays in the pool for next week, plus any new 5% contributions from deposits.
-            </p>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                 <CalculatorIcon className="w-5 h-5 text-blue-200" />
+              </div>
+              <h4 className="font-bold text-lg sm:text-xl tracking-wide">Weekly Calculation Breakdown</h4>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+              {/* Pool Balance */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300 relative overflow-hidden group/card shadow-lg hover:shadow-xl hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-blue-200/80 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Pool Balance</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-blue-400/80 text-xl font-bold">$</span>
+                      <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">10,000</p>
+                   </div>
+                </div>
+              </div>
+              
+              {/* Rate */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300 relative overflow-hidden group/card shadow-lg hover:shadow-xl hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-blue-200/80 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Weekly Rate</p>
+                   <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">3<span className="text-blue-400/80 text-2xl">%</span></p>
+                </div>
+              </div>
+
+              {/* Distributed */}
+              <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/10 backdrop-blur-xl rounded-2xl p-6 border border-emerald-500/30 hover:bg-emerald-500/30 transition-all duration-300 relative overflow-hidden group/card shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-emerald-200/80 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Distributed to Users</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-emerald-400/80 text-xl font-bold">$</span>
+                      <p className="text-emerald-100 font-bold text-3xl sm:text-4xl font-mono tracking-tight">300</p>
+                   </div>
+                </div>
+              </div>
+
+              {/* Remaining */}
+              <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300 relative overflow-hidden group/card shadow-lg hover:shadow-xl hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-blue-200/80 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Retained Growth</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-blue-400/80 text-xl font-bold">$</span>
+                      <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">9,700</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-md rounded-xl p-5 border border-white/10 flex items-start sm:items-center gap-4 shadow-sm">
+              <div className="p-2 sm:p-2.5 bg-blue-500/20 rounded-lg text-blue-300 shrink-0 border border-blue-400/20">
+                 <InformationCircleIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+              </div>
+              <p className="text-blue-50/90 text-sm leading-relaxed max-w-4xl">
+                <strong className="text-white font-bold">Simple Verification:</strong> When the pool reaches $10,000, 3% ($300) is distributed fairly among eligible members. The remaining 97% ($9,700) safely rolls over to the next week, continuously compounding with new deposits to ensure sustainable reward growth.
+              </p>
+            </div>
           </div>
         </div>
       </section>

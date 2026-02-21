@@ -81,7 +81,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
           <div>
-            &copy; {new Date().getFullYear()} LetsEarnify. All rights reserved.
+            &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> LetsEarnify. All rights reserved.
           </div>
           <div className="flex gap-6">
             <div className="flex items-center gap-2">

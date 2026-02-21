@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import { motion } from "framer-motion"
 import LandingHeader from "../../components/LandingHeader"
-import Footer from "../../components/Footer"
+import Footer from "../layout/Footer"
 import { EnvelopeIcon, ChatBubbleLeftRightIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline"
 
 export default function ContactPageContent() {

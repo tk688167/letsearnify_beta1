@@ -15,16 +15,37 @@ export default async function ProfilePage() {
   let user;
 
   try {
-      user = await prisma.user.findUnique({
-        where: {
-          id: session.user.id
-        },
-        include: {
-          _count: {
-            select: { referrals: true }
-          }
-        }
-      })
+      // Anti-Gravity: Handle Super Admin Bypass
+      if (session.user.id === "super-admin-id") {
+          user = {
+            id: "super-admin-id",
+            name: "Super Admin",
+            email: session.user.email,
+            memberId: "777777",
+            createdAt: new Date(),
+            _count: { referrals: 0 },
+            tier: "EMERALD",
+            isActiveMember: true,
+            kycStatus: "VERIFIED",
+            image: null,
+            balance: 5000,
+            arnBalance: 1000,
+            phoneNumber: "+1234567890",
+            country: "United States",
+            referralCode: "SUPER-ADMIN"
+          } as any;
+      } else {
+          user = await prisma.user.findUnique({
+            where: {
+              id: session.user.id
+            },
+            include: {
+              _count: {
+                select: { referrals: true }
+              }
+            }
+          })
+      }
   } catch (error) {
        console.error("⚠️ Profile Page Offline Mode:", error);
        user = {

@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 
-import CbspHistorySection from "@/app/admin/components/CbspHistorySection"
+import CbspHistorySection from "@/app/(admin)/admin/components/CbspHistorySection"
 
 export default function AdminCbspPage() {
   return (

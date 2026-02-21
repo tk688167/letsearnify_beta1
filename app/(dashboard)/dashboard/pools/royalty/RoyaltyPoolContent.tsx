@@ -154,45 +154,93 @@ export default function RoyaltyPoolContent() {
 
       {/* Example Calculation */}
       <section>
-        <div className="flex items-start gap-3 mb-6">
-          <InformationCircleIcon className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Distribution Example</h3>
-            <p className="text-gray-600 leading-relaxed">
-              <em className="text-gray-500">Note: These figures are illustrative examples to explain the distribution logic. Actual amounts depend on real pool balance and member activity.</em>
-            </p>
-          </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+           <div>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-3">
+                 <CalculatorIcon className="w-7 h-7 sm:w-8 sm:h-8 text-amber-600 dark:text-amber-500" />
+                 Distribution Example
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 leading-relaxed max-w-2xl text-sm sm:text-base">
+                 See exactly how monthly rewards are calculated and securely distributed. <em className="opacity-80">(Figures are for illustration purposes only)</em>
+              </p>
+           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-amber-600 to-orange-600 rounded-lg md:rounded-xl p-5 sm:p-6 md:p-8 text-white">
-          <div className="flex items-center gap-2 mb-4 sm:mb-6">
-            <CalculatorIcon className="w-5 h-5 sm:w-6 sm:h-6 text-amber-100" />
-            <h4 className="font-bold text-base sm:text-lg">Monthly Calculation Breakdown</h4>
-          </div>
+        <div className="relative rounded-[2rem] p-6 sm:p-8 md:p-10 text-white shadow-2xl overflow-hidden group">
+          {/* Glassmorphic Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-600 via-orange-600 to-red-800"></div>
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-15 mix-blend-overlay"></div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 sm:p-5 border border-white/20">
-              <p className="text-amber-100 text-xs sm:text-sm mb-1 sm:mb-2">Pool Balance</p>
-              <p className="text-white font-bold text-xl sm:text-2xl md:text-3xl font-mono">$5,000</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-amber-100 text-sm mb-2">Rate</p>
-              <p className="text-white font-bold text-3xl font-mono">1%</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-amber-100 text-sm mb-2">Distributed</p>
-              <p className="text-emerald-300 font-bold text-3xl font-mono">$50</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-5 border border-white/20">
-              <p className="text-amber-100 text-sm mb-2">Remaining</p>
-              <p className="text-amber-200 font-bold text-3xl font-mono">$4,950</p>
-            </div>
-          </div>
+          {/* Animated Glows */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-400/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-amber-300/40 transition-colors duration-700"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-rose-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 group-hover:bg-orange-500/30 transition-colors duration-700"></div>
 
-          <div className="bg-white/5 rounded-lg p-5 border border-white/10">
-            <p className="text-amber-50 text-sm leading-relaxed">
-              <strong className="text-white">Simple Math:</strong> If the Royalty Pool has $5,000, we distribute 1% = $50 monthly to eligible top-tier members. The remaining $4,950 (99%) stays in the pool and continues growing from new 5% contributions.
-            </p>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                 <CalculatorIcon className="w-5 h-5 text-amber-100" />
+              </div>
+              <h4 className="font-bold text-lg sm:text-xl tracking-wide">Monthly Calculation Breakdown</h4>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+              {/* Pool Balance */}
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 relative overflow-hidden group/card shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-300/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-amber-100/90 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Pool Balance</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-amber-300/80 text-xl font-bold">$</span>
+                      <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">5,000</p>
+                   </div>
+                </div>
+              </div>
+              
+              {/* Rate */}
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 relative overflow-hidden group/card shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-300/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-amber-100/90 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Monthly Rate</p>
+                   <div className="flex items-baseline gap-1">
+                      <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">1</p>
+                      <span className="text-amber-300/80 text-xl sm:text-2xl font-bold">%</span>
+                   </div>
+                </div>
+              </div>
+
+              {/* Distributed */}
+              <div className="bg-gradient-to-br from-emerald-500/30 to-teal-500/20 backdrop-blur-xl rounded-2xl p-6 border border-emerald-400/40 hover:bg-emerald-500/40 transition-all duration-300 relative overflow-hidden group/card shadow-[0_8px_16px_rgba(0,0,0,0.1)] shadow-emerald-900/10 hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-300/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-emerald-100/90 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Distributed to VIPs</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-emerald-300/80 text-xl font-bold">$</span>
+                      <p className="text-emerald-50 font-bold text-3xl sm:text-4xl font-mono tracking-tight">50</p>
+                   </div>
+                </div>
+              </div>
+
+              {/* Remaining */}
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 relative overflow-hidden group/card shadow-[0_8px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative z-10">
+                   <p className="text-amber-100/90 text-xs sm:text-sm mb-2 font-bold uppercase tracking-widest">Retained Growth</p>
+                   <div className="flex items-baseline gap-1">
+                      <span className="text-amber-300/80 text-xl font-bold">$</span>
+                      <p className="text-white font-bold text-3xl sm:text-4xl font-mono tracking-tight">4,950</p>
+                   </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-xl p-5 border border-white/20 flex items-start sm:items-center gap-4 shadow-sm">
+              <div className="p-2 sm:p-2.5 bg-amber-500/30 rounded-lg text-amber-200 shrink-0 border border-amber-400/30">
+                 <InformationCircleIcon className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2} />
+              </div>
+              <p className="text-amber-50/95 text-sm leading-relaxed max-w-4xl">
+                <strong className="text-white font-bold">Simple Verification:</strong> If the Royalty Pool has $5,000, we distribute 1% ($50) monthly to eligible top-tier members. The remaining 99% ($4,950) securely stays in the pool, compounding with new 5% contributions to ensure ever-growing rewards for our top earners.
+              </p>
+            </div>
           </div>
         </div>
       </section>
