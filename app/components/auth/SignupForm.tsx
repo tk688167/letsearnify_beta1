@@ -14,6 +14,7 @@ interface SignupFormProps {
 
 export default function SignupForm({ referralCode = "", isModal = false }: SignupFormProps) {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -25,6 +26,14 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     setError("")
     
     const formData = new FormData(e.currentTarget)
+    const password = formData.get("password") as string
+    const confirmPassword = formData.get("confirmPassword") as string
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.")
+      setLoading(false)
+      return
+    }
     
     try {
         const res = await registerUser(formData)
@@ -61,25 +70,29 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   }
 
   return (
-    <div className={`bg-card ${isModal ? "" : "py-8 px-4 shadow-xl shadow-muted/5 sm:rounded-2xl sm:px-10 border border-border"}`}>
+    <div className={`relative ${isModal ? "" : "py-6 px-4 sm:py-8 sm:px-10 sm:rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-2xl"}`}>
+      {/* Background Glow Effect */}
+      {!isModal && (
+        <div className="absolute -inset-[1px] rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-amber-500/20 -z-10 blur-xl opacity-50 pointer-events-none"></div>
+      )}
       
       {error && (
-         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-             <div className="w-2 h-2 bg-destructive rounded-full shrink-0" />
+         <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-xs sm:text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+             <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-destructive rounded-full shrink-0" />
              {error}
          </div>
       )}
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
         
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-bold text-foreground mb-1">
+          <label htmlFor="name" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
             Full Name
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <UserIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="name"
@@ -87,19 +100,19 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               type="text"
               required
               placeholder="John Doe"
-              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
+              className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground text-xs sm:text-sm transition-all outline-none"
             />
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-bold text-foreground mb-1">
+          <label htmlFor="email" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
             Email Address
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <EnvelopeIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <EnvelopeIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="email"
@@ -108,24 +121,24 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               autoComplete="email"
               required
               placeholder="name@example.com"
-              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
+              className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground text-xs sm:text-sm transition-all outline-none"
             />
           </div>
         </div>
 
         {/* Country */}
         <div>
-          <label htmlFor="country" className="block text-sm font-bold text-foreground mb-1">
+          <label htmlFor="country" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
             Country
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <GlobeAltIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <GlobeAltIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <select 
                 id="country"
                 name="country" 
-                className="block w-full h-11 pl-10 pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary text-foreground sm:text-sm transition-all outline-none appearance-none" 
+                className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-9 sm:pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary text-foreground text-xs sm:text-sm transition-all outline-none appearance-none" 
                 required
             >
                 <option value="">Select your country</option>
@@ -205,54 +218,88 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 <option value="YE">Yemen</option>
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                 <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <svg className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                  </svg>
             </div>
           </div>
         </div>
 
-        {/* Password */}
-        <div>
-          <label htmlFor="password" className="block text-sm font-bold text-foreground mb-1">
-            Password
-          </label>
-          <div className="relative rounded-xl shadow-sm">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <LockClosedIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+        {/* Password Group */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div>
+            <label htmlFor="password" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
+              Password
+            </label>
+            <div className="relative rounded-xl shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LockClosedIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                placeholder="Min 8 chars"
+                minLength={8}
+                className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-9 sm:pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground text-xs sm:text-sm transition-all outline-none"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                ) : (
+                  <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                )}
+              </button>
             </div>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              required
-              placeholder="Min 8 characters"
-              minLength={8}
-              className="block w-full h-11 pl-10 pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none"
-            />
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeSlashIcon className="h-5 w-5" aria-hidden="true" />
-              ) : (
-                <EyeIcon className="h-5 w-5" aria-hidden="true" />
-              )}
-            </button>
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
+              Confirm Password
+            </label>
+            <div className="relative rounded-xl shadow-sm">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <LockClosedIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                autoComplete="new-password"
+                required
+                placeholder="Confirm"
+                minLength={8}
+                className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-9 sm:pr-10 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground text-xs sm:text-sm transition-all outline-none"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeSlashIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                ) : (
+                  <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Referral */}
         <div>
-          <label htmlFor="referralCode" className="block text-sm font-bold text-foreground mb-1">
-             Referral Code <span className="text-muted-foreground font-normal text-xs">(optional)</span>
+          <label htmlFor="referralCode" className="block text-xs sm:text-sm font-bold text-foreground mb-1">
+             Referral Code <span className="text-muted-foreground font-normal text-[10px] sm:text-xs"> (optional)</span>
           </label>
           <div className="relative rounded-xl shadow-sm">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <TagIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <TagIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" aria-hidden="true" />
             </div>
             <input
               id="referralCode"
@@ -260,21 +307,25 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               type="text"
               defaultValue={referralCode}
               placeholder="Enter code"
-              className="block w-full h-11 pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground sm:text-sm transition-all outline-none uppercase placeholder:normal-case"
+              className="block w-full h-10 sm:h-11 pl-9 sm:pl-10 pr-3 border border-input bg-background rounded-xl focus:ring-2 focus:ring-primary focus:border-primary placeholder-muted-foreground text-xs sm:text-sm transition-all outline-none uppercase placeholder:normal-case"
             />
           </div>
         </div>
 
-        <div className="pt-2">
+        <div className="pt-2 sm:pt-4">
           <button
             type="submit"
             disabled={loading || isGoogleLoading}
-            className="w-full flex justify-center py-3 px-4 h-11 border border-transparent rounded-xl shadow-lg shadow-primary/20 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none"
+            className="group relative w-full flex justify-center items-center py-2.5 sm:py-3.5 px-4 h-11 sm:h-[52px] border border-transparent rounded-xl sm:rounded-2xl shadow-xl shadow-primary/20 text-[13px] sm:text-base font-bold text-primary-foreground bg-primary hover:bg-primary/95 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:transform-none overflow-hidden"
           >
+            <div className="absolute inset-0 bg-white/20 w-1/2 -skew-x-12 -translate-x-full group-hover:animate-[shimmer_1s_forwards]"></div>
             {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 sm:w-6 h-5 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-                "Create Account"
+                <span className="flex items-center gap-1 sm:gap-1.5 leading-none">
+                  <span>Create Account</span>
+                  <span className="text-primary-foreground/90 font-semibold">• Activate $1</span>
+                </span>
             )}
           </button>
         </div>
@@ -292,17 +343,17 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-5 sm:mt-6">
              <button 
                 type="button"
                 onClick={handleGoogleSignup}
                 disabled={isGoogleLoading || loading}
-                className="w-full flex items-center justify-center gap-3 bg-card text-foreground border-2 border-border p-3 h-11 rounded-xl hover:bg-muted/50 hover:border-primary/20 transition font-bold shadow-sm"
+                className="w-full flex items-center justify-center gap-2 sm:gap-3 bg-card text-foreground border-2 border-border p-3 h-10 sm:h-11 rounded-xl hover:bg-muted/50 hover:border-primary/20 transition text-xs sm:text-sm font-bold shadow-sm"
              >
                  {isGoogleLoading ? (
-                     <div className="w-5 h-5 border-2 border-border border-t-primary rounded-full animate-spin"></div>
+                     <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-border border-t-primary rounded-full animate-spin"></div>
                  ) : (
-                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-4 h-4 sm:w-5 sm:h-5" />
                  )}
                  Sign up with Google
              </button>

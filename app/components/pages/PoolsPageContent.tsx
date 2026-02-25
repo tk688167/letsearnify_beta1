@@ -2,226 +2,225 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
+import LandingHeader from "@/app/components/LandingHeader"
+import Footer from "@/app/components/layout/Footer"
+import InlineBackButton from "@/app/components/ui/InlineBackButton"
 import { 
   CurrencyDollarIcon, 
   TrophyIcon, 
   GiftIcon,
   SparklesIcon,
-  ArrowRightIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ArrowRightIcon
 } from "@heroicons/react/24/outline"
 
 export default function PoolsPageContent() {
   return (
-    <div className="space-y-10 pb-16">
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col font-sans selection:bg-primary/30">
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-6 sm:p-8 md:p-12">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-5"></div>
-        
-        <div className="relative z-10 max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg mb-4 sm:mb-6 shadow-sm">
-            <SparklesIcon className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
-            <span className="leading-none">Transparent Reward Distribution</span>
-          </div>
+      {/* Ambient Animated Backgrounds */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] mix-blend-screen animate-pulse-slow"></div>
+        <div className="absolute top-[20%] -right-[10%] w-[40%] h-[60%] rounded-full bg-fuchsia-500/10 blur-[120px] mix-blend-screen animate-pulse-slow object-right" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      <LandingHeader />
+
+      <main className="flex-grow pt-20 sm:pt-24 pb-16 sm:pb-20 px-3 sm:px-4 md:px-6 z-10 w-full">
+        <div className="max-w-7xl mx-auto">
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-3 sm:mb-4 leading-tight">
-            Reward Pools
-          </h1>
-          
-          <p className="text-base sm:text-lg md:text-xl text-blue-100 leading-relaxed max-w-3xl">
-            Explore our three automated reward systems designed to distribute platform revenue fairly and transparently to all members based on activity and tier levels.
-          </p>
-        </div>
-      </section>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card/40 backdrop-blur-xl border border-border/80 rounded-3xl sm:rounded-[2.5rem] shadow-2xl p-5 sm:p-10 md:p-16 relative overflow-hidden"
+          >
+            {/* Header Area */}
+            <div className="mb-8 sm:mb-16">
+              <InlineBackButton className="mb-6 inline-flex" />
+              <div className="text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 text-primary text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg mb-4 shadow-sm">
+                  <SparklesIcon className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                  <span className="leading-none">Transparent Revenue Distribution</span>
+                </div>
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-foreground mb-3 sm:mb-4 tracking-tight leading-tight">
+                  Reward Pools
+                </h1>
+                <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium">
+                  Explore our three automated reward systems. These pools distribute platform revenue fairly to all members based on activity, tenure, and tier levels.
+                </p>
+              </div>
+            </div>
 
-      {/* Pool Cards Grid */}
-      <section>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Choose a Pool to Learn More</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-          
-          {/* CBSP Pool Card */}
-          <PoolCard
-            href="/dashboard/pools/cbsp"
-            icon={CurrencyDollarIcon}
-            title="CBSP Pool"
-            subtitle="Weekly Profit Sharing"
-            description="Automated weekly distribution to all eligible members based on tier levels."
-            stats={[
-              { label: "Deposit Fee", value: "5%" },
-              { label: "Weekly Distribution", value: "3%" },
-              { label: "Eligible Tiers", value: "All" }
-            ]}
-            color="blue"
-            delay={0.1}
-          />
+            {/* Pool Cards Grid */}
+            <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-4 sm:mb-6 text-center md:text-left">Choose a Pool to Learn More</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
+              
+              {/* CBSP Pool Card */}
+              <PoolCard
+                href="/login" // Direct to login if public route
+                icon={CurrencyDollarIcon}
+                title="CBSP Pool"
+                subtitle="Weekly Profit Sharing"
+                description="The Company-Based Sharing Pool automates weekly distributions to eligible members globally."
+                stats={[
+                  { label: "Funding Source", value: "Deposit Fees (5%)" },
+                  { label: "Distribution Rate", value: "Weekly (3%)" },
+                  { label: "Eligibility", value: "All Active Tiers" }
+                ]}
+                colorTheme="blue"
+                delay={0.1}
+              />
 
-          {/* Royalty Pool Card */}
-          <PoolCard
-            href="/dashboard/pools/royalty"
-            icon={TrophyIcon}
-            title="Royalty Pool"
-            subtitle="Top Performer Rewards"
-            description="Monthly bonuses for high achievers in Platinum, Diamond, and Emerald tiers."
-            stats={[
-              { label: "Deposit Fee", value: "5%" },
-              { label: "Monthly Distribution", value: "1%" },
-              { label: "Eligible Tiers", value: "Platinum+" }
-            ]}
-            color="amber"
-            delay={0.2}
-          />
+              {/* Royalty Pool Card */}
+              <PoolCard
+                href="/login"
+                icon={TrophyIcon}
+                title="Royalty Pool"
+                subtitle="Top Performer Rewards"
+                description="Exclusive monthly bonuses dedicated to high achievers who reach leadership levels."
+                stats={[
+                  { label: "Funding Source", value: "Deposit Fees (5%)" },
+                  { label: "Distribution Rate", value: "Monthly (1%)" },
+                  { label: "Eligibility", value: "Platinum & Above" }
+                ]}
+                colorTheme="amber"
+                delay={0.2}
+              />
 
-          {/* Achievement Pool Card */}
-          <PoolCard
-            href="/dashboard/pools/achievement"
-            icon={GiftIcon}
-            title="Achievement Pool"
-            subtitle="Milestone Bonuses"
-            description="Instant rewards for completing achievements, tier upgrades, and milestones."
-            stats={[
-              { label: "Deposit Fee", value: "1%" },
-              { label: "Distribution", value: "Instant" },
-              { label: "Type", value: "Milestone" }
-            ]}
-            color="purple"
-            delay={0.3}
-          />
-        </div>
-      </section>
+              {/* Achievement Pool Card */}
+              <PoolCard
+                href="/login"
+                icon={GiftIcon}
+                title="Achievement Pool"
+                subtitle="Milestone Bonuses"
+                description="Instant algorithmic rewards triggered by completing network expansion milestones."
+                stats={[
+                  { label: "Funding Source", value: "System Fees (1%)" },
+                  { label: "Distribution Rate", value: "Instant Payout" },
+                  { label: "Eligibility", value: "Milestone Criteria" }
+                ]}
+                colorTheme="fuchsia"
+                delay={0.3}
+              />
+            </div>
 
-      {/* Quick Stats Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl md:rounded-2xl p-6 sm:p-8 md:p-10 border border-blue-100">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">How Pool Allocation Works</h2>
+            {/* Mechanics Section */}
+            <div className="bg-background/50 backdrop-blur-md rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 border border-border/50">
+              <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-6 sm:mb-8 text-center md:text-left">How Pool Allocation Works</h2>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+                    <CurrencyDollarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">1. Continuous Funding</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      A strictly defined percentage of all network fees is automatically pipelined into securely locked smart-contracts representing each pool.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
+                    <ChartBarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-indigo-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">2. Exponential Growth</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      As the platform's global network expands, the pooled liquidity grows rapidly, increasing the potential payout sizes for eligible members.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30 sm:col-span-2 lg:col-span-1">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 shrink-0">
+                    <SparklesIcon className="w-5 sm:w-6 h-5 sm:h-6 text-rose-500" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">3. Automated Payouts</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      Audited algorithms calculate user shares and execute distributions automatically (weekly, monthly, or instantly) directly to your withdrawal wallet.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </motion.div>
         
-        <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
-          <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <CurrencyDollarIcon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Every Deposit</h3>
-            </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              When any user deposits, a small percentage is automatically allocated to each pool for future distributions.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <ChartBarIcon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Pool Growth</h3>
-            </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              Each pool accumulates funds continuously, creating a growing balance available for regular distributions.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-blue-200 shadow-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <SparklesIcon className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Auto Distribution</h3>
-            </div>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              Distributions happen automatically—weekly, monthly, or instantly—depending on the pool type.
-            </p>
-          </div>
         </div>
-      </section>
+      </main>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl md:rounded-2xl p-6 sm:p-8 md:p-12 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-5"></div>
-        
-        <div className="relative z-10">
-          <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-white mb-3 sm:mb-4">
-            Ready to Start Earning?
-          </h3>
-          <p className="text-base sm:text-lg text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
-            Make your first deposit to unlock access to all reward pools and begin earning passive income today.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
-            <Link 
-              href="/dashboard/wallet?tab=deposit" 
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm sm:text-base"
-            >
-              <CurrencyDollarIcon className="w-5 h-5" />
-              Make a Deposit
-            </Link>
-            <Link 
-              href="/dashboard/tiers" 
-              className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-all text-sm sm:text-base"
-            >
-              <ChartBarIcon className="w-5 h-5" />
-              View Tier Progress
-            </Link>
-          </div>
-        </div>
-      </section>
+      <Footer />
     </div>
   )
 }
 
-// Pool Card Component
-function PoolCard({ href, icon: Icon, title, subtitle, description, stats, color, delay }: any) {
-  const colorStyles: any = {
+// Internal component for Pool Cards
+function PoolCard({ href, icon: Icon, title, subtitle, description, stats, colorTheme, delay }: any) {
+  
+  // Dynamic color mapping for Tailwind
+  const colors: Record<string, { bgAccent: string; iconText: string; hoverBorder: string; statBg: string }> = {
     blue: {
-      gradient: "from-blue-500 to-blue-600",
-      hover: "hover:from-blue-600 hover:to-blue-700",
-      border: "border-blue-200",
-      bg: "bg-blue-50"
+      bgAccent: "bg-blue-500/10 border-blue-500/20",
+      iconText: "text-blue-500 absolute w-full h-full p-3 sm:p-3.5",
+      hoverBorder: "hover:border-blue-500/40",
+      statBg: "bg-blue-500/5 border-blue-500/10"
     },
     amber: {
-      gradient: "from-amber-500 to-amber-600",
-      hover: "hover:from-amber-600 hover:to-amber-700",
-      border: "border-amber-200",
-      bg: "bg-amber-50"
+      bgAccent: "bg-amber-500/10 border-amber-500/20",
+      iconText: "text-amber-500 absolute w-full h-full p-3 sm:p-3.5",
+      hoverBorder: "hover:border-amber-500/40",
+      statBg: "bg-amber-500/5 border-amber-500/10"
     },
-    purple: {
-      gradient: "from-purple-500 to-purple-600",
-      hover: "hover:from-purple-600 hover:to-purple-700",
-      border: "border-purple-200",
-      bg: "bg-purple-50"
+    fuchsia: {
+      bgAccent: "bg-fuchsia-500/10 border-fuchsia-500/20",
+      iconText: "text-fuchsia-500 absolute w-full h-full p-3 sm:p-3.5",
+      hoverBorder: "hover:border-fuchsia-500/40",
+      statBg: "bg-fuchsia-500/5 border-fuchsia-500/10"
     }
   }
 
-  const style = colorStyles[color]
+  const theme = colors[colorTheme]
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
+      className="h-full"
     >
-      <Link href={href} className="block h-full">
-        <div className={`h-full bg-white rounded-xl md:rounded-2xl border-2 ${style.border} shadow-sm hover:shadow-lg transition-all p-5 sm:p-6 group`}>
+      <Link href={href} className="flex flex-col h-full">
+        <div className={`flex flex-col h-full bg-card/60 rounded-2xl sm:rounded-3xl border border-border/50 shadow-md ${theme.hoverBorder} transition-all duration-300 group hover:-translate-y-1 overflow-hidden relative`}>
           
-          {/* Header */}
-          <div className={`flex items-center justify-between mb-3 sm:mb-4 pb-3 sm:pb-4 border-b ${style.border}`}>
-            <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${style.gradient} ${style.hover} rounded-lg sm:rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-md`}>
-              <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+          <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all z-20 hidden sm:block">
+             <ArrowRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
+          </div>
+
+          <div className="p-5 sm:p-8 flex-grow flex flex-col relative z-10">
+            {/* Header */}
+            <div className={`w-12 sm:w-14 h-12 sm:h-14 rounded-xl sm:rounded-2xl ${theme.bgAccent} border mb-4 sm:mb-6 relative group-hover:scale-110 transition-transform duration-500 shadow-sm`}>
+              <Icon className={theme.iconText} />
             </div>
-            <ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-gray-900 group-hover:translate-x-1 transition-all" />
+
+            {/* Content */}
+            <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1">{title}</h3>
+            <p className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3 sm:mb-4">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground/90 leading-relaxed mb-6 sm:mb-8 flex-grow">{description}</p>
+
+            {/* Stats Block */}
+            <div className={`rounded-xl sm:rounded-2xl p-3 sm:p-4 border ${theme.statBg} space-y-2 sm:space-y-3 mt-auto`}>
+              {stats.map((stat: any, index: number) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">{stat.label}</span>
+                  <span className="text-xs sm:text-sm font-bold text-foreground">{stat.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Content */}
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{title}</h3>
-          <p className="text-xs sm:text-sm text-gray-600 font-semibold mb-2 sm:mb-3">{subtitle}</p>
-          <p className="text-gray-600 text-sm leading-relaxed mb-4 sm:mb-6">{description}</p>
-
-          {/* Stats */}
-          <div className={`${style.bg} rounded-lg p-3 sm:p-4 space-y-1.5 sm:space-y-2`}>
-            {stats.map((stat: any, index: number) => (
-              <div key={index} className="flex items-center justify-between">
-                <span className="text-[11px] sm:text-xs text-gray-600 font-medium">{stat.label}</span>
-                <span className="text-sm font-bold text-gray-900">{stat.value}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </Link>
     </motion.div>

@@ -1,166 +1,130 @@
 "use client"
 
-import React from "react"
 import { motion } from "framer-motion"
-import LandingHeader from "../../components/LandingHeader"
-import Link from "next/link"
-import { CurrencyDollarIcon, UserGroupIcon, BriefcaseIcon, CheckBadgeIcon, ArrowRightIcon } from "@heroicons/react/24/outline"
+import LandingHeader from "@/app/components/LandingHeader"
+import Footer from "@/app/components/layout/Footer"
+import InlineBackButton from "@/app/components/ui/InlineBackButton"
+import { 
+  UserGroupIcon, 
+  CheckBadgeIcon, 
+  BanknotesIcon, 
+  WalletIcon, 
+  BriefcaseIcon,
+  SparklesIcon
+} from "@heroicons/react/24/outline"
 
 export default function FeaturesPageContent() {
+
+  const features = [
+    {
+      title: "Global Referral Network",
+      description: "Build a massive 15-level deep downline. Earn instant commissions for every single user activated within your network, creating an effortless passive income stream as your team grows globally.",
+      icon: UserGroupIcon,
+      accentColor: "text-blue-500",
+      bgHover: "hover:border-blue-500/30"
+    },
+    {
+      title: "Micro-Task Bounties",
+      description: "Complete quick digital tasks like watching videos, taking surveys, app testing, and social media engagements. Earn steady daily payouts with high volume availability.",
+      icon: CheckBadgeIcon,
+      accentColor: "text-emerald-500",
+      bgHover: "hover:border-emerald-500/30"
+    },
+    {
+      title: "Mudaraba Profit Pools",
+      description: "Participate in ethical, Islamic finance-inspired profit-sharing pools. Stake your earnings safely and split platform-generated revenue daily. Completely Riba (interest) free.",
+      icon: BanknotesIcon,
+      accentColor: "text-amber-500",
+      bgHover: "hover:border-amber-500/30"
+    },
+    {
+      title: "Spin & Win Rewards",
+      description: "Try your luck daily on our premium reward wheel. Win instant cash bonuses, profile upgrades, and massive multiplier boosts to accelerate your overall platform earnings.",
+      icon: SparklesIcon,
+      accentColor: "text-fuchsia-500",
+      bgHover: "hover:border-fuchsia-500/30"
+    },
+    {
+      title: "Freelance Marketplace",
+      description: "A built-in marketplace to buy and sell digital services. Hire experts within the community or offer your own skills (graphic design, writing, coding) to a ready pool of buyers.",
+      icon: BriefcaseIcon,
+      accentColor: "text-indigo-500",
+      bgHover: "hover:border-indigo-500/30"
+    },
+    {
+      title: "Universal Auto-Wallet",
+      description: "Manage all your income streams automatically. Lightning-fast withdrawals in multiple local and global currencies (EasyPaisa, JazzCash, USDT, Payeer, and more) with minimal fees.",
+      icon: WalletIcon,
+      accentColor: "text-rose-500",
+      bgHover: "hover:border-rose-500/30"
+    }
+  ]
+
   return (
-    <div className="flex flex-col min-h-screen bg-white text-gray-900 font-sans selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col font-sans selection:bg-primary/30">
+      
+      {/* Ambient Animated Backgrounds */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] mix-blend-screen animate-pulse-slow"></div>
+        <div className="absolute top-[20%] -right-[10%] w-[40%] h-[60%] rounded-full bg-fuchsia-500/10 blur-[120px] mix-blend-screen animate-pulse-slow object-right" style={{ animationDelay: '2s' }}></div>
+      </div>
+
       <LandingHeader />
 
-      <main className="flex-1 pt-24">
-        {/* Header */}
-        <section className="py-20 px-6 text-center bg-gray-50 border-b border-gray-100">
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             animate={{ opacity: 1, y: 0 }}
-             transition={{ duration: 0.6 }}
-             className="max-w-4xl mx-auto"
-           >
-              <h1 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-6">
-                 Explore <span className="text-indigo-600">LetsEarnify Features</span>
-              </h1>
-              <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-                 A comprehensive ecosystem designed to maximize your earning potential through four distinct pillars.
-              </p>
-           </motion.div>
-        </section>
-
-        {/* Feature 1: Task Center */}
-        <FeatureSection 
-           id="tasks"
-           title="Micro-Task Center"
-           subtitle="Earn Online Rewards Instantly"
-           desc="Turn your spare time into cash. Complete simple, verified tasks for advertisers—like watching videos, taking surveys, or testing apps—and get paid in ARN Tokens immediately upon approval."
-           points={["Instant Payouts", "No Experience Needed", "High Volume of Tasks"]}
-           icon={<CheckBadgeIcon className="w-8 h-8 text-white" />}
-           color="bg-emerald-500"
-           reversed={false}
-           imgGradient="from-emerald-50 to-teal-50"
-        />
-
-        {/* Feature 2: Investment Pools */}
-        <FeatureSection 
-           id="pools"
-           title="Mudaraba Investment Pools"
-           subtitle="Ethical Passive Growth"
-           desc="Participate in our profit-sharing pools based on the principles of Mudaraba. Your capital is professionally managed in real-world ventures, and profits are shared transparently."
-           points={["Sharia-Compliant Model", "Weekly Profit Distribution", "Low Entry Barrier ($10)"]}
-           icon={<CurrencyDollarIcon className="w-8 h-8 text-white" />}
-           color="bg-amber-500"
-           reversed={true}
-           imgGradient="from-amber-50 to-orange-50"
-        />
-
-        {/* Feature 3: Freelance Marketplace */}
-        <FeatureSection 
-           id="freelance"
-           title="Freelance Marketplace"
-           subtitle="Monetize Your Professional Skills"
-           desc="Offer your services to a global audience. Whether you are a designer, writer, or developer, our secure escrow marketplace ensures you get paid for your hard work."
-           points={["Secure Escrow System", "Global Client Base", "Low Platform Fees"]}
-           icon={<BriefcaseIcon className="w-8 h-8 text-white" />}
-           color="bg-purple-500"
-           reversed={false}
-           imgGradient="from-purple-50 to-fuchsia-50"
-        />
-
-        {/* Feature 4: Referral Program */}
-        <FeatureSection 
-           id="referral"
-           title="Referral Network"
-           subtitle="Earn from Community Growth"
-           desc="Build your team and earn commissions from their activity. Our sustainable multi-tier system rewards you for bringing active, valuable members to the platform."
-           points={["Multi-Tier Commissions", "Recurring Revenue", "Marketing Tools Included"]}
-           icon={<UserGroupIcon className="w-8 h-8 text-white" />}
-           color="bg-blue-500"
-           reversed={true}
-           imgGradient="from-blue-50 to-indigo-50"
-        />
-
-        {/* CTA */}
-        <section className="py-24 px-6 bg-gray-900 text-white text-center">
-            <div className="max-w-3xl mx-auto">
-               <h2 className="text-3xl font-bold mb-8">Ready to start earning?</h2>
-               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                   <Link href="/signup">
-                      <button className="px-8 py-4 bg-white text-gray-900 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-lg hover:-translate-y-1">
-                         Create Free Account
-                      </button>
-                   </Link>
-                   <Link href="/proofs">
-                      <button className="px-8 py-4 border border-gray-700 text-gray-300 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all">
-                         See Proof of Payments
-                      </button>
-                   </Link>
-               </div>
+      <main className="flex-grow pt-24 pb-20 px-4 md:px-6 z-10 w-full">
+        <div className="max-w-7xl mx-auto">
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-card/40 backdrop-blur-xl border border-border/80 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl p-6 sm:p-10 md:p-16 relative overflow-hidden"
+          >
+            {/* Header Area */}
+            <div className="mb-10 sm:mb-16">
+              <InlineBackButton className="mb-6 inline-flex" />
+              <div className="text-center md:text-left">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground mb-4 tracking-tight">
+                  Platform Features
+                </h1>
+                <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium">
+                  We built Let'sEarnify to be the most comprehensive ecosystem for earning online. Explore the six core pillars designed to generate steady, reliable income.
+                </p>
+              </div>
             </div>
-        </section>
 
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {features.map((feature, idx) => (
+                <motion.div 
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className={`group bg-background/50 backdrop-blur-md border border-border/50 rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${feature.bgHover} relative overflow-hidden flex flex-col`}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-card border border-border/50 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500 relative z-10">
+                    <feature.icon className={`w-7 h-7 sm:w-8 sm:h-8 ${feature.accentColor}`} />
+                  </div>
+                  
+                  <div className="relative z-10 flex-grow">
+                    <h3 className="text-xl font-bold text-foreground mb-3">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground/90 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+          </motion.div>
+        
+        </div>
       </main>
 
-      <footer className="bg-gray-50 py-12 text-center text-gray-400 text-sm border-t border-gray-200">
-        <p>© {new Date().getFullYear()} LetsEarnify. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   )
-}
-
-function FeatureSection({ id, title, subtitle, desc, points, icon, color, reversed, imgGradient }: any) {
-    return (
-        <section id={id} className={`py-20 px-6 ${reversed ? 'bg-gray-50' : 'bg-white'}`}>
-           <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center">
-              <motion.div 
-                 initial={{ opacity: 0, x: reversed ? 30 : -30 }}
-                 whileInView={{ opacity: 1, x: 0 }}
-                 viewport={{ once: true }}
-                 transition={{ duration: 0.6 }}
-                 className={`${reversed ? 'md:order-2' : ''}`}
-              >
-                 <div className={`w-16 h-16 rounded-2xl ${color} flex items-center justify-center mb-6 shadow-lg`}>
-                    {icon}
-                 </div>
-                 <h2 className="text-3xl font-serif font-bold text-gray-900 mb-2">{title}</h2>
-                 <p className="text-lg text-indigo-600 font-medium mb-6 uppercase tracking-wide text-xs">{subtitle}</p>
-                 <p className="text-gray-500 text-lg leading-relaxed mb-8">
-                    {desc}
-                 </p>
-                 <ul className="space-y-4">
-                    {points.map((point: string, i: number) => (
-                        <li key={i} className="flex items-center gap-3 text-gray-700 font-medium">
-                           <CheckCircleIcon className={`w-5 h-5 ${color.replace('bg-', 'text-')}`} />
-                           {point}
-                        </li>
-                    ))}
-                 </ul>
-              </motion.div>
-              
-              <motion.div 
-                 initial={{ opacity: 0, scale: 0.9 }}
-                 whileInView={{ opacity: 1, scale: 1 }}
-                 viewport={{ once: true }}
-                 transition={{ duration: 0.6 }}
-                 className={`relative h-[400px] rounded-[2.5rem] bg-gradient-to-br ${imgGradient} border border-gray-100 flex items-center justify-center overflow-hidden ${reversed ? 'md:order-1' : ''}`}
-              >
-                 <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
-                 <div className="relative z-10 text-center p-8">
-                    <span className="text-9xl opacity-20 filter blur-sm select-none grayscale transition-all hover:grayscale-0 hover:opacity-40 hover:blur-0 duration-700 cursor-default">
-                        {title.charAt(0)}
-                    </span>
-                 </div>
-              </motion.div>
-           </div>
-        </section>
-    )
-}
-
-function CheckCircleIcon({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-    )
 }

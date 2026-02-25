@@ -10,23 +10,23 @@ import {
 
 export default function SmartPoolsSection() {
   return (
-    <section className="py-24 bg-gradient-to-b from-muted to-background text-foreground relative overflow-hidden animate-in fade-in duration-700 slide-in-from-bottom-8">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-muted to-background text-foreground relative overflow-hidden animate-in fade-in duration-700 slide-in-from-bottom-8">
       
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-16">
-          <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+        <div className="text-center mb-12 sm:mb-16">
+          <div className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 mb-3 sm:mb-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] sm:text-xs font-bold uppercase tracking-wider">
             Profit Sharing Ecosystem
           </div>
-          <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 text-foreground">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-4 sm:mb-6 text-foreground">
             Core Income Allocations
           </h2>
-          <div className="h-1 w-20 bg-primary mx-auto rounded-full mb-6"></div>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
+          <div className="h-1 w-16 sm:w-20 bg-primary mx-auto rounded-full mb-4 sm:mb-6"></div>
+          <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
             Automated Mudaraba distribution channels. Transparent profit routing based on active participation.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
           {/* CBSPool */}
           <PoolCard 
             title="Core Yield (CBSP)"
@@ -75,11 +75,11 @@ export default function SmartPoolsSection() {
         <div className="text-center">
           <Link 
             href="/signup" 
-            className="inline-flex items-center gap-2 px-10 py-4 bg-primary hover:bg-blue-700 text-white rounded-full font-bold text-lg shadow-xl shadow-blue-600/20 transition-all hover:scale-105"
+            className="inline-flex items-center gap-2 px-6 sm:px-10 py-3 sm:py-4 bg-primary hover:bg-blue-700 text-white rounded-full font-bold text-base sm:text-lg shadow-xl shadow-blue-600/20 transition-all hover:scale-105"
           >
             Start with $1 Today <span aria-hidden="true">&rarr;</span>
           </Link>
-          <p className="mt-4 text-sm text-muted-foreground">Secure & Transparent • Automated Distribution</p>
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">Secure & Transparent • Automated Distribution</p>
         </div>
       </div>
     </section>
@@ -88,17 +88,17 @@ export default function SmartPoolsSection() {
 
 function PoolCard({ title, subtitle, desc, motivation, icon, gradient, delay }: any) {
   return (
-    <div className={`p-8 bg-card rounded-3xl shadow-sm border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group flex flex-col ${delay} animate-in fade-in slide-in-from-bottom-4`}>
-      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-6 shadow-md group-hover:scale-110 transition-transform`}>
+    <div className={`p-6 sm:p-8 bg-card rounded-[1.5rem] sm:rounded-3xl shadow-sm border border-border hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group flex flex-col ${delay} animate-in fade-in slide-in-from-bottom-4`}>
+      <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 sm:mb-6 shadow-md group-hover:scale-110 transition-transform`}>
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-foreground mb-1 font-serif group-hover:text-primary transition-colors">{title}</h3>
-      <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">{subtitle}</div>
-      <p className="text-muted-foreground text-sm leading-relaxed mb-6 flex-1">
+      <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1 font-serif group-hover:text-primary transition-colors">{title}</h3>
+      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">{subtitle}</div>
+      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-5 sm:mb-6 flex-1">
         {desc}
       </p>
-      <div className="pt-6 border-t border-border mt-auto">
-        <p className="text-sm font-medium text-primary italic">
+      <div className="pt-4 sm:pt-6 border-t border-border mt-auto">
+        <p className="text-xs sm:text-sm font-medium text-primary italic">
           "{motivation}"
         </p>
       </div>

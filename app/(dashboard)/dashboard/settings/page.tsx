@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import SettingsTabs from "./settings-tabs"
+import { Cog8ToothIcon } from "@heroicons/react/24/solid"
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -45,10 +46,14 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-12 max-w-6xl mx-auto">
-      <header className="mb-10 px-6 md:px-0">
-        <h1 className="text-4xl font-serif font-bold text-gray-900">Account Settings</h1>
-        <p className="text-gray-500 mt-2 text-lg">Manage your profile, security, and preferences.</p>
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
+      <header className="mb-8 relative">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-sm font-semibold mb-4">
+          <Cog8ToothIcon className="w-4 h-4" />
+          Settings & Preferences
+        </div>
+        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">Account Settings</h1>
+        <p className="text-muted-foreground mt-2 text-base max-w-2xl font-light">Manage your profile, preferences, and account security.</p>
       </header>
       
       <SettingsTabs user={user} />
