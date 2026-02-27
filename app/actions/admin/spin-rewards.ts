@@ -115,7 +115,7 @@ export async function getSpinSettings(): Promise<SpinSettings> {
     // Default fallback if missing (or return defaults)
     if (!config || !config.value) {
         return {
-            freeSpinCooldownHours: 48,
+            freeSpinCooldownHours: 24,
             premiumSpinCooldownHours: 24,
             premiumUnlockAmount: 1.0,
             welcomeBonusDays: 3,

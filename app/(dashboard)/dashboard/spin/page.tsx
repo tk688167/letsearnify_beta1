@@ -10,6 +10,7 @@ import SpinHistory from "./SpinHistory"
 import { ClockIcon } from "@heroicons/react/24/outline"
 
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
+import { cookies } from "next/headers"
 
 export default async function SpinPage() {
   const session = await auth()
@@ -46,13 +47,17 @@ export default async function SpinPage() {
 
   if (!user) {
       if (session?.user?.id === "super-admin-id") {
+          const cookieStore = await cookies();
+          const adminLastSpin = cookieStore.get("admin_lastSpinTime")?.value;
+          const adminLastPremium = cookieStore.get("admin_lastPremiumSpinTime")?.value;
+
           user = {
               id: "super-admin-id",
               name: "Super Admin",
               email: "admin@letsearnify.com",
               isActiveMember: true,
-              lastSpinTime: null,
-              lastPremiumSpinTime: null,
+              lastSpinTime: adminLastSpin ? new Date(adminLastSpin) : null,
+              lastPremiumSpinTime: adminLastPremium ? new Date(adminLastPremium) : null,
               premiumBonusSpins: 0
           } as any;
       } else {
@@ -186,7 +191,8 @@ export default async function SpinPage() {
                        <SpinWheel 
                            rewards={premiumRewards} 
                            onSpin={executeSpin.bind(null, "PREMIUM")}
-                           isLocked={!user.isActiveMember || (!!premiumCooldownDate && user.premiumBonusSpins <= 0)}
+                           isLocked={!user.isActiveMember}
+                           cooldown={premiumCooldownDate && user.premiumBonusSpins <= 0 ? 1 : 0}
                            type="PREMIUM"
                        />
                    </TabsContent>

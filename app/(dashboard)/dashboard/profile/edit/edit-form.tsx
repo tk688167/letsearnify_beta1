@@ -321,22 +321,22 @@ export default function EditForm({ user }: EditFormProps) {
         </section>
 
         {/* Sticky Action Bar */}
-        <div className="sticky bottom-4 z-50 pt-2 sm:pt-4">
-           <div className="flex flex-col sm:flex-row items-center gap-3 bg-card/80 backdrop-blur-xl border border-border p-4 rounded-2xl shadow-xl shadow-black/5">
-             <button 
-               type="submit" 
-               disabled={isPending}
-               className="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 font-bold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5"
-             >
-               {isPending ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <CheckCircleIcon className="w-5 h-5" />}
-               Save All Changes
-             </button>
+        <div className="sticky bottom-20 md:bottom-6 z-50 pt-2 md:pt-4 flex justify-end">
+           <div className="flex flex-row items-center gap-3 bg-card/90 backdrop-blur-xl border border-border p-3 rounded-2xl shadow-xl shadow-black/10 w-full md:w-auto">
              <button 
                type="button" 
                onClick={() => router.back()}
-               className="w-full sm:w-auto px-8 py-3.5 sm:py-4 bg-secondary text-foreground font-bold rounded-xl border border-border hover:bg-muted transition-colors opacity-90 hover:opacity-100"
+               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm bg-secondary text-foreground font-semibold rounded-xl border border-border hover:bg-muted transition-colors opacity-90 hover:opacity-100"
              >
                Discard
+             </button>
+             <button 
+               type="submit" 
+               disabled={isPending}
+               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5"
+             >
+               {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckCircleIcon className="w-4 h-4" />}
+               Save All Changes
              </button>
            </div>
         </div>

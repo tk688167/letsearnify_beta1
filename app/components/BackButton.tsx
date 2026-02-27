@@ -45,7 +45,7 @@ export default function BackButton() {
     "/proofs"
   ]
 
-  if (excludedPaths.includes(pathname)) {
+  if (excludedPaths.includes(pathname) || pathname?.startsWith("/admin")) {
     return null
   }
 

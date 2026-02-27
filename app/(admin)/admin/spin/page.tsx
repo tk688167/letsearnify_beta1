@@ -10,37 +10,35 @@ export default async function AdminSpinPage() {
     const settings = await getSpinSettings()
 
     return (
-        <div className="p-8 space-y-8">
+        <div className="p-4 md:p-8 space-y-6">
             <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Spin Management</h1>
-                <p className="text-gray-500">Configure rewards, probabilities, and global settings for the Spin System.</p>
+                <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Spin Management</h1>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Configure rewards, probabilities, and global settings for the Spin System.</p>
             </div>
 
-            <div className="max-w-5xl">
-                <Tabs defaultValue="free" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 lg:w-2/3 bg-gray-100 p-1 rounded-xl">
-                        <TabsTrigger value="free" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Free Wheel</TabsTrigger>
-                        <TabsTrigger value="premium" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Premium Wheel</TabsTrigger>
-                        <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Global Settings</TabsTrigger>
-                        <TabsTrigger value="timers" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">Timer Controls</TabsTrigger>
-                    </TabsList>
-                    
-                    <div className="mt-8">
-                        <TabsContent value="free">
-                            <SpinConfigClient initialRewards={freeRewards} spinType="FREE" />
-                        </TabsContent>
-                        <TabsContent value="premium">
-                            <SpinConfigClient initialRewards={premiumRewards} spinType="PREMIUM" />
-                        </TabsContent>
-                        <TabsContent value="settings">
-                            <SpinSettingsClient initialSettings={settings} />
-                        </TabsContent>
-                        <TabsContent value="timers">
-                            <TimerControlsClient />
-                        </TabsContent>
-                    </div>
-                </Tabs>
-            </div>
+            <Tabs defaultValue="free" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 md:w-auto bg-gray-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
+                    <TabsTrigger value="free" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Free Wheel</TabsTrigger>
+                    <TabsTrigger value="premium" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Premium Wheel</TabsTrigger>
+                    <TabsTrigger value="settings" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Global Settings</TabsTrigger>
+                    <TabsTrigger value="timers" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Timer Controls</TabsTrigger>
+                </TabsList>
+
+                <div className="mt-6">
+                    <TabsContent value="free">
+                        <SpinConfigClient initialRewards={freeRewards} spinType="FREE" />
+                    </TabsContent>
+                    <TabsContent value="premium">
+                        <SpinConfigClient initialRewards={premiumRewards} spinType="PREMIUM" />
+                    </TabsContent>
+                    <TabsContent value="settings">
+                        <SpinSettingsClient initialSettings={settings} />
+                    </TabsContent>
+                    <TabsContent value="timers">
+                        <TimerControlsClient />
+                    </TabsContent>
+                </div>
+            </Tabs>
         </div>
     )
 }

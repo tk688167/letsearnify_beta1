@@ -64,7 +64,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
 
           <motion.div
             style={{ opacity, scale }}
-            className="max-w-5xl mx-auto text-center relative z-10"
+            className="w-full max-w-7xl mx-auto text-center relative z-10 px-4 sm:px-6"
           >
             {/* Live badge */}
             <motion.div
@@ -194,7 +194,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
-              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto mb-10 px-4 sm:px-6"
+              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto mb-10 px-4 sm:px-6"
             >
               {[
                 { title: "Daily Tasks", desc: "Watch & Click", icon: "⚡" },

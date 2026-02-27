@@ -48,39 +48,40 @@ export default function LandingHeader() {
           </div>
 
           {/* Desktop Left: Logo (relative) | Mobile Center: Logo (absolute) */}
-          <div className="z-50 absolute inset-0 flex items-center justify-center pointer-events-none xl:static xl:justify-start xl:inset-auto xl:pointer-events-auto">
+          <div className="z-50 absolute inset-0 flex items-center justify-center pointer-events-none xl:static xl:justify-start xl:inset-auto xl:pointer-events-auto xl:flex-1">
             <div className="pointer-events-auto">
-              <Logo size="md" />
+              <Logo size="lg" className="scale-90 xl:scale-100 origin-left" />
             </div>
           </div>
           
           {/* Desktop Center: Navigation */}
-          <nav className="hidden xl:flex flex-1 justify-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="/features" className="hover:text-primary transition-colors">Features</Link>
-            <Link href="/how-it-works" className="hover:text-primary transition-colors">How it Works</Link>
-            <Link href="/about" className="hover:text-primary transition-colors">About</Link>
-            <Link href="/pools" className="hover:text-primary transition-colors">Reward Pools</Link>
-            <Link href="/terms" className="hover:text-primary transition-colors">Terms & Disclosures</Link>
-            <Link href="/faq" className="hover:text-primary transition-colors">FAQ</Link>
-            <Link href="/support" className="hover:text-primary transition-colors">Support</Link>
+          <nav className="hidden xl:flex items-center justify-center gap-1 lg:gap-1.5 p-1.5 bg-background/50 border border-border/60 hover:border-border/80 backdrop-blur-xl rounded-full shadow-sm text-sm font-semibold whitespace-nowrap transition-all">
+            <Link href="/features" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Features</Link>
+            <Link href="/how-it-works" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">How it Works</Link>
+            <Link href="/about" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">About</Link>
+            <Link href="/pools" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Reward Pools</Link>
+            <Link href="/terms" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Terms</Link>
+            <Link href="/support" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Support</Link>
           </nav>
 
           {/* Right Section: Theme & Actions */}
-          <div className="flex-1 flex justify-end items-center gap-2 md:gap-4 z-50">
+          <div className="flex-1 flex justify-end items-center gap-3 z-50">
              <ThemeToggle />
              
-             <Link 
-               href="/login" 
-               className="hidden xl:flex items-center justify-center px-4 py-2 border border-border/50 bg-secondary/30 hover:bg-secondary/80 text-foreground text-sm font-semibold rounded-xl transition-all"
-             >
-               Log In
-             </Link>
-             <Link 
-               href="/signup" 
-               className="hidden xl:flex items-center justify-center px-5 py-2 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white rounded-xl text-sm font-semibold shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5"
-             >
-               Get Started
-             </Link>
+             <div className="hidden xl:flex items-center gap-3 pl-3 border-l border-border/50">
+               <Link 
+                 href="/login" 
+                 className="flex items-center justify-center px-5 py-2.5 text-foreground hover:text-primary text-base font-bold transition-colors"
+               >
+                 Log In
+               </Link>
+               <Link 
+                 href="/signup" 
+                 className="flex items-center justify-center px-7 py-2.5 bg-foreground hover:bg-foreground/90 text-background rounded-full text-base font-bold shadow-lg transition-transform hover:-translate-y-0.5 active:scale-95"
+               >
+                 Get Started
+               </Link>
+             </div>
           </div>
         </div>
       </header>

@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { addUserPoints } from "@/lib/mlm"
 import { FREE_REWARDS, PREMIUM_REWARDS, SpinReward } from "@/lib/spin-config"
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
+import { cookies } from "next/headers"
 
 export async function executeSpin(type: "FREE" | "PREMIUM") {
     const session = await auth()
@@ -39,11 +40,15 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
     
     let userRecord = user;
     if (!userRecord && userId === "super-admin-id") {
+        const cookieStore = await cookies();
+        const adminLastSpin = cookieStore.get("admin_lastSpinTime")?.value;
+        const adminLastPremium = cookieStore.get("admin_lastPremiumSpinTime")?.value;
+
         userRecord = {
             id: userId,
             createdAt: new Date(),
-            lastSpinTime: null,
-            lastPremiumSpinTime: null,
+            lastSpinTime: adminLastSpin ? new Date(adminLastSpin) : null,
+            lastPremiumSpinTime: adminLastPremium ? new Date(adminLastPremium) : null,
             dailySpinCount: 0,
             premiumBonusSpins: 0,
             lastSurpriseDate: null,
@@ -61,7 +66,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
     if (type === "FREE") {
         const lastSpin = userRecord.lastSpinTime ? new Date(userRecord.lastSpinTime) : null
         
-        // Dynamic Cooldown Check
+        // Dynamic Cooldown Check (Hardcoded to 24 hours for FREE spins)
         if (lastSpin) {
             const diffMs = now.getTime() - lastSpin.getTime()
             const diffHours = diffMs / (1000 * 60 * 60)
@@ -120,23 +125,65 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
     }
 
-    // RNG Selection
+    // RNG Selection / Deterministic Selection
     let selectedReward: SpinReward | undefined
     if (forceSurprise) {
         selectedReward = rewards.find(r => r.type === "SURPRISE")
     }
 
     if (!selectedReward) {
-        const rand = Math.random()
-        let cumulative = 0
-        const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
-        const normalize = 1 / totalProb
+        if (type === "FREE") {
+            // Apply deterministic, controlled logic for FREE spins based on existing spin history
+            const spinCount = userRecord.dailySpinCount; // Tracks total free spins explicitly
+            
+            // "Good" rewards are ARN rewards
+            const goodRewards = rewards.filter(r => r.type === "ARN");
+            // "Bad" rewards are TRY_AGAIN (yielding 0 points)
+            const badRewards = rewards.filter(r => r.type === "TRY_AGAIN");
 
-        for (const reward of rewards) {
-            cumulative += reward.probability * normalize
-            if (rand < cumulative) {
-                selectedReward = reward
-                break
+            // For the first two spins (0, 1), give a reasonably good reward (e.g. 5 ARN or 7 ARN)
+            if (spinCount < 2) {
+                // Ensure good rewards exist as fallback
+                if (goodRewards.length > 0) {
+                     // Prefer the lower values between 5 and 7 ARN
+                     const fiveArn = goodRewards.find(r => r.value === 5)
+                     const sevenArn = goodRewards.find(r => r.value === 7)
+                     
+                     if (spinCount === 0 && fiveArn) selectedReward = fiveArn;
+                     else if (spinCount === 1 && sevenArn) selectedReward = sevenArn;
+                     else selectedReward = goodRewards[0]; // fallback
+                }
+            } else {
+                // Cycle: 1 Good Spin followed by 2 Bad Spins
+                // Pattern starting from spinCount 2: 
+                // spinCount 2: (2-2)%3 = 0 -> Good
+                // spinCount 3: (3-2)%3 = 1 -> Bad
+                // spinCount 4: (4-2)%3 = 2 -> Bad
+                const cyclePosition = (spinCount - 2) % 3;
+
+                if (cyclePosition === 0 && goodRewards.length > 0) {
+                     // Prefer lower ARNs for "Good" outcome to not break bank
+                     const lowArn = goodRewards.find(r => r.value <= 7);
+                     selectedReward = lowArn || goodRewards[0];
+                } else if (badRewards.length > 0) {
+                     selectedReward = badRewards[0]; // "Try Again"
+                }
+            }
+        }
+
+        // Standard probability RNG if deterministic logic didn't hit or it's PREMIUM
+        if (!selectedReward) {
+            const rand = Math.random()
+            let cumulative = 0
+            const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
+            const normalize = 1 / totalProb
+
+            for (const reward of rewards) {
+                cumulative += reward.probability * normalize
+                if (rand < cumulative) {
+                    selectedReward = reward
+                    break
+                }
             }
         }
     }
@@ -146,6 +193,13 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
     // Apply Rewards
     try {
         if (userId === "super-admin-id") {
+            const cookieStore = await cookies();
+            if (type === "FREE") {
+                cookieStore.set("admin_lastSpinTime", new Date().toISOString());
+            } else if (type === "PREMIUM") {
+                cookieStore.set("admin_lastPremiumSpinTime", new Date().toISOString());
+            }
+            revalidatePath("/dashboard/spin")
             return { success: true, reward: selectedReward, message: `[ADMIN SIM] You won ${selectedReward.label}!` }
         }
 

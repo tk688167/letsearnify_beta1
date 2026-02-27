@@ -1,5 +1,8 @@
+"use client"
+
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { usePathname } from "next/navigation"
 
 interface LogoProps {
   className?: string
@@ -14,7 +17,14 @@ export default function Logo({
   variant = "dark",
   asLink = true 
 }: LogoProps) {
+  const pathname = usePathname()
   
+  let targetHref = "/"
+  if (pathname?.startsWith("/dashboard")) {
+    targetHref = "/dashboard"
+  } else if (pathname?.startsWith("/admin")) {
+    targetHref = "/admin"
+  }
   const sizeClasses = {
     sm: {
       text: "text-lg",
@@ -71,7 +81,7 @@ export default function Logo({
 
   if (asLink) {
     return (
-      <Link href="/" className="inline-flex items-center justify-center">
+      <Link href={targetHref} className="inline-flex items-center justify-center">
         {content}
       </Link>
     )

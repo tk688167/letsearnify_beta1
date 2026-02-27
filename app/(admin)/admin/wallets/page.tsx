@@ -20,9 +20,9 @@ export default async function AdminWalletsPage() {
     }
 
     return (
-        <div className="p-6 md:p-10 space-y-8">
-            <h1 className="text-3xl font-serif font-bold text-gray-900">Wallet Management</h1>
-            <p className="text-gray-500">Configure deposit addresses shown to users.</p>
+        <div className="p-4 md:p-8 space-y-6">
+            <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Wallet Management</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Configure deposit addresses shown to users.</p>
 
             <AdminWalletManager wallets={wallets} />
         </div>

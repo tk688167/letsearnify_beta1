@@ -38,24 +38,26 @@ export default async function TierAuditPage() {
 
   // Helper to determine Expected Tier
   const getExpectedTier = (arn: number, members: number): { tier: string, status: string } => {
+     // Safe accessor: falls back to DEFAULT_TIER_REQUIREMENTS if DB is missing a tier row
+     const rule = (tier: string) =>
+       tierRules[tier] ?? DEFAULT_TIER_REQUIREMENTS[tier] ?? { arn: 0, directs: 0 };
+
      // Check Top Down using dynamic rules
-     if (arn >= tierRules.EMERALD.arn && members >= tierRules.EMERALD.directs) return { tier: 'EMERALD', status: 'CURRENT' };
-     if (arn >= tierRules.DIAMOND.arn && members >= tierRules.DIAMOND.directs) return { tier: 'DIAMOND', status: 'CURRENT' };
-     if (arn >= tierRules.PLATINUM.arn && members >= tierRules.PLATINUM.directs) return { tier: 'PLATINUM', status: 'CURRENT' };
-     if (arn >= tierRules.GOLD.arn && members >= tierRules.GOLD.directs) return { tier: 'GOLD', status: 'CURRENT' };
-     if (arn >= tierRules.SILVER.arn && members >= tierRules.SILVER.directs) return { tier: 'SILVER', status: 'CURRENT' };
-     if (arn >= tierRules.BRONZE.arn && members >= tierRules.BRONZE.directs) return { tier: 'BRONZE', status: 'CURRENT' };
-     
+     if (arn >= rule('EMERALD').arn && members >= rule('EMERALD').directs) return { tier: 'EMERALD', status: 'CURRENT' };
+     if (arn >= rule('DIAMOND').arn && members >= rule('DIAMOND').directs) return { tier: 'DIAMOND', status: 'CURRENT' };
+     if (arn >= rule('PLATINUM').arn && members >= rule('PLATINUM').directs) return { tier: 'PLATINUM', status: 'CURRENT' };
+     if (arn >= rule('GOLD').arn && members >= rule('GOLD').directs) return { tier: 'GOLD', status: 'CURRENT' };
+     if (arn >= rule('SILVER').arn && members >= rule('SILVER').directs) return { tier: 'SILVER', status: 'CURRENT' };
+     if (arn >= rule('BRONZE').arn && members >= rule('BRONZE').directs) return { tier: 'BRONZE', status: 'CURRENT' };
+
      return { tier: 'NEWBIE', status: 'CURRENT' };
   }
 
   return (
-    <div className="p-8 space-y-8">
-       <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Tier Audit & Integrity</h1>
-            <p className="text-gray-500">Detect and fix discrepancies between user points/members and their assigned Tier.</p>
-          </div>
+    <div className="p-4 md:p-8 space-y-6">
+       <div>
+         <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Tier Audit &amp; Integrity</h1>
+         <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Detect and fix discrepancies between user points/members and their assigned Tier.</p>
        </div>
 
              <TierAuditTable 

@@ -35,9 +35,9 @@ export function AdminStatsGrid() {
 
     if (loading) {
         return (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 animate-pulse">
                 {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
+                    <div key={i} className="h-24 md:h-28 bg-gray-200 dark:bg-slate-800 rounded-2xl"></div>
                 ))}
             </div>
         )
@@ -46,34 +46,38 @@ export function AdminStatsGrid() {
     if (!stats) return null
 
     return (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatsCard 
-                title="Total Users" 
-                value={stats.totalUsers.toLocaleString()} 
-                icon={<UserGroupIcon className="w-6 h-6"/>}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <StatsCard
+                title="Total Users"
+                value={stats.totalUsers.toLocaleString()}
+                icon={<UserGroupIcon className="w-5 h-5"/>}
                 color="blue"
-                trend="Total Registered"
+                trend="Registered"
+                compact
             />
-            <StatsCard 
-                title="Total Deposited" 
-                value={`$${stats.totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
-                icon={<BanknotesIcon className="w-6 h-6"/>}
+            <StatsCard
+                title="Deposited"
+                value={`$${stats.totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                icon={<BanknotesIcon className="w-5 h-5"/>}
                 color="emerald"
-                trend="All Time Inflow"
+                trend="All Time"
+                compact
             />
-             <StatsCard 
-                title="Total Signups" 
-                value={stats.totalSignups.toLocaleString()} 
-                icon={<UserPlusIcon className="w-6 h-6"/>}
+             <StatsCard
+                title="Signups"
+                value={stats.totalSignups.toLocaleString()}
+                icon={<UserPlusIcon className="w-5 h-5"/>}
                 color="purple"
-                trend="New Accounts"
+                trend="Accounts"
+                compact
             />
-            <StatsCard 
-                title="Active Depositors" 
-                value={stats.totalUsersDeposited.toLocaleString()} 
-                icon={<CheckBadgeIcon className="w-6 h-6"/>} 
+            <StatsCard
+                title="Depositors"
+                value={stats.totalUsersDeposited.toLocaleString()}
+                icon={<CheckBadgeIcon className="w-5 h-5"/>}
                 color="amber"
-                trend={`${((stats.totalUsersDeposited / stats.totalUsers) * 100).toFixed(1)}% Conversion`}
+                trend={`${((stats.totalUsersDeposited / stats.totalUsers) * 100).toFixed(1)}%`}
+                compact
             />
         </div>
     )

@@ -1,10 +1,23 @@
 import { prisma } from "@/lib/prisma"
 import { subDays, format, startOfDay, endOfDay } from "date-fns"
 
-export async function getAnalytics(range: '7d' | '30d' | '90d' = '7d') {
+export async function getAnalytics(range: '7d' | '30d' | '90d' = '7d', custom?: { from: string, to: string }) {
   try {
-      const dayCount = range === '7d' ? 7 : range === '30d' ? 30 : 90
-      const startDate = subDays(new Date(), dayCount)
+      let startDate: Date
+      let endDate: Date = new Date()
+      let dayCount: number
+
+      if (custom?.from && custom?.to) {
+          startDate = new Date(custom.from)
+          endDate = new Date(custom.to)
+          // + 1 day to include end date
+          endDate.setHours(23, 59, 59, 999)
+          dayCount = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)))
+      } else {
+          dayCount = range === '7d' ? 7 : range === '30d' ? 30 : 90
+          startDate = subDays(new Date(), dayCount)
+      }
+
     
       // -- Overview Stats --
       const totalVisits = await prisma.visit.count()

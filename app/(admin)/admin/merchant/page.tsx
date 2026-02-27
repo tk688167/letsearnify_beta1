@@ -230,31 +230,31 @@ export default function AdminMerchantPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 space-y-6">
        <Toaster position="top-right" />
        
        {/* Header Section */}
-       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Merchant Settings</h1>
-            <p className="text-gray-500 mt-1">Manage supported countries and payment gateways for deposits/withdrawals.</p>
+            <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">Merchant Settings</h1>
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Manage supported countries and payment gateways.</p>
           </div>
-          <button 
+          <button
             onClick={openAddModal}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 transition font-bold shadow-lg shadow-blue-200"
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 dark:bg-blue-500 text-white rounded-xl hover:bg-blue-700 transition font-bold text-sm"
           >
-            <PlusIcon className="w-5 h-5" />
-            Add New Country
+            <PlusIcon className="w-4 h-4" />
+            Add Country
           </button>
        </div>
 
        {/* Search & Filter */}
-       <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm max-w-xl">
-          <MagnifyingGlassIcon className="w-6 h-6 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search countries..." 
-            className="flex-1 outline-none text-gray-700 placeholder-gray-400 font-medium"
+       <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-xl border border-gray-100 dark:border-slate-800 shadow-sm max-w-md">
+          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 dark:text-slate-500 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search countries..."
+            className="flex-1 outline-none bg-transparent text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-600 font-medium text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -269,18 +269,13 @@ export default function AdminMerchantPage() {
 
        {/* Empty State */}
        {!loading && countries.length === 0 && (
-          <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-gray-200">
-             <div className="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPinIcon className="w-10 h-10 text-gray-300"/>
+          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">
+             <div className="bg-gray-50 dark:bg-slate-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPinIcon className="w-8 h-8 text-gray-300 dark:text-slate-600"/>
              </div>
-             <h3 className="text-xl font-bold text-gray-900 mb-2">No Countries Configured</h3>
-             <p className="text-gray-500 max-w-sm mx-auto mb-8">
-                Start by adding a country to enable merchant deposits and withdrawals.
-             </p>
-             <button 
-                onClick={openAddModal}
-                className="px-6 py-3 bg-white border border-gray-200 text-gray-900 font-bold rounded-xl hover:bg-gray-50 shadow-sm transition"
-             >
+             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Countries Configured</h3>
+             <p className="text-sm text-gray-500 dark:text-slate-400 max-w-sm mx-auto mb-6">Start by adding a country to enable merchant deposits and withdrawals.</p>
+             <button onClick={openAddModal} className="px-5 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-700 text-sm transition">
                 Add First Country
              </button>
           </div>
@@ -288,67 +283,57 @@ export default function AdminMerchantPage() {
 
        {/* Countries Grid */}
        {!loading && countries.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
              {filteredCountries.map((country: any) => (
-                <div key={country.id} className="group bg-white rounded-3xl border border-gray-100 p-6 hover:shadow-xl hover:border-blue-100 transition-all duration-300 relative overflow-hidden">
-                   
-                   {/* Status Indicator Bar */}
-                   <div className={`absolute top-0 left-0 w-full h-1.5 ${country.status === 'ACTIVE' ? 'bg-green-500' : 'bg-amber-400'}`} />
+                <div key={country.id} className="group bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-5 hover:shadow-xl hover:border-blue-100 dark:hover:border-blue-500/30 transition-all duration-300 relative overflow-hidden">
 
-                   <div className="flex justify-between items-start mb-6 mt-2">
-                      <div className="flex items-center gap-4">
-                         <div className="w-14 h-14 bg-gray-50 text-2xl flex items-center justify-center rounded-2xl font-black text-gray-700 border border-gray-100 shadow-inner">
+                   <div className={`absolute top-0 left-0 w-full h-1 ${country.status === 'ACTIVE' ? 'bg-green-500' : 'bg-amber-400'}`} />
+
+                   <div className="flex justify-between items-start mb-4 mt-1">
+                      <div className="flex items-center gap-3">
+                         <div className="w-11 h-11 bg-gray-50 dark:bg-slate-800 text-xl flex items-center justify-center rounded-xl font-black text-gray-700 dark:text-slate-200 border border-gray-100 dark:border-slate-700">
                             {country.code}
                          </div>
                          <div>
-                            <h3 className="font-bold text-gray-900 text-xl">{country.name}</h3>
-                            <div className="flex items-center gap-2 mt-1">
-                               <span className="text-xs font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                  <CurrencyDollarIcon className="w-3 h-3"/> {country.currency}
+                            <h3 className="font-bold text-gray-900 dark:text-white text-base">{country.name}</h3>
+                            <div className="flex items-center gap-2 mt-0.5">
+                               <span className="text-[10px] font-bold bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                  <CurrencyDollarIcon className="w-2.5 h-2.5"/> {country.currency}
                                </span>
                                {country.status === "ACTIVE" ? (
-                                  <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-md flex items-center gap-1">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"/> Active
+                                  <span className="text-[10px] font-bold bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                    <div className="w-1 h-1 rounded-full bg-green-500 animate-pulse"/> Active
                                   </span>
                                ) : (
-                                  <span className="text-xs font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md">
+                                  <span className="text-[10px] font-bold bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded">
                                     Coming Soon
                                   </span>
                                )}
                             </div>
                          </div>
                       </div>
-                      
-                      {/* Action Menu */}
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                          <button 
-                            onClick={() => openEditModal(country)}
-                            className="p-2.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition"
-                            title="Edit Country"
-                          >
-                             <PencilIcon className="w-5 h-5"/>
+
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <button onClick={() => openEditModal(country)} className="p-2 text-gray-400 dark:text-slate-600 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition" title="Edit">
+                             <PencilIcon className="w-4 h-4"/>
                           </button>
-                          <button 
-                            onClick={() => handleDelete(country.id)}
-                            className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
-                            title="Delete Country"
-                          >
-                             <TrashIcon className="w-5 h-5"/>
+                          <button onClick={() => handleDelete(country.id)} className="p-2 text-gray-400 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition" title="Delete">
+                             <TrashIcon className="w-4 h-4"/>
                           </button>
                       </div>
                    </div>
 
-                   <div className="space-y-4">
-                       <div className="flex items-center justify-between text-sm text-gray-500 bg-gray-50/50 p-3 rounded-xl border border-gray-50">
-                          <span className="font-medium">Payment Gateways</span>
-                          <span className="bg-white px-2.5 py-0.5 rounded-lg border border-gray-200 text-gray-900 font-bold shadow-sm">
+                   <div className="space-y-3">
+                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-800/50 p-2.5 rounded-lg">
+                          <span className="font-medium text-xs">Payment Gateways</span>
+                          <span className="bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white font-bold text-sm shadow-sm">
                              {country._count?.methods || 0}
                           </span>
                        </div>
 
-                       <Link 
+                       <Link
                          href={`/admin/merchant/${country.id}`}
-                         className="flex items-center justify-center gap-2 w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-all shadow-lg shadow-gray-200"
+                         className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 dark:bg-slate-100 text-white dark:text-gray-900 font-bold rounded-xl hover:bg-black dark:hover:bg-white transition-all text-sm"
                        >
                           Manage Gateways
                        </Link>
@@ -361,7 +346,7 @@ export default function AdminMerchantPage() {
        {/* Add/Edit Modal */}
        {showModal && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-             <div className="bg-white rounded-3xl w-full max-w-lg p-8 space-y-6 shadow-2xl animate-in fade-in zoom-in-95 border border-gray-100">
+             <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl border border-gray-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between">
                    <h2 className="text-2xl font-extrabold text-gray-900">
                      {editingCountry ? "Edit Settings" : "Add Country"}

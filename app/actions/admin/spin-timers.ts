@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
 
 /**
  * Search for a user by ID, email, name, or member ID and return their current spin timer status
@@ -48,6 +49,8 @@ export async function searchUserForSpinReset(userId: string) {
             return { success: false, message: "No user found matching your search" }
         }
 
+        const spinSettings = await getSpinSettings()
+
         // Calculate time since last spins
         const now = new Date()
         let freeSpinStatus = "Available"
@@ -57,17 +60,17 @@ export async function searchUserForSpinReset(userId: string) {
 
         if (user.lastSpinTime) {
             const hoursSinceFreeSpin = (now.getTime() - user.lastSpinTime.getTime()) / (1000 * 60 * 60)
-            if (hoursSinceFreeSpin < 48) {
+            if (hoursSinceFreeSpin < spinSettings.freeSpinCooldownHours) {
                 freeSpinStatus = "On Cooldown"
-                freeSpinHoursRemaining = Math.ceil(48 - hoursSinceFreeSpin)
+                freeSpinHoursRemaining = Math.ceil(spinSettings.freeSpinCooldownHours - hoursSinceFreeSpin)
             }
         }
 
         if (user.lastPremiumSpinTime) {
             const hoursSincePremiumSpin = (now.getTime() - user.lastPremiumSpinTime.getTime()) / (1000 * 60 * 60)
-            if (hoursSincePremiumSpin < 24) {
+            if (hoursSincePremiumSpin < spinSettings.premiumSpinCooldownHours) {
                 premiumSpinStatus = "On Cooldown"
-                premiumSpinHoursRemaining = Math.ceil(24 - hoursSincePremiumSpin)
+                premiumSpinHoursRemaining = Math.ceil(spinSettings.premiumSpinCooldownHours - hoursSincePremiumSpin)
             }
         }
 

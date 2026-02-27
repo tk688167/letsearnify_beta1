@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect, useTransition } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { 
-  ArrowLeftIcon, 
+
   PlusIcon, 
   TrashIcon, 
   PencilIcon, 
@@ -130,19 +130,11 @@ export default function CountryDetailPage() {
        
        {/* Header */}
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-           <div className="flex items-center gap-4">
-              <Link 
-                 href="/admin/merchant"
-                 className="p-3 hover:bg-gray-50 rounded-2xl transition border border-gray-100 hover:border-gray-200"
-              >
-                 <ArrowLeftIcon className="w-5 h-5 text-gray-500" />
-              </Link>
-              <div>
-                 <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Configuration</div>
-                 <h1 className="text-2xl font-black text-gray-900">
-                    {loading ? "Loading..." : `${countryName} Payment Methods`}
-                 </h1>
-              </div>
+           <div>
+              <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Merchant &rsaquo; Configuration</div>
+              <h1 className="text-2xl font-black text-gray-900">
+                 {loading ? "Loading..." : `${countryName} Payment Methods`}
+              </h1>
            </div>
            
            <button 

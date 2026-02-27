@@ -2,94 +2,105 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { HomeIcon, UsersIcon, GlobeAltIcon, ArrowLeftOnRectangleIcon, CheckCircleIcon, BanknotesIcon, CurrencyDollarIcon, WalletIcon, ChevronDownIcon, ChevronUpIcon, ClipboardDocumentListIcon, GiftIcon } from "@heroicons/react/24/outline"
+import {
+  HomeIcon,
+  UsersIcon,
+  GlobeAltIcon,
+  ArrowLeftOnRectangleIcon,
+  CheckCircleIcon,
+  BanknotesIcon,
+  CurrencyDollarIcon,
+  WalletIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClipboardDocumentListIcon,
+  GiftIcon,
+  ArrowTopRightOnSquareIcon,
+} from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import ThemeToggle from "@/app/components/ui/ThemeToggle"
+import Logo from "@/app/components/ui/Logo"
 
-// Navigation Structure
 const navigation = [
-  { name: 'Dashboard', href: '/admin', icon: HomeIcon },
-  { name: 'User Management', href: '/admin/users', icon: UsersIcon },
-  { name: 'Tasks & Companies', href: '/admin/tasks', icon: ClipboardDocumentListIcon },
-  { name: 'Spin Management', href: '/admin/spin', icon: GiftIcon },
-  { name: 'Deposit Approvals', href: '/admin/deposits', icon: CurrencyDollarIcon },
-  { name: 'Merchant Deposits', href: '/admin/merchant/deposits', icon: BanknotesIcon }, // NEW
-  { name: 'Manual Deposit', href: '/admin/manual-deposit', icon: BanknotesIcon },
-  { name: 'Withdrawal Requests', href: '/admin/withdrawals', icon: ArrowLeftOnRectangleIcon },
-  { name: 'Wallet Settings', href: '/admin/wallets', icon: WalletIcon }, 
-  { name: 'Merchant Settings', href: '/admin/merchant', icon: BanknotesIcon },
-  { 
-      name: 'Tier System', 
-      href: '#', 
-      icon: CheckCircleIcon,
-      children: [
-          { name: 'Tier Audit', href: '/admin/tiers/audit', icon: '📋' },
-          { name: 'Tier Management', href: '/admin/tiers/manage', icon: '⚙️' }
-      ]
+  { name: "Dashboard", href: "/admin", icon: HomeIcon },
+  { name: "User Management", href: "/admin/users", icon: UsersIcon },
+  { name: "Tasks & Companies", href: "/admin/tasks", icon: ClipboardDocumentListIcon },
+  { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
+  { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
+  { name: "Merchant Deposits", href: "/admin/merchant/deposits", icon: BanknotesIcon },
+  { name: "Manual Deposit", href: "/admin/manual-deposit", icon: BanknotesIcon },
+  { name: "Withdrawal Requests", href: "/admin/withdrawals", icon: ArrowLeftOnRectangleIcon },
+  { name: "Wallet Settings", href: "/admin/wallets", icon: WalletIcon },
+  { name: "Merchant Settings", href: "/admin/merchant", icon: BanknotesIcon },
+  {
+    name: "Tier System",
+    href: "#",
+    icon: CheckCircleIcon,
+    children: [
+      { name: "Tier Audit", href: "/admin/tiers/audit", icon: "📋" },
+      { name: "Tier Management", href: "/admin/tiers/manage", icon: "⚙️" },
+    ],
   },
-  { 
-      name: 'Site Management',
-      href: '#',
-      icon: GlobeAltIcon,
-      children: [
-          { name: 'Platform Stats', href: '/admin/stats', icon: '📊' },
-          { name: 'Social Proof', href: '/admin/social-proof', icon: '🌟' },
-          { name: 'Welcome Page Slider', href: '/admin/welcome-slider', icon: '📢' }
-      ]
+  {
+    name: "Site Management",
+    href: "#",
+    icon: GlobeAltIcon,
+    children: [
+      { name: "Platform Stats", href: "/admin/stats", icon: "📊" },
+      { name: "Social Proof", href: "/admin/social-proof", icon: "🌟" },
+      { name: "Welcome Page Slider", href: "/admin/welcome-slider", icon: "📢" },
+    ],
   },
-  { 
-      name: 'Pools & Revenue', 
-      href: '/admin/pools', // Fallback or main link
-      icon: BanknotesIcon,
-      children: [
-          { name: 'Pools Overview', href: '/admin/pools' },
-          { name: 'CBSPool', href: '/admin/pools/cbspool', icon: '💰' },
-          { name: 'Royalty Pool', href: '/admin/royalty', icon: '👑' }
-      ]
+  {
+    name: "Pools & Revenue",
+    href: "/admin/pools",
+    icon: BanknotesIcon,
+    children: [
+      { name: "Pools Overview", href: "/admin/pools" },
+      { name: "CBSPool", href: "/admin/pools/cbspool", icon: "💰" },
+      { name: "Royalty Pool", href: "/admin/royalty", icon: "👑" },
+    ],
   },
-  { name: 'Visitor Logs', href: '/admin/visits', icon: GlobeAltIcon },
+  { name: "Visitor Logs", href: "/admin/visits", icon: GlobeAltIcon },
 ]
 
-export function AdminSidebar({ counts: initialCounts = { deposits: 0, withdrawals: 0 } }: { counts?: { deposits: number, withdrawals: number } }) {
+export function AdminSidebar({
+  counts: initialCounts = { deposits: 0, withdrawals: 0 },
+}: {
+  counts?: { deposits: number; withdrawals: number }
+}) {
   const pathname = usePathname()
   const [counts, setCounts] = useState(initialCounts)
   const [openMenus, setOpenMenus] = useState<string[]>([])
 
-  // Init open menus based on current path
   useEffect(() => {
-    navigation.forEach(item => {
-        if (item.children && item.children.some(child => pathname === child.href)) {
-            setOpenMenus(prev => [...prev, item.name])
-        }
+    navigation.forEach((item) => {
+      if (item.children && item.children.some((child) => pathname === child.href)) {
+        setOpenMenus((prev) => [...prev, item.name])
+      }
     })
-  }, []) // Run once on mount
+  }, [])
 
   const toggleMenu = (name: string) => {
-      setOpenMenus(prev => 
-        prev.includes(name) ? prev.filter(item => item !== name) : [...prev, name]
-      )
+    setOpenMenus((prev) =>
+      prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]
+    )
   }
 
-  // Real-time polling
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/admin/pending-counts')
+        const res = await fetch("/api/admin/pending-counts")
         if (res.ok) {
           const data = await res.json()
-          if (typeof data.deposits === 'number') {
-            setCounts({ 
-                deposits: data.deposits, 
-                withdrawals: data.withdrawals 
-            })
+          if (typeof data.deposits === "number") {
+            setCounts({ deposits: data.deposits, withdrawals: data.withdrawals })
           }
         }
-      } catch (error) {
-        console.error("Polling error:", error)
-      }
+      } catch {}
     }, 10000)
-
     return () => clearInterval(interval)
   }, [])
 
@@ -98,113 +109,132 @@ export function AdminSidebar({ counts: initialCounts = { deposits: 0, withdrawal
   }, [initialCounts])
 
   return (
-    <aside className="w-72 bg-white border-r border-gray-100 flex flex-col hidden md:flex z-50 h-screen sticky top-0 overflow-y-auto">
-      <div className="p-8 pb-4">
-        <Link href="/dashboard">
-          <h1 className="text-2xl font-serif font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer">
-            Let'$Earnify
-          </h1>
-        </Link>
-        <p className="text-xs text-gray-400 mt-1 font-medium tracking-wider uppercase">Admin Portal</p>
+    <aside className="w-64 bg-white dark:bg-slate-950 border-r border-gray-100 dark:border-slate-800/60 flex flex-col hidden md:flex z-50 h-screen sticky top-0 overflow-y-auto transition-colors duration-200">
+      {/* ── Brand Header ── */}
+      <div className="px-5 pt-6 pb-4">
+        <Logo size="md" />
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md tracking-widest uppercase">
+            Admin
+          </span>
+          <span className="text-[10px] text-gray-400 dark:text-slate-600 font-medium">Portal</span>
+        </div>
       </div>
-      
-      <nav className="flex-1 px-4 space-y-2 pb-4">
+
+      <div className="mx-4 h-px bg-gray-100 dark:bg-slate-800/60 mb-3" />
+
+      {/* ── Navigation ── */}
+      <nav className="flex-1 px-3 space-y-0.5 pb-4 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href
           const hasChildren = item.children && item.children.length > 0
           const isOpen = openMenus.includes(item.name)
-          const isChildActive = hasChildren && item.children?.some(child => pathname === child.href)
-          
+          const isChildActive = hasChildren && item.children?.some((child) => pathname === child.href)
+
           let badgeCount = 0
-          if (item.name === 'Deposit Approvals') badgeCount = counts.deposits
-          if (item.name === 'Withdrawal Requests') badgeCount = counts.withdrawals
+          if (item.name === "Deposit Approvals") badgeCount = counts.deposits
+          if (item.name === "Withdrawal Requests") badgeCount = counts.withdrawals
+
+          const activeClass =
+            "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
+          const inactiveClass =
+            "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-900 dark:hover:text-slate-100"
 
           return (
             <div key={item.name}>
-                {hasChildren ? (
-                    <button
-                        onClick={() => toggleMenu(item.name)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full text-left ${
-                            isActive || isChildActive
-                            ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                    >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        <span className="flex-1">{item.name}</span>
-                        {isOpen ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
-                    </button>
-                ) : (
-                    <Link
-                        href={item.href}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                            isActive 
-                            ? 'bg-blue-50 text-blue-700 shadow-sm' 
-                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                    >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        <span className="flex-1">{item.name}</span>
-                        
-                        {badgeCount > 0 && (
-                            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full shadow-sm animate-pulse">
-                            {badgeCount}
-                            </span>
-                        )}
-                    </Link>
-                )}
+              {hasChildren ? (
+                <button
+                  onClick={() => toggleMenu(item.name)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left ${
+                    isActive || isChildActive ? activeClass : inactiveClass
+                  }`}
+                >
+                  <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
+                  <span className="flex-1 text-[13px]">{item.name}</span>
+                  {isOpen ? (
+                    <ChevronUpIcon className="w-3.5 h-3.5 opacity-60" />
+                  ) : (
+                    <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />
+                  )}
+                </button>
+              ) : (
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                    isActive ? activeClass : inactiveClass
+                  }`}
+                >
+                  <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
+                  <span className="flex-1">{item.name}</span>
+                  {badgeCount > 0 && (
+                    <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                      {badgeCount}
+                    </span>
+                  )}
+                </Link>
+              )}
 
-                {/* Sub-menu */}
-                <AnimatePresence>
-                    {hasChildren && isOpen && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden"
+              {/* Sub-menu */}
+              <AnimatePresence>
+                {hasChildren && isOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pl-10 pr-3 py-1 space-y-0.5">
+                      {item.children!.map((child) => (
+                        <Link
+                          key={child.name}
+                          href={child.href}
+                          className={`flex items-center gap-2 py-2 px-3 rounded-lg text-[12.5px] transition-colors ${
+                            pathname === child.href
+                              ? "text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-500/10"
+                              : "text-gray-500 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-200"
+                          }`}
                         >
-                            <div className="pl-12 pr-4 py-1 space-y-1">
-                                {item.children!.map((child) => (
-                                    <Link
-                                        key={child.name}
-                                        href={child.href}
-                                        className={`block py-2 text-sm transition-colors ${
-                                            pathname === child.href
-                                            ? 'text-blue-600 font-medium'
-                                            : 'text-gray-500 hover:text-gray-900'
-                                        }`}
-                                    >
-                                        <span className="flex items-center gap-2">
-                                            {/* @ts-ignore */}
-                                            {child.icon ? <span>{child.icon}</span> : <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>}
-                                            {child.name}
-                                        </span>
-                                    </Link>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                          {/* @ts-ignore */}
+                          {child.icon ? (
+                            <span className="text-sm">{child.icon}</span>
+                          ) : (
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-slate-600" />
+                          )}
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 m-4 space-y-2">
-         <Link 
-           href="/dashboard"
-           className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
-         >
-           <UsersIcon className="w-5 h-5" />
-           Switch to Dashboard
-         </Link>
-         <button 
-           onClick={() => signOut({ callbackUrl: '/' })}
-           className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-         >
-           <ArrowLeftOnRectangleIcon className="w-5 h-5" />
-           Sign Out
-         </button>
+      {/* ── Footer ── */}
+      <div className="p-3 border-t border-gray-100 dark:border-slate-800/60 space-y-1">
+        {/* Theme Toggle */}
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/40">
+          <span className="text-[12px] font-medium text-gray-500 dark:text-slate-400">Appearance</span>
+          <ThemeToggle />
+        </div>
+
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
+        >
+          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+          Switch to Dashboard
+        </Link>
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+        >
+          <ArrowLeftOnRectangleIcon className="w-4 h-4" />
+          Sign Out
+        </button>
       </div>
     </aside>
   )

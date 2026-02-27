@@ -14,41 +14,37 @@ export default async function WithdrawalPage() {
     const requests = await getWithdrawalRequests()
     const cooldownUsers = await getUsersWithActiveCooldown()
 
+    const totalPending = requests.reduce((acc, r) => acc + r.amount, 0)
+
     return (
-        <div className="p-4 md:p-8 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="p-4 md:p-8 space-y-6 md:space-y-8">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-serif font-bold text-gray-900 tracking-tight flex items-center gap-3">
-                    <div className="p-3 bg-red-100 rounded-xl">
-                        <ArrowLeftOnRectangleIcon className="w-8 h-8 text-red-600" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-red-100 dark:bg-red-500/10 rounded-xl">
+                        <ArrowLeftOnRectangleIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
                     </div>
-                    Withdrawal Requests
-                </h1>
-                <p className="text-gray-500 mt-2 max-w-2xl">
-                    Review and approve user withdrawal requests. Approved amounts are deducted from user balance.
-                </p>
+                    <div>
+                        <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Withdrawal Requests</h1>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">Review and approve user withdrawal requests.</p>
+                    </div>
+                </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Pending Requests</div>
-                    <div className="text-4xl font-serif font-bold text-gray-900 mt-2">{requests.length}</div>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Amount Pending</div>
-                    <div className="text-4xl font-serif font-bold text-gray-900 mt-2">
-                        ${requests.reduce((acc, r) => acc + r.amount, 0).toFixed(2)}
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 md:gap-6">
+                {[
+                    { label: "Pending", value: requests.length, color: "text-gray-900 dark:text-white" },
+                    { label: "Total Pending", value: `$${totalPending.toFixed(2)}`, color: "text-gray-900 dark:text-white" },
+                    { label: "Cooldowns", value: cooldownUsers.length, color: "text-orange-600 dark:text-orange-400" },
+                ].map(s => (
+                    <div key={s.label} className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
+                        <div className="text-[10px] md:text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{s.label}</div>
+                        <div className={`text-xl md:text-3xl font-serif font-bold mt-1.5 ${s.color}`}>{s.value}</div>
                     </div>
-                </div>
-                 <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="text-sm font-bold text-gray-400 uppercase tracking-wider">Active Cooldowns</div>
-                    <div className="text-4xl font-serif font-bold text-orange-600 mt-2">
-                        {cooldownUsers.length}
-                    </div>
-                </div>
+                ))}
             </div>
-            
+
             {/* Cooldown Manager */}
             {cooldownUsers.length > 0 && <CooldownManager users={cooldownUsers} />}
 

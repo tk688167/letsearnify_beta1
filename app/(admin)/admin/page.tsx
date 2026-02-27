@@ -3,127 +3,135 @@ import { MainTrafficChart, DistributionChart, BarListChart } from "./components/
 import { StatsCard } from "./components/StatsCard"
 import { LiveFeed } from "./components/LiveFeed"
 import { AdminStatsGrid } from "./components/AdminStatsGrid"
+import { DashboardFilterBar } from "./components/DashboardFilterBar"
 import { UsersIcon, GlobeAltIcon, CursorArrowRaysIcon, AdjustmentsHorizontalIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
-import Link from "next/link"
+import { Suspense } from "react"
 
-export default async function AdminDashboard(props: { searchParams: Promise<{ range?: '7d' | '30d' | '90d' }> }) {
+export default async function AdminDashboard(props: {
+  searchParams: Promise<{ range?: string; from?: string; to?: string }>
+}) {
   const searchParams = await props.searchParams
-  const range = searchParams.range || '7d'
-  const { overview, trafficData, deployment, recentActivity } = await getAnalytics(range)
+  const rawRange = searchParams.range || "7d"
+  const from = searchParams.from
+  const to = searchParams.to
+
+  // Only pass known preset ranges to getAnalytics; custom uses from/to
+  const presetRange = (["7d", "30d", "90d"].includes(rawRange) ? rawRange : "7d") as "7d" | "30d" | "90d"
+  const custom = rawRange === "custom" && from && to ? { from, to } : undefined
+
+  const { overview, trafficData, deployment, recentActivity } = await getAnalytics(presetRange, custom)
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-4 md:p-10 space-y-8 md:space-y-10">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-         <div>
-            <h1 className="text-3xl font-serif font-bold text-gray-900 tracking-tight">Executive Dashboard</h1>
-            <p className="text-gray-500 mt-1 font-medium">Real-time platform intelligence & telemetry.</p>
-         </div>
-         
-         <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
-            <FilterButton label="7 Days" active={range === '7d'} value="7d" />
-            <FilterButton label="30 Days" active={range === '30d'} value="30d" />
-            <FilterButton label="90 Days" active={range === '90d'} value="90d" />
-         </div>
+    <div className="min-h-screen bg-gray-50/50 dark:bg-slate-950 p-3 md:p-8 space-y-4 md:space-y-6 transition-colors duration-200">
+
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
+        <div>
+          <h1 className="text-xl md:text-2xl font-serif font-bold text-gray-900 dark:text-white tracking-tight">
+            Executive Dashboard
+          </h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-0.5 text-xs md:text-sm">
+            Real-time platform intelligence &amp; telemetry.
+          </p>
+        </div>
+
+        {/* Filter bar — wrapped in Suspense because it uses useSearchParams internally */}
+        <Suspense fallback={null}>
+          <DashboardFilterBar
+            initialRange={rawRange}
+            initialFrom={from}
+            initialTo={to}
+          />
+        </Suspense>
       </div>
 
-
-      {/* Platform Financials & User Stats */}
+      {/* ── Platform Financials (auto-polls) ── */}
       <AdminStatsGrid />
 
-      {/* KPI Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-         <StatsCard 
-            title="Total Sessions" 
-            value={overview.totalVisits.toLocaleString()} 
-            icon={<CursorArrowRaysIcon className="w-6 h-6"/>} 
-            color="blue" 
-            trend="+12.5%"
-         />
-         <StatsCard 
-            title="Unique Visitors" 
-            value={overview.uniqueVisitors.toLocaleString()} 
-            icon={<GlobeAltIcon className="w-6 h-6"/>} 
-            color="purple" 
-            trend="+8.2%"
-         />
-         <StatsCard 
-            title="Active Signups" 
-            value={overview.totalSignups.toLocaleString()} 
-            icon={<UsersIcon className="w-6 h-6"/>} 
-            color="emerald" 
-            trend="+24%"
-         />
-         <StatsCard 
-            title="Active Now" 
-            value={overview.activeSessions} 
-            icon={<AdjustmentsHorizontalIcon className="w-6 h-6"/>} 
-            color="amber" 
-            trend="Live"
-         />
+      {/* ── Traffic KPI Cards ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <StatsCard
+          title="Sessions"
+          value={overview.totalVisits.toLocaleString()}
+          icon={<CursorArrowRaysIcon className="w-5 h-5" />}
+          color="blue"
+          trend="+12.5%"
+          compact
+        />
+        <StatsCard
+          title="Visitors"
+          value={overview.uniqueVisitors.toLocaleString()}
+          icon={<GlobeAltIcon className="w-5 h-5" />}
+          color="purple"
+          trend="+8.2%"
+          compact
+        />
+        <StatsCard
+          title="Signups"
+          value={overview.totalSignups.toLocaleString()}
+          icon={<UsersIcon className="w-5 h-5" />}
+          color="emerald"
+          trend="+24%"
+          compact
+        />
+        <StatsCard
+          title="Active Now"
+          value={overview.activeSessions}
+          icon={<AdjustmentsHorizontalIcon className="w-5 h-5" />}
+          color="amber"
+          trend="Live"
+          compact
+        />
       </div>
 
-      {/* Main Charts & Feed Layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-         {/* Left Column: Charts */}
-         <div className="xl:col-span-2 space-y-8">
-            {/* Traffic Chart */}
-            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-               <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-xl font-bold text-gray-900">Traffic Overview</h2>
-                  <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors text-gray-400">
-                     <ArrowPathIcon className="w-5 h-5" />
-                  </button>
-               </div>
-               <MainTrafficChart data={trafficData} />
-            </div>
+      {/* ── Charts & Feed ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6">
 
-            {/* Split Metrics */}
-            <div className="grid md:grid-cols-2 gap-8">
-               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-6">Device Breakdown</h2>
-                  <DistributionChart data={deployment.devices} title="Devices" />
-               </div>
-               <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-                  <h2 className="text-lg font-bold text-gray-900 mb-6">Browser Usage</h2>
-                  <BarListChart data={deployment.browsers} />
-               </div>
+        {/* Left: Charts */}
+        <div className="xl:col-span-2 space-y-4">
+          {/* Traffic Chart */}
+          <div className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800/60">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Traffic Overview</h2>
+              <button className="p-1.5 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-gray-400 dark:text-slate-600">
+                <ArrowPathIcon className="w-4 h-4" />
+              </button>
             </div>
-         </div>
+            <MainTrafficChart data={trafficData} />
+          </div>
 
-         {/* Right Column: Feed & Geo */}
-         <div className="space-y-8">
-            {/* Geo Map Placeholder (Using Bar List) */}
-            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
-               <h2 className="text-lg font-bold text-gray-900 mb-6">Top Locations</h2>
-               <BarListChart data={deployment.countries} />
+          {/* Device & Browser breakdown — horizontal scroll on xs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800/60">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Device Breakdown</h2>
+              <DistributionChart data={deployment.devices} title="Devices" />
             </div>
+            <div className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800/60">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Browser Usage</h2>
+              <BarListChart data={deployment.browsers} />
+            </div>
+          </div>
+        </div>
 
-            {/* Live Feed */}
-            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex-1 min-h-[400px]">
-               <div className="flex items-center gap-3 mb-8">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                  </span>
-                  <h2 className="text-lg font-bold text-gray-900">Live Activity</h2>
-               </div>
-               <LiveFeed activities={recentActivity} />
+        {/* Right: Geo + Feed */}
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800/60">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Top Locations</h2>
+            <BarListChart data={deployment.countries} />
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 p-4 md:p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800/60 min-h-[280px]">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              <h2 className="text-sm font-bold text-gray-900 dark:text-white">Live Activity</h2>
             </div>
-         </div>
+            <LiveFeed activities={recentActivity} />
+          </div>
+        </div>
       </div>
     </div>
   )
-}
-
-function FilterButton({ label, active, value }: { label: string, active: boolean, value: string }) {
-   return (
-      <Link 
-        href={`?range=${value}`}
-        scroll={false}
-        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${active ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-      >
-         {label}
-      </Link>
-   )
 }
