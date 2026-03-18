@@ -345,10 +345,8 @@ export async function withdraw(amount: number, method: string, details: string) 
     prisma.user.update({
       where: { id: session.user.id },
       data: { 
-          arnBalance: { decrement: arnAmount } 
-          // No change to USD balance, as we default to ARN economy. 
-          // If we wanted to "Swap" to USD balance first, we would increment balance. 
-          // But user wants "Withdraw" directly. So we deduct ARN and create a PENDING USD withdrawal.
+          arnBalance: { decrement: arnAmount },
+          balance: { decrement: usdValue }
       }
     }),
     prisma.transaction.create({
@@ -367,44 +365,98 @@ export async function withdraw(amount: number, method: string, details: string) 
   return { success: true, message: "Withdrawal request submitted" }
 }
 
-export async function transferToPool(amount: number, poolName: string) {
+export async function transferFunds(
+  usdAmountVal: any, 
+  source: "WALLET" | "MUDARABAH" | "DAILY_EARNING", 
+  destination: "WALLET" | "MUDARABAH" | "DAILY_EARNING"
+) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  if (!user || user.balance < amount) {
-    throw new Error("Insufficient funds")
+  const usdAmount = typeof usdAmountVal === 'string' ? parseFloat(usdAmountVal) : usdAmountVal;
+
+  if (isNaN(usdAmount) || usdAmount < 1) {
+    throw new Error("Minimum transfer amount is $1.00");
   }
 
+  if (source === destination) {
+    throw new Error("Source and destination must be different");
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+  if (!user) throw new Error("User not found");
+
+  // Format Helpers
+  const getName = (type: string) => 
+     type === "WALLET" ? "Main Wallet" :
+     type === "DAILY_EARNING" ? "Daily Earning Pool" : "Mudarabah Pool";
+
+  // Validate Source Funds
+  if (source === "WALLET") {
+     const arnRequired = usdAmount * 10;
+     if (user.arnBalance < arnRequired) {
+       throw new Error(`Insufficient ARN tokens. You need ${arnRequired} ARN ($${usdAmount.toFixed(2)}) in your Main Wallet.`);
+     }
+  } else if (source === "DAILY_EARNING") {
+     const bal = (user as any).dailyEarningWallet || 0;
+     if (bal < usdAmount) {
+       throw new Error(`Insufficient funds. Your Daily Earning Pool has $${bal.toFixed(2)}.`);
+     }
+  } else if (source === "MUDARABAH") {
+     const bal = (user as any).mudarabahBalance || 0;
+     if (bal < usdAmount) {
+       throw new Error(`Insufficient funds. Your Mudarabah Pool has $${bal.toFixed(2)}.`);
+     }
+  }
+
+  const updateData: any = {};
+  
+  // Deduct from Source
+  if (source === "WALLET") {
+     updateData.arnBalance = { decrement: usdAmount * 10 };
+     updateData.balance = { decrement: usdAmount };
+  } else if (source === "DAILY_EARNING") {
+     updateData.dailyEarningWallet = { decrement: usdAmount };
+  } else if (source === "MUDARABAH") {
+     updateData.mudarabahBalance = { decrement: usdAmount };
+  }
+
+  // Add to Destination
+  if (destination === "WALLET") {
+     updateData.arnBalance = { increment: usdAmount * 10 };
+     updateData.balance = { increment: usdAmount };
+  } else if (destination === "DAILY_EARNING") {
+     updateData.dailyEarningWallet = { increment: usdAmount };
+  } else if (destination === "MUDARABAH") {
+     updateData.mudarabahBalance = { increment: usdAmount };
+  }
+
+  // Determine Transaction Type
+  let txType = "TRANSFER";
+  if (source === "WALLET") txType = "INVESTMENT";
+  else if (destination === "WALLET") txType = "WITHDRAWAL";
+
   await prisma.$transaction([
-    prisma.user.update({
+    (prisma as any).user.update({
       where: { id: session.user.id },
-      data: { balance: { decrement: amount } }
+      data: updateData
     }),
     prisma.transaction.create({
       data: {
         userId: session.user.id,
-        amount,
-        type: "INVESTMENT",
+        amount: usdAmount,
+        type: txType,
         status: "COMPLETED",
-        method: "Internal Transfer"
-      }
-    }),
-    prisma.investment.create({
-      data: {
-        userId: session.user.id,
-        poolName,
-        amount,
-        roi: 1.5, // Default or lookup based on poolName
-        status: "ACTIVE"
+        method: `${getName(source)} -> ${getName(destination)}`,
+        description: `Transferred $${usdAmount.toFixed(2)} from ${getName(source)} to ${getName(destination)}`
       }
     })
   ])
 
   revalidatePath("/dashboard")
   revalidatePath("/dashboard/wallet")
-  revalidatePath("/dashboard/investments")
-  return { success: true, message: "Investment successful" }
+  revalidatePath("/dashboard/mudarabah")
+  return { success: true, message: `Successfully transferred $${usdAmount.toFixed(2)} to ${getName(destination)}!` }
 }
 
 // ADMIN ACTIONS

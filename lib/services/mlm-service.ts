@@ -40,44 +40,21 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         });
 
         if (!user) {
-            if (userId === "super-admin-id") {
-                return {
-                    user: {
-                        id: userId,
-                        name: "Super Admin",
-                        email: "admin@letsearnify.com",
-                        tier: "EMERALD",
-                        memberId: "777777",
-                        referralCode: "SUPER-ADMIN",
-                        isActiveMember: true,
-                        balance: 5000.0,
-                        arnBalance: 1000,
-                        activeMembers: 10,
-                        referralsMade: []
-                    },
-                    referralTree: [],
-                    stats: {
-                        teamSize: 10,
-                        totalEarnings: 1500.0,
-                        todayEarnings: 25.0
-                    },
-                    isOffline: false
-                };
-            }
             return { user: null, referralTree: [], stats: { teamSize: 0, totalEarnings: 0, todayEarnings: 0 }, isOffline: false };
         }
 
-        // Process Referral Tree
+
+        // Process Referral Tree (Only Unlocked/Active members count)
         let referralTree: any[] = [];
         // Flatten the Tree
         if (user.referrals) {
-            user.referrals.forEach((l1: any) => {
+            user.referrals.filter((u: any) => u.isActiveMember).forEach((l1: any) => {
                 referralTree.push({ ...l1, level: 1 })
                 if (l1.referrals) {
-                    l1.referrals.forEach((l2: any) => {
+                    l1.referrals.filter((u: any) => u.isActiveMember).forEach((l2: any) => {
                         referralTree.push({ ...l2, level: 2 })
                         if (l2.referrals) {
-                            l2.referrals.forEach((l3: any) => {
+                            l2.referrals.filter((u: any) => u.isActiveMember).forEach((l3: any) => {
                                 referralTree.push({ ...l3, level: 3 })
                             })
                         }

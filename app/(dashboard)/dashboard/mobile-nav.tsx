@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import ThemeToggle from "@/app/components/ui/ThemeToggle"
@@ -16,8 +16,10 @@ import {
   GlobeAltIcon,
   ArrowLeftStartOnRectangleIcon,
   CreditCardIcon,
-  SparklesIcon,
+  GiftIcon,
   ChartBarIcon,
+  ChartPieIcon,
+  ClipboardDocumentCheckIcon
 } from "@heroicons/react/24/outline"
 import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
@@ -27,6 +29,21 @@ export default function MobileNav({ session }: { session: Session | null }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const pathname = usePathname()
+  const profileRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false)
+      }
+    }
+    if (isProfileOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isProfileOpen])
 
   const closeMenu = () => {
     setIsOpen(false)
@@ -77,7 +94,7 @@ export default function MobileNav({ session }: { session: Session | null }) {
          </div>
 
          {/* Interactive Profile Icon */}
-         <div className="relative">
+         <div className="relative" ref={profileRef}>
             <button 
                onClick={toggleProfile}
                className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 ring-2 ring-background active:scale-95 transition-transform"
@@ -88,7 +105,6 @@ export default function MobileNav({ session }: { session: Session | null }) {
             {/* Profile Dropdown */}
             {isProfileOpen && (
                <>
-                  <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setIsProfileOpen(false)} />
                   <div className="absolute right-0 top-full mt-2 w-56 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                      <div className="p-3 border-b border-border">
                         <p className="font-bold text-foreground text-sm truncate">{session?.user?.name}</p>
@@ -101,6 +117,13 @@ export default function MobileNav({ session }: { session: Session | null }) {
                            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
                         >
                            <UserIcon className="w-4 h-4"/> My Profile
+                        </Link>
+                        <Link 
+                           href="/dashboard/settings" 
+                           onClick={() => setIsProfileOpen(false)}
+                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
+                        >
+                           <Cog6ToothIcon className="w-4 h-4"/> Settings
                         </Link>
                      </div>
                      <div className="p-2 border-t border-border">
@@ -140,13 +163,23 @@ export default function MobileNav({ session }: { session: Session | null }) {
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Finance</div>
                 <MobileNavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" pathname={pathname} close={closeMenu} color="blue" />
-                <MobileNavItem href="/dashboard/investments" icon={<BanknotesIcon className="w-5 h-5"/>} label="Mudaraba Pool" pathname={pathname} close={closeMenu} color="teal" />
+                <MobileNavItem href="/dashboard/surveys" icon={<ClipboardDocumentCheckIcon className="w-5 h-5"/>} label="Surveys" pathname={pathname} close={closeMenu} color="purple" />
                 <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
+                <MobileNavItem href="/dashboard/mudarabah" icon={<ChartPieIcon className="w-5 h-5"/>} label="Mudarabah Pools" pathname={pathname} close={closeMenu} color="emerald" />
                 <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="My Wallet" pathname={pathname} close={closeMenu} color="emerald" />
                 
                  <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Settings</div>
                  <MobileNavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="Profile" pathname={pathname} close={closeMenu} color="gray" />
                  <MobileNavItem href="/dashboard/settings" icon={<Cog6ToothIcon className="w-5 h-5"/>} label="Settings" pathname={pathname} close={closeMenu} color="gray" />
+
+                 <div className="mx-4 mt-2 mb-2 border-t border-border" />
+                 <button
+                   onClick={() => { signOut({ callbackUrl: "/" }); closeMenu(); }}
+                   className="flex items-center gap-3 px-4 py-2.5 w-full text-left rounded-xl transition-all duration-200 text-sm font-bold text-destructive hover:bg-destructive/10"
+                 >
+                   <ArrowLeftStartOnRectangleIcon className="w-5 h-5" />
+                   Sign Out
+                 </button>
 
                {session?.user?.email === "admin@letsearnify.com" && (
                    <div className="mt-4 pt-4 border-t border-border">

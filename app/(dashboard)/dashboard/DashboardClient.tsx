@@ -17,93 +17,188 @@ import {
   CheckIcon,
   LockClosedIcon,
   WrenchScrewdriverIcon,
-  SparklesIcon
+  SparklesIcon,
+  WalletIcon,
+  ClockIcon
 } from "@heroicons/react/24/outline"
 import { formatCurrency, formatUserId, cn } from "@/lib/utils"
 import { CompanyPools } from "./CompanyPools"
 import { TierProgress } from "./TierProgress"
+import { DailyEarningWidget } from "@/app/components/dashboard/DailyEarningWidget"
 
 // Feature Configuration (Can be moved to DB/Env later)
 const FEATURE_FLAGS = {
     TASKS: true,      // Set to true when ready to go Live
-    MARKETPLACE: false, // Set to true when ready to go Live
-    MUDARABA: false,    // Set to true when ready to go Live
-    POOLS: false,       // Set to true when ready to go Live
     PLAY_EARN: false    // Set to true when ready to go Live
 }
 
-export default function DashboardClient({ user, pools, stats }: { user: any, pools: any[], stats: any }) {
-  const isUnlocked = user.isActiveMember || (user.totalDeposit ?? 0) >= 1.00
+export default function DashboardClient({ user, pools, stats, isMarketplaceLive = false, isMudarabahLive = false }: { user: any, pools: any[], stats: any, isMarketplaceLive?: boolean, isMudarabahLive?: boolean }) {
+  // Use strictly isActiveMember for Unlock state, ignore deposit total
+  const [isUnlocked, setIsUnlocked] = useState(() => user.isActiveMember || false);
+  const [balance, setBalance] = useState(() => user.balance || 0);
+
+  // Unlock Modal State
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState("");
+
+  const handleUnlock = async () => {
+      setUnlockError("");
+      setIsUnlocking(true);
+      try {
+          const res = await fetch("/api/user/unlock", { method: "POST" });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to unlock");
+          
+          setIsUnlocked(true);
+          setBalance((prev: number) => prev - 1.0);
+          setShowUnlockModal(false);
+      } catch (e: any) {
+          setUnlockError(e.message);
+      } finally {
+          setIsUnlocking(false);
+      }
+  };
 
   // Helper to determine status: 'LOCKED' | 'DEV' | 'LIVE'
-  const getFeatureStatus = (featureKey: keyof typeof FEATURE_FLAGS) => {
+  const getFeatureStatus = (featureKey: "TASKS" | "PLAY_EARN" | "MARKETPLACE" | "MUDARABA" | "POOLS") => {
       if (!isUnlocked) return "LOCKED"
-      return FEATURE_FLAGS[featureKey] ? "LIVE" : "DEV"
+      if (featureKey === "MARKETPLACE") return isMarketplaceLive ? "LIVE" : "DEV";
+      if (featureKey === "MUDARABA" || featureKey === "POOLS") return isMudarabahLive ? "LIVE" : "DEV";
+      return FEATURE_FLAGS[featureKey as keyof typeof FEATURE_FLAGS] ? "LIVE" : "DEV";
   }
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-24">
       
-      {/* 1. HERO SECTION */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <motion.div 
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.5 }}
-        >
-           <div className="flex items-center gap-3 mb-2">
-             <div className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border shadow-sm",
-                 user.tier === 'DIAMOND' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-100 dark:border-blue-800' :
-                 user.tier === 'PLATINUM' ? 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-100 dark:border-slate-700' :
-                 user.tier === 'GOLD' ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-800' :
-                 'bg-card text-muted-foreground border-border'
-             )}>
-                <span className={cn("w-2 h-2 rounded-full animate-pulse", 
-                    user.tier === 'DIAMOND' ? 'bg-blue-500' :
-                    user.tier === 'PLATINUM' ? 'bg-slate-500' :
-                    user.tier === 'GOLD' ? 'bg-amber-500' : 'bg-green-500'
-                )}></span>
-                {user.tier} Member
-             </div>
-             <div className="px-3 py-1 rounded-full bg-card border border-border text-[10px] font-bold text-muted-foreground flex items-center gap-1.5 shadow-sm">
-                <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500"/>
-                Network Live
-             </div>
-           </div>
-           <h1 className="text-md md:text-2xl font-serif font-bold text-foreground leading-tight">
-             Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 font-extrabold">{user.name || 'Partner'}</span>
-           </h1>
-           <p className="text-muted-foreground mt-1 text-xs md:text-sm">Here is your financial command center.</p>
-        </motion.div>
+      {/* ═══ DASHBOARD HERO HEADER ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="relative overflow-hidden rounded-2xl text-white"
+        style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0f172a 100%)" }}
+      >
+        {/* Subtle glow orbs */}
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Desktop Quick Actions (Optional, or can keep strictly in grid below) */}
-      </header>
+        {/* Dot texture */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+
+        <div className="relative z-10 px-5 sm:px-10 py-6 sm:py-10 text-center">
+
+          {/* Top: live badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[9px] sm:text-xs font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-3 sm:mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Dashboard · Active
+          </div>
+
+          {/* Greeting line */}
+          <p className="text-white/40 text-xs sm:text-sm font-semibold tracking-widest uppercase mb-1 sm:mb-2">
+            Welcome back
+          </p>
+
+          {/* Name — full name, gradient styled */}
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-4 sm:mb-5">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-blue-300">
+              {user.name || "Partner"}
+            </span>
+          </h1>
+
+          {/* Divider */}
+          <div className="w-12 h-px bg-white/10 mx-auto mb-4" />
+
+          {/* Status badges row */}
+          <div className="flex items-center justify-center gap-1.5 flex-wrap">
+            <div className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border",
+              user.tier === 'DIAMOND' ? 'bg-blue-500/15 border-blue-400/25 text-blue-300' :
+              user.tier === 'PLATINUM' ? 'bg-slate-400/15 border-slate-300/25 text-slate-300' :
+              user.tier === 'GOLD' ? 'bg-amber-500/15 border-amber-400/25 text-amber-300' :
+              user.tier === 'EMERALD' ? 'bg-emerald-500/15 border-emerald-400/25 text-emerald-300' :
+              'bg-white/8 border-white/10 text-white/60'
+            )}>
+              <span className={cn("w-1 h-1 rounded-full",
+                user.tier === 'DIAMOND' ? 'bg-blue-400' :
+                user.tier === 'PLATINUM' ? 'bg-slate-300' :
+                user.tier === 'GOLD' ? 'bg-amber-400' :
+                user.tier === 'EMERALD' ? 'bg-emerald-400' : 'bg-white/50'
+              )} />
+              {user.tier}
+            </div>
+            
+            {isUnlocked ? (
+                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-500/12 border border-emerald-400/20 text-emerald-300">
+                  <ShieldCheckIcon className="w-2.5 h-2.5" />
+                  Unlocked
+                </div>
+            ) : (
+                <button 
+                  onClick={() => setShowUnlockModal(true)}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-500/12 border border-amber-400/20 text-amber-300 hover:bg-amber-500/20 transition-colors"
+                >
+                  <LockClosedIcon className="w-2.5 h-2.5" />
+                  Activate for $1
+                </button>
+            )}
+            
+          </div>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+      </motion.div>
+
 
       {/* 2. STATS OVERVIEW GRID (Desktop) */}
-      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <StatCard 
+             title="Wallet Balance" 
+             value={formatCurrency(balance)} 
+             sub="Available USD"
+             icon={WalletIcon} 
+             color="emerald"
+             delay={0.1}
+          />
           <StatCard 
              title="Total ARN" 
-             value={(user.arnBalance || 0).toFixed(0)} 
-             sub={`≈ ${formatCurrency((user.arnBalance || 0) / 10)} USD`} 
+             value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
              icon={StarIcon} 
              color="blue"
-             delay={0.1}
+             delay={0.2}
+          />
+          <StatCard 
+             title="Task Earnings" 
+             value={formatCurrency(user.taskEarnings || 0)} 
+             sub="From Activity" 
+             icon={BriefcaseIcon} 
+             color="indigo"
+             delay={0.3}
+          />
+          <StatCard 
+             title="Referral Earnings" 
+             value={formatCurrency(user.referralEarnings || 0)} 
+             sub="Team Commissions" 
+             icon={UserGroupIcon} 
+             color="purple"
+             delay={0.4}
           />
           <StatCard 
              title="Total Deposited" 
              value={formatCurrency(user.totalDeposit || 0)} 
              sub="Lifetime Investment" 
-             icon={BanknotesIcon} 
+             icon={ArrowDownTrayIcon} 
              color="amber"
-             delay={0.2}
+             delay={0.5}
           />
           <StatCard 
-             title="Pending Withdrawal" 
-             value={formatCurrency(user.pendingWithdrawal || 0)} 
+             title="Pending Deposit" 
+             value={formatCurrency(user.pendingDeposit || 0)} 
              sub="Processing" 
-             icon={ArrowUpTrayIcon} 
-             color="orange"
-             delay={0.3}
+             icon={ClockIcon} 
+             color="blue"
+             delay={0.6}
           />
           <StatCard 
              title="Total Withdrawn" 
@@ -111,7 +206,15 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
              sub="Successful Payouts" 
              icon={CheckIcon} 
              color="emerald"
-             delay={0.4}
+             delay={0.7}
+          />
+          <StatCard 
+             title="Pending Withdrawal" 
+             value={formatCurrency(user.pendingWithdrawal || 0)} 
+             sub="Processing" 
+             icon={ArrowUpTrayIcon} 
+             color="orange"
+             delay={0.8}
           />
       </div>
 
@@ -131,10 +234,10 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
                           <StarIcon className="w-3 h-3"/> Total ARN Balance
                       </h3>
                       <div className="text-3xl font-bold font-serif tracking-tight leading-none mb-1">
-                          {(user.arnBalance || 0).toFixed(0)} <span className="text-sm text-blue-200 font-sans">ARN</span>
+                          {((user.balance || 0) * 10).toFixed(2)} <span className="text-sm text-blue-200 font-sans">ARN</span>
                       </div>
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm">
-                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency((user.arnBalance || 0) / 10)} USD</span>
+                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user.balance || 0)} USD</span>
                       </div>
                   </div>
                   <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
@@ -143,52 +246,16 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
               </div>
           </motion.div>
 
-          {/* Compact 3-Grid - Reduced Text Sizes */}
-          <div className="grid grid-cols-3 gap-2">
-              {/* Earnings */}
-              <motion.div 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ delay: 0.1 }}
-                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5"
-              >
-                  <BanknotesIcon className="w-6 h-6 text-amber-500 mb-1.5"/>
-                  <div className="font-bold text-foreground text-xs leading-tight">{formatCurrency(user.totalDeposit || 0)}</div>
-                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Deposited</div>
-              </motion.div>
-
-              {/* Team */}
-              <motion.div 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ delay: 0.2 }}
-                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5"
-              >
-                  <UserGroupIcon className="w-5 h-5 text-indigo-500 mb-1.5"/>
-                  <div className="font-bold text-foreground text-xs leading-tight">{user.activeMembers}</div>
-                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Team</div>
-              </motion.div>
-
-              {/* Tier */}
-              <motion.div 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ delay: 0.3 }}
-                 className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5 relative overflow-hidden"
-              >
-                  <div className={cn("absolute inset-0 opacity-5", 
-                      user.tier === 'DIAMOND' ? 'bg-blue-500' :
-                      user.tier === 'PLATINUM' ? 'bg-slate-500' :
-                      user.tier === 'GOLD' ? 'bg-amber-500' : 'bg-green-500'
-                  )}></div>
-                  <ShieldCheckIcon className={cn("w-5 h-5 mb-1.5",
-                      user.tier === 'DIAMOND' ? 'text-blue-500' :
-                      user.tier === 'PLATINUM' ? 'text-slate-500' :
-                      user.tier === 'GOLD' ? 'text-amber-500' : 'text-emerald-500'
-                  )}/>
-                  <div className="font-bold text-foreground text-xs leading-tight truncate w-full px-1">{user.tier}</div>
-                  <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5">Tier</div>
-              </motion.div>
+          {/* Compact 3-Grid changed to 2-Column Responsive Grid for Wallet Overview */}
+          <div className="grid grid-cols-2 gap-2">
+              <MobileStatCard title="Wallet Balance" value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
+              <MobileStatCard title="Total Deposited" value={formatCurrency(user.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
+              <MobileStatCard title="Task Earnings" value={formatCurrency(user.taskEarnings || 0)} icon={BriefcaseIcon} color="indigo" delay={0.3} />
+              <MobileStatCard title="Ref. Earnings" value={formatCurrency(user.referralEarnings || 0)} icon={UserGroupIcon} color="purple" delay={0.4} />
+              <MobileStatCard title="Total Withdrawn" value={formatCurrency(user.totalWithdrawal || 0)} icon={CheckIcon} color="emerald" delay={0.5} />
+              <MobileStatCard title="Pending Withdraw" value={formatCurrency(user.pendingWithdrawal || 0)} icon={ArrowUpTrayIcon} color="orange" delay={0.6} />
+              <MobileStatCard title="Pending Deposit" value={formatCurrency(user.pendingDeposit || 0)} icon={ClockIcon} color="blue" delay={0.7} />
+              <MobileStatCard title="Team / Tier" value={`${user.activeMembers} / ${user.tier.charAt(0)}`} icon={UserGroupIcon} color="amber" delay={0.8} />
           </div>
       </div>
 
@@ -248,6 +315,11 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
           />
       </div>
 
+      {/* 5. DAILY EARNING WIDGET (30-DAY LOCKS) */}
+      <div className="pt-8">
+          <DailyEarningWidget />
+      </div>
+
       {/* 4. IDENTITY & SECURITY */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <IdentityCard user={user} />
@@ -296,11 +368,57 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
 
       <TierProgress 
          currentTier={user.tier} 
-         points={user.arnBalance} 
-         activeMembers={user.activeMembers} 
+         points={balance * 10} 
+         activeMembers={user.activeMembers || 0} 
          tierRules={user.tierRules} 
          referralCode={user.referralCode}
       />
+
+      {/* 8. UNLOCK CONFIRMATION MODAL */}
+      {showUnlockModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-gray-100 dark:border-slate-800">
+                  <div className="mb-6 text-center">
+                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <LockClosedIcon className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Unlock Account</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Activating your account costs <span className="font-bold text-gray-900 dark:text-white">$1.00</span> from your wallet balance.
+                      </p>
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4 mb-6">
+                      <h4 className="text-xs font-bold text-gray-900 dark:text-gray-300 uppercase tracking-wider mb-3">Unlocks Access To:</h4>
+                      <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Premium Tasks</li>
+                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Marketplace Platform</li>
+                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Mudarabah Pools</li>
+                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Partner Commissions</li>
+                      </ul>
+                  </div>
+
+                  {unlockError && <div className="text-sm text-red-500 text-center mb-4 font-medium">{unlockError}</div>}
+
+                  <div className="flex gap-3">
+                      <button 
+                          onClick={() => setShowUnlockModal(false)}
+                          disabled={isUnlocking}
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                          Cancel
+                      </button>
+                      <button 
+                          onClick={handleUnlock}
+                          disabled={isUnlocking}
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm hover:bg-black dark:hover:bg-gray-100 transition-colors disabled:opacity-50 flex items-center justify-center"
+                      >
+                          {isUnlocking ? "Processing..." : "Pay $1.00"}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
 
     </div>
   )
@@ -308,27 +426,52 @@ export default function DashboardClient({ user, pools, stats }: { user: any, poo
 
 function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
     const colors: any = {
+        emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",
         blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10",
         amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10",
         indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/10",
-        emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",
+        purple: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10",
+        orange: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/10",
     }
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay, duration: 0.4 }}
-            className="p-6 bg-card rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all group"
+            className="p-5 bg-card rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all group shrink-0"
         >
-            <div className="flex justify-between items-start mb-4">
-                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colors[color])}>
-                    <Icon className="w-6 h-6"/>
+            <div className="flex justify-between items-start mb-3">
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colors[color])}>
+                    <Icon className="w-5 h-5"/>
                 </div>
             </div>
-            <div className="space-y-1">
-                <div className="text-2xl font-bold text-foreground font-serif">{value}</div>
-                <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{title}</div>
+            <div className="space-y-0.5">
+                <div className="text-lg xl:text-xl font-bold text-foreground font-serif truncate">{value}</div>
+                <div className="text-[10px] xl:text-xs font-bold text-muted-foreground uppercase tracking-wider">{title}</div>
             </div>
+        </motion.div>
+    )
+}
+
+function MobileStatCard({ title, value, icon: Icon, color, delay }: any) {
+    const iconColors: any = {
+        emerald: "text-emerald-500",
+        blue: "text-blue-500",
+        amber: "text-amber-500",
+        indigo: "text-indigo-500",
+        purple: "text-purple-500",
+        orange: "text-orange-500",
+    }
+    return (
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay }}
+            className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5 overflow-hidden"
+        >
+            <Icon className={cn("w-5 h-5 mb-1.5", iconColors[color] || "text-foreground")}/>
+            <div className="font-bold text-foreground text-xs leading-tight truncate w-full px-1">{value}</div>
+            <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5 truncate w-full">{title}</div>
         </motion.div>
     )
 }

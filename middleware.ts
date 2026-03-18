@@ -71,9 +71,10 @@ export default async function middleware(req: NextRequest) {
   // Run NextAuth with modified headers
   const session = await NextAuth(authConfig).auth(req as any)
 
-  // Redirect authenticated users from Home to Dashboard
+  // Redirect authenticated users from Home to the correct landing page
   if (nextUrl.pathname === "/" && session?.user) {
-      return NextResponse.redirect(new URL("/dashboard/welcome", nextUrl))
+      const role = (session.user as any)?.role
+      return NextResponse.redirect(new URL(role === "ADMIN" ? "/admin" : "/dashboard", nextUrl))
   }
   
   // Anti-Gravity: Strict Route Protection

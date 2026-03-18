@@ -170,6 +170,7 @@ export async function approveMerchantTransaction(transactionId: string) {
                 where: { id: transaction.userId },
                 data: { 
                     balance: { increment: transaction.amount },
+                    dailyEarningWallet: { increment: transaction.amount }
                     // Convert to ARN logic if needed, but usually simple deposit adds USD balance first?
                     // User prompt says "1 USD = 10 ARN" note in wallet UI.
                     // But wallet code says "Deposits are automatically converted to ARN Tokens".

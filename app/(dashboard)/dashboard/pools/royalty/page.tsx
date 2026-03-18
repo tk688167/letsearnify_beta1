@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import RoyaltyPoolContent from "./RoyaltyPoolContent"
+import { FeatureGuard } from "../../FeatureGuard"
 
 export const metadata = {
   title: "Royalty Pool - Reward Pools | LetsEarnify",
@@ -12,8 +13,10 @@ export default async function RoyaltyPoolPage() {
   if (!session?.user?.id) redirect("/login")
 
   return (
-    <div className="p-6 md:p-8">
-      <RoyaltyPoolContent />
-    </div>
+    <FeatureGuard title="Royalty Pool" feature="pools">
+      <div className="p-6 md:p-8">
+        <RoyaltyPoolContent />
+      </div>
+    </FeatureGuard>
   )
 }

@@ -62,12 +62,13 @@ export async function POST(req: NextRequest) {
                 await tx.user.update({
                     where: { id: transaction.userId },
                     data: {
-                        balance: { increment: price_amount } 
+                        balance: { increment: price_amount },
+                        dailyEarningWallet: { increment: price_amount }
                     }
                 });
 
                 // Trigger MLM & Pools
-                await finalizeDeposit(transaction.userId, price_amount, payment_id.toString(), "NOWPayments Deposit", tx);
+                await finalizeDeposit(transaction.userId, price_amount, transaction.id, "NOWPayments Deposit", tx);
             });
             
             console.log(`Payment ${payment_id} confirmed. User ${transaction.userId} credited $${price_amount}.`);

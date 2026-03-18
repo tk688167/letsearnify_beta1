@@ -68,8 +68,11 @@ export async function GET(req: Request) {
           balance: true,
           tier: true,
           arnBalance: true,
+          lockedArnBalance: true,
           activeMembers: true,
-          memberId: true
+          memberId: true,
+          isActiveMember: true,
+          totalDeposit: true
         }
        })
 
@@ -126,8 +129,11 @@ export async function GET(req: Request) {
             balance: true,
             tier: true,
             arnBalance: true,
+            lockedArnBalance: true,
             activeMembers: true,
-            memberId: true
+            memberId: true,
+            isActiveMember: true,
+            totalDeposit: true
           }
         }),
         prisma.user.count()

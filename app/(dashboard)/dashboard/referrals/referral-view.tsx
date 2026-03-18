@@ -75,6 +75,44 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-700 max-w-7xl mx-auto pb-20">
 
+      {/* ═══ PARTNERS BANNER ═══ */}
+      <div className="relative overflow-hidden rounded-2xl text-white"
+        style={{ background: "linear-gradient(135deg, #1e0a3c 0%, #3b0764 50%, #1e1b4b 100%)" }}>
+
+        <div className="absolute -top-8 -right-8 w-36 h-36 bg-violet-600/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-500/12 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+
+        <div className="relative z-10 px-5 sm:px-8 py-4 sm:py-5 text-center">
+          <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 border border-white/15 mb-2.5">
+            <UserGroupIcon className="w-4 h-4 text-violet-200" />
+          </div>
+
+          <div className="mb-1">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/8 border border-white/10 text-[8px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
+              <span className="w-1 h-1 rounded-full bg-violet-300 animate-pulse" />
+              Partner Network
+            </span>
+          </div>
+
+          <h1 className="text-sm sm:text-base font-bold tracking-tight leading-tight mb-0.5">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-purple-100 to-fuchsia-200">
+              Referral Network
+            </span>
+          </h1>
+          <p className="text-violet-200/40 text-[10px] max-w-xs mx-auto mb-2.5">
+            Build your team and earn commissions
+          </p>
+
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/8 border border-white/10 text-[9px] font-semibold text-white/70">
+            <UsersIcon className="w-3 h-3 text-violet-300" />
+            {stats.teamSize} Partners
+          </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+      </div>
+
       {/* ─── 1. HERO: Partner Identity + Referral Code + Stats ─── */}
       <div className="relative overflow-hidden rounded-2xl md:rounded-[1.5rem] shadow-xl
         bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-900

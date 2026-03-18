@@ -37,9 +37,8 @@ export function DepositRequired() {
              <span className="text-gray-500 block text-xs md:text-lg font-sans font-bold uppercase tracking-widest mb-2">Restricted Area</span>
              Vault <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Locked</span>
           </h2>
-          
           <p className="text-gray-400 mb-10 leading-relaxed text-lg max-w-md mx-auto">
-             Access to this financial instrument is reserved for verified members. A fully refundable security deposit is required to proceed.
+             Access to the platform's core features requires a one-time activation. A $1.00 activation fee will unlock your account.
           </p>
 
           <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 rounded-2xl p-1 border border-white/5 mb-8 max-w-sm mx-auto shadow-inner">
@@ -50,7 +49,7 @@ export function DepositRequired() {
                  </div>
                  <div className="h-8 w-px bg-gray-800"></div>
                  <div className="text-right">
-                     <div className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mb-1">Deposit</div>
+                     <div className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider mb-1">Activation Fee</div>
                      <div className="text-white font-mono text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500">$1.00</div>
                  </div>
              </div>
@@ -63,10 +62,10 @@ export function DepositRequired() {
                  Unlock Vault Access
              </Link>
              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.2em] opacity-60 mb-1">
-                 Instant Setup • 100% Refundable
+                 Instant Setup • Lifetime Access
              </p>
              <p className="text-xs text-emerald-400/90 font-medium max-w-sm mx-auto leading-relaxed italic">
-                 "This isn't a fee—it's a commitment to your own success. Your funds remain 100% yours to withdraw whenever you choose."
+                 "This one-time $1 activation fee unlocks the Task Center, Mudarabah Pool, Marketplace, and all other exclusive platform features."
              </p>
           </div>
        </motion.div>

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 const navItems = [
   '/dashboard',
@@ -17,22 +17,33 @@ export function SwipeContainer({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [direction, setDirection] = useState(0)
   const [isDesktop, setIsDesktop] = useState(false)
+  const mainRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth >= 768)
-    
-    // Initial check
     handleResize()
-    
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Find current index in nav list
+  // Scroll to top on every route change — fixes "partial scroll" issue across all pages
+  useEffect(() => {
+    // Cache the <main> reference once
+    if (!mainRef.current) {
+      mainRef.current = document.querySelector('main')
+    }
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+      mainRef.current.scrollLeft = 0
+    }
+    // Also attempt window scroll for any edge case
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [pathname])
+
   const currentIndex = navItems.indexOf(pathname)
 
   const handleSwipe = (swipeDirection: number) => {
-    if (currentIndex === -1) return // Not in a swipeable route
+    if (currentIndex === -1) return
 
     const nextIndex = currentIndex + swipeDirection
     if (nextIndex >= 0 && nextIndex < navItems.length) {
@@ -41,7 +52,7 @@ export function SwipeContainer({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // Desktop: Render children directly without animation wrapper to avoid conflicts
+  // Desktop: render directly without animation to avoid conflicts
   if (isDesktop) {
       return <div className="h-full w-full">{children}</div>
   }

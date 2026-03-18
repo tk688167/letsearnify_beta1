@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { deposit } from "@/lib/actions"
+import { getTierWithdrawLimit } from "@/lib/mlm"
 
 const depositSchema = z.object({
     amount: z.number().min(1, "Minimum deposit is $1"),
@@ -148,17 +149,19 @@ export async function submitWithdrawal(formData: FormData) {
         const user = await prisma.user.findUnique({
             where: { id: session.user.id },
             // @ts-ignore
-            select: { balance: true, lastWithdrawalTime: true }
+            select: { balance: true, lastWithdrawalTime: true, tier: true }
         });
 
         if (!user || user.balance < amount) {
             return { error: "Insufficient balance." };
         }
 
-        // Max 10% Validation
-        const maxWithdrawal = user.balance * 0.10;
+        // Dynamic Tier-Based Validation
+        const withdrawLimitPercent = getTierWithdrawLimit(user.tier || "NEWBIE");
+        const maxWithdrawal = user.balance * (withdrawLimitPercent / 100);
+        
         if (amount > maxWithdrawal) {
-             return { error: "You can withdraw a maximum of 10% of your total balance." };
+             return { error: `You can withdraw a maximum of ${withdrawLimitPercent}% of your total balance based on your ${user.tier} status.` };
         }
 
         // @ts-ignore
@@ -190,7 +193,8 @@ export async function submitWithdrawal(formData: FormData) {
                 data: { 
                     // @ts-ignore
                     lastWithdrawalTime: new Date(),
-                    balance: { decrement: amount }
+                    balance: { decrement: amount },
+                    arnBalance: { decrement: amount * 10 }
                 }
             })
         ]);

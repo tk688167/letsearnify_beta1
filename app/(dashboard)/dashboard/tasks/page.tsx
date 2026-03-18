@@ -106,7 +106,7 @@ export default async function TasksPage() {
   // ------------------------------------------------------------------
   // MANUAL ACCESS CONTROL (Free vs Premium)
   // ------------------------------------------------------------------
-  const isUnlocked = displayUser && (displayUser.isActiveMember || (displayUser.totalDeposit ?? 0) >= 1.00);
+  const isUnlocked = displayUser && displayUser.isActiveMember;
 
   // Still check for Global "Coming Soon" config, but don't block basic task view
   const { getComingSoonConfig } = await import("@/app/actions/admin/settings")

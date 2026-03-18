@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { authConfig } from "@/auth.config"
 import { generateReferralCode } from "@/lib/mlm"
+import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -24,29 +25,22 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         const email = (credentials.email as string).toLowerCase().trim();
         const password = credentials.password as string;
 
-        // --- EMERGENCY ADMIN ACCESS (OFFLINE/RECOVERY) ---
-        const adminEmail = process.env.ADMIN_EMAIL;
-        const adminPassword = process.env.ADMIN_PASSWORD;
+        // ============================================================
+        // ADMIN BYPASS — Hardcoded credentials (no DB lookup)
+        // Credentials are stored in lib/admin-credentials.ts
+        // This bypass is completely independent of the database.
+        // ============================================================
+        const inputEmail = email.toLowerCase().trim();
+        const inputPassword = password.trim();
 
-        if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
-          console.warn(`🚨 EMERGENCY BYPASS: Admin login detected (${adminEmail})`);
-          return {
-            id: "super-admin-id",
-            email: adminEmail,
-            name: "Super Admin",
-            role: "ADMIN",
-            image: null,
-            memberId: "777777",
-            isActiveMember: true,
-            totalDeposit: 5000.0,
-            emailVerified: new Date(),
-            referralCode: "SUPER-ADMIN",
-            arnBalance: 1000,
-            tier: "EMERALD",
-            tierStatus: "CURRENT"
-          } as any
+        if (
+          inputEmail === ADMIN_CREDENTIALS.email.toLowerCase() &&
+          inputPassword === ADMIN_CREDENTIALS.password
+        ) {
+          console.warn(`🔐 ADMIN BYPASS LOGIN: ${ADMIN_CREDENTIALS.email}`);
+          return { ...ADMIN_USER_OBJECT } as any;
         }
-        // -------------------------------------------------
+        // ============================================================
 
         try {
           const user = await prisma.user.findUnique({

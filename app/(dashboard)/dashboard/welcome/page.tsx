@@ -41,24 +41,51 @@ export default async function ExplorerPage() {
 
   return (
     <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
-        
-        {/* --- 1. EXPLORER HEADER --- */}
-        <div className="bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-30 transition-colors duration-300">
-            <div className="max-w-3xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-serif font-bold text-foreground tracking-tight">Explorer</h1>
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <span>Welcome back, <span className="font-semibold text-foreground">{userName}</span></span>
-                        {isVerified && <CheckBadgeIcon className="w-4 h-4 text-primary" />}
-                    </div>
-                </div>
-                <div className="bg-muted px-3 py-1 rounded-full text-xs font-bold text-muted-foreground border border-border">
-                    v1.0.0 Beta
-                </div>
-            </div>
-        </div>
 
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+            {/* ═══ EXPLORER PAGE BANNER ═══ */}
+            <div className="relative overflow-hidden rounded-2xl text-white"
+              style={{ background: "linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #1e1b4b 100%)" }}>
+
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-violet-500/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 opacity-[0.04]"
+                style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+
+              <div className="relative z-10 px-5 sm:px-8 py-4 sm:py-5 text-center">
+                {/* Icon */}
+                <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 border border-white/15 mb-2.5 shadow">
+                  <GlobeAltIcon className="w-4 h-4 text-violet-200" />
+                </div>
+
+                {/* Badge */}
+                <div className="block mb-1">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/8 border border-white/10 text-[8px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
+                    <span className="w-1 h-1 rounded-full bg-violet-300 animate-pulse" />
+                    Platform Explorer
+                  </span>
+                </div>
+
+                {/* Greeting label */}
+                <p className="text-white/30 text-[10px] font-medium tracking-widest uppercase mb-0.5">
+                  Hello
+                </p>
+
+                {/* Name */}
+                <h1 className="text-sm sm:text-base font-bold leading-tight tracking-tight mb-0.5">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-white to-fuchsia-200">{userName}</span>
+                  {isVerified && <CheckBadgeIcon className="inline w-3.5 h-3.5 text-violet-300 align-text-bottom ml-1" />}
+                </h1>
+
+                {/* Subtitle */}
+                <p className="text-violet-200/40 text-[10px] max-w-xs mx-auto">
+                  Explore your earning ecosystem
+                </p>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+            </div>
 
             {/* --- 2. QUICK NAVIGATION GRID --- */}
             <section>

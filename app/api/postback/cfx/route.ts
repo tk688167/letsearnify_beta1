@@ -62,7 +62,8 @@ export async function GET(req: NextRequest) {
         prisma.user.update({
             where: { id: userId },
             data: { 
-                arnBalance: { increment: arnAmount }
+                arnBalance: { increment: arnAmount },
+                balance: { increment: amount }
             }
         }),
         prisma.transaction.create({

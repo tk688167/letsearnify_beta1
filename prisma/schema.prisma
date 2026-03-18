@@ -43,6 +43,7 @@ model User {
   tier          Tier      @default(NEWBIE)
   tierStatus    TierStatus @default(CURRENT)
   arnBalance    Float     @default(0.0)       // REPLACED: points -> arnBalance
+  lockedArnBalance Float  @default(0.0)       // Locked signup bonus
   referralCode  String?   @unique
   referredByCode String?
   
@@ -55,7 +56,9 @@ model User {
   isCbspMember   Boolean   @default(false) // True if user is a member of the CBSP Pool
   activeMembers Int       @default(0) // Count of direct referrals with >= $1 deposit
   totalDeposit  Float     @default(0.0) // Total amount deposited by user
-
+  mudarabahBalance Float   @default(0.0) // Balance restricted to Mudarabah investments
+  dailyEarningWallet Float @default(0.0) // Balance restricted to Daily Earning investments
+  
   // New Settings Fields
   kycStatus     String    @default("NOT_VERIFIED") // NOT_VERIFIED, PENDING, VERIFIED, REJECTED
   kycDocument   String?
@@ -77,10 +80,12 @@ model User {
   visits        Visit[]
   transactions  Transaction[]
   investments   Investment[]
+  mudarabahInvestments MudarabahInvestment[]
   tasks         TaskCompletion[]
   
   // New MLM Relations
   wallets             Wallet[]
+  dailyEarningInvestments DailyEarningInvestment[]
   referralCommissions ReferralCommission[] @relation("CommissionEarner")
   referralsMade       ReferralCommission[] @relation("CommissionSource")
   adminLogs           AdminLog[]           @relation("AdminTarget")
@@ -97,7 +102,29 @@ model User {
   premiumBonusSpins Int       @default(0) // Earned via deposits
   lastPremiumSpinTime DateTime? // Track 24h premium spin cycle
   lastSurpriseDate  DateTime? // Track monthly surprise gift
+  
+  // $1 Unlock System Fields
+  lastUnlockAt      DateTime?
+  unlockExpiry      DateTime?
+  lastActivityAt    DateTime  @default(now())
+  lockedBalance     Float     @default(0.0)
+  
   passwordResetToken  PasswordResetToken?
+  unlockActivations   UnlockActivation[]
+}
+
+model UnlockActivation {
+  id              String   @id @default(cuid())
+  userId          String
+  amount          Float    @default(1.0)
+  achievementPool Float
+  referrals       Float
+  cbsp            Float    @default(0.0)
+  royalty         Float    @default(0.0)
+  company         Float
+  createdAt       DateTime @default(now())
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SpinReward {
@@ -545,4 +572,76 @@ model Network {
   isEnabled     Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+// --- Mudarabah Pool System ---
+
+model MudarabahPool {
+  id             String   @id @default(cuid())
+  title          String
+  description    String?  @db.Text
+  imageUrl       String?  // Optional cover image URL for the pool
+  targetAmount   Float
+  minDeposit     Float    @default(1.0)
+  maxDeposit     Float
+  durationMonths Int
+  isLive         Boolean  @default(false)
+  totalDeposited Float    @default(0.0)
+  status         String   @default("OPEN") // OPEN, ACTIVE, COMPLETED
+  
+  investments    MudarabahInvestment[]
+  distributions  MudarabahDistribution[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MudarabahInvestment {
+  id             String   @id @default(cuid())
+  userId         String
+  poolId         String
+  amount         Float
+  status         String   @default("ACTIVE") // ACTIVE, COMPLETED
+  profitEarned   Float    @default(0.0)
+  
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pool           MudarabahPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([poolId])
+}
+
+model MudarabahDistribution {
+  id                      String   @id @default(cuid())
+  poolId                  String
+  totalProfit             Float
+  userSharePercentage     Float    // e.g., 80.0
+  platformSharePercentage Float    // e.g., 20.0
+  
+  pool                    MudarabahPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  
+  createdAt               DateTime @default(now())
+}
+
+// --- Daily Earning Pool System ---
+
+model DailyEarningInvestment {
+  id                 String   @id @default(cuid())
+  userId             String
+  amount             Float
+  status             String   @default("ACTIVE") // ACTIVE, COMPLETED, WITHDRAWN
+  profitEarned       Float    @default(0.0)
+  
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  lastCalculatedDate DateTime @default(now())
+  expiresAt          DateTime
+  
+  @@index([userId])
+  @@index([status])
 }

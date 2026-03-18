@@ -23,7 +23,8 @@ export async function getAdminUsers(limit = 2000): Promise<AdminUserListResult> 
                     tier: true,
                     arnBalance: true,
                     activeMembers: true,
-                    memberId: true 
+                    memberId: true,
+                    isActiveMember: true 
                 }
             }),
             prisma.user.count()

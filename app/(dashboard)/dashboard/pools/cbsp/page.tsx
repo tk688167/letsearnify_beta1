@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import CbspPoolContent from "./CbspPoolContent"
+import { FeatureGuard } from "../../FeatureGuard"
 
 export const metadata = {
   title: "CBSP Pool - Reward Pools | LetsEarnify",
@@ -12,8 +13,10 @@ export default async function CbspPoolPage() {
   if (!session?.user?.id) redirect("/login")
 
   return (
-    <div className="p-6 md:p-8">
-      <CbspPoolContent />
-    </div>
+    <FeatureGuard title="CBSP Pool" feature="pools">
+      <div className="p-6 md:p-8">
+        <CbspPoolContent />
+      </div>
+    </FeatureGuard>
   )
 }

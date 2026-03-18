@@ -38,13 +38,13 @@ export async function processManualDeposit(userId: string, amount: number, note:
             await prismaTx.user.update({
                 where: { id: userId },
                 data: { 
-                    arnBalance: { increment: arnAmount },
-                    totalDeposit: { increment: amount }
+                    balance: { increment: amount },
+                    dailyEarningWallet: { increment: amount }
                 }
             });
 
             // 3. Finalize
-            await finalizeDeposit(userId, amount, tx.txId!, `Manual Deposit #${tx.id}`, prismaTx);
+            await finalizeDeposit(userId, amount, tx.id, `Manual Deposit #${tx.id}`, prismaTx);
 
             // 6. Log Admin Action
             await prismaTx.adminLog.create({

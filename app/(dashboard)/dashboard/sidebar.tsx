@@ -12,14 +12,15 @@ import {
   GlobeAltIcon, 
   CreditCardIcon,
   SparklesIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  ChartPieIcon
 } from "@heroicons/react/24/outline"
 import { formatUserId } from "@/lib/utils"
 import Logo from "@/app/components/ui/Logo"
 
 export function Sidebar({ session }: { session: any }) {
   return (
-    <aside className="w-72 bg-card border-r border-border hidden md:flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 transition-colors duration-300">
+    <aside className="w-72 bg-card border-r border-border hidden md:flex flex-col overflow-hidden shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10 transition-colors duration-300">
       <div className="p-8 pb-4 flex items-center justify-between">
         <div className="-ml-2">
           <Logo size="lg" />
@@ -30,22 +31,35 @@ export function Sidebar({ session }: { session: any }) {
         <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Beta Release</p>
       </div>
       
-      <nav className="flex-1 px-4 py-6 space-y-1.5">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-1.5">
         <div className="px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Platform</div>
-        <NavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" color="blue" />
-        <NavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" color="gray" />
+        <NavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Explorer" color="blue" />
+        <NavItem href="/dashboard" icon={<ChartBarIcon className="w-5 h-5"/>} label="Dashboard" color="purple" />
         <NavItem href="/dashboard/spin" icon={<SparklesIcon className="w-5 h-5"/>} label="Spin" color="pink" />
         <NavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" color="purple" />
         <NavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" color="yellow" />
         <NavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" color="emerald" />
         <NavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" color="blue" />
-        <NavItem href="/dashboard/investments" icon={<BanknotesIcon className="w-5 h-5"/>} label="Mudaraba Pool" color="teal" />
+
         <NavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" color="orange" />
+        <NavItem href="/dashboard/mudarabah" icon={<ChartPieIcon className="w-5 h-5"/>} label="Mudarabah Pools" color="emerald" />
         <NavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="Wallet" color="indigo" />
         
         <div className="pt-8 px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Account</div>
         <NavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="My Profile" color="gray" />
         <NavItem href="/dashboard/settings" icon={<Cog6ToothIcon className="w-5 h-5"/>} label="Settings" color="gray" />
+        <div className="mx-4 mt-2 mb-2 border-t border-border" />
+        <form action={async () => {
+          "use server"
+          await signOut({ redirectTo: "/" })
+        }}>
+          <button type="submit" className="flex items-center gap-3.5 px-4 py-3 w-full text-left text-destructive hover:bg-destructive/10 hover:shadow-md hover:shadow-destructive/20 rounded-xl transition-all duration-200 text-[15px] font-semibold group">
+            <span className="text-destructive transition-colors">
+              <ArrowLeftStartOnRectangleIcon className="w-5 h-5" />
+            </span>
+            Sign Out
+          </button>
+        </form>
       </nav>
 
       {session?.user?.email === "admin@letsearnify.com" && (
@@ -71,15 +85,24 @@ export function Sidebar({ session }: { session: any }) {
             <div className="text-[10px] font-mono text-primary font-bold mt-0.5">{formatUserId(session?.user?.memberId)}</div>
           </div>
         </div>
-        <form action={async () => {
-          "use server"
-          await signOut({ redirectTo: "/" })
-        }}>
-          <button className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-destructive bg-background border border-border hover:bg-destructive/10 hover:border-destructive/30 rounded-xl transition-all shadow-sm">
-            <ArrowLeftStartOnRectangleIcon className="w-4 h-4" />
-            Sign Out
-          </button>
-        </form>
+        <div className="flex flex-col gap-2">
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-muted-foreground bg-background border border-border hover:bg-muted/60 hover:border-border rounded-xl transition-all shadow-sm"
+          >
+            <Cog6ToothIcon className="w-4 h-4" />
+            Settings
+          </Link>
+          <form action={async () => {
+            "use server"
+            await signOut({ redirectTo: "/" })
+          }}>
+            <button className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-destructive bg-background border border-border hover:bg-destructive/10 hover:border-destructive/30 rounded-xl transition-all shadow-sm">
+              <ArrowLeftStartOnRectangleIcon className="w-4 h-4" />
+              Sign Out
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   )

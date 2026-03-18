@@ -21,6 +21,7 @@ export default async function TierAuditPage() {
                 email: true,
                 tier: true,
                 tierStatus: true,
+                balance: true,
                 arnBalance: true,
                 activeMembers: true
             }
@@ -62,9 +63,11 @@ export default async function TierAuditPage() {
 
              <TierAuditTable 
                 users={users.map((u: any) => {
-                   const expected = getExpectedTier(u.arnBalance, u.activeMembers)
+                   const calculatedArn = (u.balance || 0) * 10;
+                   const expected = getExpectedTier(calculatedArn, u.activeMembers)
                    return {
                       ...u,
+                      arnBalance: calculatedArn, // Override the passed arnBalance to the table
                       tierStatus: u.tierStatus as any || 'CURRENT', // Cast for now
                       expectedTier: expected.tier,
                       isMismatch: u.tier !== expected.tier

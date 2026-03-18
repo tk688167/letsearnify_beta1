@@ -74,15 +74,15 @@ export async function approveDeposit(txId: string) {
             await prismaTx.user.update({
                 where: { id: tx.userId },
                 data: { 
-                    arnBalance: { increment: arnAmount },
-                    totalDeposit: { increment: depositAmount } // Track USD value for tiering
+                    balance: { increment: depositAmount },
+                    dailyEarningWallet: { increment: depositAmount },
                 }
             });
-            console.log(`[ApproveDeposit] Credited ${arnAmount} ARN to user (USD Value: $${depositAmount})`);
+            console.log(`[ApproveDeposit] Credited $${depositAmount} to user (Main & Daily)`);
             
             // 3. Finalize Deposit (Side Effects: TotalDeposit, Active Status, Upline, Royalty, CBSP, Commissions)
             // @ts-ignore
-            await finalizeDeposit(tx.userId, depositAmount, tx.txId || tx.id, `Deposit #${txId}`, prismaTx);
+            await finalizeDeposit(tx.userId, depositAmount, tx.id, `Deposit #${txId}`, prismaTx);
 
             // 6. Log Admin Action
             await prismaTx.adminLog.create({

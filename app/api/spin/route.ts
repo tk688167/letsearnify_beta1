@@ -76,7 +76,10 @@ export async function POST() {
             // actually we can just update here.
             await tx.user.update({
                 where: { id: userId },
-                data: { arnBalance: { increment: finalPoints } }
+                data: { 
+                    arnBalance: { increment: finalPoints },
+                    balance: { increment: finalPoints / 10 }
+                }
             })
 
             // Log Transaction

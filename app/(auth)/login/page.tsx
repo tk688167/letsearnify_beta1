@@ -1,6 +1,6 @@
 "use client"
 
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -31,15 +31,11 @@ function LoginContent() {
           : "Invalid email or password.")
         setLoading(false)
       } else {
-        try {
-          const roleRes = await fetch("/api/auth/role")
-          const data = await roleRes.json()
-          router.push(data.role === "ADMIN" ? "/admin" : "/dashboard")
-          router.refresh()
-        } catch {
-          router.push("/dashboard")
-          router.refresh()
-        }
+        // Use getSession() to read the session cookie set by signIn() — no race condition
+        const session = await getSession()
+        const role = (session?.user as any)?.role
+        router.push(role === "ADMIN" ? "/admin" : "/dashboard")
+        router.refresh()
       }
     } catch {
       setError("An unexpected error occurred.")

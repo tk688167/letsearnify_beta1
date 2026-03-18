@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
   
-  const { user, pools, isOffline } = await getDashboardData(session.user.id);
+  const { user, pools, isOffline, isMarketplaceLive, isMudarabahLive } = await getDashboardData(session.user.id);
 
   // Handle case where DB works but user not found (should be handled by auth redir normally)
   if (!user && !isOffline && (session.user as any)?.id !== "super-admin-id") {
@@ -30,6 +30,8 @@ export default async function DashboardPage() {
             user={user} 
             pools={pools} 
             stats={{}} 
+            isMarketplaceLive={isMarketplaceLive}
+            isMudarabahLive={isMudarabahLive}
         />
       </>
   )

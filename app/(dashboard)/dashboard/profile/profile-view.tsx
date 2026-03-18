@@ -29,9 +29,12 @@ interface ProfileViewProps {
             referrals: number
         }
     }
+    teamSize: number
 }
 
-export default function ProfileView({ user }: ProfileViewProps) {
+
+export default function ProfileView({ user, teamSize }: ProfileViewProps) {
+
     const [activeTab, setActiveTab] = useState("overview")
 
     const tabs = [
@@ -146,20 +149,21 @@ export default function ProfileView({ user }: ProfileViewProps) {
                     {/* STATS OVERVIEW CARD */}
                     <div className="grid grid-cols-2 gap-4">
                         <StatCard 
-                            title="Wallet Balance"
-                            value={formatCurrency(user.balance || 0)} // Fixed: user.balance instead of totalEarned
+                            title="Total Wallet (USD)"
+                            value={formatCurrency(user.balance || 0)}
                             icon={WalletIcon}
                             color="emerald"
                             delay={0.1}
                         />
                         <StatCard 
                             title="Community"
-                            value={user._count.referrals.toString()}
+                            value={teamSize.toString()}
                             suffix=" Members"
                             icon={UsersIcon}
                             color="blue"
                             delay={0.2}
                         />
+
                         <StatCard 
                             title="Loyalty Tier"
                             value={user.tier}
@@ -169,7 +173,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                         />
                         <StatCard 
                             title="Total ARN"
-                            value={user.arnBalance.toLocaleString()}
+                            value={((user.balance || 0) * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             suffix=" ARN"
                             icon={CheckBadgeIcon}
                             color="purple"

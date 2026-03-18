@@ -39,6 +39,14 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
         const reward = completion.task.reward
 
         await prisma.$transaction(async (tx) => {
+            // 0. Fetch user activation status
+            const user = await tx.user.findUnique({
+                where: { id: completion.userId },
+                select: { isActiveMember: true }
+            })
+
+            const isLocked = !user?.isActiveMember;
+
             // 1. Update Completion Status
             await tx.taskCompletion.update({
                 where: { id: completionId },
@@ -49,12 +57,16 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 }
             })
 
-            // 2. Credit User Balance
+            // 2. Credit User Balance (Active or Locked)
             await tx.user.update({
                 where: { id: completion.userId },
-                data: {
-                    arnBalance: { increment: reward }
-                }
+                data: (isLocked ? {
+                    lockedArnBalance: { increment: reward * 10 },
+                    lockedBalance: { increment: reward }
+                } : {
+                    arnBalance: { increment: reward * 10 },
+                    balance: { increment: reward }
+                }) as any
             })
 
             // 3. Create Transaction Record
@@ -63,9 +75,9 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                     userId: completion.userId,
                     type: "TASK_REWARD",
                     amount: reward,
-                    status: "COMPLETED",
-                    method: "SYSTEM", // Added method
-                    description: `Task Approved: ${completion.task.title}`,
+                    status: isLocked ? "LOCKED" : "COMPLETED",
+                    method: "SYSTEM",
+                    description: `Task Approved: ${completion.task.title} ${isLocked ? '(Locked)' : ''}`,
                     arnMinted: reward
                 }
             })

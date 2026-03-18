@@ -16,6 +16,8 @@ import {
   ClipboardDocumentListIcon,
   GiftIcon,
   ArrowTopRightOnSquareIcon,
+  BriefcaseIcon,
+  ChartBarIcon,
 } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
@@ -26,12 +28,14 @@ import Logo from "@/app/components/ui/Logo"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
   { name: "User Management", href: "/admin/users", icon: UsersIcon },
+  { name: "Freelance Marketplace", href: "/admin/marketplace", icon: BriefcaseIcon },
   { name: "Tasks & Companies", href: "/admin/tasks", icon: ClipboardDocumentListIcon },
   { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
   { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
   { name: "Merchant Deposits", href: "/admin/merchant/deposits", icon: BanknotesIcon },
   { name: "Manual Deposit", href: "/admin/manual-deposit", icon: BanknotesIcon },
   { name: "Withdrawal Requests", href: "/admin/withdrawals", icon: ArrowLeftOnRectangleIcon },
+  { name: "Manual Unlocks", href: "/admin/unlocks", icon: CheckCircleIcon },
   { name: "Wallet Settings", href: "/admin/wallets", icon: WalletIcon },
   { name: "Merchant Settings", href: "/admin/merchant", icon: BanknotesIcon },
   {
@@ -55,7 +59,7 @@ const navigation = [
   },
   {
     name: "Pools & Revenue",
-    href: "/admin/pools",
+    href: "#",
     icon: BanknotesIcon,
     children: [
       { name: "Pools Overview", href: "/admin/pools" },
@@ -63,6 +67,7 @@ const navigation = [
       { name: "Royalty Pool", href: "/admin/royalty", icon: "👑" },
     ],
   },
+  { name: "Mudarabah Pool", href: "/admin/mudarabah", icon: ChartBarIcon },
   { name: "Visitor Logs", href: "/admin/visits", icon: GlobeAltIcon },
 ]
 

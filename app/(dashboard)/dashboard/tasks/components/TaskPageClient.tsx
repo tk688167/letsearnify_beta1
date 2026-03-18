@@ -134,39 +134,48 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8 sm:space-y-12">
             
-            {/* ENHANCED HEADER SECTION */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 via-gray-900 to-black text-white shadow-xl">
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20"></div>
-                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-amber-500 rounded-full blur-3xl opacity-20"></div>
-                
-                <div className="relative px-4 py-4 sm:px-6 sm:py-6 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
-                    <div className="text-center md:text-left max-w-xl">
-                        <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
-                            <span className="px-2 py-0.5 bg-white/10 backdrop-blur-sm rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-300 border border-white/10">
-                                Official Task Hub
-                            </span>
-                        </div>
-                        <h1 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-white mb-2 leading-tight">
-                            Earn More, <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400">Faster.</span>
-                        </h1>
-                        <p className="text-gray-300 text-[10px] sm:text-xs leading-relaxed max-w-md mx-auto md:mx-0">
-                            Complete verified tasks to earn ARN. Access <span className="text-white font-bold">Premium Opportunities</span> and <span className="text-white font-bold">Basic Tasks</span>.
-                        </p>
-                    </div>
+            {/* ═══ TASK CENTER BANNER ═══ */}
+            <div className="relative overflow-hidden rounded-2xl text-white"
+              style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1e1040 45%, #0d1117 100%)" }}>
 
-                    {/* DASHBOARD STYLE STATS */}
-                    <div className="flex gap-2 sm:gap-3 w-full md:w-auto justify-center">
-                        <div className="flex-1 md:flex-none min-w-[110px] sm:min-w-[130px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 text-center transition-colors">
-                             <div className="text-2xl sm:text-3xl font-bold text-green-400 mb-0.5">{Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}</div>
-                             <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Completed Tasks</div>
-                        </div>
-                        <div className="flex-1 md:flex-none min-w-[110px] sm:min-w-[130px] bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 text-center transition-colors">
-                             <div className="text-2xl sm:text-3xl font-bold text-amber-400 mb-0.5">{(platformTasks.reduce((sum, t) => sum + t.reward, 0)).toFixed(0)}</div>
-                             <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Earnings (ARN)</div>
-                        </div>
-                    </div>
+              <div className="absolute -top-8 right-0 w-40 h-40 bg-indigo-600/12 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 -left-8 w-36 h-36 bg-amber-500/8 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-0 opacity-[0.03]"
+                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M0 0h1v40H0zm40 0h1v40h-1zM0 0v1h41V0zm0 40v1h41v-1z'/%3E%3C/g%3E%3C/svg%3E\")" }} />
+
+              <div className="relative z-10 px-5 sm:px-7 py-4 sm:py-5 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3">
+                <div className="min-w-0 text-center sm:text-left flex-1">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/8 border border-white/10 text-[8px] font-bold uppercase tracking-[0.18em] text-amber-300/80 mb-1.5">
+                    <BoltIcon className="w-2.5 h-2.5" />
+                    Official Task Hub
+                  </div>
+                  <h1 className="text-sm sm:text-base font-bold tracking-tight leading-tight mb-0.5">
+                    Earn More,{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200">Faster.</span>
+                  </h1>
+                  <p className="text-white/40 text-[10px] max-w-xs leading-relaxed">
+                    Complete verified tasks for ARN tokens
+                  </p>
                 </div>
+                <div className="flex gap-2 shrink-0">
+                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
+                    <div className="text-base sm:text-lg font-black text-emerald-400 leading-none mb-0.5">
+                      {Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}
+                    </div>
+                    <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">Done</div>
+                  </div>
+                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
+                    <div className="text-base sm:text-lg font-black text-amber-400 leading-none mb-0.5">
+                      {(platformTasks.reduce((sum, t) => sum + t.reward, 0)).toFixed(0)}
+                    </div>
+                    <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">ARN</div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
             </div>
+
+              {/* Glow orbs */}
 
             {/* TASKS CONTAINER */}
             <div className="space-y-8 sm:space-y-12">

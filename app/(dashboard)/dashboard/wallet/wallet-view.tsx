@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useTransition, useEffect, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useState, useTransition, useEffect, Suspense, useMemo } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { formatCurrency, cn } from "@/lib/utils"
-import { deposit, transferToPool } from "@/lib/actions"
+import { deposit, transferFunds } from "@/lib/actions"
 import { submitWithdrawal } from "@/app/actions/wallet"
 import { submitMerchantDeposit, submitMerchantWithdrawal } from "@/app/actions/user/merchant-transaction"
 import { 
@@ -21,8 +21,12 @@ import {
   XMarkIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
-  MapPinIcon
+  MapPinIcon,
+  ChartPieIcon,
+  FunnelIcon,
+  CalendarDaysIcon
 } from "@heroicons/react/24/outline"
+import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
 
 // Force rebuild for hydration fix
@@ -35,6 +39,7 @@ export default function WalletClient({ user, transactions, platformWallets, merc
 }
 
 function WalletContent({ user, transactions, platformWallets, merchantSettings }: { user: any, transactions: any[], platformWallets: any[], merchantSettings: any[] }) {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab")
   
@@ -72,13 +77,43 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const currentWallet = platformWallets.find(w => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
 
   
-  // For Withdraws/Transfers:
+  // For Withdraws:
   const [method, setMethod] = useState("TRC20") 
   const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE">("TRC20") 
   const [details, setDetails] = useState("")
 
+  // For Transfers:
+  const [transferSource, setTransferSource] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("WALLET")
+  const [transferDestination, setTransferDestination] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("MUDARABAH")
+
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  // Account Unlock State
+  const [isUnlocking, setIsUnlocking] = useState(false)
+
+  // Transaction History Filtering State
+  const [filterRange, setFilterRange] = useState<'7d' | '30d' | 'custom'>('7d')
+  const [customStart, setCustomStart] = useState("")
+  const [customEnd, setCustomEnd] = useState("")
+
+  const filteredTransactions = useMemo(() => {
+     let filtered = transactions;
+     if (filterRange === '7d') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        filtered = filtered.filter(tx => new Date(tx.createdAt) >= d)
+     } else if (filterRange === '30d') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        filtered = filtered.filter(tx => new Date(tx.createdAt) >= d)
+     } else if (filterRange === 'custom') {
+        if (customStart) filtered = filtered.filter(tx => new Date(tx.createdAt) >= new Date(customStart))
+        if (customEnd) {
+           const e = new Date(customEnd); e.setHours(23, 59, 59, 999);
+           filtered = filtered.filter(tx => new Date(tx.createdAt) <= e)
+        }
+     }
+     return filtered;
+  }, [transactions, filterRange, customStart, customEnd])
 
   // Reset merchant state when switching tabs or methods
   useEffect(() => {
@@ -107,6 +142,33 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         setScreenshot(reader.result as string)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleUnlockAccount = async () => {
+    if (balance < 1.0) {
+      setMessage({ type: 'error', text: "Insufficient balance to unlock. Please deposit at least $1.00 USD."})
+      return
+    }
+
+    setIsUnlocking(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch("/api/user/unlock", { method: "POST" })
+      const data = await res.json()
+
+      if (data.success) {
+        setMessage({ type: 'success', text: "Your account has been successfully unlocked!" })
+        setBalance((prev: number) => prev - 1.0)
+        router.refresh() // Force refresh to update the `isActiveMember` flag everywhere
+      } else {
+        setMessage({ type: 'error', text: data.error || "Failed to unlock account." })
+      }
+    } catch (err: any) {
+      setMessage({ type: 'error', text: "A network error occurred." })
+    } finally {
+      setIsUnlocking(false)
     }
   }
 
@@ -164,7 +226,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         
         // --- TRANSFER FLOW ---
         else if (activeTab === "transfer") {
-           res = await transferToPool(val, method) 
+           res = await transferFunds(val, transferSource, transferDestination) 
         }
 
         if (res?.success) {
@@ -173,7 +235,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
            setTxHash("")
            setScreenshot(null)
            if (activeTab === "deposit") setBalance((curr: number) => curr + val)
-           else if (activeTab === "transfer") setBalance((curr: number) => curr - val)
+           // If we are doing client-side balance updates for transfers dynamically:
+           // Better to trust the server revalidation for exact values
         } else {
            setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." })
         }
@@ -624,7 +687,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     placeholder="0.00"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: ${user.arnBalance?.toFixed(2) || "0.00"} ARN</p>
+                <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: {((user.balance || 0) * 10).toFixed(2)} ARN</p>
               </div>
               <button
                 onClick={handleAction}
@@ -641,7 +704,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 md:gap-8 min-h-screen pb-12">
+    <div className="flex flex-col gap-6 md:gap-8 min-h-screen pb-12 w-full">
        
        {/* MAIN CONTENT AREA */}
        <div className="flex-1 space-y-6 md:space-y-8 min-w-0">
@@ -652,19 +715,89 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2 pointer-events-none mix-blend-overlay"></div>
               <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-indigo-900/20 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
               
-              <div className="relative z-10">
-                 <div className="flex flex-col sm:flex-row justify-between items-start mb-6 md:mb-10 gap-4">
-                    <div>
+              <div className="relative z-10 w-full">
+                 <div className="flex flex-col xl:flex-row justify-between items-start gap-6 lg:gap-8">
+                    {/* Left Side: Balances */}
+                    <div className="flex-1 w-full">
                        <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs md:text-sm mb-2 flex items-center gap-2">
                            <BanknotesIcon className="w-4 h-4 text-blue-200"/> Total ARN Tokens
                        </h2>
-                       <div className="text-[2.5rem] sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif tracking-tight text-white drop-shadow-md break-all leading-none">
-                          {user.arnBalance?.toFixed(2) || "0.00"} <span className="text-2xl lg:text-3xl text-blue-200">ARN</span>
+                       <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif tracking-tight text-white drop-shadow-md break-words leading-none">
+                          {((user.balance || 0) * 10).toFixed(2)} <span className="text-2xl lg:text-3xl text-blue-200">ARN</span>
                        </div>
-                       <div className="mt-2 text-blue-100 font-medium text-sm">
-                           ≈ {formatCurrency((user.arnBalance || 0) / 10)} USD
+                       <div className="mt-3 text-blue-100 font-medium text-sm flex items-center gap-3">
+                           <span>≈ {formatCurrency(user.balance || 0)} USD</span>
+                           <span className={cn(
+                               "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
+                               user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30"
+                           )}>
+                               {user.isActiveMember ? "Access Active" : "Account Locked"}
+                           </span>
+                       </div>
+
+                       <div className="mt-5 flex flex-wrap flex-col sm:flex-row items-start sm:items-center gap-3">
+                           {/* Locked Signup Bonus Indicator */}
+                           {user.lockedArnBalance > 0 && !user.isActiveMember && (
+                               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm w-full sm:w-auto">
+                                   <div className="p-2 bg-orange-500/20 rounded-lg shrink-0">
+                                     <LockClosedIcon className="w-5 h-5 text-orange-400" />
+                                   </div>
+                                   <div className="flex flex-col">
+                                       <span className="text-[10px] uppercase font-bold text-orange-300 leading-none mb-1 tracking-wider whitespace-nowrap">Locked Bonus</span>
+                                       <span className="text-base font-bold text-white leading-none whitespace-nowrap">{user.lockedArnBalance.toFixed(2)} ARN</span>
+                                   </div>
+                               </div>
+                           )}
+
+                           {/* Mudarabah Wallet Indicator */}
+                           <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
+                               <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg shrink-0">
+                                 <ChartPieIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" />
+                               </div>
+                               <div className="flex flex-col min-w-0 w-full">
+                                 <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate sm:whitespace-nowrap block">Mudarabah Pool Balance</span>
+                                 <span className="text-sm sm:text-base font-bold text-white leading-none truncate sm:whitespace-nowrap block">${(user.mudarabahBalance || 0).toFixed(2)} USD</span>
+                               </div>
+                           </div>
+
+                           {/* Daily Earning Wallet Indicator */}
+                           <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
+                               <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg shrink-0">
+                                 <BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" />
+                               </div>
+                               <div className="flex flex-col min-w-0 w-full">
+                                 <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate sm:whitespace-nowrap block">Daily Earning Pool Balance</span>
+                                 <span className="text-sm sm:text-base font-bold text-white leading-none truncate sm:whitespace-nowrap block">${(user.dailyEarningWallet || 0).toFixed(2)} USD</span>
+                               </div>
+                           </div>
                        </div>
                     </div>
+
+                    {/* Right Side: ACCOUNT UNLOCK PROMPT */}
+                    {!user.isActiveMember && (
+                      <div className="w-full xl:w-[380px] shrink-0 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-2xl z-20">
+                          <h3 className="text-yellow-300 font-bold text-base sm:text-lg mb-2 flex items-center gap-2">
+                              <LockClosedIcon className="w-5 h-5" /> Account Locked
+                          </h3>
+                          <p className="text-blue-50 text-sm mb-5 opacity-90 leading-relaxed">
+                              You are missing out! Do you want to use <strong className="text-yellow-200">$1.00 USD</strong> from your wallet to unlock all platform features instantly?
+                          </p>
+                          <div className="flex flex-col gap-3">
+                              <button
+                                onClick={handleUnlockAccount}
+                                disabled={isUnlocking}
+                                className="w-full relative overflow-hidden group bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-4 py-3.5 sm:py-4 rounded-xl transition-all shadow-xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                              >
+                                 <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[120%] group-hover:animate-[shimmer_1s_infinite] pointer-events-none" />
+                                 <span className="relative flex items-center justify-center gap-2 text-sm sm:text-base">
+                                     {isUnlocking ? "Unlocking..." : "Use $1 to Unlock Now"}
+                                     {!isUnlocking && <ChevronRightIcon className="w-5 h-5" />}
+                                 </span>
+                              </button>
+                              <p className="text-center text-xs text-white/70 font-medium">Available Wallet Balance: ${balance.toFixed(2)} USD</p>
+                          </div>
+                      </div>
+                    )}
                  </div>
               </div>
            </div>
@@ -680,14 +813,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        key={item.id}
                        onClick={() => { setActiveTab(item.id); setMessage(null); }}
                        className={cn(
-                           "flex flex-col md:flex-row items-center justify-center gap-2 p-3 md:px-8 md:py-4 rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
+                           "flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2 p-2 sm:p-3 md:px-8 md:py-4 rounded-xl sm:rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
                            activeTab === item.id 
                                ? "bg-card border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30 shadow-lg scale-[1.02]" 
                                : "bg-card border-border hover:bg-muted/50 shadow-sm hover:shadow-md"
                        )}
                    >
-                       <item.icon className={cn("w-6 h-6", activeTab === item.id ? item.color : "text-gray-400")} />
-                       <span className={cn("text-[10px] md:text-sm font-bold uppercase tracking-wider", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>
+                       <item.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", activeTab === item.id ? item.color : "text-gray-400")} />
+                       <span className={cn("text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-wider text-center leading-tight", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>
                            {item.label}
                        </span>
                    </button>
@@ -698,12 +831,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
            <div className="bg-card rounded-[2rem] border border-border shadow-lg shadow-black/5 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
               {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                  <h3 className="text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-3">
-                      {activeTab === 'deposit' && <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><ArrowDownTrayIcon className="w-6 h-6"/></div>}
-                      {activeTab === 'withdraw' && <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><ArrowUpTrayIcon className="w-6 h-6"/></div>}
-                      {activeTab === 'transfer' && <div className="p-2 bg-orange-100 rounded-lg text-orange-600"><ArrowPathIcon className="w-6 h-6"/></div>}
-                      {activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+                  <h3 className="text-xl sm:text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-2 sm:gap-3">
+                      {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg text-blue-600"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'withdraw' && <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg text-purple-600"><ArrowUpTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'transfer' && <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg text-orange-600"><ArrowPathIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      <span className="truncate">{activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}</span>
                   </h3>
                   {(activeTab === 'deposit') && (
                      <div className="hidden sm:flex px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100 dark:border-green-800">
@@ -746,14 +879,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                         {depositMethod === "TRC20" && (
                            <div className="bg-muted/30 rounded-2xl p-4 md:p-6 border border-border space-y-6">
                               {/* QR & Address */}
-                              <div className="flex flex-col md:flex-row gap-6">
-                                 <div className="flex-shrink-0 mx-auto md:mx-0">
+                              <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+                                 <div className="mx-auto md:mx-0 shrink-0 w-full max-w-[200px] md:max-w-none md:w-auto">
                                     <QRCode network="TRC20" imagePath={currentWallet.qrCodePath || "/qr-trc20.png"} />
                                  </div>
-                                 <div className="flex-1 space-y-4 min-w-0">
-                                    <div className="space-y-2">
+                                 <div className="flex-1 space-y-4 min-w-0 w-full overflow-hidden">
+                                    <div className="space-y-2 w-full">
                                         <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wallet Address</label>
-                                       <div className="flex items-center gap-2 p-1 bg-card border border-border rounded-xl">
+                                       <div className="flex items-center gap-2 p-1 bg-card border border-border rounded-xl w-full">
                                           <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-foreground truncate">
                                              {currentWallet?.address}
                                           </div>
@@ -822,84 +955,177 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                  {/* === WITHDRAW === */}
                  {activeTab === "withdraw" && (
                     <div className="space-y-8 animate-in fade-in">
-                        {/* Method Selector */}
-                        <div className="space-y-3">
-                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Withdrawal Method</label>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                       {!user.isActiveMember ? (
+                           <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
+                               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
+                                 <ShieldCheckIcon className="w-8 h-8" />
+                               </div>
+                               <h3 className="text-xl font-bold text-foreground mb-2">Withdrawals Locked</h3>
+                               <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must unlock your account with $1 before you can withdraw funds to your bank or crypto wallet.</p>
+                               <button
+                                 onClick={() => setActiveTab("deposit")}
+                                 className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all font-sans"
+                               >
+                                 Deposit Funds to Unlock
+                               </button>
+                           </div>
+                       ) : (
+                         <>
+                           <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-4 lg:flex lg:flex-row">
+                               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 lg:hidden">Withdrawal Method</label>
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Global • Fast" icon={QrCodeIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("TRC20")} color="blue"/>
                                <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => { setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} color="green"/>
                            </div>
-                        </div>
-                        
-                        {/* TRC20 Withdraw */}
-                        {withdrawalMethod === "TRC20" && (
-                             <div className="space-y-4">
-                                 <div>
-                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label>
-                                     <input 
-                                        type="text" 
-                                        value={details}
-                                        onChange={(e) => setDetails(e.target.value)}
-                                        placeholder="Enter USDT TRC-20 address..."
-                                        className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-mono text-sm text-foreground"
-                                     />
-                                 </div>
-                                 <div>
-                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label>
-                                     <div className="relative">
+                           
+                           {/* TRC20 Withdraw */}
+                           {withdrawalMethod === "TRC20" && (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label>
                                         <input 
-                                           type="number" 
-                                           value={amount}
-                                           onChange={(e) => setAmount(e.target.value)}
-                                           placeholder="0"
-                                           className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-bold text-lg text-foreground"
+                                           type="text" 
+                                           value={details}
+                                           onChange={(e) => setDetails(e.target.value)}
+                                           placeholder="Enter USDT TRC-20 address..."
+                                           className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-mono text-sm text-foreground"
                                         />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span>
-                                     </div>
-                                     <div className="flex justify-between mt-2 px-1">
-                                        <span className="text-xs text-muted-foreground font-medium">Available: {user.arnBalance?.toFixed(2) || 0} ARN</span>
-                                        <span className="text-xs font-bold text-purple-600">
-                                            {amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}
-                                        </span>
-                                     </div>
-                                 </div>
-                                 <button onClick={handleAction} className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">
-                                     Swap & Withdraw (USD)
-                                 </button>
-                             </div>
-                        )}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label>
+                                        <div className="relative">
+                                           <input 
+                                              type="number" 
+                                              value={amount}
+                                              onChange={(e) => setAmount(e.target.value)}
+                                              placeholder="0"
+                                              className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-bold text-lg text-foreground"
+                                           />
+                                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1 mt-2 px-1">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span>
+                                                <span className="text-xs font-bold text-purple-600">
+                                                    {amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-[10px] font-bold">
+                                                <span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span>
+                                                <span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={handleAction} className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">
+                                        Swap & Withdraw (USD)
+                                    </button>
+                                </div>
+                           )}
 
-                        {/* Merchant Withdraw - NEW INTEGRATION */}
-                        {withdrawalMethod === "MERCHANT" && renderMerchantUI("WITHDRAWAL")}
+                           {/* Merchant Withdraw - NEW INTEGRATION */}
+                           {withdrawalMethod === "MERCHANT" && renderMerchantUI("WITHDRAWAL")}
+                         </>
+                       )}
                     </div>
                  )}
 
 
                 {/* === TRANSFER === */}
                 {activeTab === "transfer" && (
-                   <div className="space-y-8 animate-in fade-in">
-                       <div className="p-6 bg-orange-50 border border-orange-100 rounded-2xl text-orange-800 text-sm leading-relaxed">
-                          <strong className="block mb-1 text-orange-900">Invest in Mudaraba Pools</strong>
-                          Transfer funds from your main wallet to an investment pool to start earning halal profits.
-                       </div>
+                   <div className="space-y-6 sm:space-y-8 animate-in fade-in">
+                      {!user.isActiveMember ? (
+                         <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
+                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
+                               <ShieldCheckIcon className="w-8 h-8" />
+                             </div>
+                             <h3 className="text-xl font-bold text-foreground mb-2">Transfer Locked</h3>
+                             <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must activate your account with $1 before you can transfer funds.</p>
+                             <button
+                               onClick={() => setActiveTab("deposit")}
+                               className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all font-sans"
+                             >
+                               Activate Now
+                             </button>
+                         </div>
+                      ) : (
+                         <>
+                            {/* Source and Destination Pickers */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                               {/* SOURCE */}
+                               <div>
+                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">From (Source)</label>
+                                  <select 
+                                      value={transferSource}
+                                      onChange={(e) => {
+                                          const val = e.target.value as any;
+                                          setTransferSource(val);
+                                          if (val === transferDestination) {
+                                              // Auto-switch destination to avoid conflict
+                                              setTransferDestination(val === "WALLET" ? "MUDARABAH" : "WALLET");
+                                          }
+                                      }}
+                                      className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"
+                                  >
+                                      <option value="WALLET">Main Wallet</option>
+                                      <option value="MUDARABAH">Mudarabah Pool</option>
+                                      <option value="DAILY_EARNING">Daily Earning Pool</option>
+                                  </select>
+                                  {/* Available Balance Preview */}
+                                  <div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                                      Balance: <span className="text-foreground">${
+                                          transferSource === "WALLET" ? (user.balance || 0).toFixed(2) :
+                                          transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0).toFixed(2) :
+                                          ((user as any).dailyEarningWallet || 0).toFixed(2)
+                                      }</span>
+                                  </div>
+                               </div>
 
-                       <div>
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Amount</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                                <input 
-                                    type="number" 
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    placeholder="0.00"
-                                    className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-gray-200 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-50/50 transition-all bg-white font-bold text-lg"
-                                />
+                               {/* DESTINATION */}
+                               <div>
+                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">To (Destination)</label>
+                                  <select 
+                                      value={transferDestination}
+                                      onChange={(e) => {
+                                          const val = e.target.value as any;
+                                          setTransferDestination(val);
+                                          if (val === transferSource) {
+                                              setTransferSource(val === "WALLET" ? "MUDARABAH" : "WALLET");
+                                          }
+                                      }}
+                                      className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-green-500 focus:ring-4 focus:ring-green-50/50 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"
+                                  >
+                                      <option value="WALLET">Main Wallet</option>
+                                      <option value="MUDARABAH">Mudarabah Pool</option>
+                                      <option value="DAILY_EARNING">Daily Earning Pool</option>
+                                  </select>
+                                  <div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
+                                      Balance: <span className="text-foreground">${
+                                          transferDestination === "WALLET" ? (user.balance || 0).toFixed(2) :
+                                          transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0).toFixed(2) :
+                                          ((user as any).dailyEarningWallet || 0).toFixed(2)
+                                      }</span>
+                                  </div>
+                               </div>
                             </div>
-                        </div>
 
-                        <button onClick={handleAction} className="w-full py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">
-                            Transfer to Pool
-                        </button>
+                            <div className="mb-4">
+                               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Amount</label>
+                               <div className="relative">
+                                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
+                                   <input 
+                                       type="number" 
+                                       value={amount}
+                                       onChange={(e) => setAmount(e.target.value)}
+                                       placeholder="0.00"
+                                       className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-black text-xl text-foreground"
+                                   />
+                               </div>
+                            </div>
+
+                            <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">
+                                Transfer Funds
+                            </button>
+                         </>
+                      )}
                    </div>
                 )}
 
@@ -908,53 +1134,317 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
        </div>
 
-       {/* RIGHT COLUMN: HISTORY */}
-       <div className="w-full lg:w-80 xl:w-96 flex-shrink-0 animate-in fade-in slide-in-from-right-4 duration-700 delay-100">
-          <div className="bg-card rounded-2xl border border-border shadow-md p-5 sm:p-6 lg:sticky lg:top-24">
-              <h3 className="text-base sm:text-lg font-bold font-serif text-foreground mb-5 flex items-center justify-between">
-                  Recent Activity
-              </h3>
-              
-              <div className="space-y-2 sm:space-y-3">
-                  {transactions.length === 0 ? (
-                      <div className="text-center py-10">
-                          <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                              <ArrowPathIcon className="w-6 h-6"/>
-                          </div>
-                          <p className="text-sm text-muted-foreground font-medium">No transactions yet</p>
+       {/* 3. TRANSACTION HISTORY (Full Width Bottom) */}
+       <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+          <div className="bg-card rounded-2xl border border-border shadow-md p-4 sm:p-6">
+              <div className="flex flex-col gap-4 mb-5">
+                  {/* Header row */}
+                  <div>
+                      <h3 className="text-lg sm:text-xl font-bold font-serif text-foreground flex items-center gap-2.5">
+                          <div className="p-1.5 sm:p-2 bg-muted rounded-xl text-muted-foreground shrink-0"><CalendarDaysIcon className="w-5 h-5"/></div>
+                          Transaction History
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 pl-0.5">Your deposits, withdrawals, and pool transfers.</p>
+                  </div>
+                  
+                  {/* Filters — wraps cleanly on mobile */}
+                  <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-border">
+                          <button 
+                             onClick={() => setFilterRange('7d')}
+                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center", filterRange === '7d' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
+                          >
+                             Last 7 Days
+                          </button>
+                          <button 
+                             onClick={() => setFilterRange('30d')}
+                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center", filterRange === '30d' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
+                          >
+                             Last 30 Days
+                          </button>
+                          <button 
+                             onClick={() => setFilterRange('custom')}
+                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1", filterRange === 'custom' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
+                          >
+                             <FunnelIcon className="w-3 h-3"/> Custom
+                          </button>
                       </div>
-                  ) : (
-                      transactions.slice(0, 5).map((tx, i) => (
-                          <div key={tx.id || i} className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-xl transition-colors cursor-default">
-                              <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-muted flex items-center justify-center shadow-sm shrink-0">
-                                      {tx.type === 'DEPOSIT' ? <ArrowDownTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400"/> : 
-                                       tx.type === 'WITHDRAWAL' ? <ArrowUpTrayIcon className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400"/> : <ArrowPathIcon className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 dark:text-orange-400"/>}
-                                  </div>
-                                  <div className="min-w-0">
-                                      <div className="text-xs font-bold text-foreground">{tx.type}</div>
-                                      <div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
-                                  </div>
-                              </div>
-                              <div className="text-right shrink-0">
-                                  <div className={cn("text-sm font-bold", 
-                                      tx.type === 'DEPOSIT' ? "text-green-600 dark:text-green-400" : "text-foreground"
-                                  )}>
-                                      {tx.type === 'DEPOSIT' ? '+' : '-'}{formatCurrency(tx.amount)}
-                                  </div>
-                                  <div className={cn("text-[10px] uppercase font-bold tracking-wider",
-                                      tx.status === 'COMPLETED' ? "text-green-500" : 
-                                      tx.status === 'FAILED' ? "text-red-500" : "text-amber-500"
-                                  )}>{tx.status}</div>
-                              </div>
+
+                      {/* Custom Date Picker Fields */}
+                      {filterRange === 'custom' && (
+                          <div className="flex items-center gap-2 animate-in fade-in">
+                              <input 
+                                 type="date" 
+                                 value={customStart}
+                                 onChange={(e) => setCustomStart(e.target.value)}
+                                 className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"
+                              />
+                              <span className="text-muted-foreground text-xs font-bold shrink-0">to</span>
+                              <input 
+                                 type="date" 
+                                 value={customEnd}
+                                 onChange={(e) => setCustomEnd(e.target.value)}
+                                 className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"
+                              />
                           </div>
-                      ))
-                  )}
+                      )}
+                  </div>
+              </div>
+              
+              {/* --- Desktop Table (md and up) --- */}
+              <div className="hidden md:block overflow-hidden rounded-xl border border-border">
+               <table className="w-full text-left text-sm">
+                  <thead className="bg-muted/40 border-b border-border">
+                     <tr>
+                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Transaction Details</th>
+                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Date & Time</th>
+                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Amount</th>
+                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Status</th>
+                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                      {filteredTransactions.length === 0 ? (
+                          <tr>
+                              <td colSpan={4}>
+                                  <div className="text-center py-16">
+                                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
+                                          <ArrowPathIcon className="w-8 h-8"/>
+                                      </div>
+                                      <p className="text-base text-foreground font-bold">No transactions found</p>
+                                      <p className="text-sm text-muted-foreground mt-1">Try adjusting your date filters.</p>
+                                  </div>
+                              </td>
+                          </tr>
+                      ) : (
+                          filteredTransactions.map((tx, i) => {
+                              let typeDisplay = tx.type;
+                              let icon = <ArrowPathIcon className="w-5 h-5 text-gray-500"/>;
+                              let iconBg = "bg-gray-100 dark:bg-gray-900/30";
+                              let amountColor = "text-foreground";
+                              let prefix = "";
+
+                              if (tx.type === 'DEPOSIT') {
+                                  icon = <ArrowDownTrayIcon className="w-5 h-5 text-green-600 dark:text-green-400"/>;
+                                  iconBg = "bg-green-100 dark:bg-green-900/30";
+                                  amountColor = "text-green-600 dark:text-green-400";
+                                  prefix = "+";
+                                  typeDisplay = "Wallet Deposit";
+                              } else if (tx.type === 'WITHDRAWAL') {
+                                  icon = <ArrowUpTrayIcon className="w-5 h-5 text-purple-600 dark:text-purple-400"/>;
+                                  iconBg = "bg-purple-100 dark:bg-purple-900/30";
+                                  amountColor = "text-purple-600 dark:text-purple-400";
+                                  prefix = "-";
+                                  typeDisplay = "Withdrawal";
+                              } else if (tx.type === 'MUDARABAH_TRANSFER' || tx.type === 'INVESTMENT') {
+                                  icon = <ChartPieIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400"/>;
+                                  iconBg = "bg-emerald-100 dark:bg-emerald-900/30";
+                                  amountColor = "text-emerald-600 dark:text-emerald-400";
+                                  prefix = "";
+                                  typeDisplay = "Pool Transfer";
+                              } else if (tx.type === 'DAILY_EARNING_TRANSFER') {
+                                  icon = <ChartPieIcon className="w-5 h-5 text-blue-600 dark:text-blue-400"/>;
+                                  iconBg = "bg-blue-100 dark:bg-blue-900/30";
+                                  amountColor = "text-blue-600 dark:text-blue-400";
+                                  prefix = "";
+                                  typeDisplay = "Daily Earning Pool";
+                              } else if (tx.type === 'SPIN_REWARD') {
+                                  icon = <BanknotesIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400"/>;
+                                  iconBg = "bg-yellow-100 dark:bg-yellow-900/30";
+                                  amountColor = "text-yellow-600 dark:text-yellow-400";
+                                  prefix = "+";
+                                  typeDisplay = "Spin Wheel Reward";
+                              } else if (tx.type === 'UNLOCK_FEE') {
+                                  icon = <LockClosedIcon className="w-5 h-5 text-red-500 dark:text-red-400"/>;
+                                  iconBg = "bg-red-100 dark:bg-red-900/30";
+                                  amountColor = "text-red-500 dark:text-red-400";
+                                  prefix = "-";
+                                  typeDisplay = "Account Unlock Fee";
+                              } else if (tx.type === 'TASK_INCOME') {
+                                  icon = <CheckCircleIcon className="w-5 h-5 text-cyan-600 dark:text-cyan-400"/>;
+                                  iconBg = "bg-cyan-100 dark:bg-cyan-900/30";
+                                  amountColor = "text-cyan-600 dark:text-cyan-400";
+                                  prefix = "+";
+                                  typeDisplay = "Task Income";
+                              } else if (tx.type.includes('COMMISSION')) {
+                                  icon = <MapPinIcon className="w-5 h-5 text-pink-600 dark:text-pink-400"/>;
+                                  iconBg = "bg-pink-100 dark:bg-pink-900/30";
+                                  amountColor = "text-pink-600 dark:text-pink-400";
+                                  prefix = "+";
+                                  typeDisplay = "Referral Commission";
+                              } else if (tx.type === 'ADMIN_ADJUSTMENT') {
+                                  icon = <CheckCircleIcon className="w-5 h-5 text-gray-500"/>;
+                                  iconBg = "bg-gray-100 dark:bg-gray-900/30";
+                                  amountColor = "text-gray-600";
+                                  prefix = "";
+                                  typeDisplay = "Admin Adjustment";
+                              }
+
+                              return (
+                                  <tr key={tx.id || i} className="hover:bg-muted/30 transition-colors">
+                                      <td className="px-4 py-4">
+                                          <div className="flex items-center gap-3">
+                                              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
+                                                  {icon}
+                                              </div>
+                                              <div className="min-w-0">
+                                                  <div className="font-bold text-foreground text-sm">{typeDisplay}</div>
+                                                  <div className="text-xs text-muted-foreground truncate max-w-[250px] lg:max-w-xs">{tx.description || tx.method || "System Transaction"}</div>
+                                              </div>
+                                          </div>
+                                      </td>
+                                      <td className="px-4 py-4 whitespace-nowrap">
+                                          <div className="text-sm text-foreground font-medium" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
+                                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div>
+                                      </td>
+                                      <td className="px-4 py-4 text-right whitespace-nowrap">
+                                          <div className={cn("text-sm font-black", amountColor)}>
+                                              {prefix}${(tx.amount || 0).toFixed(2)} USD
+                                          </div>
+                                          {tx.arnMinted > 0 && (
+                                              <div className="text-xs font-bold text-blue-500">
+                                                  +{tx.arnMinted.toFixed(2)} ARN
+                                              </div>
+                                          )}
+                                      </td>
+                                      <td className="px-4 py-4 text-right">
+                                          <span className={cn(
+                                              "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border",
+                                              tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : 
+                                              tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : 
+                                              "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
+                                          )}>
+                                              {tx.status}
+                                          </span>
+                                      </td>
+                                  </tr>
+                              )
+                          })
+                      )}
+                  </tbody>
+               </table>
+              </div>
+
+              {/* Mobile Stacked Cards */}
+              <div className="md:hidden divide-y divide-border border border-border rounded-xl overflow-hidden mt-3">
+                  {filteredTransactions.length === 0 ? (
+                      <div className="text-center py-12 px-4">
+                              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
+                                  <ArrowPathIcon className="w-6 h-6"/>
+                              </div>
+                              <p className="text-sm text-foreground font-bold">No transactions found</p>
+                              <p className="text-xs text-muted-foreground mt-1">Try adjusting your date filters.</p>
+                          </div>
+                      ) : (
+                          filteredTransactions.map((tx, i) => {
+                              let typeDisplay = tx.type;
+                              let icon = <ArrowPathIcon className="w-4 h-4 text-gray-500"/>;
+                              let iconBg = "bg-gray-100 dark:bg-gray-900/30";
+                              let amountColor = "text-foreground";
+                              let prefix = "";
+
+                              if (tx.type === 'DEPOSIT') {
+                                  icon = <ArrowDownTrayIcon className="w-4 h-4 text-green-600 dark:text-green-400"/>;
+                                  iconBg = "bg-green-100 dark:bg-green-900/30";
+                                  amountColor = "text-green-600 dark:text-green-400";
+                                  prefix = "+";
+                                  typeDisplay = "Wallet Deposit";
+                              } else if (tx.type === 'WITHDRAWAL') {
+                                  icon = <ArrowUpTrayIcon className="w-4 h-4 text-purple-600 dark:text-purple-400"/>;
+                                  iconBg = "bg-purple-100 dark:bg-purple-900/30";
+                                  amountColor = "text-purple-600 dark:text-purple-400";
+                                  prefix = "-";
+                                  typeDisplay = "Withdrawal";
+                              } else if (tx.type === 'MUDARABAH_TRANSFER' || tx.type === 'INVESTMENT') {
+                                  icon = <ChartPieIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400"/>;
+                                  iconBg = "bg-emerald-100 dark:bg-emerald-900/30";
+                                  amountColor = "text-emerald-600 dark:text-emerald-400";
+                                  prefix = "";
+                                  typeDisplay = "Pool Transfer";
+                              } else if (tx.type === 'DAILY_EARNING_TRANSFER') {
+                                  icon = <ChartPieIcon className="w-4 h-4 text-blue-600 dark:text-blue-400"/>;
+                                  iconBg = "bg-blue-100 dark:bg-blue-900/30";
+                                  amountColor = "text-blue-600 dark:text-blue-400";
+                                  prefix = "";
+                                  typeDisplay = "Daily Earning Pool";
+                              } else if (tx.type === 'SPIN_REWARD') {
+                                  icon = <BanknotesIcon className="w-4 h-4 text-yellow-600 dark:text-yellow-400"/>;
+                                  iconBg = "bg-yellow-100 dark:bg-yellow-900/30";
+                                  amountColor = "text-yellow-600 dark:text-yellow-400";
+                                  prefix = "+";
+                                  typeDisplay = "Spin Wheel Reward";
+                              } else if (tx.type === 'UNLOCK_FEE') {
+                                  icon = <LockClosedIcon className="w-4 h-4 text-red-500 dark:text-red-400"/>;
+                                  iconBg = "bg-red-100 dark:bg-red-900/30";
+                                  amountColor = "text-red-500 dark:text-red-400";
+                                  prefix = "-";
+                                  typeDisplay = "Account Unlock Fee";
+                              } else if (tx.type === 'TASK_INCOME') {
+                                  icon = <CheckCircleIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400"/>;
+                                  iconBg = "bg-cyan-100 dark:bg-cyan-900/30";
+                                  amountColor = "text-cyan-600 dark:text-cyan-400";
+                                  prefix = "+";
+                                  typeDisplay = "Task Income";
+                              } else if (tx.type.includes('COMMISSION')) {
+                                  icon = <MapPinIcon className="w-4 h-4 text-pink-600 dark:text-pink-400"/>;
+                                  iconBg = "bg-pink-100 dark:bg-pink-900/30";
+                                  amountColor = "text-pink-600 dark:text-pink-400";
+                                  prefix = "+";
+                                  typeDisplay = "Referral Commission";
+                              } else if (tx.type === 'ADMIN_ADJUSTMENT') {
+                                  icon = <CheckCircleIcon className="w-4 h-4 text-gray-500"/>;
+                                  iconBg = "bg-gray-100 dark:bg-gray-900/30";
+                                  amountColor = "text-gray-600";
+                                  prefix = "";
+                                  typeDisplay = "Admin Adjustment";
+                              }
+
+                              return (
+                                  <div key={tx.id || i} className="p-3.5 bg-card hover:bg-muted/20 transition-colors">
+                                      {/* Top: Icon + Type + Amount */}
+                                      <div className="flex items-center justify-between gap-2 mb-2">
+                                          <div className="flex items-center gap-2.5 min-w-0">
+                                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", iconBg)}>
+                                                  {icon}
+                                              </div>
+                                              <div className="min-w-0">
+                                                  <div className="font-bold text-foreground text-xs leading-tight truncate">{typeDisplay}</div>
+                                                  <div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div>
+                                              </div>
+                                          </div>
+                                          <div className="text-right shrink-0">
+                                              <div className={cn("text-sm font-black leading-tight", amountColor)}>
+                                                  {prefix}${(tx.amount || 0).toFixed(2)}
+                                              </div>
+                                              {tx.arnMinted > 0 && (
+                                                  <div className="text-[9px] font-bold text-blue-500">
+                                                      +{tx.arnMinted.toFixed(2)} ARN
+                                                  </div>
+                                              )}
+                                          </div>
+                                      </div>
+                                      {/* Bottom: Date + Status */}
+                                      <div className="flex items-center justify-between gap-2">
+                                          <div className="text-[10px] text-muted-foreground" suppressHydrationWarning>
+                                              {new Date(tx.createdAt).toLocaleDateString()} · {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                          </div>
+                                          <span className={cn(
+                                              "inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border",
+                                              tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : 
+                                              tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : 
+                                              "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
+                                          )}>
+                                              {tx.status}
+                                          </span>
+                                      </div>
+                                  </div>
+                              )
+                          })
+                      )}
+                  </div>
               </div>
           </div>
-       </div>
 
-      {/* ════════════════════════════ MERCHANT MODAL ════════════════════════════ */}
+       {/* ════════════════════════════ MERCHANT MODAL ════════════════════════════ */}
       {merchantModalOpen && (
         <>
           {/* Backdrop — starts below nav bar, never covers it */}

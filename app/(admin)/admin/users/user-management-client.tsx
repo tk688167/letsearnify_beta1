@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { UserCircleIcon, ShieldCheckIcon, MagnifyingGlassIcon, ArrowPathIcon, UserGroupIcon } from "@heroicons/react/24/outline"
 import UserActions from "@/app/(admin)/admin/users/user-actions"
-import { formatUserId } from "@/lib/utils"
+import { formatUserId, cn } from "@/lib/utils"
 
 type User = {
   id: string
@@ -14,8 +14,11 @@ type User = {
   balance: number
   tier: string
   arnBalance: number
+  lockedArnBalance?: number
   activeMembers: number
   memberId: string
+  isActiveMember: boolean
+  totalDeposit?: number
 }
 
 type UserManagementClientProps = {
@@ -169,8 +172,8 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                {user.role}
                            </span>
                            <span className="text-gray-300 dark:text-gray-600 text-[10px]">·</span>
-                           <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase truncate">
-                               {user.tier}
+                           <span className={cn("text-[9px] font-bold uppercase truncate", user.isActiveMember ? "text-green-500" : "text-red-500")}>
+                               {user.isActiveMember ? "Active" : "Locked"}
                            </span>
                        </div>
                    </div>
@@ -184,21 +187,33 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                            role: user.role,
                            balance: user.balance,
                            arnBalance: user.arnBalance,
+                           lockedArnBalance: user.lockedArnBalance,
                            activeMembers: user.activeMembers,
-                           tier: user.tier
+                           tier: user.tier,
+                           totalDeposit: user.totalDeposit,
+                           isActiveMember: user.isActiveMember
+                       }} onUpdated={(updatedUser) => {
+                           setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
                        }} />
                    </div>
                 </div>
 
                 {/* Metrics Strip */}
                 <div className="flex items-stretch divide-x divide-gray-100 dark:divide-gray-700/60 border-t border-gray-100 dark:border-gray-700/60 bg-gray-50/60 dark:bg-gray-900/20">
-                    <div className="flex flex-col flex-1 px-3 py-2">
-                        <span className="text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-bold">Balance</span>
-                        <div className="font-mono font-bold text-gray-900 dark:text-gray-100 text-xs mt-0.5">${user.balance.toFixed(2)}</div>
+                    <div className="flex flex-col flex-1 px-3 py-2 border-r border-gray-100 dark:border-gray-700/60">
+                        <div className="flex items-center gap-1"><span className="text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-bold">Balance</span></div>
+                        <div className="font-mono font-bold text-gray-900 dark:text-gray-100 text-[11px] mt-0.5">${user.balance.toFixed(2)}</div>
                     </div>
-                    <div className="flex flex-col flex-1 px-3 py-2">
+                    <div className="flex flex-col flex-1 px-3 py-2 border-r border-gray-100 dark:border-gray-700/60">
+                        <div className="flex items-center gap-1"><span className="text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-bold">Total Dep.</span></div>
+                        <div className="font-mono font-bold text-green-600 dark:text-green-500 text-[11px] mt-0.5">${(user.totalDeposit || 0).toFixed(2)}</div>
+                    </div>
+                    <div className="flex flex-col flex-1 px-3 py-2 border-r border-gray-100 dark:border-gray-700/60">
                         <span className="text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-bold">Tokens</span>
-                        <div className="font-mono font-bold text-amber-600 dark:text-amber-500 text-xs mt-0.5">{(user.arnBalance || 0).toFixed(0)} <span className="text-[8px] opacity-60">ARN</span></div>
+                        <div className="font-mono font-bold text-amber-600 dark:text-amber-500 text-[11px] mt-0.5">{((user.balance || 0) * 10).toFixed(2)} <span className="text-[8px] opacity-60">ARN</span></div>
+                        {user.lockedArnBalance && user.lockedArnBalance > 0 ? (
+                            <div className="text-[9px] text-orange-500 font-bold mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">+{user.lockedArnBalance.toFixed(2)} Locked</div>
+                        ) : null}
                     </div>
                     <div className="flex flex-col items-center px-3 py-2">
                         <span className="text-[8px] text-gray-400 dark:text-gray-600 uppercase tracking-widest font-bold">Active</span>
@@ -234,6 +249,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">User</th>
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Role & Tier</th>
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Balance</th>
+                      <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Total Deposited</th>
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">ARN Tokens</th>
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap">Active Members</th>
                       <th className="px-6 py-5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest whitespace-nowrap text-right">Actions</th>
@@ -275,18 +291,33 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                       {user.role === 'ADMIN' && <ShieldCheckIcon className="w-3.5 h-3.5" />}
                                       {user.role}
                                    </span>
-                                   <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">
-                                      {user.tier}
-                                   </span>
+                                   <div className="flex items-center gap-2">
+                                       <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest pl-1">
+                                          {user.tier}
+                                       </span>
+                                       <span className={cn("px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border-green-200/60 dark:border-green-800/30" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200/60 dark:border-red-800/30")}>
+                                          {user.isActiveMember ? "Active" : "Locked"}
+                                       </span>
+                                   </div>
                                 </div>
                              </td>
                              <td className="px-6 py-5 font-mono font-bold text-gray-900 dark:text-gray-100 align-middle text-sm">
                                 ${user.balance.toFixed(2)}
                              </td>
                              <td className="px-6 py-5 align-middle">
+                                <span className="font-mono font-bold text-green-600 dark:text-green-500 bg-green-50 dark:bg-green-900/10 px-2 py-1 rounded text-[13px] border border-green-100 dark:border-green-800/30">
+                                   ${(user.totalDeposit || 0).toFixed(2)}
+                                </span>
+                             </td>
+                             <td className="px-6 py-5 align-middle">
                                  <span className="px-2.5 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-500 rounded text-[11px] font-bold border border-amber-100 dark:border-amber-900/30 font-mono">
-                                    {(user.arnBalance || 0).toFixed(0)} <span className="text-[9px] text-amber-600/60 dark:text-amber-500/60 ml-0.5">ARN</span>
+                                    {((user.balance || 0) * 10).toFixed(2)} <span className="text-[9px] text-amber-600/60 dark:text-amber-500/60 ml-0.5">ARN</span>
                                  </span>
+                                 {user.lockedArnBalance && user.lockedArnBalance > 0 ? (
+                                    <div className="mt-1 text-[10px] text-orange-600 bg-orange-50 dark:bg-orange-900/20 px-1.5 py-0.5 rounded border border-orange-100 font-bold w-max">
+                                        +{user.lockedArnBalance.toFixed(2)} Locked
+                                    </div>
+                                 ) : null}
                              </td>
                              <td className="px-6 py-5 align-middle">
                                 <div className="flex items-center gap-2">
@@ -296,7 +327,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                  </div>
                               </td>
                               <td className="px-6 py-5 align-middle text-right">
-                                 <div className="flex justify-end gap-1.5 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <div className="flex justify-end gap-1.5 opacity-100">
                                     <UserActions user={{
                                         id: user.id,
                                         name: user.name,
@@ -304,8 +335,13 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                         role: user.role,
                                         balance: user.balance,
                                         arnBalance: user.arnBalance,
+                                        lockedArnBalance: user.lockedArnBalance,
                                         activeMembers: user.activeMembers,
-                                        tier: user.tier
+                                        tier: user.tier,
+                                        totalDeposit: user.totalDeposit,
+                                        isActiveMember: user.isActiveMember
+                                    }} onUpdated={(updatedUser) => {
+                                        setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
                                     }} />
                                  </div>
                               </td>

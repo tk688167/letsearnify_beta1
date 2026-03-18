@@ -4,6 +4,17 @@ import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 
+// Bonus structure defined by the user for signup referrals
+const SIGNUP_BONUS_RATES: Record<string, number> = {
+  NEWBIE: 1,
+  BRONZE: 2,
+  SILVER: 3,
+  GOLD: 5,
+  PLATINUM: 6,
+  DIAMOND: 8,
+  EMERALD: 10
+};
+
 export async function registerUser(formData: FormData) {
   const name = formData.get("name") as string
   const email = (formData.get("email") as string).toLowerCase().trim()
@@ -92,6 +103,9 @@ export async function registerUser(formData: FormData) {
         const newMemberId = generateMemberId(); // 7-digit ID
         
         try {
+            // Determine Signup Bonus
+            const signupBonus = validReferrer ? (SIGNUP_BONUS_RATES[validReferrer.tier] || 0) : 0;
+            
             // Create the user
             const newUser = await prisma.user.create({
               data: {
@@ -105,11 +119,23 @@ export async function registerUser(formData: FormData) {
                 tier: "NEWBIE",
                 tierStatus: "CURRENT",
                 arnBalance: 0,
+                lockedArnBalance: signupBonus,
                 activeMembers: 0,
                 totalDeposit: 0.0,
                 isActiveMember: false
               }
             })
+
+            if (signupBonus > 0) {
+               await prisma.mLMLog.create({
+                 data: {
+                   userId: newUser.id,
+                   type: "LOCKED_SIGNUP_BONUS",
+                   amount: signupBonus,
+                   description: `Received signup bonus of ${signupBonus} ARN (Locked until $1 Activation)`
+                 }
+               });
+            }
 
             // --- MLM: Create Referral Tree Entry ---
             let advisorId = null;

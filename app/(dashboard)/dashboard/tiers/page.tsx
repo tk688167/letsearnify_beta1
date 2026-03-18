@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import TierProgressView from "./tier-progress-view"
+import { FeatureGuard } from "../FeatureGuard";
 
 import { getTierRules } from "@/lib/mlm"
 
@@ -71,34 +72,28 @@ export default async function TierPage() {
       };
       user = {
           tier: "NEWBIE",
+          balance: 0,
           arnBalance: 0,
           activeMembers: 0,
       } as any;
   }
 
-  // Anti-Gravity: Handle Super Admin
-  if (!user && session?.user?.id === "super-admin-id") {
-      user = {
-          tier: "EMERALD",
-          arnBalance: 1000,
-          activeMembers: 0,
-      } as any;
-  }
+
 
   if (!user) redirect("/login")
   
   const teamSize = referralTree.length
 
   return (
-    <div className="p-6 md:p-10 min-h-screen bg-gray-50/50 space-y-12">
-       
-       <TierProgressView 
-          user={{ tier: user.tier, arnBalance: user.arnBalance || 0 }}
-          stats={{ teamSize: user.activeMembers || teamSize }}
-          tierConfig={tierConfig}
-       />
+    <div className="p-4 sm:p-6 md:p-10 min-h-screen bg-gray-50/50 dark:bg-gray-950 space-y-6 transition-colors duration-300">
+         
+         <TierProgressView 
+            user={{ tier: user.tier, arnBalance: user.arnBalance || 0, balance: user.balance || 0 }}
+            stats={{ teamSize: referralTree.length }}
+            tierConfig={tierConfig}
+            referralTree={referralTree}
+         />
 
-
-    </div>
+      </div>
   )
 }

@@ -40,7 +40,7 @@ export const authConfig = {
         if ((auth?.user as any)?.role === 'ADMIN') {
             return Response.redirect(new URL('/admin', nextUrl))
         }
-        return Response.redirect(new URL('/dashboard/welcome', nextUrl))
+        return Response.redirect(new URL('/dashboard', nextUrl))
       }
 
       return true

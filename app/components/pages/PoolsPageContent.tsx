@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import LandingHeader from "@/app/components/LandingHeader"
 import Footer from "@/app/components/layout/Footer"
 import InlineBackButton from "@/app/components/ui/InlineBackButton"
@@ -15,6 +16,11 @@ import {
 } from "@heroicons/react/24/outline"
 
 export default function PoolsPageContent() {
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard");
+
+  const getHref = (slug: string) => isDashboard ? `/dashboard/pools/${slug}` : "/login";
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col font-sans selection:bg-primary/30">
       
@@ -53,11 +59,27 @@ export default function PoolsPageContent() {
 
             {/* Pool Cards Grid */}
             <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-4 sm:mb-6 text-center md:text-left">Choose a Pool to Learn More</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
               
+              {/* Daily Earning Pool */}
+              <PoolCard
+                href={getHref("daily-earning")}
+                icon={ChartBarIcon}
+                title="Daily Earning Pool"
+                subtitle="1% Daily Return"
+                description="Lock funds for exactly 30 days and earn a guaranteed 1% compound profit every 24 hours."
+                stats={[
+                  { label: "Funding Source", value: "Direct Wallet Transfer" },
+                  { label: "Distribution Rate", value: "Daily (1%)" },
+                  { label: "Lock Period", value: "30 Days" }
+                ]}
+                colorTheme="indigo"
+                delay={0.05}
+              />
+
               {/* CBSP Pool Card */}
               <PoolCard
-                href="/login" // Direct to login if public route
+                href={getHref("cbsp")}
                 icon={CurrencyDollarIcon}
                 title="CBSP Pool"
                 subtitle="Weekly Profit Sharing"
@@ -73,7 +95,7 @@ export default function PoolsPageContent() {
 
               {/* Royalty Pool Card */}
               <PoolCard
-                href="/login"
+                href={getHref("royalty")}
                 icon={TrophyIcon}
                 title="Royalty Pool"
                 subtitle="Top Performer Rewards"
@@ -89,7 +111,7 @@ export default function PoolsPageContent() {
 
               {/* Achievement Pool Card */}
               <PoolCard
-                href="/login"
+                href={getHref("achievement")}
                 icon={GiftIcon}
                 title="Achievement Pool"
                 subtitle="Milestone Bonuses"
@@ -179,6 +201,12 @@ function PoolCard({ href, icon: Icon, title, subtitle, description, stats, color
       iconText: "text-fuchsia-500 absolute w-full h-full p-3 sm:p-3.5",
       hoverBorder: "hover:border-fuchsia-500/40",
       statBg: "bg-fuchsia-500/5 border-fuchsia-500/10"
+    },
+    indigo: {
+      bgAccent: "bg-indigo-500/10 border-indigo-500/20",
+      iconText: "text-indigo-500 absolute w-full h-full p-3 sm:p-3.5",
+      hoverBorder: "hover:border-indigo-500/40",
+      statBg: "bg-indigo-500/5 border-indigo-500/10"
     }
   }
 

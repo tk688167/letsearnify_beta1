@@ -96,21 +96,30 @@ export default async function SpinPage() {
   return (
     <div className="max-w-6xl mx-auto p-3 md:p-8 space-y-6 md:space-y-8 pb-20">
        {/* Premium Header */}
-       <div className="relative text-center space-y-2 md:space-y-4 py-6 md:py-8 bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 rounded-2xl md:rounded-3xl text-white shadow-2xl overflow-hidden">
-          <div 
-            className="absolute inset-0 opacity-10 mix-blend-overlay"
-            style={{ 
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")`
-            }}
-          ></div>
-          <div className="relative z-10">
-              <h1 className="text-xl md:text-3xl font-black tracking-tight drop-shadow-md flex items-center justify-center gap-2 md:gap-3">
-                 <SparklesIcon className="w-5 h-5 md:w-8 md:h-8 text-yellow-400 animate-pulse" />
-                 Spin &amp; Win <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">Rewards</span>
+       <div className="relative py-4 sm:py-5 px-5 sm:px-7 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 rounded-2xl text-white shadow-xl overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
+            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")` }}
+          />
+          <div className="absolute -top-6 -right-6 w-28 h-28 bg-yellow-500/12 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-purple-500/12 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-[0.18em] border border-white/10 bg-white/8 text-yellow-300/80 mb-1.5">
+                <SparklesIcon className="w-2.5 h-2.5" />
+                Daily Rewards
+              </div>
+              <h1 className="text-sm sm:text-base font-bold tracking-tight leading-tight mb-0.5">
+                Spin &amp; Win
               </h1>
-              <p className="text-gray-300 text-[10px] md:text-sm max-w-2xl mx-auto px-4">
-                  Free Spin every <span className="font-bold text-white">{spinSettings.freeSpinCooldownHours} hours</span>. Join Premium to spin <span className="font-bold text-yellow-400">Daily</span>!
+              <p className="text-white/40 text-[10px] max-w-xs leading-relaxed">
+                Free every <span className="text-white/60 font-semibold">{spinSettings.freeSpinCooldownHours}h</span> · Premium spins <span className="text-yellow-300/80 font-semibold">daily</span>
               </p>
+            </div>
+            <div className="shrink-0 hidden sm:flex w-10 h-10 rounded-xl bg-white/8 border border-white/10 items-center justify-center">
+              <SparklesIcon className="w-4 h-4 text-yellow-300" />
+            </div>
           </div>
        </div>
 

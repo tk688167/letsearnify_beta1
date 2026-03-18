@@ -4,8 +4,8 @@ import { ClipboardDocumentIcon, StarIcon, TrophyIcon, ArrowTrendingUpIcon } from
 import { SparklesIcon } from "@heroicons/react/24/solid"
 
 type TierRule = {
-    points: number;
-    members: number;
+    arn: number;
+    directs: number;
 }
 
 type TierRules = Record<string, TierRule>;
@@ -97,19 +97,19 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
     let displayMembers = 0;
     let displayTargetMembers = 0;
 
-    const currentConfig = tierRules[currentTierName] || { points: 0, members: 0 };
+    const currentConfig = tierRules[currentTierName] || { arn: 0, directs: 0 };
 
     if (nextTier && tierRules[nextTier]) {
         nextTierName = nextTier;
         const nextConfig = tierRules[nextTier];
         
-        targetPoints = nextConfig.points;
-        targetMembers = nextConfig.members;
+        targetPoints = nextConfig.arn;
+        targetMembers = nextConfig.directs;
 
         // Delta Calculation
         // Step 1: Baseline is the *Current* Tier's requirement (since we passed it)
-        const baselinePoints = currentConfig.points;
-        const baselineMembers = currentConfig.members;
+        const baselinePoints = currentConfig.arn;
+        const baselineMembers = currentConfig.directs;
 
         // Step 2: Calculate Delta Adjustments
         displayPoints = Math.max(0, points - baselinePoints);
@@ -123,7 +123,10 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
         const pointPercent = displayTargetPoints > 0 ? Math.min(displayPoints / displayTargetPoints, 1) : 1;
         const memberPercent = displayTargetMembers > 0 ? Math.min(displayMembers / displayTargetMembers, 1) : 1;
         
-        progress = Math.round(((pointPercent + memberPercent) / 2) * 100);
+        // Use the MINIMUM across all criteria — all conditions must be met to advance.
+        // Averaging would mislead users by showing partial progress even when a critical
+        // requirement (like team size) is 0, making it look like they are part-way there.
+        progress = Math.round(Math.min(pointPercent, memberPercent) * 100);
     } else {
         progress = 100;
     }

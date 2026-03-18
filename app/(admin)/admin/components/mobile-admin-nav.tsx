@@ -19,6 +19,7 @@ import {
   GiftIcon,
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentListIcon,
+  BriefcaseIcon,
 } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -28,6 +29,7 @@ import Logo from "@/app/components/ui/Logo"
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
   { name: "User Management", href: "/admin/users", icon: UsersIcon },
+  { name: "Freelance Marketplace", href: "/admin/marketplace", icon: BriefcaseIcon },
   { name: "Tasks & Companies", href: "/admin/tasks", icon: ClipboardDocumentListIcon },
   { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
   { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
@@ -57,12 +59,13 @@ const navigation = [
   },
   {
     name: "Pools & Revenue",
-    href: "/admin/pools",
+    href: "#",
     icon: BanknotesIcon,
     children: [
       { name: "Pools Overview", href: "/admin/pools" },
       { name: "CBSPool", href: "/admin/pools/cbspool", icon: "💰" },
       { name: "Royalty Pool", href: "/admin/royalty", icon: "👑" },
+      { name: "Mudarabah Pools", href: "/admin/mudarabah", icon: "📈" },
     ],
   },
   { name: "Visitor Logs", href: "/admin/visits", icon: GlobeAltIcon },
