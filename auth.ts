@@ -1,3 +1,4 @@
+
 import NextAuth from "next-auth"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import Credentials from "next-auth/providers/credentials"
@@ -27,8 +28,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         // ============================================================
         // ADMIN BYPASS — Hardcoded credentials (no DB lookup)
-        // Credentials are stored in lib/admin-credentials.ts
-        // This bypass is completely independent of the database.
         // ============================================================
         const inputEmail = email.toLowerCase().trim();
         const inputPassword = password.trim();
@@ -51,6 +50,13 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             return null
           }
 
+          // ── NEW: Block login if email not verified ──
+          if (!user.emailVerified) {
+            console.log("❌ Login blocked: Email not verified for", email)
+            throw new Error("EMAIL_NOT_VERIFIED")
+          }
+          // ─────────────────────────────────────────────
+
           const passwordsMatch = await bcrypt.compare(password, user.password)
 
           if (passwordsMatch) {
@@ -61,9 +67,11 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           console.log("❌ Login Failed: Password mismatch")
           return null
         } catch (dbError: any) {
+          // Re-throw custom error so frontend can handle it
+          if (dbError.message === "EMAIL_NOT_VERIFIED") {
+            throw dbError
+          }
           console.error("💾 Database Connection Error during auth:", dbError.message);
-          // If we are here, it means the bypass failed (wrong creds) and DB is down.
-          // We throw a specific error that the frontend can catch
           throw new Error("DATABASE_UNAVAILABLE");
         }
       }
@@ -89,7 +97,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     throw new Error("Invalid token type");
                 }
 
-                // Verify target user still exists
                 const user = await prisma.user.findUnique({
                     where: { id: payload.targetUserId }
                 });
@@ -114,8 +121,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             const cookieStore = await cookies();
             const referralCodeInput = cookieStore.get("referral_code")?.value;
 
-            // Resolve Referrer
-            let validReferredByCode = 'COMPANY'; // Default
+            let validReferredByCode = 'COMPANY';
             
             if (referralCodeInput) {
                 const referrer = await prisma.user.findUnique({ 
@@ -126,11 +132,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 }
             }
 
-            // Generate Schema-Required Fields
             const newReferralCode = generateReferralCode();
 
-            // Update User with MLM info
-            // The user is already created by the adapter, we just update the missing fields
             await prisma.user.update({
                 where: { id: user.id },
                 data: {
@@ -142,16 +145,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     activeMembers: 0,
                     totalDeposit: 0.0,
                     isActiveMember: false,
-                    role: "USER" // Explicitly ensure role
+                    role: "USER"
                 }
             });
 
-            // Build Referral Tree
             let advisorId = null;
             let supervisorId = null;
             let managerId = null;
             
-            // Find the actual referrer object (Company or User)
             const actualReferrer = await prisma.user.findUnique({
                 where: { referralCode: validReferredByCode }
             });
@@ -188,11 +189,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   callbacks: {
     ...authConfig.callbacks,
     async jwt({ token, user }) {
-      // Initial sign in
       if (user) {
         token.role = user.role
         token.id = user.id
-        // Handle Bypass User
         if (user.id === "super-admin-id") {
             token.isActiveMember = true
             token.memberId = "777777"
@@ -200,12 +199,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         return token
       }
       
-      // Subsequent checking - fetch from DB to get latest role
       if (!token.sub) return token
 
-      // --- ADMIN BYPASS PERSISTENCE ---
       if (token.sub === "super-admin-id") {
-          return token; // Skip DB check for test admin
+          return token;
       }
       
       try {
@@ -220,7 +217,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         }
       } catch (error) {
         console.error("Error fetching user in JWT callback:", error)
-        // Keep existing token data if DB fails, don't crash the session
       }
       return token
     }

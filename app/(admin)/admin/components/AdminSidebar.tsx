@@ -1,5 +1,5 @@
 "use client"
-
+import { AdminNotificationBell } from "./AdminNotificationBell"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -72,9 +72,9 @@ const navigation = [
 ]
 
 export function AdminSidebar({
-  counts: initialCounts = { deposits: 0, withdrawals: 0 },
+  counts: initialCounts = { deposits: 0, withdrawals: 0, merchantDeposits: 0 },
 }: {
-  counts?: { deposits: number; withdrawals: number }
+  counts?: { deposits: number; withdrawals: number; merchantDeposits: number }
 }) {
   const pathname = usePathname()
   const [counts, setCounts] = useState(initialCounts)
@@ -101,7 +101,11 @@ export function AdminSidebar({
         if (res.ok) {
           const data = await res.json()
           if (typeof data.deposits === "number") {
-            setCounts({ deposits: data.deposits, withdrawals: data.withdrawals })
+            setCounts({ 
+              deposits: data.deposits, 
+              withdrawals: data.withdrawals,
+              merchantDeposits: data.merchantDeposits || 0
+            })
           }
         }
       } catch {}
@@ -115,20 +119,16 @@ export function AdminSidebar({
 
   return (
     <aside className="w-64 bg-white dark:bg-slate-950 border-r border-gray-100 dark:border-slate-800/60 flex flex-col hidden md:flex z-50 h-screen sticky top-0 overflow-y-auto transition-colors duration-200">
-      {/* ── Brand Header ── */}
       <div className="px-5 pt-6 pb-4">
         <Logo size="md" />
         <div className="mt-1.5 flex items-center gap-2">
-          <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md tracking-widest uppercase">
-            Admin
-          </span>
+          <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md tracking-widest uppercase">Admin</span>
           <span className="text-[10px] text-gray-400 dark:text-slate-600 font-medium">Portal</span>
         </div>
       </div>
 
       <div className="mx-4 h-px bg-gray-100 dark:bg-slate-800/60 mb-3" />
 
-      {/* ── Navigation ── */}
       <nav className="flex-1 px-3 space-y-0.5 pb-4 overflow-y-auto">
         {navigation.map((item) => {
           const isActive = pathname === item.href
@@ -139,35 +139,26 @@ export function AdminSidebar({
           let badgeCount = 0
           if (item.name === "Deposit Approvals") badgeCount = counts.deposits
           if (item.name === "Withdrawal Requests") badgeCount = counts.withdrawals
+          if (item.name === "Merchant Deposits") badgeCount = counts.merchantDeposits
 
-          const activeClass =
-            "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
-          const inactiveClass =
-            "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-900 dark:hover:text-slate-100"
+          const activeClass = "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
+          const inactiveClass = "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-900 dark:hover:text-slate-100"
 
           return (
             <div key={item.name}>
               {hasChildren ? (
                 <button
                   onClick={() => toggleMenu(item.name)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left ${
-                    isActive || isChildActive ? activeClass : inactiveClass
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 w-full text-left ${isActive || isChildActive ? activeClass : inactiveClass}`}
                 >
                   <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
                   <span className="flex-1 text-[13px]">{item.name}</span>
-                  {isOpen ? (
-                    <ChevronUpIcon className="w-3.5 h-3.5 opacity-60" />
-                  ) : (
-                    <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />
-                  )}
+                  {isOpen ? <ChevronUpIcon className="w-3.5 h-3.5 opacity-60" /> : <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />}
                 </button>
               ) : (
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                    isActive ? activeClass : inactiveClass
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${isActive ? activeClass : inactiveClass}`}
                 >
                   <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
                   <span className="flex-1">{item.name}</span>
@@ -179,33 +170,15 @@ export function AdminSidebar({
                 </Link>
               )}
 
-              {/* Sub-menu */}
               <AnimatePresence>
                 {hasChildren && isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.18 }}
-                    className="overflow-hidden"
-                  >
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
                     <div className="pl-10 pr-3 py-1 space-y-0.5">
                       {item.children!.map((child) => (
-                        <Link
-                          key={child.name}
-                          href={child.href}
-                          className={`flex items-center gap-2 py-2 px-3 rounded-lg text-[12.5px] transition-colors ${
-                            pathname === child.href
-                              ? "text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-500/10"
-                              : "text-gray-500 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-200"
-                          }`}
-                        >
+                        <Link key={child.name} href={child.href}
+                          className={`flex items-center gap-2 py-2 px-3 rounded-lg text-[12.5px] transition-colors ${pathname === child.href ? "text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-500/10" : "text-gray-500 dark:text-slate-500 hover:text-gray-900 dark:hover:text-slate-200"}`}>
                           {/* @ts-ignore */}
-                          {child.icon ? (
-                            <span className="text-sm">{child.icon}</span>
-                          ) : (
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-slate-600" />
-                          )}
+                          {child.icon ? <span className="text-sm">{child.icon}</span> : <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-slate-600" />}
                           {child.name}
                         </Link>
                       ))}
@@ -218,27 +191,17 @@ export function AdminSidebar({
         })}
       </nav>
 
-      {/* ── Footer ── */}
       <div className="p-3 border-t border-gray-100 dark:border-slate-800/60 space-y-1">
-        {/* Theme Toggle */}
-        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/40">
-          <span className="text-[12px] font-medium text-gray-500 dark:text-slate-400">Appearance</span>
-          <ThemeToggle />
-        </div>
-
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors"
-        >
-          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-          Switch to Dashboard
+  {/* Notification Bell */}
+  <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/40 mb-1">
+    <span className="text-[12px] font-medium text-gray-500 dark:text-slate-400">Notifications</span>
+    <AdminNotificationBell />
+  </div>
+        <Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
+          <ArrowTopRightOnSquareIcon className="w-4 h-4" />Switch to Dashboard
         </Link>
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-        >
-          <ArrowLeftOnRectangleIcon className="w-4 h-4" />
-          Sign Out
+        <button onClick={() => signOut({ callbackUrl: "/" })} className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+          <ArrowLeftOnRectangleIcon className="w-4 h-4" />Sign Out
         </button>
       </div>
     </aside>

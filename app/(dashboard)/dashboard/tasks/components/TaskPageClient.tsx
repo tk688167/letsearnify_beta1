@@ -19,12 +19,9 @@ interface Task {
     description: string
     reward: number
     type: string
-    status: string // This is likely the completion status (APPROVED/PENDING) or task status?
-                   // Wait, in `getUserTasks` we map: 
-                   // completionStatus: task.completions[0]?.status || null
-                   // We need to make sure this is passed to the client.
+    status: string
     completionStatus?: string | null
-    completionRemarks?: string | null // Added
+    completionRemarks?: string | null
     link?: string | null
     company?: {
         name: string
@@ -42,7 +39,6 @@ interface TaskPageClientProps {
 export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked }: TaskPageClientProps) {
     const userIsActive = isUnlocked
 
-    // State for granular status tracking
     const [taskStates, setTaskStates] = useState<Record<string, { status: string, remarks?: string | null }>>(() => {
         const initialStates: Record<string, { status: string, remarks?: string | null }> = {}
         platformTasks.forEach(task => {
@@ -63,7 +59,6 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     const [proofType, setProofType] = useState<'text' | 'image'>('image')
     const [proofText, setProofText] = useState('')
     
-    // Using simple form action for file upload
     const handleSubmitProof = async (formData: FormData) => {
         if (!selectedTask) return
 
@@ -77,7 +72,6 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                         setFeedback({ type: 'error', message: 'Please select an image.' })
                         return
                     }
-                    // Upload
                     const { uploadProof } = await import("@/app/actions/user/upload")
                     const uploadRes = await uploadProof(formData)
                     if (uploadRes?.error || !uploadRes?.path) {
@@ -93,11 +87,9 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     proof = proofText
                 }
 
-                // Submit Task
                 const result = await completeTask(selectedTask.id, proof)
                 
                 if (result.success) {
-                    // Update Local State immediately
                     setTaskStates(prev => ({
                         ...prev,
                         [selectedTask.id]: { status: 'PENDING', remarks: null }
@@ -118,16 +110,12 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     const handleTaskClick = (task: Task) => {
         const state = taskStates[task.id]
         
-        // Prevent clicking strictly PROCESSED tasks (Approved/Pending)
-        // BUT allow clicking REJECTED tasks to retry
         if (state?.status === 'APPROVED' || state?.status === 'PENDING') return
         
-        // Open link if exists
         if (task.link) {
             window.open(task.link, '_blank')
         }
         
-        // Open Modal
         setSelectedTask(task)
     }
 
@@ -175,12 +163,10 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
               <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
             </div>
 
-              {/* Glow orbs */}
-
             {/* TASKS CONTAINER */}
             <div className="space-y-8 sm:space-y-12">
                 
-                {/* 1. PREMIUM TASKS (Highlighted & Modern) */}
+                {/* 1. PREMIUM TASKS */}
                 <section>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
                         <div className="flex items-center gap-3">
@@ -208,14 +194,12 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                         {platformTasks.filter(t => t.type !== 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
-                            const isPending = state?.status === 'PENDING'
+                            const isPendingTask = state?.status === 'PENDING'
                             const isCompleted = isApproved 
                             
-                            // Locked State Overlay
                             if (!userIsActive) {
                                 return (
-                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 overflow-hidden shadow-sm">
-                                        {/* Background Decoration */}
+                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 overflow-hidden shadow-sm min-h-[180px]">
                                         <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
                                         
                                         <div className="relative z-20 flex flex-col items-center">
@@ -232,8 +216,9 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                             </p>
                                         </div>
                                         
-                                        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                            <a href="/dashboard/wallet" className="scale-[1.05] shadow-xl px-4 sm:px-5 py-2 sm:py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5 transform transition-transform hover:scale-110">
+                                        {/* Fixed overlay — rounded + no scale overflow */}
+                                        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl">
+                                            <a href="/dashboard/wallet" className="shadow-xl px-4 sm:px-5 py-2 sm:py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5">
                                                 <BoltIcon className="w-3.5 h-3.5 text-amber-400 dark:text-amber-500" /> Unlock
                                             </a>
                                         </div>
@@ -287,7 +272,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                             </div>
                                         </div>
                                         
-                                        {!isCompleted && !isPending && (
+                                        {!isCompleted && !isPendingTask && (
                                             <button
                                                 onClick={() => handleTaskClick(task)}
                                                 className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-900 dark:bg-amber-600 hover:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 sm:gap-2"
@@ -295,7 +280,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                                 Start <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                             </button>
                                         )}
-                                        {isPending && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] sm:text-xs font-bold border border-blue-100 dark:border-blue-800/50">Verifying...</span>}
+                                        {isPendingTask && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] sm:text-xs font-bold border border-blue-100 dark:border-blue-800/50">Verifying...</span>}
                                         {isCompleted && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-[10px] sm:text-xs font-bold border border-green-100 dark:border-green-800/50">Paid out</span>}
                                     </div>
                                 </motion.div>
@@ -304,7 +289,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
                 </section>
 
-                {/* 2. BASIC TASKS (Clean & Professional) */}
+                {/* 2. BASIC TASKS */}
                 <section>
                     <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 border-t border-border pt-8 sm:pt-10">
                         <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">
@@ -320,7 +305,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                         {platformTasks.filter(t => t.type === 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
-                            const isPending = state?.status === 'PENDING'
+                            const isPendingTask = state?.status === 'PENDING'
                             const isRejected = state?.status === 'REJECTED'
 
                             return (
@@ -331,7 +316,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     transition={{ delay: index * 0.05 }}
                                     className={`group relative bg-card rounded-2xl p-4 sm:p-5 border transition-all duration-300 hover:shadow-md ${
                                         isApproved ? 'border-green-200 bg-green-50/20 dark:border-green-800 dark:bg-green-900/10' : 
-                                        isPending ? 'border-blue-200 bg-blue-50/20 dark:border-blue-800 dark:bg-blue-900/10' :
+                                        isPendingTask ? 'border-blue-200 bg-blue-50/20 dark:border-blue-800 dark:bg-blue-900/10' :
                                         isRejected ? 'border-red-200 bg-red-50/20 dark:border-red-800 dark:bg-red-900/10' : 'border-border hover:border-indigo-200 dark:hover:border-indigo-800'
                                     }`}
                                 >
@@ -362,7 +347,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                             +{task.reward} ARN
                                         </div>
                                         
-                                        {!isApproved && !isPending && (
+                                        {!isApproved && !isPendingTask && (
                                             <button
                                                 onClick={() => handleTaskClick(task)}
                                                 className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
@@ -374,7 +359,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                                 {isRejected ? 'Retry Task' : 'Start Task'}
                                             </button>
                                         )}
-                                        {isPending && <span className="text-[10px] sm:text-xs font-medium text-blue-500 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
+                                        {isPendingTask && <span className="text-[10px] sm:text-xs font-medium text-blue-500 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
                                         {isApproved && <span className="text-[10px] sm:text-xs font-medium text-green-600 dark:text-green-500">Completed</span>}
                                     </div>
                                 </motion.div>
@@ -382,6 +367,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                         })}
                     </div>
                 </section>
+
              {/* Minimal Footer Info */}
              <div className="mt-8 pt-8 border-t border-gray-100 dark:border-border text-center text-[10px] sm:text-xs text-muted-foreground">
                  <p className="flex items-center justify-center gap-1.5 sm:gap-2">
@@ -395,7 +381,6 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
             <AnimatePresence>
                 {selectedTask && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -404,7 +389,6 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         />
                         
-                        {/* Modal Content */}
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}

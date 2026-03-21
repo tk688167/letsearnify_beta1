@@ -24,15 +24,68 @@ import {
   MapPinIcon,
   ChartPieIcon,
   FunnelIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  MagnifyingGlassIcon
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
+import toast, { Toaster } from "react-hot-toast"
 
-// Force rebuild for hydration fix
+// ─── Brand logo helper ──────────────────────────────────────────────
+const BRAND_LOGOS: Record<string, string> = {
+  "jazzcash": "/jazzcash.webp",
+  "jazz cash": "/jazzcash.webp",
+  "easypaisa": "/easypaisa.webp",
+  "easy paisa": "/easypaisa.webp",
+}
+const FALLBACK_GRADS = ["from-blue-500 to-indigo-600", "from-green-500 to-emerald-600", "from-purple-500 to-violet-600", "from-orange-500 to-amber-600"]
+
+// ─── Country flags by code ──────────────────────────────────────────
+const COUNTRY_FLAGS: Record<string, string> = {
+  PK: "🇵🇰", IN: "🇮🇳", BD: "🇧🇩", AE: "🇦🇪", US: "🇺🇸", GB: "🇬🇧",
+  SA: "🇸🇦", TR: "🇹🇷", NG: "🇳🇬", EG: "🇪🇬", KE: "🇰🇪", MY: "🇲🇾",
+  ID: "🇮🇩", PH: "🇵🇭", LK: "🇱🇰", NP: "🇳🇵", QA: "🇶🇦", KW: "🇰🇼",
+  BH: "🇧🇭", OM: "🇴🇲", CA: "🇨🇦", AU: "🇦🇺", DE: "🇩🇪", FR: "🇫🇷",
+}
+
+function getBrandLogo(name: string) {
+  const key = name.toLowerCase().trim()
+  const match = Object.entries(BRAND_LOGOS).find(([k]) => key.includes(k))
+  return match ? match[1] : null
+}
+
+function PaymentMethodIcon({ name, idx, size = "w-12 h-12", imgSize = "w-10 h-10" }: { name: string, idx?: number, size?: string, imgSize?: string }) {
+  const logo = getBrandLogo(name)
+  const grad = FALLBACK_GRADS[(idx || 0) % FALLBACK_GRADS.length]
+  return (
+    <div className={`${size} rounded-xl ${logo ? 'bg-white border border-border' : `bg-gradient-to-br ${grad}`} flex items-center justify-center shadow-md shrink-0 overflow-hidden`}>
+      {logo ? (
+        <img src={logo} alt={name} className={`${imgSize} object-contain`} />
+      ) : (
+        <BanknotesIcon className="w-6 h-6 text-white"/>
+      )}
+    </div>
+  )
+}
+
+function PaymentMethodIconDark({ name }: { name: string }) {
+  const logo = getBrandLogo(name)
+  return (
+    <div className={`w-10 h-10 rounded-xl ${logo ? 'bg-white' : 'bg-white/10 border border-white/10'} flex items-center justify-center shrink-0 overflow-hidden`}>
+      {logo ? (
+        <img src={logo} alt={name} className="w-8 h-8 object-contain" />
+      ) : (
+        <BanknotesIcon className="w-5 h-5 text-green-300"/>
+      )}
+    </div>
+  )
+}
+
+// ─── Main Export ─────────────────────────────────────────────────────
+
 export default function WalletClient({ user, transactions, platformWallets, merchantSettings }: { user: any, transactions: any[], platformWallets: any[], merchantSettings: any[] }) {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-gray-500 animate-pulse">Loading Wallet...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-muted-foreground animate-pulse">Loading Wallet...</div>}>
       <WalletContent user={user} transactions={transactions} platformWallets={platformWallets} merchantSettings={merchantSettings} />
     </Suspense>
   )
@@ -46,21 +99,19 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [balance, setBalance] = useState(user.balance)
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
   const [amount, setAmount] = useState("")
-  // For Deposits:
   const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT">("TRC20")
   const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20">("TRC20")
   const [txHash, setTxHash] = useState("")
   
-  // Merchant State
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<any>(null)
   const [screenshot, setScreenshot] = useState<string | null>(null)
   const [accountNumber, setAccountNumber] = useState("")
   const [accountName, setAccountName] = useState("")
 
-  // Merchant Modal State
   const [merchantModalOpen, setMerchantModalOpen] = useState(false)
   const [merchantModalType, setMerchantModalType] = useState<'DEPOSIT' | 'WITHDRAWAL'>('DEPOSIT')
+  const [countrySearch, setCountrySearch] = useState("")
 
   const closeMerchantModal = () => {
     setMerchantModalOpen(false)
@@ -71,59 +122,40 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setAccountName("")
     setAmount("")
     setMessage(null)
+    setCountrySearch("")
   }
   
-  // Helper to find wallet data
   const currentWallet = platformWallets.find(w => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
 
-  
-  // For Withdraws:
   const [method, setMethod] = useState("TRC20") 
   const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE">("TRC20") 
   const [details, setDetails] = useState("")
 
-  // For Transfers:
   const [transferSource, setTransferSource] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("WALLET")
   const [transferDestination, setTransferDestination] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("MUDARABAH")
 
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-
-  // Account Unlock State
   const [isUnlocking, setIsUnlocking] = useState(false)
 
-  // Transaction History Filtering State
   const [filterRange, setFilterRange] = useState<'7d' | '30d' | 'custom'>('7d')
   const [customStart, setCustomStart] = useState("")
   const [customEnd, setCustomEnd] = useState("")
 
   const filteredTransactions = useMemo(() => {
      let filtered = transactions;
-     if (filterRange === '7d') {
-        const d = new Date(); d.setDate(d.getDate() - 7);
-        filtered = filtered.filter(tx => new Date(tx.createdAt) >= d)
-     } else if (filterRange === '30d') {
-        const d = new Date(); d.setDate(d.getDate() - 30);
-        filtered = filtered.filter(tx => new Date(tx.createdAt) >= d)
-     } else if (filterRange === 'custom') {
+     if (filterRange === '7d') { const d = new Date(); d.setDate(d.getDate() - 7); filtered = filtered.filter(tx => new Date(tx.createdAt) >= d) }
+     else if (filterRange === '30d') { const d = new Date(); d.setDate(d.getDate() - 30); filtered = filtered.filter(tx => new Date(tx.createdAt) >= d) }
+     else if (filterRange === 'custom') {
         if (customStart) filtered = filtered.filter(tx => new Date(tx.createdAt) >= new Date(customStart))
-        if (customEnd) {
-           const e = new Date(customEnd); e.setHours(23, 59, 59, 999);
-           filtered = filtered.filter(tx => new Date(tx.createdAt) <= e)
-        }
+        if (customEnd) { const e = new Date(customEnd); e.setHours(23, 59, 59, 999); filtered = filtered.filter(tx => new Date(tx.createdAt) <= e) }
      }
      return filtered;
   }, [transactions, filterRange, customStart, customEnd])
 
-  // Reset merchant state when switching tabs or methods
   useEffect(() => {
-     setSelectedCountry(null)
-     setSelectedPaymentMethod(null)
-     setScreenshot(null)
-     setAccountNumber("")
-     setAccountName("")
-     setAmount("")
-     setMessage(null)
+     setSelectedCountry(null); setSelectedPaymentMethod(null); setScreenshot(null)
+     setAccountNumber(""); setAccountName(""); setAmount(""); setMessage(null)
   }, [activeTab, depositMethod, withdrawalMethod])
 
   const copyAddress = () => {
@@ -136,132 +168,53 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setScreenshot(reader.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
+    if (file) { const reader = new FileReader(); reader.onloadend = () => { setScreenshot(reader.result as string) }; reader.readAsDataURL(file) }
   }
 
   const handleUnlockAccount = async () => {
-    if (balance < 1.0) {
-      setMessage({ type: 'error', text: "Insufficient balance to unlock. Please deposit at least $1.00 USD."})
-      return
-    }
-
-    setIsUnlocking(true)
-    setMessage(null)
-
+    if (balance < 1.0) { setMessage({ type: 'error', text: "Insufficient balance to unlock. Please deposit at least $1.00 USD."}); return }
+    setIsUnlocking(true); setMessage(null)
     try {
-      const res = await fetch("/api/user/unlock", { method: "POST" })
-      const data = await res.json()
-
-      if (data.success) {
-        setMessage({ type: 'success', text: "Your account has been successfully unlocked!" })
-        setBalance((prev: number) => prev - 1.0)
-        router.refresh() // Force refresh to update the `isActiveMember` flag everywhere
-      } else {
-        setMessage({ type: 'error', text: data.error || "Failed to unlock account." })
-      }
-    } catch (err: any) {
-      setMessage({ type: 'error', text: "A network error occurred." })
-    } finally {
-      setIsUnlocking(false)
-    }
+      const res = await fetch("/api/user/unlock", { method: "POST" }); const data = await res.json()
+      if (data.success) { setMessage({ type: 'success', text: "Your account has been successfully unlocked!" }); setBalance((prev: number) => prev - 1.0); router.refresh() }
+      else { setMessage({ type: 'error', text: data.error || "Failed to unlock account." }) }
+    } catch (err: any) { setMessage({ type: 'error', text: "A network error occurred." }) }
+    finally { setIsUnlocking(false) }
   }
 
   const handleAction = () => {
     setMessage(null)
     const val = parseFloat(amount)
-    if (isNaN(val) || val <= 0) {
-       setMessage({ type: 'error', text: "Please enter a valid amount." })
-       return
-    }
-
+    if (isNaN(val) || val <= 0) { setMessage({ type: 'error', text: "Please enter a valid amount." }); return }
     startTransition(async () => {
       try {
         let res: any
-        
-        // --- DEPOSIT FLOW ---
         if (activeTab === "deposit") {
-           if (depositMethod === "TRC20") {
-               if (!txHash) throw new Error("Please enter the Transaction Hash.")
-               res = await deposit(val, "CRYPTO", { network: "TRC20", txHash }) as any
-           } else if (depositMethod === "MERCHANT") {
-               if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method.")
-               if (!screenshot) throw new Error("Please upload payment proof.")
-               
-               res = await submitMerchantDeposit({
-                   countryCode: selectedCountry.code,
-                   paymentMethodId: selectedPaymentMethod.id,
-                   amount: val,
-                   screenshot
-               })
-           }
-        } 
-        
-        // --- WITHDRAW FLOW ---
-        else if (activeTab === "withdraw") {
-           if (withdrawalMethod === "TRC20") {
-               if (!details) throw new Error("Please provide withdrawal destination details.")
-               const formData = new FormData();
-               formData.append("amount", val.toString());
-               formData.append("address", details); 
-               res = await submitWithdrawal(formData);
-           } else if (withdrawalMethod === "MERCHANT") {
-               if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method.")
-               if (!accountNumber || !accountName) throw new Error("Please provide your account details.")
-               
-               res = await submitMerchantWithdrawal({
-                   countryCode: selectedCountry.code,
-                   paymentMethodId: selectedPaymentMethod.id,
-                   amount: val,
-                   accountNumber,
-                   accountName
-               })
-           }
-        } 
-        
-        // --- TRANSFER FLOW ---
-        else if (activeTab === "transfer") {
-           res = await transferFunds(val, transferSource, transferDestination) 
+           if (depositMethod === "TRC20") { if (!txHash) throw new Error("Please enter the Transaction Hash."); res = await deposit(val, "CRYPTO", { network: "TRC20", txHash }) as any }
+           else if (depositMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!screenshot) throw new Error("Please upload payment proof."); res = await submitMerchantDeposit({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, screenshot }) }
+        } else if (activeTab === "withdraw") {
+           if (withdrawalMethod === "TRC20") { if (!details) throw new Error("Please provide withdrawal destination details."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); res = await submitWithdrawal(formData) }
+           else if (withdrawalMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!accountNumber || !accountName) throw new Error("Please provide your account details."); res = await submitMerchantWithdrawal({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, accountNumber, accountName }) }
+        } else if (activeTab === "transfer") { res = await transferFunds(val, transferSource, transferDestination) }
+        if (res?.success) { 
+          const isMerchant = (activeTab === "deposit" && depositMethod === "MERCHANT") || (activeTab === "withdraw" && withdrawalMethod === "MERCHANT")
+          if (isMerchant) {
+            // Close modal and show toast — balance won't change until admin approves
+            closeMerchantModal()
+            toast.success("Payment submitted! Your deposit is pending admin verification.", { duration: 5000, icon: "⏳" })
+            router.refresh()
+          } else {
+            setMessage({ type: 'success', text: res.message || "Transaction successful!" })
+            setAmount(""); setTxHash(""); setScreenshot(null)
+            if (activeTab === "deposit") setBalance((curr: number) => curr + val)
+          }
         }
-
-        if (res?.success) {
-           setMessage({ type: 'success', text: res.message || "Transaction successful!" })
-           setAmount("")
-           setTxHash("")
-           setScreenshot(null)
-           if (activeTab === "deposit") setBalance((curr: number) => curr + val)
-           // If we are doing client-side balance updates for transfers dynamically:
-           // Better to trust the server revalidation for exact values
-        } else {
-           setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." })
-        }
-      } catch (err: any) {
-         setMessage({ type: 'error', text: err.message || "Transaction failed." })
-      }
+        else { setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." }) }
+      } catch (err: any) { setMessage({ type: 'error', text: err.message || "Transaction failed." }) }
     })
   }
 
-  // --- Render Helpers ---
-
-  const ActionTab = ({ id, label, icon: Icon }: { id: string, label: string, icon: any }) => (
-      <button 
-          onClick={() => { setActiveTab(id); setMessage(null); }}
-          className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-2 p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all duration-300 border backdrop-blur-sm min-w-[80px]",
-              activeTab === id 
-                  ? "bg-card text-blue-600 border-border shadow-lg shadow-black/5 scale-[1.02]" 
-                  : "bg-white/10 text-blue-50 border-white/10 hover:bg-white/20 hover:border-white/20"
-          )}
-      >
-          <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", activeTab === id ? "text-blue-600" : "text-blue-100")} />
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wide">{label}</span>
-      </button>
-  )
+  // ─── Render Helpers ───────────────────────────────────────────────
 
   const MethodOption = ({ id, label, icon: Icon, sub, selected, onClick, color = "blue" }: any) => {
       const isSelected = selected === id;
@@ -271,18 +224,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
           gray: isSelected ? "border-border bg-muted ring-1 ring-border" : "hover:border-border"
       }
       return (
-        <button 
-            onClick={onClick}
-            className={cn(
-                "w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between group bg-card hover:bg-accent/5",
-                colorStyles[color],
-                !isSelected && "border-border"
-            )}
-        >
+        <button onClick={onClick} className={cn("w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between group bg-card hover:bg-accent/5", colorStyles[color], !isSelected && "border-border")}>
             <div className="flex items-center gap-4">
-                <div className={cn("p-3 rounded-xl transition-colors", 
-                    isSelected ? "bg-card shadow-sm" : "bg-muted/50 text-muted-foreground group-hover:bg-muted"
-                )}>
+                <div className={cn("p-3 rounded-xl transition-colors", isSelected ? "bg-card shadow-sm" : "bg-muted/50 text-muted-foreground group-hover:bg-muted")}>
                     <Icon className={cn("w-6 h-6", isSelected ? `text-${color}-600` : "text-gray-400")}/>
                 </div>
                 <div className="text-left">
@@ -295,75 +239,78 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
   }
 
-  // --- Merchant UI Render Function (Redesigned) ---
-  const renderMerchantUI = (type: 'DEPOSIT' | 'WITHDRAWAL') => {
+  // ─── Merchant Modal Content ───────────────────────────────────────
 
-    // ── STEP 1: Country Selection ──────────────────────────────────────────────
+  const renderMerchantContent = (type: 'DEPOSIT' | 'WITHDRAWAL') => {
+
+    // ── STEP 1: Country Selection ──
     if (!selectedCountry) {
+      const filteredCountries = merchantSettings.filter(c => 
+        !countrySearch || c.name.toLowerCase().includes(countrySearch.toLowerCase()) || c.code.toLowerCase().includes(countrySearch.toLowerCase())
+      )
       return (
         <div className="space-y-5 animate-in fade-in duration-300">
-          {/* Step Header */}
-          <div className="flex items-center gap-3 pb-1">
-            <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 1 of 3</p>
-              <h3 className="text-base font-bold text-foreground">Select Your Country</h3>
-            </div>
+          <div className="text-center pb-1">
+            <div className="text-4xl mb-3">🌍</div>
+            <h3 className="text-lg font-bold text-foreground">Select Your Country</h3>
+            <p className="text-sm text-muted-foreground mt-1">Choose where you&apos;ll be sending payment from</p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+            <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+            <input
+              type="text"
+              value={countrySearch}
+              onChange={(e) => setCountrySearch(e.target.value)}
+              placeholder="Search countries..."
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-muted/30 focus:bg-card focus:border-green-500 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 transition-all"
+            />
           </div>
 
           {merchantSettings.length === 0 ? (
             <div className="p-10 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
               <MapPinIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3"/>
-              <p className="text-muted-foreground text-sm font-medium">No merchant countries available yet.</p>
+              <p className="text-muted-foreground text-sm font-medium">No countries available yet.</p>
+            </div>
+          ) : filteredCountries.length === 0 ? (
+            <div className="p-8 text-center bg-muted/20 rounded-2xl border border-dashed border-border">
+              <p className="text-muted-foreground text-sm font-medium">No countries match &quot;{countrySearch}&quot;</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {merchantSettings.map(country => {
+            <div className="space-y-2">
+              {filteredCountries.map(country => {
                 const isComingSoon = country.status === "COMING_SOON"
                 const methodCount = country.methods?.length || 0
+                const flag = COUNTRY_FLAGS[country.code?.toUpperCase()] || "🏳️"
                 return (
-                  <button
-                    key={country.id}
-                    onClick={() => {
-                      if (isComingSoon) { setMessage({ type: 'error', text: "This country is coming soon!" }); return }
-                      setSelectedCountry(country)
-                    }}
-                    className={cn(
-                      "flex items-center gap-4 p-4 sm:p-5 bg-card border-2 rounded-2xl transition-all text-left group relative overflow-hidden",
+                  <button key={country.id} onClick={() => { if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } setSelectedCountry(country); setMessage(null); setCountrySearch("") }}
+                    className={cn("flex items-center gap-4 p-4 w-full rounded-2xl transition-all text-left group relative overflow-hidden",
                       isComingSoon
-                        ? "border-border opacity-60 cursor-not-allowed"
-                        : "border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98]"
-                    )}
-                  >
-                    {/* Country Code Avatar */}
-                    <div className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-lg font-black shrink-0 transition-colors",
-                      isComingSoon
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 text-green-700 dark:text-green-400 group-hover:from-green-100 group-hover:to-emerald-200 dark:group-hover:from-green-900/40 dark:group-hover:to-emerald-900/30"
+                        ? "bg-muted/30 border border-border opacity-60 cursor-not-allowed"
+                        : "bg-card border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98]"
                     )}>
-                      {country.code}
+                    {/* Flag */}
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 transition-transform group-hover:scale-105",
+                      isComingSoon ? "bg-muted/50" : "bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-border shadow-sm"
+                    )}>
+                      {flag}
                     </div>
-
-                    {/* Country Info */}
+                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-foreground text-sm sm:text-base">{country.name}</span>
-                        {isComingSoon && (
-                          <span className="text-[9px] font-black bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider border border-amber-200 dark:border-amber-700/30">
-                            Coming Soon
-                          </span>
+                        <span className={cn("font-bold text-sm", isComingSoon ? "text-muted-foreground" : "text-foreground")}>{country.name}</span>
+                        {isComingSoon ? (
+                          <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Coming Soon</span>
+                        ) : (
+                          <span className="text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                        {methodCount} payment {methodCount === 1 ? "method" : "methods"} • {country.currency}
+                        {isComingSoon ? `${country.currency} · Opening soon` : `${methodCount} payment ${methodCount === 1 ? "method" : "methods"} · ${country.currency}`}
                       </p>
                     </div>
-
-                    {/* Arrow */}
-                    {!isComingSoon && (
-                      <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0 group-hover:translate-x-0.5 transition-transform"/>
-                    )}
+                    {!isComingSoon && <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>}
                   </button>
                 )
               })}
@@ -373,70 +320,33 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
     }
 
-    // ── STEP 2: Payment Method Selection ──────────────────────────────────────
+    // ── STEP 2: Payment Method Selection ──
     if (!selectedPaymentMethod) {
       return (
-        <div className="space-y-5 animate-in fade-in duration-300">
-          {/* Breadcrumb Nav */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            <button onClick={() => setSelectedCountry(null)} className="hover:text-foreground font-medium transition-colors flex items-center gap-1">
-              <ArrowLeftIcon className="w-3 h-3"/> All Countries
-            </button>
-            <ChevronRightIcon className="w-3 h-3 shrink-0"/>
-            <span className="font-bold text-foreground">{selectedCountry.name}</span>
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <button onClick={() => { setSelectedCountry(null); setMessage(null) }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors">
+            <ArrowLeftIcon className="w-3.5 h-3.5"/> Back to countries
+          </button>
+          <div className="text-center pb-2">
+            <div className="text-4xl mb-3">{COUNTRY_FLAGS[selectedCountry.code?.toUpperCase()] || "🏳️"}</div>
+            <h3 className="text-lg font-bold text-foreground">Choose Payment Method</h3>
+            <p className="text-sm text-muted-foreground mt-1">Pay via {selectedCountry.name} local transfer</p>
           </div>
-
-          {/* Step Header */}
-          <div className="flex items-center gap-3 pb-1">
-            <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
-            <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 2 of 3</p>
-              <h3 className="text-base font-bold text-foreground">Choose Payment Method</h3>
-            </div>
-          </div>
-
           {selectedCountry.methods && selectedCountry.methods.length > 0 ? (
             <div className="space-y-3">
-              {selectedCountry.methods.map((method: any, idx: number) => {
-                const gradients = [
-                  "from-green-500 to-emerald-600",
-                  "from-blue-500 to-indigo-600",
-                  "from-violet-500 to-purple-600",
-                  "from-orange-500 to-amber-600",
-                ]
-                const grad = gradients[idx % gradients.length]
-                return (
-                  <button
-                    key={method.id}
-                    onClick={() => setSelectedPaymentMethod(method)}
-                    className="w-full text-left p-4 sm:p-5 rounded-2xl border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 transition-all group bg-card active:scale-[0.99]"
-                  >
-                    <div className="flex items-center gap-4">
-                      {/* Icon */}
-                      <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-md shrink-0`}>
-                        <BanknotesIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white"/>
-                      </div>
-
-                      {/* Name + Account */}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-black text-foreground text-sm sm:text-base">{method.name}</div>
-                        <div className="text-[11px] sm:text-xs text-muted-foreground font-medium mt-0.5 truncate">
-                          {method.accountName}
-                        </div>
-                      </div>
-
-                      {/* Number + Arrow */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        <div className="hidden sm:block text-right">
-                          <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Account</div>
-                          <div className="text-xs font-mono font-bold text-foreground">{method.accountNumber}</div>
-                        </div>
-                        <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors group-hover:translate-x-0.5 transition-transform"/>
-                      </div>
+              {selectedCountry.methods.map((m: any, idx: number) => (
+                <button key={m.id} onClick={() => { setSelectedPaymentMethod(m); setMessage(null) }}
+                  className="w-full text-left p-5 rounded-2xl border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 transition-all group bg-card active:scale-[0.99]">
+                  <div className="flex items-center gap-4">
+                    <PaymentMethodIcon name={m.name} idx={idx} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-foreground text-base">{m.name}</div>
+                      <div className="text-xs text-muted-foreground font-medium mt-0.5">{m.accountName}</div>
                     </div>
-                  </button>
-                )
-              })}
+                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
+                  </div>
+                </button>
+              ))}
             </div>
           ) : (
             <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
@@ -448,351 +358,200 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
     }
 
-    // ── STEP 3: Action Form ────────────────────────────────────────────────────
+    // ── STEP 3: Action Form ──
     const rate = selectedCountry.currency === 'PKR' ? 300 : (selectedCountry.exchangeRate || 1)
     const val = parseFloat(amount)
     const totalPayable = !isNaN(val) && val > 0 ? val * rate : 0
 
     return (
       <div className="space-y-5 animate-in fade-in duration-300">
-
-        {/* Breadcrumb Nav */}
-        <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-          <button onClick={() => setSelectedCountry(null)} className="hover:text-foreground font-medium transition-colors flex items-center gap-1">
-            <ArrowLeftIcon className="w-3 h-3"/> Countries
-          </button>
-          <ChevronRightIcon className="w-3 h-3 shrink-0"/>
-          <button onClick={() => setSelectedPaymentMethod(null)} className="hover:text-foreground font-medium transition-colors">
-            {selectedCountry.name}
-          </button>
-          <ChevronRightIcon className="w-3 h-3 shrink-0"/>
-          <span className="font-bold text-foreground">{selectedPaymentMethod.name}</span>
-        </div>
-
-        {/* Step Header */}
-        <div className="flex items-center gap-3 pb-1">
-          <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
-          <div>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Step 3 of 3</p>
-            <h3 className="text-base font-bold text-foreground">
-              {type === 'DEPOSIT' ? 'Complete Your Deposit' : 'Enter Withdrawal Details'}
-            </h3>
-          </div>
-        </div>
+        <button onClick={() => { setSelectedPaymentMethod(null); setMessage(null) }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors">
+          <ArrowLeftIcon className="w-3.5 h-3.5"/> Back to methods
+        </button>
 
         {type === 'DEPOSIT' ? (
-          <div className="space-y-4 sm:space-y-5">
-
-            {/* ── Account Details Card ──────────────────────── */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white shadow-2xl p-5 sm:p-6">
-              {/* Subtle glow */}
+          <div className="space-y-5">
+            {/* Account Details Card */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white shadow-2xl p-5">
               <div className="absolute -top-20 -right-20 w-48 h-48 bg-green-500/10 rounded-full blur-3xl pointer-events-none"/>
-              <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-blue-500/10 rounded-full blur-2xl pointer-events-none"/>
-
               <div className="relative z-10 space-y-4">
-                {/* Header row */}
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
-                      <BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-300"/>
-                    </div>
+                    <PaymentMethodIconDark name={selectedPaymentMethod.name} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Payment Via</p>
-                      <p className="text-sm sm:text-base font-black text-white truncate">{selectedPaymentMethod.name}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Send Payment To</p>
+                      <p className="text-base font-bold text-white truncate">{selectedPaymentMethod.name}</p>
                     </div>
                   </div>
-                  <span className="text-[9px] font-black bg-green-500/20 text-green-300 border border-green-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">
-                    {selectedCountry.currency}
-                  </span>
+                  <span className="text-[9px] font-bold bg-green-500/20 text-green-300 border border-green-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">{selectedCountry.currency}</span>
                 </div>
-
                 <div className="h-px bg-white/10"/>
-
-                {/* Account Title */}
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Account Holder</p>
-                  <p className="text-base sm:text-lg font-bold text-white">{selectedPaymentMethod.accountName}</p>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Account Holder</p>
+                  <p className="text-lg font-bold text-white">{selectedPaymentMethod.accountName}</p>
                 </div>
-
-                {/* Account Number */}
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Number / IBAN</p>
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <p className="text-lg sm:text-2xl font-mono font-black text-white tracking-wider break-all flex-1 min-w-0">
-                      {selectedPaymentMethod.accountNumber}
-                    </p>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(selectedPaymentMethod.accountNumber)
-                        setMessage({ type: 'success', text: "Account number copied!" })
-                        setTimeout(() => setMessage(null), 2000)
-                      }}
-                      className="p-2 sm:p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 hover:border-white/30 shrink-0"
-                      title="Copy Account Number"
-                    >
-                      <DocumentDuplicateIcon className="w-4 h-4 sm:w-5 sm:h-5"/>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Account Number</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl font-mono font-bold text-white tracking-wider break-all flex-1 min-w-0">{selectedPaymentMethod.accountNumber}</p>
+                    <button onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.accountNumber); setMessage({ type: 'success', text: "Account number copied!" }); setTimeout(() => setMessage(null), 2000) }}
+                      className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 shrink-0">
+                      <DocumentDuplicateIcon className="w-5 h-5"/>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Instructions ─────────────────────────────── */}
             {selectedPaymentMethod.instructions && (
               <div className="flex gap-3 items-start p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-white font-black text-[10px]">i</span>
+                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5"><span className="text-white font-bold text-[10px]">i</span></div>
+                <div className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed"><span className="font-bold block mb-0.5">Instructions</span>{selectedPaymentMethod.instructions}</div>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">$</span>
+                <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl transition-all bg-muted/30 focus:bg-card text-foreground placeholder:text-muted-foreground/40" placeholder="0.00"/>
+              </div>
+            </div>
+
+            {val > 0 && (
+              <div className="rounded-xl bg-muted/40 border border-border overflow-hidden animate-in fade-in duration-200">
+                <div className="flex justify-between items-center px-4 py-2.5 bg-muted/60 border-b border-border">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Conversion</span>
+                  <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">1 USD = {rate} {selectedCountry.currency}</span>
                 </div>
-                <div className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                  <span className="font-bold block mb-0.5">Instructions</span>
-                  {selectedPaymentMethod.instructions}
+                <div className="p-4">
+                  <div className="flex items-center justify-between gap-4 mb-3">
+                    <div><p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Pay</p><p className="text-2xl font-bold text-foreground">{totalPayable.toLocaleString()} <span className="text-sm font-bold text-muted-foreground">{selectedCountry.currency}</span></p></div>
+                    <div className="text-right"><p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Get</p><p className="text-sm font-bold text-green-600 dark:text-green-400">{(val * 10).toFixed(0)} ARN</p></div>
+                  </div>
+                  <div className="flex gap-2 items-start bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800/30">
+                    <div className="w-1 h-8 bg-amber-500 rounded-full shrink-0 mt-0.5"/>
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed"><span className="font-bold">Transfer exactly </span>{totalPayable.toLocaleString()} {selectedCountry.currency} to the account above.</p>
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* ── Transaction Details ───────────────────────── */}
-            <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-              <div className="px-4 sm:px-5 py-3 bg-muted/40 border-b border-border">
-                <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Transaction Details</h4>
-              </div>
-
-              <div className="p-4 sm:p-5 space-y-5">
-                {/* Amount Input */}
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Deposit (USD)</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-lg">$</span>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-black text-xl transition-all bg-muted/30 focus:bg-card text-foreground placeholder:text-muted-foreground/40"
-                      placeholder="0.00"
-                    />
-                  </div>
+            <div>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Payment Proof</label>
+              <div className="relative group">
+                <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
+                <div className={`w-full min-h-[140px] rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-2 p-6 text-center ${screenshot ? "border-green-500 bg-green-50/10 dark:bg-green-900/10" : "border-border bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"}`}>
+                  {screenshot ? (
+                    <div className="space-y-1.5"><CheckCircleIcon className="w-10 h-10 text-green-600 dark:text-green-400 mx-auto"/><p className="font-bold text-green-700 dark:text-green-400 text-sm">Receipt Attached!</p><p className="text-green-600 dark:text-green-500 text-xs">Tap to replace</p></div>
+                  ) : (
+                    <div className="space-y-1.5"><ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground mx-auto"/><p className="font-bold text-foreground text-sm">Upload Screenshot</p><p className="text-muted-foreground text-xs">JPG, PNG or PDF</p></div>
+                  )}
                 </div>
-
-                {/* Live Conversion */}
-                {val > 0 && (
-                  <div className="rounded-xl bg-muted/40 border border-border overflow-hidden animate-in fade-in slide-in-from-top-1 duration-200">
-                    <div className="flex justify-between items-center px-4 py-2.5 bg-muted/60 border-b border-border">
-                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">Conversion</span>
-                      <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">
-                        1 USD = {rate} {selectedCountry.currency}
-                      </span>
-                    </div>
-                    <div className="p-4 flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Pay</p>
-                        <p className="text-2xl sm:text-3xl font-black text-foreground">{totalPayable.toLocaleString()} <span className="text-sm font-bold text-muted-foreground">{selectedCountry.currency}</span></p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Exchange</p>
-                        <p className="text-sm font-bold text-green-600 dark:text-green-400">{val} USD × {rate}</p>
-                      </div>
-                    </div>
-                    <div className="mx-4 mb-4 flex gap-2 items-start bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800/30">
-                      <div className="w-1 h-8 bg-amber-500 rounded-full shrink-0 mt-0.5"/>
-                      <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-                        <span className="font-bold">Transfer exactly </span>{totalPayable.toLocaleString()} {selectedCountry.currency} to the account above.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Proof of Payment Upload */}
-                <div>
-                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Proof of Payment</label>
-                  <div className="relative group">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                    />
-                    <div className={`w-full min-h-[160px] sm:min-h-[180px] rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-3 p-6 text-center ${
-                      screenshot
-                        ? "border-green-500 bg-green-50/10 dark:bg-green-900/10"
-                        : "border-border bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"
-                    }`}>
-                      {screenshot ? (
-                        <div className="animate-in zoom-in duration-300 space-y-2">
-                          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                            <CheckCircleIcon className="w-7 h-7 text-green-600 dark:text-green-400"/>
-                          </div>
-                          <p className="font-black text-green-700 dark:text-green-400 text-sm">Receipt Attached!</p>
-                          <p className="text-green-600 dark:text-green-500 text-xs">Tap to replace</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="w-12 h-12 bg-blue-500/10 dark:bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
-                            <ArrowUpTrayIcon className="w-6 h-6 text-blue-600 dark:text-blue-400"/>
-                          </div>
-                          <p className="font-bold text-foreground text-sm">Upload Payment Screenshot</p>
-                          <p className="text-muted-foreground text-xs">JPG, PNG or PDF • Tap to browse</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  onClick={handleAction}
-                  disabled={!amount || !screenshot || isPending}
-                  className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg active:scale-[0.98]"
-                >
-                  {isPending ? "Submitting..." : "Confirm & Submit Deposit"}
-                </button>
               </div>
             </div>
 
+            <button onClick={handleAction} disabled={!amount || !screenshot || isPending}
+              className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.98]">
+              {isPending ? "Submitting..." : "Confirm & Submit Deposit"}
+            </button>
           </div>
         ) : (
-          // ── WITHDRAWAL FORM ──────────────────────────────────────────────────
-          <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-            <div className="px-4 sm:px-5 py-3 bg-muted/40 border-b border-border">
-              <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest">Withdrawal Details</h4>
+          <div className="space-y-5">
+            <div className="text-center pb-2">
+              <h3 className="text-lg font-bold text-foreground">Withdraw to {selectedPaymentMethod.name}</h3>
+              <p className="text-sm text-muted-foreground mt-1">Enter your account details below</p>
             </div>
-            <div className="p-4 sm:p-5 space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Number</label>
-                <input
-                  type="text"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground text-sm"
-                  placeholder={`Enter your ${selectedPaymentMethod.name} number`}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
-                <input
-                  type="text"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                  className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground text-sm"
-                  placeholder="Name on account"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-black text-xl bg-muted/30 focus:bg-card transition-all text-foreground"
-                    placeholder="0.00"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: {((user.balance || 0) * 10).toFixed(2)} ARN</p>
-              </div>
-              <button
-                onClick={handleAction}
-                disabled={!amount || !accountNumber || !accountName || isPending}
-                className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base sm:text-lg active:scale-[0.98]"
-              >
-                {isPending ? "Processing..." : "Confirm Withdrawal Request"}
-              </button>
+            <div>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Number</label>
+              <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)}
+                className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground text-sm"
+                placeholder={`Enter your ${selectedPaymentMethod.name} number`}/>
             </div>
+            <div>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
+              <input type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)}
+                className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground text-sm" placeholder="Name on account"/>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
+                <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl bg-muted/30 focus:bg-card transition-all text-foreground" placeholder="0.00"/>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: {((user.balance || 0) * 10).toFixed(2)} ARN</p>
+            </div>
+            <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending}
+              className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.98]">
+              {isPending ? "Processing..." : "Confirm Withdrawal Request"}
+            </button>
           </div>
         )}
       </div>
     )
   }
 
+  // ─── Transaction type display helper ──────────────────────────────
+  const getTxDisplay = (tx: any, iconSize = "w-5 h-5") => {
+    let typeDisplay = tx.type, icon = <ArrowPathIcon className={`${iconSize} text-gray-500`}/>, iconBg = "bg-gray-100 dark:bg-gray-900/30", amountColor = "text-foreground", prefix = "";
+    if (tx.type === 'DEPOSIT') { icon = <ArrowDownTrayIcon className={`${iconSize} text-green-600 dark:text-green-400`}/>; iconBg = "bg-green-100 dark:bg-green-900/30"; amountColor = "text-green-600 dark:text-green-400"; prefix = "+"; typeDisplay = "Wallet Deposit"; }
+    else if (tx.type === 'WITHDRAWAL') { icon = <ArrowUpTrayIcon className={`${iconSize} text-purple-600 dark:text-purple-400`}/>; iconBg = "bg-purple-100 dark:bg-purple-900/30"; amountColor = "text-purple-600 dark:text-purple-400"; prefix = "-"; typeDisplay = "Withdrawal"; }
+    else if (tx.type === 'MUDARABAH_TRANSFER' || tx.type === 'INVESTMENT') { icon = <ChartPieIcon className={`${iconSize} text-emerald-600 dark:text-emerald-400`}/>; iconBg = "bg-emerald-100 dark:bg-emerald-900/30"; amountColor = "text-emerald-600 dark:text-emerald-400"; typeDisplay = "Pool Transfer"; }
+    else if (tx.type === 'DAILY_EARNING_TRANSFER') { icon = <ChartPieIcon className={`${iconSize} text-blue-600 dark:text-blue-400`}/>; iconBg = "bg-blue-100 dark:bg-blue-900/30"; amountColor = "text-blue-600 dark:text-blue-400"; typeDisplay = "Daily Earning Pool"; }
+    else if (tx.type === 'SPIN_REWARD') { icon = <BanknotesIcon className={`${iconSize} text-yellow-600 dark:text-yellow-400`}/>; iconBg = "bg-yellow-100 dark:bg-yellow-900/30"; amountColor = "text-yellow-600 dark:text-yellow-400"; prefix = "+"; typeDisplay = "Spin Wheel Reward"; }
+    else if (tx.type === 'UNLOCK_FEE') { icon = <LockClosedIcon className={`${iconSize} text-red-500 dark:text-red-400`}/>; iconBg = "bg-red-100 dark:bg-red-900/30"; amountColor = "text-red-500 dark:text-red-400"; prefix = "-"; typeDisplay = "Account Unlock Fee"; }
+    else if (tx.type === 'TASK_INCOME') { icon = <CheckCircleIcon className={`${iconSize} text-cyan-600 dark:text-cyan-400`}/>; iconBg = "bg-cyan-100 dark:bg-cyan-900/30"; amountColor = "text-cyan-600 dark:text-cyan-400"; prefix = "+"; typeDisplay = "Task Income"; }
+    else if (tx.type.includes('COMMISSION')) { icon = <MapPinIcon className={`${iconSize} text-pink-600 dark:text-pink-400`}/>; iconBg = "bg-pink-100 dark:bg-pink-900/30"; amountColor = "text-pink-600 dark:text-pink-400"; prefix = "+"; typeDisplay = "Referral Commission"; }
+    else if (tx.type === 'ADMIN_ADJUSTMENT') { icon = <CheckCircleIcon className={`${iconSize} text-gray-500`}/>; iconBg = "bg-gray-100 dark:bg-gray-900/30"; amountColor = "text-gray-600"; typeDisplay = "Admin Adjustment"; }
+    return { typeDisplay, icon, iconBg, amountColor, prefix }
+  }
+
+  // ─── MAIN RETURN ──────────────────────────────────────────────────
+
   return (
     <div className="flex flex-col gap-6 md:gap-8 min-h-screen pb-12 w-full">
-       
-       {/* MAIN CONTENT AREA */}
+       <Toaster position="top-center" toastOptions={{ style: { borderRadius: '12px', padding: '14px 20px', fontWeight: 700, fontSize: '14px' } }} />
        <div className="flex-1 space-y-6 md:space-y-8 min-w-0">
           
            {/* 1. TOTAL BALANCE CARD */}
            <div className="w-full bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] p-5 sm:p-8 md:p-10 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group">
-              {/* Dynamic Background */}
               <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2 pointer-events-none mix-blend-overlay"></div>
               <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-indigo-900/20 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
-              
               <div className="relative z-10 w-full">
                  <div className="flex flex-col xl:flex-row justify-between items-start gap-6 lg:gap-8">
-                    {/* Left Side: Balances */}
                     <div className="flex-1 w-full">
-                       <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs md:text-sm mb-2 flex items-center gap-2">
-                           <BanknotesIcon className="w-4 h-4 text-blue-200"/> Total ARN Tokens
-                       </h2>
-                       <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif tracking-tight text-white drop-shadow-md break-words leading-none">
-                          {((user.balance || 0) * 10).toFixed(2)} <span className="text-2xl lg:text-3xl text-blue-200">ARN</span>
-                       </div>
+                       <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs md:text-sm mb-2 flex items-center gap-2"><BanknotesIcon className="w-4 h-4 text-blue-200"/> Total ARN Tokens</h2>
+                       <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif tracking-tight text-white drop-shadow-md break-words leading-none">{((user.balance || 0) * 10).toFixed(2)} <span className="text-2xl lg:text-3xl text-blue-200">ARN</span></div>
                        <div className="mt-3 text-blue-100 font-medium text-sm flex items-center gap-3">
                            <span>≈ {formatCurrency(user.balance || 0)} USD</span>
-                           <span className={cn(
-                               "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
-                               user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30"
-                           )}>
-                               {user.isActiveMember ? "Access Active" : "Account Locked"}
-                           </span>
+                           <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30")}>{user.isActiveMember ? "Access Active" : "Account Locked"}</span>
                        </div>
-
                        <div className="mt-5 flex flex-wrap flex-col sm:flex-row items-start sm:items-center gap-3">
-                           {/* Locked Signup Bonus Indicator */}
                            {user.lockedArnBalance > 0 && !user.isActiveMember && (
                                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm w-full sm:w-auto">
-                                   <div className="p-2 bg-orange-500/20 rounded-lg shrink-0">
-                                     <LockClosedIcon className="w-5 h-5 text-orange-400" />
-                                   </div>
-                                   <div className="flex flex-col">
-                                       <span className="text-[10px] uppercase font-bold text-orange-300 leading-none mb-1 tracking-wider whitespace-nowrap">Locked Bonus</span>
-                                       <span className="text-base font-bold text-white leading-none whitespace-nowrap">{user.lockedArnBalance.toFixed(2)} ARN</span>
-                                   </div>
+                                   <div className="p-2 bg-orange-500/20 rounded-lg shrink-0"><LockClosedIcon className="w-5 h-5 text-orange-400" /></div>
+                                   <div className="flex flex-col"><span className="text-[10px] uppercase font-bold text-orange-300 leading-none mb-1 tracking-wider whitespace-nowrap">Locked Bonus</span><span className="text-base font-bold text-white leading-none whitespace-nowrap">{user.lockedArnBalance.toFixed(2)} ARN</span></div>
                                </div>
                            )}
-
-                           {/* Mudarabah Wallet Indicator */}
                            <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
-                               <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg shrink-0">
-                                 <ChartPieIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" />
-                               </div>
-                               <div className="flex flex-col min-w-0 w-full">
-                                 <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate sm:whitespace-nowrap block">Mudarabah Pool Balance</span>
-                                 <span className="text-sm sm:text-base font-bold text-white leading-none truncate sm:whitespace-nowrap block">${(user.mudarabahBalance || 0).toFixed(2)} USD</span>
-                               </div>
+                               <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg shrink-0"><ChartPieIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" /></div>
+                               <div className="flex flex-col min-w-0 w-full"><span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate block">Mudarabah Pool Balance</span><span className="text-sm sm:text-base font-bold text-white leading-none truncate block">${(user.mudarabahBalance || 0).toFixed(2)} USD</span></div>
                            </div>
-
-                           {/* Daily Earning Wallet Indicator */}
                            <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
-                               <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg shrink-0">
-                                 <BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" />
-                               </div>
-                               <div className="flex flex-col min-w-0 w-full">
-                                 <span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate sm:whitespace-nowrap block">Daily Earning Pool Balance</span>
-                                 <span className="text-sm sm:text-base font-bold text-white leading-none truncate sm:whitespace-nowrap block">${(user.dailyEarningWallet || 0).toFixed(2)} USD</span>
-                               </div>
+                               <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg shrink-0"><BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" /></div>
+                               <div className="flex flex-col min-w-0 w-full"><span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate block">Daily Earning Pool Balance</span><span className="text-sm sm:text-base font-bold text-white leading-none truncate block">${(user.dailyEarningWallet || 0).toFixed(2)} USD</span></div>
                            </div>
                        </div>
                     </div>
-
-                    {/* Right Side: ACCOUNT UNLOCK PROMPT */}
                     {!user.isActiveMember && (
                       <div className="w-full xl:w-[380px] shrink-0 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-2xl z-20">
-                          <h3 className="text-yellow-300 font-bold text-base sm:text-lg mb-2 flex items-center gap-2">
-                              <LockClosedIcon className="w-5 h-5" /> Account Locked
-                          </h3>
-                          <p className="text-blue-50 text-sm mb-5 opacity-90 leading-relaxed">
-                              You are missing out! Do you want to use <strong className="text-yellow-200">$1.00 USD</strong> from your wallet to unlock all platform features instantly?
-                          </p>
+                          <h3 className="text-yellow-300 font-bold text-base sm:text-lg mb-2 flex items-center gap-2"><LockClosedIcon className="w-5 h-5" /> Account Locked</h3>
+                          <p className="text-blue-50 text-sm mb-5 opacity-90 leading-relaxed">You are missing out! Do you want to use <strong className="text-yellow-200">$1.00 USD</strong> from your wallet to unlock all platform features instantly?</p>
                           <div className="flex flex-col gap-3">
-                              <button
-                                onClick={handleUnlockAccount}
-                                disabled={isUnlocking}
-                                className="w-full relative overflow-hidden group bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-4 py-3.5 sm:py-4 rounded-xl transition-all shadow-xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                              >
-                                 <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-[120%] group-hover:animate-[shimmer_1s_infinite] pointer-events-none" />
-                                 <span className="relative flex items-center justify-center gap-2 text-sm sm:text-base">
-                                     {isUnlocking ? "Unlocking..." : "Use $1 to Unlock Now"}
-                                     {!isUnlocking && <ChevronRightIcon className="w-5 h-5" />}
-                                 </span>
+                              <button onClick={handleUnlockAccount} disabled={isUnlocking} className="w-full relative overflow-hidden group bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-4 py-3.5 sm:py-4 rounded-xl transition-all shadow-xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed">
+                                 <span className="relative flex items-center justify-center gap-2 text-sm sm:text-base">{isUnlocking ? "Unlocking..." : "Use $1 to Unlock Now"}{!isUnlocking && <ChevronRightIcon className="w-5 h-5" />}</span>
                               </button>
                               <p className="text-center text-xs text-white/70 font-medium">Available Wallet Balance: ${balance.toFixed(2)} USD</p>
                           </div>
@@ -802,714 +561,232 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               </div>
            </div>
 
-           {/* ACTION GRID (Responsive) */}
+           {/* ACTION GRID */}
            <div className="grid grid-cols-3 md:flex md:gap-4 gap-3 animate-in fade-in slide-in-from-top-2">
                {[
                    { id: 'deposit', label: 'Deposit', icon: ArrowDownTrayIcon, color: 'text-blue-600' },
                    { id: 'withdraw', label: 'Swap & Withdraw', icon: ArrowUpTrayIcon, color: 'text-purple-600' },
                    { id: 'transfer', label: 'Transfer', icon: ArrowPathIcon, color: 'text-orange-600' },
                ].map((item) => (
-                   <button
-                       key={item.id}
-                       onClick={() => { setActiveTab(item.id); setMessage(null); }}
-                       className={cn(
-                           "flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2 p-2 sm:p-3 md:px-8 md:py-4 rounded-xl sm:rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
-                           activeTab === item.id 
-                               ? "bg-card border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30 shadow-lg scale-[1.02]" 
-                               : "bg-card border-border hover:bg-muted/50 shadow-sm hover:shadow-md"
-                       )}
-                   >
+                   <button key={item.id} onClick={() => { setActiveTab(item.id); setMessage(null); }}
+                       className={cn("flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2 p-2 sm:p-3 md:px-8 md:py-4 rounded-xl sm:rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
+                           activeTab === item.id ? "bg-card border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30 shadow-lg scale-[1.02]" : "bg-card border-border hover:bg-muted/50 shadow-sm hover:shadow-md")}>
                        <item.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", activeTab === item.id ? item.color : "text-gray-400")} />
-                       <span className={cn("text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-wider text-center leading-tight", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>
-                           {item.label}
-                       </span>
+                       <span className={cn("text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-wider text-center leading-tight", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
                    </button>
                ))}
            </div>
 
            {/* 2. ACTION FORM PANEL */}
            <div className="bg-card rounded-[2rem] border border-border shadow-lg shadow-black/5 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              
-              {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                   <h3 className="text-xl sm:text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-2 sm:gap-3">
-                      {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg text-blue-600"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
-                      {activeTab === 'withdraw' && <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg text-purple-600"><ArrowUpTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
-                      {activeTab === 'transfer' && <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg text-orange-600"><ArrowPathIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'withdraw' && <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"><ArrowUpTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'transfer' && <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400"><ArrowPathIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
                       <span className="truncate">{activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}</span>
                   </h3>
                   {(activeTab === 'deposit') && (
                      <div className="hidden sm:flex px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100 dark:border-green-800">
-                        <ShieldCheckIcon className="w-4 h-4"/>
-                        <span>1 USD = 10 ARN</span>
+                        <ShieldCheckIcon className="w-4 h-4"/><span>1 USD = 10 ARN</span>
                      </div>
                   )}
               </div>
 
-              {/* NOTIFICATIONS */}
               {message && (
                  <div className={cn("p-4 rounded-xl mb-6 text-sm font-bold flex items-center gap-3 animate-in fade-in slide-in-from-top-2",
-                     message.type === 'success' ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-600 border border-red-100"
+                     message.type === 'success' ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800"
                  )}>
-                    {message.type === 'success' ? <CheckIcon className="w-5 h-5"/> : <div className="w-5 h-5 rounded-full bg-red-200 flex items-center justify-center text-red-600">!</div>}
+                    {message.type === 'success' ? <CheckIcon className="w-5 h-5"/> : <div className="w-5 h-5 rounded-full bg-red-200 dark:bg-red-800 flex items-center justify-center text-red-600 dark:text-red-300 shrink-0">!</div>}
                     {message.text}
                  </div>
               )}
 
-
               <div className="space-y-6">
-                 
                  {/* === DEPOSIT === */}
                  {activeTab === "deposit" && (
                     <div className="space-y-8 animate-in fade-in">
-                        
-                        {/* Method Selector */}
                         <div className="space-y-3">
-                           <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Select Method</label>
+                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Select Method</label>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Automated • Instant" icon={QrCodeIcon} selected={depositMethod} onClick={() => setDepositMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Deposit" sub="Local Agents" icon={BanknotesIcon} selected={depositMethod} onClick={() => { setMerchantModalType('DEPOSIT'); setMerchantModalOpen(true) }} color="green"/>
+                               <MethodOption id="MERCHANT" label="Merchant Deposit" sub="Local Agents" icon={BanknotesIcon} selected={depositMethod} onClick={() => { setDepositMethod("MERCHANT"); setMerchantModalType('DEPOSIT'); setMerchantModalOpen(true) }} color="green"/>
                                <div className="md:col-span-2">
                                  <MethodOption id="CARD" label="Debit / Credit Card" sub="Visa • Mastercard" icon={CreditCardIcon} selected={depositMethod} onClick={() => setDepositMethod("CARD")} color="gray"/>
                                </div>
                            </div>
                         </div>
-
-                        {/* TRC-20 Form */}
                         {depositMethod === "TRC20" && (
                            <div className="bg-muted/30 rounded-2xl p-4 md:p-6 border border-border space-y-6">
-                              {/* QR & Address */}
                               <div className="flex flex-col md:flex-row gap-5 md:gap-6">
-                                 <div className="mx-auto md:mx-0 shrink-0 w-full max-w-[200px] md:max-w-none md:w-auto">
-                                    <QRCode network="TRC20" imagePath={currentWallet.qrCodePath || "/qr-trc20.png"} />
-                                 </div>
+                                 <div className="mx-auto md:mx-0 shrink-0 w-full max-w-[200px] md:max-w-none md:w-auto"><QRCode network="TRC20" imagePath={currentWallet.qrCodePath || "/qr-trc20.png"} /></div>
                                  <div className="flex-1 space-y-4 min-w-0 w-full overflow-hidden">
                                     <div className="space-y-2 w-full">
                                         <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wallet Address</label>
                                        <div className="flex items-center gap-2 p-1 bg-card border border-border rounded-xl w-full">
-                                          <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-foreground truncate">
-                                             {currentWallet?.address}
-                                          </div>
-                                          <button onClick={copyAddress} className="p-2 bg-foreground text-background rounded-lg hover:opacity-80 transition-colors shrink-0">
-                                             <DocumentDuplicateIcon className="w-4 h-4"/>
-                                          </button>
+                                          <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-foreground truncate">{currentWallet?.address}</div>
+                                          <button onClick={copyAddress} className="p-2 bg-foreground text-background rounded-lg hover:opacity-80 transition-colors shrink-0"><DocumentDuplicateIcon className="w-4 h-4"/></button>
                                        </div>
                                     </div>
-                                    <div className="p-3 bg-blue-50 text-blue-700 text-xs rounded-lg leading-relaxed">
-                                       <strong>Note:</strong> Deposits are automatically converted to ARN Tokens (1 USD = 10 ARN).
-                                    </div>
+                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs rounded-lg leading-relaxed border border-blue-100 dark:border-blue-800/30"><strong>Note:</strong> Deposits are automatically converted to ARN Tokens (1 USD = 10 ARN).</div>
                                  </div>
                               </div>
-
-                              {/* Inputs */}
                               <div className="space-y-4">
-                                 <div>
-                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Transaction ID (Hash)</label>
-                                     <input 
-                                        type="text" 
-                                        value={txHash}
-                                        onChange={(e) => setTxHash(e.target.value)}
-                                        placeholder="Paste your transaction hash..."
-                                        className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-mono text-sm text-foreground"
-                                     />
-                                 </div>
-                                 <div>
-                                     <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
-                                     <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                                        <input 
-                                           type="number" 
-                                           value={amount}
-                                           onChange={(e) => setAmount(e.target.value)}
-                                           placeholder="0.00"
-                                           className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-bold text-lg text-foreground"
-                                        />
-                                     </div>
-                                     {amount && !isNaN(parseFloat(amount)) && (
-                                         <div className="mt-2 text-xs font-bold text-blue-600">
-                                             You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN
-                                         </div>
-                                     )}
-                                 </div>
-                                 <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">
-                                     Submit Deposit
-                                 </button>
+                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="Paste your transaction hash..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 dark:focus:ring-blue-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 dark:focus:ring-blue-900/30 transition-all bg-card font-bold text-lg text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
+                                 <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">Submit Deposit</button>
                               </div>
                            </div>
                         )}
-
-                        {/* Merchant — opens modal */}
-                        
-                        {/* Card Form */}
                         {depositMethod === "CARD" && (
                             <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
-                                <CreditCardIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3"/>
-                                <h4 className="font-bold text-foreground">Coming Soon</h4>
-                                <p className="text-sm text-muted-foreground max-w-xs mx-auto mt-1">Direct card payments are currently under maintenance. Please use TRC-20 or a Merchant.</p>
+                                <CreditCardIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3"/><h4 className="font-bold text-foreground">Coming Soon</h4><p className="text-sm text-muted-foreground max-w-xs mx-auto mt-1">Direct card payments are currently under maintenance. Please use TRC-20 or a Merchant.</p>
                             </div>
                         )}
                     </div>
                  )}
-
 
                  {/* === WITHDRAW === */}
                  {activeTab === "withdraw" && (
                     <div className="space-y-8 animate-in fade-in">
                        {!user.isActiveMember ? (
                            <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
-                               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
-                                 <ShieldCheckIcon className="w-8 h-8" />
-                               </div>
+                               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4"><ShieldCheckIcon className="w-8 h-8" /></div>
                                <h3 className="text-xl font-bold text-foreground mb-2">Withdrawals Locked</h3>
-                               <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must unlock your account with $1 before you can withdraw funds to your bank or crypto wallet.</p>
-                               <button
-                                 onClick={() => setActiveTab("deposit")}
-                                 className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all font-sans"
-                               >
-                                 Deposit Funds to Unlock
-                               </button>
+                               <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must unlock your account with $1 before you can withdraw funds.</p>
+                               <button onClick={() => setActiveTab("deposit")} className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all">Deposit Funds to Unlock</button>
                            </div>
                        ) : (
                          <>
                            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-4 lg:flex lg:flex-row">
-                               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1 lg:hidden">Withdrawal Method</label>
                                <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Global • Fast" icon={QrCodeIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => { setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} color="green"/>
+                               <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} color="green"/>
                            </div>
-                           
-                           {/* TRC20 Withdraw */}
                            {withdrawalMethod === "TRC20" && (
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label>
-                                        <input 
-                                           type="text" 
-                                           value={details}
-                                           onChange={(e) => setDetails(e.target.value)}
-                                           placeholder="Enter USDT TRC-20 address..."
-                                           className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-mono text-sm text-foreground"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label>
-                                        <div className="relative">
-                                           <input 
-                                              type="number" 
-                                              value={amount}
-                                              onChange={(e) => setAmount(e.target.value)}
-                                              placeholder="0"
-                                              className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 transition-all bg-card font-bold text-lg text-foreground"
-                                           />
-                                           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span>
-                                        </div>
+                                    <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                    <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
                                         <div className="flex flex-col gap-1 mt-2 px-1">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span>
-                                                <span className="text-xs font-bold text-purple-600">
-                                                    {amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}
-                                                </span>
-                                            </div>
-                                            <div className="flex justify-between items-center text-[10px] font-bold">
-                                                <span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span>
-                                                <span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span>
-                                            </div>
+                                            <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
+                                            <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
                                         </div>
                                     </div>
-                                    <button onClick={handleAction} className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">
-                                        Swap & Withdraw (USD)
-                                    </button>
+                                    <button onClick={handleAction} className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">Swap & Withdraw (USD)</button>
                                 </div>
                            )}
-
-                           {/* Merchant Withdraw - NEW INTEGRATION */}
-                           {withdrawalMethod === "MERCHANT" && renderMerchantUI("WITHDRAWAL")}
                          </>
                        )}
                     </div>
                  )}
-
 
                 {/* === TRANSFER === */}
                 {activeTab === "transfer" && (
                    <div className="space-y-6 sm:space-y-8 animate-in fade-in">
                       {!user.isActiveMember ? (
                          <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
-                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
-                               <ShieldCheckIcon className="w-8 h-8" />
-                             </div>
-                             <h3 className="text-xl font-bold text-foreground mb-2">Transfer Locked</h3>
-                             <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must activate your account with $1 before you can transfer funds.</p>
-                             <button
-                               onClick={() => setActiveTab("deposit")}
-                               className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all font-sans"
-                             >
-                               Activate Now
-                             </button>
+                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4"><ShieldCheckIcon className="w-8 h-8" /></div>
+                             <h3 className="text-xl font-bold text-foreground mb-2">Transfer Locked</h3><p className="text-muted-foreground max-w-sm mb-6 text-sm">You must activate your account with $1 before you can transfer funds.</p>
+                             <button onClick={() => setActiveTab("deposit")} className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all">Activate Now</button>
                          </div>
                       ) : (
                          <>
-                            {/* Source and Destination Pickers */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                               {/* SOURCE */}
-                               <div>
-                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">From (Source)</label>
-                                  <select 
-                                      value={transferSource}
-                                      onChange={(e) => {
-                                          const val = e.target.value as any;
-                                          setTransferSource(val);
-                                          if (val === transferDestination) {
-                                              // Auto-switch destination to avoid conflict
-                                              setTransferDestination(val === "WALLET" ? "MUDARABAH" : "WALLET");
-                                          }
-                                      }}
-                                      className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"
-                                  >
-                                      <option value="WALLET">Main Wallet</option>
-                                      <option value="MUDARABAH">Mudarabah Pool</option>
-                                      <option value="DAILY_EARNING">Daily Earning Pool</option>
-                                  </select>
-                                  {/* Available Balance Preview */}
-                                  <div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
-                                      Balance: <span className="text-foreground">${
-                                          transferSource === "WALLET" ? (user.balance || 0).toFixed(2) :
-                                          transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0).toFixed(2) :
-                                          ((user as any).dailyEarningWallet || 0).toFixed(2)
-                                      }</span>
-                                  </div>
-                               </div>
-
-                               {/* DESTINATION */}
-                               <div>
-                                  <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">To (Destination)</label>
-                                  <select 
-                                      value={transferDestination}
-                                      onChange={(e) => {
-                                          const val = e.target.value as any;
-                                          setTransferDestination(val);
-                                          if (val === transferSource) {
-                                              setTransferSource(val === "WALLET" ? "MUDARABAH" : "WALLET");
-                                          }
-                                      }}
-                                      className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-green-500 focus:ring-4 focus:ring-green-50/50 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"
-                                  >
-                                      <option value="WALLET">Main Wallet</option>
-                                      <option value="MUDARABAH">Mudarabah Pool</option>
-                                      <option value="DAILY_EARNING">Daily Earning Pool</option>
-                                  </select>
-                                  <div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">
-                                      Balance: <span className="text-foreground">${
-                                          transferDestination === "WALLET" ? (user.balance || 0).toFixed(2) :
-                                          transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0).toFixed(2) :
-                                          ((user as any).dailyEarningWallet || 0).toFixed(2)
-                                      }</span>
-                                  </div>
-                               </div>
+                               <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
+                               <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
                             </div>
-
-                            <div className="mb-4">
-                               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Amount</label>
-                               <div className="relative">
-                                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                                   <input 
-                                       type="number" 
-                                       value={amount}
-                                       onChange={(e) => setAmount(e.target.value)}
-                                       placeholder="0.00"
-                                       className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-black text-xl text-foreground"
-                                   />
-                               </div>
-                            </div>
-
-                            <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">
-                                Transfer Funds
-                            </button>
+                            <div className="mb-4"><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Amount</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-black text-xl text-foreground"/></div></div>
+                            <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">Transfer Funds</button>
                          </>
                       )}
                    </div>
                 )}
-
              </div>
           </div>
-
        </div>
 
-       {/* 3. TRANSACTION HISTORY (Full Width Bottom) */}
+       {/* 3. TRANSACTION HISTORY */}
        <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
           <div className="bg-card rounded-2xl border border-border shadow-md p-4 sm:p-6">
               <div className="flex flex-col gap-4 mb-5">
-                  {/* Header row */}
-                  <div>
-                      <h3 className="text-lg sm:text-xl font-bold font-serif text-foreground flex items-center gap-2.5">
-                          <div className="p-1.5 sm:p-2 bg-muted rounded-xl text-muted-foreground shrink-0"><CalendarDaysIcon className="w-5 h-5"/></div>
-                          Transaction History
-                      </h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 pl-0.5">Your deposits, withdrawals, and pool transfers.</p>
-                  </div>
-                  
-                  {/* Filters — wraps cleanly on mobile */}
+                  <div><h3 className="text-lg sm:text-xl font-bold font-serif text-foreground flex items-center gap-2.5"><div className="p-1.5 sm:p-2 bg-muted rounded-xl text-muted-foreground shrink-0"><CalendarDaysIcon className="w-5 h-5"/></div>Transaction History</h3><p className="text-xs sm:text-sm text-muted-foreground mt-1 pl-0.5">Your deposits, withdrawals, and pool transfers.</p></div>
                   <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-border">
-                          <button 
-                             onClick={() => setFilterRange('7d')}
-                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center", filterRange === '7d' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
-                          >
-                             Last 7 Days
-                          </button>
-                          <button 
-                             onClick={() => setFilterRange('30d')}
-                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center", filterRange === '30d' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
-                          >
-                             Last 30 Days
-                          </button>
-                          <button 
-                             onClick={() => setFilterRange('custom')}
-                             className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1", filterRange === 'custom' ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}
-                          >
-                             <FunnelIcon className="w-3 h-3"/> Custom
-                          </button>
+                          {(['7d', '30d', 'custom'] as const).map(r => (
+                            <button key={r} onClick={() => setFilterRange(r)} className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1", filterRange === r ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
+                               {r === 'custom' && <FunnelIcon className="w-3 h-3"/>}{r === '7d' ? 'Last 7 Days' : r === '30d' ? 'Last 30 Days' : 'Custom'}
+                            </button>
+                          ))}
                       </div>
-
-                      {/* Custom Date Picker Fields */}
-                      {filterRange === 'custom' && (
-                          <div className="flex items-center gap-2 animate-in fade-in">
-                              <input 
-                                 type="date" 
-                                 value={customStart}
-                                 onChange={(e) => setCustomStart(e.target.value)}
-                                 className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"
-                              />
-                              <span className="text-muted-foreground text-xs font-bold shrink-0">to</span>
-                              <input 
-                                 type="date" 
-                                 value={customEnd}
-                                 onChange={(e) => setCustomEnd(e.target.value)}
-                                 className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"
-                              />
-                          </div>
-                      )}
+                      {filterRange === 'custom' && (<div className="flex items-center gap-2 animate-in fade-in"><input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/><span className="text-muted-foreground text-xs font-bold shrink-0">to</span><input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/></div>)}
                   </div>
               </div>
-              
-              {/* --- Desktop Table (md and up) --- */}
+
+              {/* Desktop Table */}
               <div className="hidden md:block overflow-hidden rounded-xl border border-border">
                <table className="w-full text-left text-sm">
-                  <thead className="bg-muted/40 border-b border-border">
-                     <tr>
-                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Transaction Details</th>
-                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Date & Time</th>
-                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Amount</th>
-                        <th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Status</th>
-                     </tr>
-                  </thead>
+                  <thead className="bg-muted/40 border-b border-border"><tr><th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Transaction Details</th><th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px]">Date & Time</th><th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Amount</th><th className="px-4 py-3.5 font-bold text-muted-foreground tracking-wider uppercase text-[10px] text-right">Status</th></tr></thead>
                   <tbody className="divide-y divide-border">
                       {filteredTransactions.length === 0 ? (
-                          <tr>
-                              <td colSpan={4}>
-                                  <div className="text-center py-16">
-                                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground">
-                                          <ArrowPathIcon className="w-8 h-8"/>
-                                      </div>
-                                      <p className="text-base text-foreground font-bold">No transactions found</p>
-                                      <p className="text-sm text-muted-foreground mt-1">Try adjusting your date filters.</p>
-                                  </div>
-                              </td>
+                          <tr><td colSpan={4}><div className="text-center py-16"><div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 text-muted-foreground"><ArrowPathIcon className="w-8 h-8"/></div><p className="text-base text-foreground font-bold">No transactions found</p><p className="text-sm text-muted-foreground mt-1">Try adjusting your date filters.</p></div></td></tr>
+                      ) : filteredTransactions.map((tx, i) => { const d = getTxDisplay(tx); return (
+                          <tr key={tx.id || i} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-4"><div className="flex items-center gap-3"><div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-sm">{d.typeDisplay}</div><div className="text-xs text-muted-foreground truncate max-w-[250px] lg:max-w-xs">{tx.description || tx.method || "System Transaction"}</div></div></div></td>
+                              <td className="px-4 py-4 whitespace-nowrap"><div className="text-sm text-foreground font-medium" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div><div className="text-[10px] text-muted-foreground uppercase tracking-widest" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div></td>
+                              <td className="px-4 py-4 text-right whitespace-nowrap"><div className={cn("text-sm font-black", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)} USD</div>{tx.arnMinted > 0 && <div className="text-xs font-bold text-blue-500">+{tx.arnMinted.toFixed(2)} ARN</div>}</td>
+                              <td className="px-4 py-4 text-right"><span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></td>
                           </tr>
-                      ) : (
-                          filteredTransactions.map((tx, i) => {
-                              let typeDisplay = tx.type;
-                              let icon = <ArrowPathIcon className="w-5 h-5 text-gray-500"/>;
-                              let iconBg = "bg-gray-100 dark:bg-gray-900/30";
-                              let amountColor = "text-foreground";
-                              let prefix = "";
-
-                              if (tx.type === 'DEPOSIT') {
-                                  icon = <ArrowDownTrayIcon className="w-5 h-5 text-green-600 dark:text-green-400"/>;
-                                  iconBg = "bg-green-100 dark:bg-green-900/30";
-                                  amountColor = "text-green-600 dark:text-green-400";
-                                  prefix = "+";
-                                  typeDisplay = "Wallet Deposit";
-                              } else if (tx.type === 'WITHDRAWAL') {
-                                  icon = <ArrowUpTrayIcon className="w-5 h-5 text-purple-600 dark:text-purple-400"/>;
-                                  iconBg = "bg-purple-100 dark:bg-purple-900/30";
-                                  amountColor = "text-purple-600 dark:text-purple-400";
-                                  prefix = "-";
-                                  typeDisplay = "Withdrawal";
-                              } else if (tx.type === 'MUDARABAH_TRANSFER' || tx.type === 'INVESTMENT') {
-                                  icon = <ChartPieIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400"/>;
-                                  iconBg = "bg-emerald-100 dark:bg-emerald-900/30";
-                                  amountColor = "text-emerald-600 dark:text-emerald-400";
-                                  prefix = "";
-                                  typeDisplay = "Pool Transfer";
-                              } else if (tx.type === 'DAILY_EARNING_TRANSFER') {
-                                  icon = <ChartPieIcon className="w-5 h-5 text-blue-600 dark:text-blue-400"/>;
-                                  iconBg = "bg-blue-100 dark:bg-blue-900/30";
-                                  amountColor = "text-blue-600 dark:text-blue-400";
-                                  prefix = "";
-                                  typeDisplay = "Daily Earning Pool";
-                              } else if (tx.type === 'SPIN_REWARD') {
-                                  icon = <BanknotesIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400"/>;
-                                  iconBg = "bg-yellow-100 dark:bg-yellow-900/30";
-                                  amountColor = "text-yellow-600 dark:text-yellow-400";
-                                  prefix = "+";
-                                  typeDisplay = "Spin Wheel Reward";
-                              } else if (tx.type === 'UNLOCK_FEE') {
-                                  icon = <LockClosedIcon className="w-5 h-5 text-red-500 dark:text-red-400"/>;
-                                  iconBg = "bg-red-100 dark:bg-red-900/30";
-                                  amountColor = "text-red-500 dark:text-red-400";
-                                  prefix = "-";
-                                  typeDisplay = "Account Unlock Fee";
-                              } else if (tx.type === 'TASK_INCOME') {
-                                  icon = <CheckCircleIcon className="w-5 h-5 text-cyan-600 dark:text-cyan-400"/>;
-                                  iconBg = "bg-cyan-100 dark:bg-cyan-900/30";
-                                  amountColor = "text-cyan-600 dark:text-cyan-400";
-                                  prefix = "+";
-                                  typeDisplay = "Task Income";
-                              } else if (tx.type.includes('COMMISSION')) {
-                                  icon = <MapPinIcon className="w-5 h-5 text-pink-600 dark:text-pink-400"/>;
-                                  iconBg = "bg-pink-100 dark:bg-pink-900/30";
-                                  amountColor = "text-pink-600 dark:text-pink-400";
-                                  prefix = "+";
-                                  typeDisplay = "Referral Commission";
-                              } else if (tx.type === 'ADMIN_ADJUSTMENT') {
-                                  icon = <CheckCircleIcon className="w-5 h-5 text-gray-500"/>;
-                                  iconBg = "bg-gray-100 dark:bg-gray-900/30";
-                                  amountColor = "text-gray-600";
-                                  prefix = "";
-                                  typeDisplay = "Admin Adjustment";
-                              }
-
-                              return (
-                                  <tr key={tx.id || i} className="hover:bg-muted/30 transition-colors">
-                                      <td className="px-4 py-4">
-                                          <div className="flex items-center gap-3">
-                                              <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", iconBg)}>
-                                                  {icon}
-                                              </div>
-                                              <div className="min-w-0">
-                                                  <div className="font-bold text-foreground text-sm">{typeDisplay}</div>
-                                                  <div className="text-xs text-muted-foreground truncate max-w-[250px] lg:max-w-xs">{tx.description || tx.method || "System Transaction"}</div>
-                                              </div>
-                                          </div>
-                                      </td>
-                                      <td className="px-4 py-4 whitespace-nowrap">
-                                          <div className="text-sm text-foreground font-medium" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
-                                          <div className="text-[10px] text-muted-foreground uppercase tracking-widest" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div>
-                                      </td>
-                                      <td className="px-4 py-4 text-right whitespace-nowrap">
-                                          <div className={cn("text-sm font-black", amountColor)}>
-                                              {prefix}${(tx.amount || 0).toFixed(2)} USD
-                                          </div>
-                                          {tx.arnMinted > 0 && (
-                                              <div className="text-xs font-bold text-blue-500">
-                                                  +{tx.arnMinted.toFixed(2)} ARN
-                                              </div>
-                                          )}
-                                      </td>
-                                      <td className="px-4 py-4 text-right">
-                                          <span className={cn(
-                                              "inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border",
-                                              tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : 
-                                              tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : 
-                                              "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
-                                          )}>
-                                              {tx.status}
-                                          </span>
-                                      </td>
-                                  </tr>
-                              )
-                          })
-                      )}
+                      ) })}
                   </tbody>
                </table>
               </div>
 
-              {/* Mobile Stacked Cards */}
+              {/* Mobile Cards */}
               <div className="md:hidden divide-y divide-border border border-border rounded-xl overflow-hidden mt-3">
                   {filteredTransactions.length === 0 ? (
-                      <div className="text-center py-12 px-4">
-                              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                                  <ArrowPathIcon className="w-6 h-6"/>
-                              </div>
-                              <p className="text-sm text-foreground font-bold">No transactions found</p>
-                              <p className="text-xs text-muted-foreground mt-1">Try adjusting your date filters.</p>
+                      <div className="text-center py-12 px-4"><div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3 text-muted-foreground"><ArrowPathIcon className="w-6 h-6"/></div><p className="text-sm text-foreground font-bold">No transactions found</p></div>
+                  ) : filteredTransactions.map((tx, i) => { const d = getTxDisplay(tx, "w-4 h-4"); return (
+                      <div key={tx.id || i} className="p-3.5 bg-card hover:bg-muted/20 transition-colors">
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="flex items-center gap-2.5 min-w-0"><div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-xs leading-tight truncate">{d.typeDisplay}</div><div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div></div></div>
+                              <div className="text-right shrink-0"><div className={cn("text-sm font-black leading-tight", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)}</div>{tx.arnMinted > 0 && <div className="text-[9px] font-bold text-blue-500">+{tx.arnMinted.toFixed(2)} ARN</div>}</div>
                           </div>
-                      ) : (
-                          filteredTransactions.map((tx, i) => {
-                              let typeDisplay = tx.type;
-                              let icon = <ArrowPathIcon className="w-4 h-4 text-gray-500"/>;
-                              let iconBg = "bg-gray-100 dark:bg-gray-900/30";
-                              let amountColor = "text-foreground";
-                              let prefix = "";
-
-                              if (tx.type === 'DEPOSIT') {
-                                  icon = <ArrowDownTrayIcon className="w-4 h-4 text-green-600 dark:text-green-400"/>;
-                                  iconBg = "bg-green-100 dark:bg-green-900/30";
-                                  amountColor = "text-green-600 dark:text-green-400";
-                                  prefix = "+";
-                                  typeDisplay = "Wallet Deposit";
-                              } else if (tx.type === 'WITHDRAWAL') {
-                                  icon = <ArrowUpTrayIcon className="w-4 h-4 text-purple-600 dark:text-purple-400"/>;
-                                  iconBg = "bg-purple-100 dark:bg-purple-900/30";
-                                  amountColor = "text-purple-600 dark:text-purple-400";
-                                  prefix = "-";
-                                  typeDisplay = "Withdrawal";
-                              } else if (tx.type === 'MUDARABAH_TRANSFER' || tx.type === 'INVESTMENT') {
-                                  icon = <ChartPieIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400"/>;
-                                  iconBg = "bg-emerald-100 dark:bg-emerald-900/30";
-                                  amountColor = "text-emerald-600 dark:text-emerald-400";
-                                  prefix = "";
-                                  typeDisplay = "Pool Transfer";
-                              } else if (tx.type === 'DAILY_EARNING_TRANSFER') {
-                                  icon = <ChartPieIcon className="w-4 h-4 text-blue-600 dark:text-blue-400"/>;
-                                  iconBg = "bg-blue-100 dark:bg-blue-900/30";
-                                  amountColor = "text-blue-600 dark:text-blue-400";
-                                  prefix = "";
-                                  typeDisplay = "Daily Earning Pool";
-                              } else if (tx.type === 'SPIN_REWARD') {
-                                  icon = <BanknotesIcon className="w-4 h-4 text-yellow-600 dark:text-yellow-400"/>;
-                                  iconBg = "bg-yellow-100 dark:bg-yellow-900/30";
-                                  amountColor = "text-yellow-600 dark:text-yellow-400";
-                                  prefix = "+";
-                                  typeDisplay = "Spin Wheel Reward";
-                              } else if (tx.type === 'UNLOCK_FEE') {
-                                  icon = <LockClosedIcon className="w-4 h-4 text-red-500 dark:text-red-400"/>;
-                                  iconBg = "bg-red-100 dark:bg-red-900/30";
-                                  amountColor = "text-red-500 dark:text-red-400";
-                                  prefix = "-";
-                                  typeDisplay = "Account Unlock Fee";
-                              } else if (tx.type === 'TASK_INCOME') {
-                                  icon = <CheckCircleIcon className="w-4 h-4 text-cyan-600 dark:text-cyan-400"/>;
-                                  iconBg = "bg-cyan-100 dark:bg-cyan-900/30";
-                                  amountColor = "text-cyan-600 dark:text-cyan-400";
-                                  prefix = "+";
-                                  typeDisplay = "Task Income";
-                              } else if (tx.type.includes('COMMISSION')) {
-                                  icon = <MapPinIcon className="w-4 h-4 text-pink-600 dark:text-pink-400"/>;
-                                  iconBg = "bg-pink-100 dark:bg-pink-900/30";
-                                  amountColor = "text-pink-600 dark:text-pink-400";
-                                  prefix = "+";
-                                  typeDisplay = "Referral Commission";
-                              } else if (tx.type === 'ADMIN_ADJUSTMENT') {
-                                  icon = <CheckCircleIcon className="w-4 h-4 text-gray-500"/>;
-                                  iconBg = "bg-gray-100 dark:bg-gray-900/30";
-                                  amountColor = "text-gray-600";
-                                  prefix = "";
-                                  typeDisplay = "Admin Adjustment";
-                              }
-
-                              return (
-                                  <div key={tx.id || i} className="p-3.5 bg-card hover:bg-muted/20 transition-colors">
-                                      {/* Top: Icon + Type + Amount */}
-                                      <div className="flex items-center justify-between gap-2 mb-2">
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                              <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", iconBg)}>
-                                                  {icon}
-                                              </div>
-                                              <div className="min-w-0">
-                                                  <div className="font-bold text-foreground text-xs leading-tight truncate">{typeDisplay}</div>
-                                                  <div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div>
-                                              </div>
-                                          </div>
-                                          <div className="text-right shrink-0">
-                                              <div className={cn("text-sm font-black leading-tight", amountColor)}>
-                                                  {prefix}${(tx.amount || 0).toFixed(2)}
-                                              </div>
-                                              {tx.arnMinted > 0 && (
-                                                  <div className="text-[9px] font-bold text-blue-500">
-                                                      +{tx.arnMinted.toFixed(2)} ARN
-                                                  </div>
-                                              )}
-                                          </div>
-                                      </div>
-                                      {/* Bottom: Date + Status */}
-                                      <div className="flex items-center justify-between gap-2">
-                                          <div className="text-[10px] text-muted-foreground" suppressHydrationWarning>
-                                              {new Date(tx.createdAt).toLocaleDateString()} · {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                                          </div>
-                                          <span className={cn(
-                                              "inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border",
-                                              tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : 
-                                              tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : 
-                                              "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800"
-                                          )}>
-                                              {tx.status}
-                                          </span>
-                                      </div>
-                                  </div>
-                              )
-                          })
-                      )}
-                  </div>
+                          <div className="flex items-center justify-between gap-2"><div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()} · {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></div>
+                      </div>
+                  ) })}
               </div>
           </div>
+       </div>
 
-       {/* ════════════════════════════ MERCHANT MODAL ════════════════════════════ */}
-      {merchantModalOpen && (
+       {/* ════════ CENTERED MERCHANT MODAL ════════ */}
+       {merchantModalOpen && (
         <>
-          {/* Backdrop — starts below nav bar, never covers it */}
-          <div
-            className="fixed inset-x-0 top-[64px] bottom-[64px] md:bottom-0 z-[45] bg-black/60 backdrop-blur-[3px] animate-in fade-in duration-200"
-            onClick={closeMerchantModal}
-          />
-
-          {/* Panel — slides down from below top nav, stops above bottom nav on mobile */}
-          <div className="fixed inset-x-0 top-[64px] z-[46] flex flex-col sm:inset-auto sm:top-4 sm:right-4 sm:left-auto animate-in slide-in-from-top-4 duration-300">
-            <div
-              className="w-full sm:w-[440px] bg-background rounded-b-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-border sm:max-h-[calc(100vh-80px)]"
-              style={{ maxHeight: 'calc(100vh - 128px)' }}
-            >
-
-              {/* ── Sticky Modal Header ─────────────────────────────────── */}
-              <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border shrink-0 bg-background/95 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMerchantModal}/>
+          <div className="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none">
+            <div className="w-full max-w-[480px] max-h-[90vh] bg-card rounded-3xl shadow-2xl border border-border flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 fade-in duration-300">
+              <div className="flex items-center justify-between p-5 border-b border-border shrink-0 bg-card">
                 <div className="flex items-center gap-3">
-                  {/* Step indicator dots */}
                   <div className="flex items-center gap-1.5">
-                    {[1, 2, 3].map(step => {
-                      const currentStep = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3
-                      return (
-                        <div
-                          key={step}
-                          className={cn(
-                            "rounded-full transition-all duration-300",
-                            step === currentStep
-                              ? "w-5 h-2 bg-green-500"
-                              : step < currentStep
-                              ? "w-2 h-2 bg-green-500/50"
-                              : "w-2 h-2 bg-muted-foreground/25"
-                          )}
-                        />
-                      )
-                    })}
+                    {[1, 2, 3].map(step => { const cs = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3; return (<div key={step} className={cn("rounded-full transition-all duration-300", step === cs ? "w-6 h-2 bg-green-500" : step < cs ? "w-2 h-2 bg-green-500/50" : "w-2 h-2 bg-muted-foreground/20")}/>) })}
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                      {merchantModalType === 'DEPOSIT' ? 'Merchant Deposit' : 'Merchant Withdrawal'}
-                    </p>
-                    <h2 className="text-sm font-black text-foreground">
-                      {!selectedCountry ? 'Select Country' : !selectedPaymentMethod ? 'Payment Method' : merchantModalType === 'DEPOSIT' ? 'Deposit Details' : 'Withdrawal Details'}
-                    </h2>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{merchantModalType === 'DEPOSIT' ? 'Merchant Deposit' : 'Merchant Withdrawal'}</p>
+                    <h2 className="text-sm font-bold text-foreground">Step {!selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3} of 3</h2>
                   </div>
                 </div>
-
-                {/* Close button */}
-                <button
-                  onClick={closeMerchantModal}
-                  className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"
-                >
-                  <XMarkIcon className="w-4 h-4"/>
-                </button>
+                <button onClick={closeMerchantModal} className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"><XMarkIcon className="w-5 h-5"/></button>
               </div>
-
-              {/* ── Scrollable Body ──────────────────────────────────────── */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 overscroll-contain">
-                {renderMerchantUI(merchantModalType)}
+              <div className="flex-1 overflow-y-auto p-5 overscroll-contain">
+                {message && (
+                  <div className={cn("p-3 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 animate-in fade-in", message.type === 'success' ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800")}>
+                    {message.type === 'success' ? <CheckIcon className="w-4 h-4 shrink-0"/> : <span className="shrink-0">⚠️</span>}{message.text}
+                  </div>
+                )}
+                {renderMerchantContent(merchantModalType)}
               </div>
-
             </div>
           </div>
         </>
-      )}
+       )}
     </div>
   )
 }

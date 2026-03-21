@@ -156,60 +156,119 @@ export async function approveMerchantTransaction(transactionId: string) {
         return { success: false, error: "Transaction not found or already processed" }
     }
 
-    // Process approval
     await prisma.$transaction(async (tx) => {
-        // Update transaction status
+        // 1. Update merchant transaction status
         await tx.merchantTransaction.update({
             where: { id: transactionId },
             data: { status: 'APPROVED' }
         })
 
-        // Deposit: Add to user balance
         if (transaction.type === 'DEPOSIT') {
+            const amount = transaction.amount
+            const arnToMint = amount * 10 // 1 USD = 10 ARN
+
+            // 2. Credit user balance + ARN + totalDeposit
             await tx.user.update({
                 where: { id: transaction.userId },
                 data: { 
-                    balance: { increment: transaction.amount },
-                    dailyEarningWallet: { increment: transaction.amount }
-                    // Convert to ARN logic if needed, but usually simple deposit adds USD balance first?
-                    // User prompt says "1 USD = 10 ARN" note in wallet UI.
-                    // But wallet code says "Deposits are automatically converted to ARN Tokens".
-                    // Let's check wallet-view logic: `res = await deposit(val, "CRYPTO"...)`
-                    // Ah, `submitMerchantDeposit` puts likely just plain balance?
-                    // Wait, `submitMerchantDeposit` just creates a transaction record.
-                    // If approved, we should probably add USD balance or ARN tokens.
-                    // The UI note says "Deposits are automatically converted to ARN Tokens (1 USD = 10 ARN)".
-                    // However, `user.balance` is USD usually. `user.arnBalance` is ARN.
-                    // Let's check `user` model or just add USD balance for now and let user swap?
-                    // The UI for TRC20 says "Deposits are automatically converted to ARN".
-                    // The UI for Merchant says "Submit Deposit Request".
-                    // It doesn't explicitly say "Converted to ARN".
-                    // I'll stick to adding USD `balance` for now as it's safer.
-                } 
+                    balance: { increment: amount },
+                    arnBalance: { increment: arnToMint },
+                    totalDeposit: { increment: amount }
+                }
             })
-            
-            // Add transaction log for user history
-            // Actually `MerchantTransaction` is separate history?
-            // `wallet-view.tsx` fetches `transactions`. Let's see if those include Merchant ones.
-            // `transactions` prop passed to client likely includes user.transactions.
-            // `MerchantTransaction` is separate model.
-            // I should probably also create a `Transaction` record for consistency if I want it to show in main history.
-            // But user just asked for Admin Page right now.
-            // I'll just update status and balance.
+
+            // 3. Create Transaction record (shows in wallet history)
+            await tx.transaction.create({
+                data: {
+                    userId: transaction.userId,
+                    amount: amount,
+                    arnMinted: arnToMint,
+                    type: "DEPOSIT",
+                    status: "COMPLETED",
+                    method: "MERCHANT",
+                    description: `Merchant deposit via ${transaction.countryCode} (${transaction.currency || 'USD'})`
+                }
+            })
+
+            // 4. Log ARN minting
+            await tx.mLMLog.create({
+                data: {
+                    userId: transaction.userId,
+                    type: "TOKEN_MINT",
+                    amount: arnToMint,
+                    description: `Minted ${arnToMint} ARN for merchant deposit of $${amount}`
+                }
+            })
+
+            // 5. Check if user should be auto-unlocked
+            const user = await tx.user.findUnique({
+                where: { id: transaction.userId },
+                select: { id: true, balance: true, isActiveMember: true }
+            })
+
+            if (user && !user.isActiveMember && user.balance >= 1.0) {
+                // Auto-deduct $1 and trigger full unlock flow
+                await tx.user.update({
+                    where: { id: transaction.userId },
+                    data: {
+                        balance: { decrement: 1.0 },
+                        arnBalance: { decrement: 10.0 }
+                    }
+                })
+
+                await tx.transaction.create({
+                    data: {
+                        userId: transaction.userId,
+                        amount: 1.0,
+                        type: "UNLOCK_FEE",
+                        status: "COMPLETED",
+                        description: "Auto-unlocked via merchant deposit approval ($1.00 deducted)."
+                    }
+                })
+
+                // Import and call unlockUserAccount with the transaction context
+                const { unlockUserAccount } = await import("@/lib/mlm")
+                await unlockUserAccount(transaction.userId, tx)
+            }
+
+            // 6. Distribute commissions if user is active (or just became active)
+            const updatedUser = await tx.user.findUnique({
+                where: { id: transaction.userId },
+                select: { isActiveMember: true }
+            })
+
+            if (updatedUser?.isActiveMember && amount > 1.0) {
+                // Commissions on the remaining amount (deposit minus the $1 unlock fee)
+                const { finalizeDeposit } = await import("@/lib/mlm")
+                // Only distribute commissions, don't re-mint (already minted above)
+                const { checkTierUpgrade } = await import("@/lib/mlm")
+                await checkTierUpgrade(transaction.userId, tx)
+            }
         }
         
-        // Withdrawal: Deduct from balance (already deducted? No, usually hold or deduct on request)
-        // If logic handles deduction on request, good. If not, deduct now.
-        // `submitMerchantWithdrawal` checks balance but doesn't deduct.
+        // WITHDRAWAL: Deduct from balance
         if (transaction.type === 'WITHDRAWAL') {
-             await tx.user.update({
+            await tx.user.update({
                 where: { id: transaction.userId },
                 data: { balance: { decrement: transaction.amount } }
+            })
+
+            await tx.transaction.create({
+                data: {
+                    userId: transaction.userId,
+                    amount: transaction.amount,
+                    type: "WITHDRAWAL",
+                    status: "COMPLETED",
+                    method: "MERCHANT",
+                    description: `Merchant withdrawal via ${transaction.countryCode} (${transaction.currency || 'USD'})`
+                }
             })
         }
     })
     
     revalidatePath("/admin/merchant/deposits")
+    revalidatePath("/dashboard/wallet")
+    revalidatePath("/dashboard")
     return { success: true }
   } catch (error) {
     console.error("Approve Transaction Error:", error)

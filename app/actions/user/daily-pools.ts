@@ -24,13 +24,11 @@ export async function createDailyPool(amount: number) {
         expiresAt.setDate(expiresAt.getDate() + 30)
 
         await prisma.$transaction(async (tx) => {
-            // 1. Deduct from Daily Earning Wallet
             await tx.user.update({
                 where: { id: session.user.id },
                 data: { dailyEarningWallet: { decrement: amount } }
             })
 
-            // 2. Create the Pool Investment
             await tx.dailyEarningInvestment.create({
                 data: {
                     userId: session.user.id!,
@@ -41,7 +39,6 @@ export async function createDailyPool(amount: number) {
                 }
             })
 
-            // 3. Log the action
             await tx.transaction.create({
                 data: {
                     userId: session.user.id!,
@@ -54,7 +51,7 @@ export async function createDailyPool(amount: number) {
             })
         })
 
-        revalidatePath("/dashboard/pools/daily")
+        revalidatePath("/dashboard/pools/daily-earning")
         return { success: true, message: `Pool of $${amount} activated for 30 days.` }
 
     } catch (error: any) {
@@ -80,16 +77,14 @@ export async function transferToMainWallet(amount: number) {
         }
 
         await prisma.$transaction(async (tx) => {
-            // 1. Deduct from Daily Earning Wallet
             await tx.user.update({
                 where: { id: session.user.id },
-                data: { 
+                data: {
                     dailyEarningWallet: { decrement: amount },
                     balance: { increment: amount }
                 }
             })
 
-            // 2. Log the action
             await tx.transaction.create({
                 data: {
                     userId: session.user.id!,
@@ -102,7 +97,7 @@ export async function transferToMainWallet(amount: number) {
             })
         })
 
-        revalidatePath("/dashboard/pools/daily")
+        revalidatePath("/dashboard/pools/daily-earning")
         revalidatePath("/dashboard/wallet")
         return { success: true, message: `Transferred $${amount} to Main Wallet.` }
 
@@ -145,16 +140,14 @@ export async function transferToDailyWallet(amount: number) {
         }
 
         await prisma.$transaction(async (tx) => {
-            // 1. Deduct from Main Wallet, Add to Daily Earning Wallet
             await tx.user.update({
                 where: { id: session.user.id },
-                data: { 
+                data: {
                     balance: { decrement: amount },
                     dailyEarningWallet: { increment: amount }
                 }
             })
 
-            // 2. Log the action
             await tx.transaction.create({
                 data: {
                     userId: session.user.id!,
@@ -167,7 +160,7 @@ export async function transferToDailyWallet(amount: number) {
             })
         })
 
-        revalidatePath("/dashboard/pools/daily")
+        revalidatePath("/dashboard/pools/daily-earning")
         revalidatePath("/dashboard/wallet")
         return { success: true, message: `Transferred $${amount} to Daily Earnings Wallet.` }
 

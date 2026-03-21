@@ -75,7 +75,12 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     try {
       const res = await registerUser(formData)
       if (res?.error) { setError(res.error); setLoading(false) }
-      else router.push("/login?signup=success")
+      else {
+        const userEmail = res?.email || formData.get("email") as string
+        const pwdEncoded = encodeURIComponent(formData.get("password") as string)
+        document.cookie = "_signup_pwd=" + pwdEncoded + "; path=/; max-age=300; SameSite=Strict"
+        router.push("/verify-email?email=" + encodeURIComponent(userEmail))
+      }
     } catch {
       setError("An unexpected error occurred.")
       setLoading(false)
@@ -86,7 +91,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     setGoogleLoading(true)
     try {
       const ref = document.querySelector('input[name="referralCode"]') as HTMLInputElement
-      if (ref?.value) document.cookie = `referral_code=${ref.value}; path=/; max-age=3600`
+      if (ref?.value) document.cookie = "referral_code=" + ref.value + "; path=/; max-age=3600"
       await signIn("google", { callbackUrl: "/dashboard" })
     } catch {
       setError("Google sign-in failed.")
@@ -157,7 +162,6 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 {showPwd ? <EyeSlashIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
               </button>
             </div>
-            {/* Strength bar */}
             {pwd.length > 0 && (
               <div className="mt-1.5">
                 <div className="flex gap-0.5">
@@ -191,7 +195,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
           </div>
         </div>
 
-        {/* Row 4: Referral (optional, compact) */}
+        {/* Row 4: Referral */}
         <div>
           <label htmlFor="referralCode" className={labelClass}>
             Referral Code <span className="normal-case font-normal tracking-normal text-slate-600">(optional)</span>

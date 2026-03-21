@@ -1,3 +1,11 @@
+// ============================================================
+// FILE: app/actions/spin.ts  (REPLACE)
+// FIXES:
+//   1. Removed deterministic logic — now truly random every spin
+//   2. Creates Transaction record so wins show in wallet history
+//   3. All rewards properly reflect in dashboard/wallet
+// ============================================================
+
 "use server"
 
 import { auth } from "@/auth"
@@ -66,7 +74,6 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
     if (type === "FREE") {
         const lastSpin = userRecord.lastSpinTime ? new Date(userRecord.lastSpinTime) : null
         
-        // Dynamic Cooldown Check (Hardcoded to 24 hours for FREE spins)
         if (lastSpin) {
             const diffMs = now.getTime() - lastSpin.getTime()
             const diffHours = diffMs / (1000 * 60 * 60)
@@ -89,7 +96,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             
             if (diffHours < spinSettings.premiumSpinCooldownHours) {
                 if (userRecord.premiumBonusSpins > 0) {
-                    // Use bonus spin
+                    // Use bonus spin — allow through
                 } else {
                      const remainingHours = Math.ceil(spinSettings.premiumSpinCooldownHours - diffHours)
                      return { success: false, message: `Premium Wheel refreshing! Come back in ${remainingHours} hours.` }
@@ -98,14 +105,14 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
     }
 
-    // 2. Smart Reward Logic
+    // 2. Load rewards (DB overrides defaults)
     let rewards: SpinReward[] = dbRewards.length > 0 ? dbRewards.map(r => ({
         ...r,
         type: r.type as any,
         textColor: r.textColor || undefined
     })) : (type === "FREE" ? FREE_REWARDS : PREMIUM_REWARDS)
     
-    // A. Newbie Logic
+    // A. Newbie Welcome Bonus — remove Try Again for first few days
     if (type === "FREE") {
         const createdAt = new Date(userRecord.createdAt) 
         const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
@@ -125,73 +132,39 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
     }
 
-    // RNG Selection / Deterministic Selection
+    // ╔══════════════════════════════════════════════════════════════╗
+    // ║  FIX: Purely random selection — no deterministic override    ║
+    // ║  Every spin is random based on probability weights           ║
+    // ╚══════════════════════════════════════════════════════════════╝
     let selectedReward: SpinReward | undefined
+
+    // Force surprise if eligible
     if (forceSurprise) {
         selectedReward = rewards.find(r => r.type === "SURPRISE")
     }
 
+    // Standard probability-weighted random selection
     if (!selectedReward) {
-        if (type === "FREE") {
-            // Apply deterministic, controlled logic for FREE spins based on existing spin history
-            const spinCount = userRecord.dailySpinCount; // Tracks total free spins explicitly
-            
-            // "Good" rewards are ARN rewards
-            const goodRewards = rewards.filter(r => r.type === "ARN");
-            // "Bad" rewards are TRY_AGAIN (yielding 0 points)
-            const badRewards = rewards.filter(r => r.type === "TRY_AGAIN");
+        const rand = Math.random()
+        let cumulative = 0
+        const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
+        const normalize = totalProb > 0 ? 1 / totalProb : 1
 
-            // For the first two spins (0, 1), give a reasonably good reward (e.g. 5 ARN or 7 ARN)
-            if (spinCount < 2) {
-                // Ensure good rewards exist as fallback
-                if (goodRewards.length > 0) {
-                     // Prefer the lower values between 5 and 7 ARN
-                     const fiveArn = goodRewards.find(r => r.value === 5)
-                     const sevenArn = goodRewards.find(r => r.value === 7)
-                     
-                     if (spinCount === 0 && fiveArn) selectedReward = fiveArn;
-                     else if (spinCount === 1 && sevenArn) selectedReward = sevenArn;
-                     else selectedReward = goodRewards[0]; // fallback
-                }
-            } else {
-                // Cycle: 1 Good Spin followed by 2 Bad Spins
-                // Pattern starting from spinCount 2: 
-                // spinCount 2: (2-2)%3 = 0 -> Good
-                // spinCount 3: (3-2)%3 = 1 -> Bad
-                // spinCount 4: (4-2)%3 = 2 -> Bad
-                const cyclePosition = (spinCount - 2) % 3;
-
-                if (cyclePosition === 0 && goodRewards.length > 0) {
-                     // Prefer lower ARNs for "Good" outcome to not break bank
-                     const lowArn = goodRewards.find(r => r.value <= 7);
-                     selectedReward = lowArn || goodRewards[0];
-                } else if (badRewards.length > 0) {
-                     selectedReward = badRewards[0]; // "Try Again"
-                }
-            }
-        }
-
-        // Standard probability RNG if deterministic logic didn't hit or it's PREMIUM
-        if (!selectedReward) {
-            const rand = Math.random()
-            let cumulative = 0
-            const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
-            const normalize = 1 / totalProb
-
-            for (const reward of rewards) {
-                cumulative += reward.probability * normalize
-                if (rand < cumulative) {
-                    selectedReward = reward
-                    break
-                }
+        for (const reward of rewards) {
+            cumulative += reward.probability * normalize
+            if (rand < cumulative) {
+                selectedReward = reward
+                break
             }
         }
     }
     
+    // Final fallback
     if (!selectedReward) selectedReward = rewards[rewards.length - 1]
 
-    // Apply Rewards
+    // 3. Apply Rewards
     try {
+        // Admin simulation (no DB writes)
         if (userId === "super-admin-id") {
             const cookieStore = await cookies();
             if (type === "FREE") {
@@ -204,14 +177,19 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
 
         let logDescription = `Won ${selectedReward.label} in ${type} Spin`
+        let earnedAmount = 0
+        let earnedArn = 0
 
         if (selectedReward.type === "ARN") {
              await addUserPoints(userId, selectedReward.value)
+             earnedArn = selectedReward.value
+             earnedAmount = selectedReward.value / 10 // USD equivalent
         } else if (selectedReward.type === "MONEY") {
              await prisma.user.update({
                  where: { id: userId },
                  data: { balance: { increment: selectedReward.value } }
              })
+             earnedAmount = selectedReward.value
         } else if (selectedReward.type === "BONUS_SPIN") {
              await prisma.user.update({
                  where: { id: userId },
@@ -221,8 +199,14 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
              const giftType = Math.random() > 0.5 ? "ARN" : "MONEY"
              const giftValue = giftType === "ARN" ? 25 : 0.50
              
-             if (giftType === "ARN") await addUserPoints(userId, giftValue)
-             else await prisma.user.update({ where: { id: userId }, data: { balance: { increment: giftValue } }})
+             if (giftType === "ARN") {
+                 await addUserPoints(userId, giftValue)
+                 earnedArn = giftValue
+                 earnedAmount = giftValue / 10
+             } else {
+                 await prisma.user.update({ where: { id: userId }, data: { balance: { increment: giftValue } }})
+                 earnedAmount = giftValue
+             }
              
              logDescription = `Won SURPRISE GIFT (${giftType}: ${giftValue})`
              
@@ -231,7 +215,26 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                  data: { lastSurpriseDate: new Date() }
              })
         }
+
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  FIX: Create Transaction record so wins show in wallet  ║
+        // ║  Only for rewards that have monetary/ARN value           ║
+        // ╚══════════════════════════════════════════════════════════╝
+        if (earnedAmount > 0 || earnedArn > 0) {
+            await prisma.transaction.create({
+                data: {
+                    userId,
+                    amount: earnedAmount,
+                    arnMinted: earnedArn,
+                    type: "REWARD",
+                    status: "COMPLETED",
+                    method: "SPIN",
+                    description: logDescription
+                }
+            })
+        }
         
+        // Update spin timestamps
         const updateData: any = {}
         if (type === "FREE") {
              updateData.lastSpinTime = new Date()
@@ -252,6 +255,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             data: updateData
         })
         
+        // MLM Log (for admin audit trail)
         await prisma.mLMLog.create({
             data: {
                 userId,
@@ -262,6 +266,8 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         })
 
         revalidatePath("/dashboard/spin")
+        revalidatePath("/dashboard")
+        revalidatePath("/dashboard/wallet")
         return { success: true, reward: selectedReward, message: `You won ${selectedReward.label}!` }
 
     } catch (e) {

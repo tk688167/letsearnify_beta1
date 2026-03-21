@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { checkTierUpgrade } from "@/lib/mlm"
 
 export async function getPendingCompletions() {
     const session = await auth()
@@ -39,7 +40,6 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
         const reward = completion.task.reward
 
         await prisma.$transaction(async (tx) => {
-            // 0. Fetch user activation status
             const user = await tx.user.findUnique({
                 where: { id: completion.userId },
                 select: { isActiveMember: true }
@@ -47,7 +47,6 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
 
             const isLocked = !user?.isActiveMember;
 
-            // 1. Update Completion Status
             await tx.taskCompletion.update({
                 where: { id: completionId },
                 data: {
@@ -57,7 +56,6 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 }
             })
 
-            // 2. Credit User Balance (Active or Locked)
             await tx.user.update({
                 where: { id: completion.userId },
                 data: (isLocked ? {
@@ -69,7 +67,6 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 }) as any
             })
 
-            // 3. Create Transaction Record
             await tx.transaction.create({
                 data: {
                     userId: completion.userId,
@@ -78,16 +75,20 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                     status: isLocked ? "LOCKED" : "COMPLETED",
                     method: "SYSTEM",
                     description: `Task Approved: ${completion.task.title} ${isLocked ? '(Locked)' : ''}`,
-                    arnMinted: reward
+                    arnMinted: reward * 10  // Fixed: was `reward`, should be reward * 10
                 }
             })
         })
 
+        // Check if task reward triggers a tier upgrade
+        await checkTierUpgrade(completion.userId)
+
         revalidatePath("/admin/tasks/approvals")
+        revalidatePath("/dashboard")
+        revalidatePath("/dashboard/wallet")
         return { success: true }
     } catch (error: any) {
         console.error("Approval error:", error)
-        // Return specific error message for debugging
         return { success: false, error: error.message || "Failed to approve task" }
     }
 }

@@ -14,7 +14,6 @@ import {
     StarIcon,
     CheckBadgeIcon,
     KeyIcon,
-    DocumentTextIcon,
     Cog6ToothIcon
 } from "@heroicons/react/24/outline"
 import { User } from "@prisma/client"
@@ -32,7 +31,6 @@ interface ProfileViewProps {
     teamSize: number
 }
 
-
 export default function ProfileView({ user, teamSize }: ProfileViewProps) {
 
     const [activeTab, setActiveTab] = useState("overview")
@@ -46,14 +44,11 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
     return (
         <div className="max-w-5xl mx-auto pb-12">
             
-            {/* 1. HERO SECTION - NEW STABLE FLOW LAYOUT */}
+            {/* 1. HERO SECTION */}
             <div className="mb-24 relative group">
-                {/* A. Cover Photo (Static Height) */}
                 <div className="h-48 md:h-72 w-full rounded-[2.5rem] bg-gradient-to-r from-background via-indigo-900/50 to-indigo-800/50 shadow-2xl relative overflow-hidden ring-1 ring-white/10">
                     <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    {/* Status Badge (Absolute to Cover) */}
                     <div className="absolute top-6 right-6 z-10">
                         <div className="px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-2 text-white font-bold text-xs uppercase tracking-wider shadow-xl">
                             <ShieldCheckIcon className={cn("w-4 h-4", user.isActiveMember ? "text-emerald-400" : "text-gray-400")} />
@@ -62,10 +57,7 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                     </div>
                 </div>
 
-                {/* B. Profile Bar (Negative Margin, In-Flow) */}
                 <div className="px-6 md:px-12 -mt-16 md:-mt-20 relative z-20 flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
-                    
-                    {/* 1. Avatar (Fixed Size) */}
                     <div className="shrink-0 relative">
                         <div className="w-32 h-32 md:w-48 md:h-48 rounded-[2rem] border-[6px] border-background bg-background shadow-2xl overflow-hidden relative group cursor-pointer transition-transform hover:scale-[1.02]">
                             {user.image ? (
@@ -75,15 +67,14 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                                     <UserCircleIcon className="w-20 h-20 text-muted-foreground" />
                                 </div>
                             )}
-                            
-                            {/* Hover Edit Overlay */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <CameraIcon className="w-8 h-8 text-white/90" />
-                            </div>
+                            <Link href="/dashboard/profile/edit">
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <CameraIcon className="w-8 h-8 text-white/90" />
+                                </div>
+                            </Link>
                         </div>
                     </div>
 
-                    {/* 2. User Identity Block (Self-Stabilizing) */}
                     <div className="flex-1 md:mb-6 min-w-0 pt-2 md:pt-0">
                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-1 justify-center md:justify-start">
                             <h1 className="text-3xl md:text-5xl font-bold text-foreground font-serif tracking-tight">
@@ -103,7 +94,6 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                         </p>
                     </div>
 
-                    {/* 3. Action Buttons (Right Aligned) */}
                     <div className="md:mb-8 flex items-center gap-3 w-full md:w-auto">
                         <Link href="/dashboard/profile/edit" className="w-full md:w-auto">
                             <button className="w-full md:w-auto px-6 py-3 bg-card border border-border text-foreground font-bold rounded-xl shadow-sm hover:bg-muted/50 hover:border-border/80 transition-all flex items-center justify-center gap-2 group whitespace-nowrap">
@@ -143,46 +133,15 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
             {/* 3. CONTENT AREA */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 md:px-0">
                 
-                {/* LEFT COLUMN: Main Content */}
                 <div className="lg:col-span-2 space-y-6">
                     
-                    {/* STATS OVERVIEW CARD */}
                     <div className="grid grid-cols-2 gap-4">
-                        <StatCard 
-                            title="Total Wallet (USD)"
-                            value={formatCurrency(user.balance || 0)}
-                            icon={WalletIcon}
-                            color="emerald"
-                            delay={0.1}
-                        />
-                        <StatCard 
-                            title="Community"
-                            value={teamSize.toString()}
-                            suffix=" Members"
-                            icon={UsersIcon}
-                            color="blue"
-                            delay={0.2}
-                        />
-
-                        <StatCard 
-                            title="Loyalty Tier"
-                            value={user.tier}
-                            icon={StarIcon}
-                            color="amber"
-                            delay={0.3}
-                        />
-                        <StatCard 
-                            title="Total ARN"
-                            value={((user.balance || 0) * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            suffix=" ARN"
-                            icon={CheckBadgeIcon}
-                            color="purple"
-                            delay={0.4}
-                        />
+                        <StatCard title="Total Wallet (USD)" value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
+                        <StatCard title="Community" value={teamSize.toString()} suffix=" Members" icon={UsersIcon} color="blue" delay={0.2} />
+                        <StatCard title="Loyalty Tier" value={user.tier} icon={StarIcon} color="amber" delay={0.3} />
+                        <StatCard title="Total ARN" value={((user.balance || 0) * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} suffix=" ARN" icon={CheckBadgeIcon} color="purple" delay={0.4} />
                     </div>
 
-
-                    {/* DYNAMIC TAB CONTENT */}
                     <div className="bg-card rounded-[2rem] border border-border shadow-sm p-8 min-h-[400px]">
                         {activeTab === "overview" && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
@@ -225,38 +184,31 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                                 <h3 className="text-lg font-bold text-foreground font-serif mb-4">Security Settings</h3>
                                 
-                                <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group">
-                                    <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                        <KeyIcon className="w-5 h-5" />
+                                <Link href="/dashboard/profile/edit">
+                                    <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group">
+                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                            <KeyIcon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-foreground">Change Password</h4>
+                                            <p className="text-xs text-muted-foreground">Update your password regularly for security</p>
+                                        </div>
+                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Update</span>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-foreground">Change Password</h4>
-                                        <p className="text-xs text-muted-foreground">Update your password regularly</p>
-                                    </div>
-                                    <button className="text-sm font-bold text-blue-600 dark:text-blue-400">Update</button>
-                                </div>
+                                </Link>
 
-                                <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                        <ShieldCheckIcon className="w-5 h-5" />
+                                <Link href="/dashboard/profile/edit">
+                                    <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group mt-4">
+                                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                            <CameraIcon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-foreground">Update Profile Photo</h4>
+                                            <p className="text-xs text-muted-foreground">Upload or change your profile picture</p>
+                                        </div>
+                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Edit</span>
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-foreground">KYC Verification</h4>
-                                        <p className="text-xs text-muted-foreground">Status: <span className={cn("font-bold uppercase", user.kycStatus === 'VERIFIED' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-500')}>{user.kycStatus}</span></p>
-                                    </div>
-                                    <button className="text-sm font-bold text-emerald-600 dark:text-emerald-400">View</button>
-                                </div>
-
-                                <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group">
-                                    <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                        <DocumentTextIcon className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-foreground">Login History</h4>
-                                        <p className="text-xs text-muted-foreground">Monitor active sessions</p>
-                                    </div>
-                                    <button className="text-sm font-bold text-muted-foreground hover:text-foreground">View Logs</button>
-                                </div>
+                                </Link>
                             </motion.div>
                         )}
 
@@ -264,7 +216,6 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                                 <h3 className="text-lg font-bold text-foreground font-serif mb-4">Preferences</h3>
                                 <p className="text-muted-foreground text-sm">Manage your notification and display settings.</p>
-                                {/* Placeholder for settings toggles */}
                                 <div className="h-48 bg-muted/30 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
                                     Notification Settings Coming Soon
                                 </div>
@@ -273,13 +224,12 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Sidebar (Progress/Badges) */}
+                {/* RIGHT COLUMN */}
                 <div className="space-y-6">
                     <div className="bg-gradient-to-br from-indigo-900 to-blue-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-lg">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-8 -mt-8"></div>
                         <h3 className="text-lg font-serif font-bold mb-1">Current Tier</h3>
                         <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest mb-6">Progress Tracker</p>
-                        
                         <div className="mb-6 text-center">
                             <div className="w-20 h-20 mx-auto bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-4 ring-1 ring-white/20">
                                 <StarIcon className="w-10 h-10 text-yellow-400" />
@@ -287,7 +237,6 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                             <h2 className="text-2xl font-bold">{user.tier}</h2>
                             <p className="text-sm text-indigo-200">Next: Upgrade Available</p>
                         </div>
-
                         <Link href="/dashboard/tiers" className="block w-full py-3 bg-white text-indigo-900 font-bold text-center rounded-xl hover:bg-indigo-50 transition-colors shadow-lg">
                             View All Benefits
                         </Link>
@@ -311,7 +260,6 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     )
@@ -333,14 +281,9 @@ function StatCard({ title, value, suffix, icon: Icon, color, delay }: any) {
         amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
         purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20"
     }
-
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay, duration: 0.5 }}
-            className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.5 }}
+            className="bg-card p-5 rounded-2xl border border-border shadow-sm hover:shadow-md transition-shadow">
             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-3 border", colors[color])}>
                 <Icon className="w-5 h-5" />
             </div>

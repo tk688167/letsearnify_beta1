@@ -1,3 +1,4 @@
+
 import type { NextAuthConfig } from "next-auth"
 
 export const authConfig = {
@@ -10,26 +11,24 @@ export const authConfig = {
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard")
       const isOnAdmin = nextUrl.pathname.startsWith("/admin")
 
+      // ── NEW: Allow /verify-email without auth ──
+      if (nextUrl.pathname.startsWith("/verify-email")) return true
+      // ─────────────────────────────────────────────
+
       if (isOnAdmin) {
         if (isLoggedIn && (auth?.user as any)?.role === "ADMIN") return true
         
-        // Redirect unauthorized logged-in users to /unauthorized or home
         if (isLoggedIn) return Response.redirect(new URL('/unauthorized', nextUrl))
         
-        return false // Block unauthenticated users
+        return false
       }
       
       if (isOnDashboard) {
         if (!isLoggedIn) return false
         
-        // Anti-Gravity Enforcement: Block Inactive Users from Earning Features
-        // We need to check the session user's status. 
-        // Note: auth.user is the session user here.
         if (isRouteRestricted(nextUrl.pathname)) {
             const user = auth.user as any;
-            // Strict Check: isActiveMember must be true
             if (!user?.isActiveMember) {
-                // Redirect to dashboard (FeatureGuard will show "Deposit Required")
                 return Response.redirect(new URL('/dashboard?error=deposit_required', nextUrl))
             }
         }
@@ -62,7 +61,6 @@ export const authConfig = {
   providers: [],
 } satisfies NextAuthConfig
 
-// Anti-Gravity: Route Guard Helper
 function isRouteRestricted(path: string) {
     const restricted = ['/dashboard/tasks', '/dashboard/marketplace', '/dashboard/wallet/withdraw'];
     return restricted.some(r => path.startsWith(r));

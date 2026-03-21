@@ -18,19 +18,58 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
       })
       
       if (user) {
-          // Fetch needed data
-          [wallets, transactions, merchantSettings] = await Promise.all([
+          const [platformWallets, systemTransactions, merchantTransactions, merchantCountries] = await Promise.all([
              prisma.platformWallet.findMany(),
              prisma.transaction.findMany({
                   where: { userId: user.id },
                   orderBy: { createdAt: "desc" }
               }),
+             // Fetch merchant transactions (deposits & withdrawals) for this user
+             prisma.merchantTransaction.findMany({
+                  where: { userId: user.id },
+                  orderBy: { createdAt: "desc" }
+             }),
              prisma.merchantCountry.findMany({
                   include: { methods: true, contacts: true },
                   orderBy: { createdAt: 'asc' }
               })
           ]);
+
+          wallets = platformWallets;
+          merchantSettings = merchantCountries;
+
+          // Merge merchant transactions into the main transactions array
+          // so they show in wallet history with proper status (PENDING/APPROVED/REJECTED)
+          const mappedMerchantTx = merchantTransactions.map((mtx: any) => ({
+            id: mtx.id,
+            userId: mtx.userId,
+            amount: mtx.amount,
+            arnMinted: mtx.type === 'DEPOSIT' && mtx.status === 'APPROVED' ? mtx.amount * 10 : 0,
+            type: mtx.type === 'DEPOSIT' ? 'DEPOSIT' : 'WITHDRAWAL',
+            status: mtx.status === 'APPROVED' ? 'COMPLETED' : mtx.status === 'REJECTED' ? 'FAILED' : 'PENDING',
+            method: 'MERCHANT',
+            description: mtx.type === 'DEPOSIT' 
+              ? `Merchant deposit via ${mtx.countryCode} (${mtx.currency || 'Local'})` 
+              : `Merchant withdrawal via ${mtx.countryCode} (${mtx.currency || 'Local'})`,
+            createdAt: mtx.createdAt,
+            _isMerchant: true, // flag to avoid duplicates
+          }));
+
+          // Filter out system transactions that were created by merchant approval
+          // (they have method: "MERCHANT" and would duplicate the merchant tx)
+          const systemTxFiltered = systemTransactions.filter((tx: any) => 
+            !(tx.method === 'MERCHANT' && mappedMerchantTx.some((mtx: any) => 
+              mtx.status === 'COMPLETED' && 
+              Math.abs(new Date(tx.createdAt).getTime() - new Date(mtx.createdAt).getTime()) < 60000 &&
+              tx.amount === mtx.amount
+            ))
+          );
+
+          // Combine and sort by date
+          transactions = [...systemTxFiltered, ...mappedMerchantTx]
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       }
+
       if (user) {
           user.withdrawalLimit = getTierWithdrawLimit(user.tier);
       }
@@ -52,7 +91,6 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
       redirect("/login")
   }
 
-  // Pass everything to the Client Component
   return (
     <div className="p-6 max-w-7xl mx-auto">
        <div className="relative overflow-hidden rounded-3xl text-white mb-8 shadow-sm border border-border"
@@ -77,7 +115,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
        
        <WalletClient 
           user={user} 
-          transactions={transactions} 
+          transactions={JSON.parse(JSON.stringify(transactions))} 
           platformWallets={wallets}
           merchantSettings={merchantSettings} 
        />

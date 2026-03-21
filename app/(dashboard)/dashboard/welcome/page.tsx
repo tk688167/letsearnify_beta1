@@ -26,7 +26,6 @@ export const metadata = {
 export default async function ExplorerPage() {
   const session = await auth();
   
-  // Fetch vital user data for context
   const user = session?.user ? await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { 
@@ -42,8 +41,7 @@ export default async function ExplorerPage() {
   return (
     <main className="min-h-screen bg-background pb-20 transition-colors duration-300">
 
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-
+<div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
             {/* ═══ EXPLORER PAGE BANNER ═══ */}
             <div className="relative overflow-hidden rounded-2xl text-white"
               style={{ background: "linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #1e1b4b 100%)" }}>
@@ -54,12 +52,10 @@ export default async function ExplorerPage() {
                 style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
               <div className="relative z-10 px-5 sm:px-8 py-4 sm:py-5 text-center">
-                {/* Icon */}
                 <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 border border-white/15 mb-2.5 shadow">
                   <GlobeAltIcon className="w-4 h-4 text-violet-200" />
                 </div>
 
-                {/* Badge */}
                 <div className="block mb-1">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/8 border border-white/10 text-[8px] font-bold uppercase tracking-[0.18em] text-violet-300/80">
                     <span className="w-1 h-1 rounded-full bg-violet-300 animate-pulse" />
@@ -67,18 +63,15 @@ export default async function ExplorerPage() {
                   </span>
                 </div>
 
-                {/* Greeting label */}
                 <p className="text-white/30 text-[10px] font-medium tracking-widest uppercase mb-0.5">
                   Hello
                 </p>
 
-                {/* Name */}
                 <h1 className="text-sm sm:text-base font-bold leading-tight tracking-tight mb-0.5">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-200 via-white to-fuchsia-200">{userName}</span>
                   {isVerified && <CheckBadgeIcon className="inline w-3.5 h-3.5 text-violet-300 align-text-bottom ml-1" />}
                 </h1>
 
-                {/* Subtitle */}
                 <p className="text-violet-200/40 text-[10px] max-w-xs mx-auto">
                   Explore your earning ecosystem
                 </p>
@@ -97,9 +90,9 @@ export default async function ExplorerPage() {
                 </div>
             </section>
 
-            {/* --- 3. FEATURE SECTIONS (Reordered) --- */}
+            {/* --- 3. FEATURE SECTIONS --- */}
 
-            {/* TASK CENTER (Moved to Top) */}
+            {/* TASK CENTER */}
             <FeatureCard 
                 href="/dashboard/tasks"
                 icon={BriefcaseIcon}
@@ -111,7 +104,7 @@ export default async function ExplorerPage() {
                 tag="Daily Updates"
             />
             
-            {/* TIER SYSTEM (Shortened) */}
+            {/* TIER SYSTEM */}
             <FeatureCard 
                 href="/dashboard/tiers"
                 icon={TrophyIcon}
@@ -125,14 +118,12 @@ export default async function ExplorerPage() {
                 ]}
             />
 
-            {/* PASSIVE INCOME POOLS (Condensed) */}
+            {/* PASSIVE INCOME POOLS — Non-clickable Coming Soon cards */}
             <div className="space-y-3">
                 <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">Passive Income</h2>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {/* CBSP */}
                     <MiniFeatureCard 
-                        href="/dashboard/profit/cbsp"
                         icon={GlobeAltIcon}
                         color="text-blue-600 dark:text-blue-400"
                         bg="bg-blue-50 dark:bg-blue-900/20"
@@ -140,9 +131,7 @@ export default async function ExplorerPage() {
                         desc="Global profit sharing for active members."
                     />
 
-                    {/* ROYALTY */}
                     <MiniFeatureCard 
-                        href="/dashboard/profit/royalty"
                         icon={SparklesIcon}
                         color="text-purple-600 dark:text-purple-400"
                         bg="bg-purple-50 dark:bg-purple-900/20"
@@ -150,9 +139,7 @@ export default async function ExplorerPage() {
                         desc="Leadership bonuses for team builders."
                     />
 
-                    {/* ACHIEVEMENTS */}
                     <MiniFeatureCard 
-                        href="/dashboard/profit/achievements"
                         icon={TrophyIcon}
                         color="text-pink-600 dark:text-pink-400"
                         bg="bg-pink-50 dark:bg-pink-900/20"
@@ -162,11 +149,10 @@ export default async function ExplorerPage() {
                 </div>
             </div>
 
-             {/* IN DEVELOPMENT (Mudaraba + Marketplace) */}
+             {/* IN DEVELOPMENT */}
             <div className="space-y-3 pt-2">
                 <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">In Development</h2>
 
-                {/* MUDARABA (Moved Here) */}
                 <FeatureCard 
                     href="/dashboard/investments"
                     icon={ChartBarIcon}
@@ -180,7 +166,6 @@ export default async function ExplorerPage() {
                     isLocked={true}
                 />
 
-                {/* MARKETPLACE */}
                 <FeatureCard 
                     href="/dashboard/marketplace"
                     icon={BuildingStorefrontIcon}
@@ -194,7 +179,7 @@ export default async function ExplorerPage() {
                 />
             </div>
 
-             {/* FUTURE PROJECTS (Updated List) */}
+             {/* FUTURE PROJECTS */}
              <div className="bg-gradient-to-br from-indigo-900 to-purple-900 rounded-2xl p-6 text-white text-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                     <CpuChipIcon className="w-32 h-32" />
@@ -264,14 +249,15 @@ function FeatureCard({ href, icon: Icon, iconColor, iconBg, title, subtitle, des
     )
 }
 
-function MiniFeatureCard({ href, icon: Icon, color, bg, title, desc }: any) {
+function MiniFeatureCard({ icon: Icon, color, bg, title, desc }: any) {
     return (
-        <Link href={href} className="flex flex-col p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all group">
-            <div className={`w-8 h-8 rounded-lg ${bg} ${color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+        <div className="flex flex-col p-4 bg-card rounded-xl border border-border shadow-sm opacity-80 cursor-default">
+            <div className={`w-8 h-8 rounded-lg ${bg} ${color} flex items-center justify-center mb-3`}>
                 <Icon className="w-4 h-4" />
             </div>
-            <h4 className="font-bold text-foreground text-sm mb-1 group-hover:text-primary transition-colors">{title}</h4>
-            <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{desc}</p>
-        </Link>
+            <h4 className="font-bold text-foreground text-sm mb-1">{title}</h4>
+            <p className="text-xs text-muted-foreground leading-snug line-clamp-2 mb-2">{desc}</p>
+            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground self-start">Coming Soon</span>
+        </div>
     )
 }

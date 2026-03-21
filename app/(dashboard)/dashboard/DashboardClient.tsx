@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { 
   BanknotesIcon, 
@@ -26,21 +27,61 @@ import { CompanyPools } from "./CompanyPools"
 import { TierProgress } from "./TierProgress"
 import { DailyEarningWidget } from "@/app/components/dashboard/DailyEarningWidget"
 
-// Feature Configuration (Can be moved to DB/Env later)
 const FEATURE_FLAGS = {
-    TASKS: true,      // Set to true when ready to go Live
-    PLAY_EARN: false    // Set to true when ready to go Live
+    TASKS: true,
+    PLAY_EARN: false
+}
+
+// Feature info for the unlock modal
+const FEATURE_INFO: Record<string, { title: string, description: string, benefits: string[], redirectTo: string }> = {
+    WITHDRAW: {
+        title: "Withdrawal & Transfer",
+        description: "To unlock withdrawals and transfers, please activate your account with $1.",
+        benefits: ["Withdraw funds to TRC20 wallet", "Transfer between pools", "Tier-based withdrawal limits", "24/7 processing"],
+        redirectTo: "/dashboard/wallet?tab=deposit"
+    },
+    MARKETPLACE: {
+        title: "Marketplace",
+        description: "This is the Marketplace page, where users can access platform products and services. To unlock the Marketplace, please activate your account with $1.",
+        benefits: ["Marketplace Access", "Buy & Sell digital assets", "Peer-to-peer economy", "Exclusive listings"],
+        redirectTo: "/dashboard/wallet?tab=deposit"
+    },
+    MUDARABA: {
+        title: "Mudarabah Pool",
+        description: "To unlock the Mudarabah Pool and ethical investment features, please activate your account with $1.",
+        benefits: ["Mudarabah Pool Access", "Profit-sharing investments", "Islamic Finance principles", "Monthly distributions"],
+        redirectTo: "/dashboard/wallet?tab=deposit"
+    },
+    POOLS: {
+        title: "Reward Pools",
+        description: "To unlock Reward Pools and passive income features, please activate your account with $1.",
+        benefits: ["CBSP Pool Access", "Royalty Pool Access", "Achievement Rewards", "Global profit sharing"],
+        redirectTo: "/dashboard/wallet?tab=deposit"
+    },
+    PLAY_EARN: {
+        title: "Play & Earn",
+        description: "To unlock Play & Earn Web3 games and rewards, please activate your account with $1.",
+        benefits: ["Web3 Gaming access", "Play-to-Earn rewards", "Daily game bonuses", "Leaderboard prizes"],
+        redirectTo: "/dashboard/wallet?tab=deposit"
+    }
 }
 
 export default function DashboardClient({ user, pools, stats, isMarketplaceLive = false, isMudarabahLive = false }: { user: any, pools: any[], stats: any, isMarketplaceLive?: boolean, isMudarabahLive?: boolean }) {
-  // Use strictly isActiveMember for Unlock state, ignore deposit total
   const [isUnlocked, setIsUnlocked] = useState(() => user.isActiveMember || false);
   const [balance, setBalance] = useState(() => user.balance || 0);
+  const router = useRouter();
 
   // Unlock Modal State
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [unlockFeature, setUnlockFeature] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState("");
+
+  const openUnlockModal = (featureKey?: string) => {
+      setUnlockFeature(featureKey || null);
+      setUnlockError("");
+      setShowUnlockModal(true);
+  };
 
   const handleUnlock = async () => {
       setUnlockError("");
@@ -53,6 +94,12 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           setIsUnlocked(true);
           setBalance((prev: number) => prev - 1.0);
           setShowUnlockModal(false);
+          
+          // Redirect to the feature page after unlock
+          if (unlockFeature && FEATURE_INFO[unlockFeature]) {
+              const redirectTo = unlockFeature === "WITHDRAW" ? "/dashboard/wallet?tab=withdraw" : FEATURE_INFO[unlockFeature].redirectTo;
+              router.push(redirectTo);
+          }
       } catch (e: any) {
           setUnlockError(e.message);
       } finally {
@@ -60,13 +107,20 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
       }
   };
 
-  // Helper to determine status: 'LOCKED' | 'DEV' | 'LIVE'
-  const getFeatureStatus = (featureKey: "TASKS" | "PLAY_EARN" | "MARKETPLACE" | "MUDARABA" | "POOLS") => {
-      if (!isUnlocked) return "LOCKED"
+  const getFeatureStatus = (featureKey: "TASKS" | "PLAY_EARN" | "MARKETPLACE" | "MUDARABA" | "POOLS" | "WITHDRAW") => {
+      // Tasks are always open for everyone
+      if (featureKey === "TASKS") return "LIVE";
+      // Everything else requires $1 activation
+      if (!isUnlocked) return "LOCKED";
+      // After unlock, check if feature is actually live
+      if (featureKey === "PLAY_EARN") return FEATURE_FLAGS.PLAY_EARN ? "LIVE" : "DEV";
       if (featureKey === "MARKETPLACE") return isMarketplaceLive ? "LIVE" : "DEV";
       if (featureKey === "MUDARABA" || featureKey === "POOLS") return isMudarabahLive ? "LIVE" : "DEV";
-      return FEATURE_FLAGS[featureKey as keyof typeof FEATURE_FLAGS] ? "LIVE" : "DEV";
+      return "LIVE";
   }
+
+  // Get modal info based on selected feature
+  const modalInfo = unlockFeature ? FEATURE_INFO[unlockFeature] : null;
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-24">
@@ -79,38 +133,31 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
         className="relative overflow-hidden rounded-2xl text-white"
         style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0f172a 100%)" }}
       >
-        {/* Subtle glow orbs */}
         <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Dot texture */}
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
 
         <div className="relative z-10 px-5 sm:px-10 py-6 sm:py-10 text-center">
 
-          {/* Top: live badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[9px] sm:text-xs font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-3 sm:mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Dashboard · Active
           </div>
 
-          {/* Greeting line */}
           <p className="text-white/40 text-xs sm:text-sm font-semibold tracking-widest uppercase mb-1 sm:mb-2">
             Welcome back
           </p>
 
-          {/* Name — full name, gradient styled */}
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-4 sm:mb-5">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-blue-300">
               {user.name || "Partner"}
             </span>
           </h1>
 
-          {/* Divider */}
           <div className="w-12 h-px bg-white/10 mx-auto mb-4" />
 
-          {/* Status badges row */}
           <div className="flex items-center justify-center gap-1.5 flex-wrap">
             <div className={cn(
               "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border",
@@ -136,7 +183,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                 </div>
             ) : (
                 <button 
-                  onClick={() => setShowUnlockModal(true)}
+                  onClick={() => openUnlockModal()}
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-500/12 border border-amber-400/20 text-amber-300 hover:bg-amber-500/20 transition-colors"
                 >
                   <LockClosedIcon className="w-2.5 h-2.5" />
@@ -153,81 +200,24 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
 
       {/* 2. STATS OVERVIEW GRID (Desktop) */}
       <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <StatCard 
-             title="Wallet Balance" 
-             value={formatCurrency(balance)} 
-             sub="Available USD"
-             icon={WalletIcon} 
-             color="emerald"
-             delay={0.1}
-          />
-          <StatCard 
-             title="Total ARN" 
-             value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-             icon={StarIcon} 
-             color="blue"
-             delay={0.2}
-          />
-          <StatCard 
-             title="Task Earnings" 
-             value={formatCurrency(user.taskEarnings || 0)} 
-             sub="From Activity" 
-             icon={BriefcaseIcon} 
-             color="indigo"
-             delay={0.3}
-          />
-          <StatCard 
-             title="Referral Earnings" 
-             value={formatCurrency(user.referralEarnings || 0)} 
-             sub="Team Commissions" 
-             icon={UserGroupIcon} 
-             color="purple"
-             delay={0.4}
-          />
-          <StatCard 
-             title="Total Deposited" 
-             value={formatCurrency(user.totalDeposit || 0)} 
-             sub="Lifetime Investment" 
-             icon={ArrowDownTrayIcon} 
-             color="amber"
-             delay={0.5}
-          />
-          <StatCard 
-             title="Pending Deposit" 
-             value={formatCurrency(user.pendingDeposit || 0)} 
-             sub="Processing" 
-             icon={ClockIcon} 
-             color="blue"
-             delay={0.6}
-          />
-          <StatCard 
-             title="Total Withdrawn" 
-             value={formatCurrency(user.totalWithdrawal || 0)} 
-             sub="Successful Payouts" 
-             icon={CheckIcon} 
-             color="emerald"
-             delay={0.7}
-          />
-          <StatCard 
-             title="Pending Withdrawal" 
-             value={formatCurrency(user.pendingWithdrawal || 0)} 
-             sub="Processing" 
-             icon={ArrowUpTrayIcon} 
-             color="orange"
-             delay={0.8}
-          />
+          <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub="Available USD" icon={WalletIcon} color="emerald" delay={0.1} />
+          <StatCard title="Total ARN" value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} icon={StarIcon} color="blue" delay={0.2} />
+          <StatCard title="Task Earnings" value={formatCurrency(user.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
+          <StatCard title="Referral Earnings" value={formatCurrency(user.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
+          <StatCard title="Total Deposited" value={formatCurrency(user.totalDeposit || 0)} sub="Lifetime Investment" icon={ArrowDownTrayIcon} color="amber" delay={0.5} />
+          <StatCard title="Pending Deposit" value={formatCurrency(user.pendingDeposit || 0)} sub="Processing" icon={ClockIcon} color="blue" delay={0.6} />
+          <StatCard title="Total Withdrawn" value={formatCurrency(user.totalWithdrawal || 0)} sub="Successful Payouts" icon={CheckIcon} color="emerald" delay={0.7} />
+          <StatCard title="Pending Withdrawal" value={formatCurrency(user.pendingWithdrawal || 0)} sub="Processing" icon={ArrowUpTrayIcon} color="orange" delay={0.8} />
       </div>
 
-      {/* 2b. STATS OVERVIEW (Mobile Redesign) - Fixed Hydration */}
+      {/* 2b. STATS OVERVIEW (Mobile) */}
       <div className="md:hidden space-y-3">
-          {/* Main ARN Card (Wallet Style) - Compact */}
           <motion.div 
              initial={{ opacity: 0, y: 10 }}
              animate={{ opacity: 1, y: 0 }}
              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-4 text-white shadow-lg shadow-blue-500/20"
           >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none"></div>
-              
               <div className="relative z-10 flex justify-between items-start">
                   <div>
                       <h3 className="text-blue-200 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1">
@@ -246,7 +236,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               </div>
           </motion.div>
 
-          {/* Compact 3-Grid changed to 2-Column Responsive Grid for Wallet Overview */}
           <div className="grid grid-cols-2 gap-2">
               <MobileStatCard title="Wallet Balance" value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
               <MobileStatCard title="Total Deposited" value={formatCurrency(user.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
@@ -275,7 +264,9 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               label="Withdraw" 
               sub="Cash Out" 
               color="purple" 
-              delay={0.2} 
+              delay={0.2}
+              status={getFeatureStatus("WITHDRAW")}
+              onLockedClick={() => openUnlockModal("WITHDRAW")}
           />
           <ActionTile 
               href="/dashboard/tasks" 
@@ -284,7 +275,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               sub="Earn Cash" 
               color="emerald" 
               delay={0.3}
-              status={getFeatureStatus("TASKS")}
           />
           <ActionTile 
               href="/dashboard/marketplace" 
@@ -294,6 +284,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               color="orange" 
               delay={0.4}
               status={getFeatureStatus("MARKETPLACE")}
+              onLockedClick={() => openUnlockModal("MARKETPLACE")}
           />
           <ActionTile 
               href="/dashboard/mudaraba" 
@@ -303,6 +294,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               color="indigo" 
               delay={0.5}
               status={getFeatureStatus("MUDARABA")}
+              onLockedClick={() => openUnlockModal("MUDARABA")}
           />
           <ActionTile 
               href="/dashboard/games" 
@@ -312,10 +304,11 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               color="fuchsia" 
               delay={0.6}
               status={getFeatureStatus("PLAY_EARN")}
+              onLockedClick={() => openUnlockModal("PLAY_EARN")}
           />
       </div>
 
-      {/* 5. DAILY EARNING WIDGET (30-DAY LOCKS) */}
+      {/* 5. DAILY EARNING WIDGET */}
       <div className="pt-8">
           <DailyEarningWidget />
       </div>
@@ -334,7 +327,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
              className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-900 to-indigo-900 p-8 md:p-12 text-white shadow-2xl shadow-blue-900/20 group"
           >
              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-1000"></div>
-             
              <div className="relative z-10 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/10 text-blue-200">
                    <LockClosedIcon className="w-3.5 h-3.5"/> Account Limited
@@ -360,7 +352,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           <div className="flex items-center gap-3 mb-8">
               <h2 className="text-2xl font-bold text-foreground font-serif">Community Pools</h2>
           </div>
-          
           <div className="relative">
               <CompanyPools pools={pools} isLocked={getFeatureStatus("POOLS") === "LOCKED"} userTier={user.tier} />
           </div>
@@ -374,46 +365,58 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
          referralCode={user.referralCode}
       />
 
-      {/* 8. UNLOCK CONFIRMATION MODAL */}
+      {/* 8. FEATURE-SPECIFIC UNLOCK MODAL */}
       {showUnlockModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-gray-100 dark:border-slate-800">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-gray-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
                   <div className="mb-6 text-center">
                       <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                           <LockClosedIcon className="w-8 h-8" />
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Unlock Account</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Activating your account costs <span className="font-bold text-gray-900 dark:text-white">$1.00</span> from your wallet balance.
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                          🔒 {modalInfo ? modalInfo.title : "Feature"} Locked
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                          {modalInfo 
+                              ? modalInfo.description 
+                              : <>Activating your account costs <span className="font-bold text-gray-900 dark:text-white">$1.00</span> from your wallet balance.</>
+                          }
                       </p>
                   </div>
                   
                   <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4 mb-6">
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-gray-300 uppercase tracking-wider mb-3">Unlocks Access To:</h4>
+                      <h4 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 text-center">
+                          After activation, you will get access to
+                      </h4>
                       <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Premium Tasks</li>
-                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Marketplace Platform</li>
-                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Mudarabah Pools</li>
-                          <li className="flex items-center gap-2"><CheckIcon className="w-4 h-4 text-emerald-500" /> Partner Commissions</li>
+                          {(modalInfo ? modalInfo.benefits : [
+                              "Premium Tasks",
+                              "Marketplace Platform",
+                              "Mudarabah Pools",
+                              "Partner Commissions"
+                          ]).map((item, i) => (
+                              <li key={i} className="flex items-center gap-2">
+                                  <CheckIcon className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
+                              </li>
+                          ))}
                       </ul>
                   </div>
 
                   {unlockError && <div className="text-sm text-red-500 text-center mb-4 font-medium">{unlockError}</div>}
 
-                  <div className="flex gap-3">
+                  <div className="flex flex-col gap-2.5">
+                      <Link 
+                          href="/dashboard/wallet?tab=deposit"
+                          onClick={() => setShowUnlockModal(false)}
+                          className="w-full py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm rounded-xl hover:bg-black dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
+                      >
+                          Activate for $1.00 <span className="text-lg">→</span>
+                      </Link>
                       <button 
                           onClick={() => setShowUnlockModal(false)}
-                          disabled={isUnlocking}
-                          className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                          className="w-full py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                       >
-                          Cancel
-                      </button>
-                      <button 
-                          onClick={handleUnlock}
-                          disabled={isUnlocking}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm hover:bg-black dark:hover:bg-gray-100 transition-colors disabled:opacity-50 flex items-center justify-center"
-                      >
-                          {isUnlocking ? "Processing..." : "Pay $1.00"}
+                          Learn More
                       </button>
                   </div>
               </div>
@@ -476,12 +479,11 @@ function MobileStatCard({ title, value, icon: Icon, color, delay }: any) {
     )
 }
 
-function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE" }: any) {
+function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE", onLockedClick }: any) {
     const isLive = status === "LIVE"
     const isLocked = status === "LOCKED"
     const isDev = status === "DEV"
     
-    // Base colors
     const hoverColors: any = {
         blue: "group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10",
         purple: "group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:border-purple-200 dark:group-hover:border-purple-800/50 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/10",
@@ -499,7 +501,6 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
         fuchsia: "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20",
     }
 
-    // Locked/Dev State UI Overrides
     const content = (
         <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
@@ -509,29 +510,26 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
                 "h-full p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden flex flex-col items-start",
                 isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) :
                 isDev ? "bg-card border-border cursor-pointer hover:border-indigo-200/50 dark:hover:border-indigo-800/50" : 
-                "bg-muted/50 border-border cursor-not-allowed opacity-90"
+                "bg-card border-border cursor-pointer opacity-75 hover:opacity-100 hover:border-amber-200 dark:hover:border-amber-800/50"
             )}
         >
-            {/* Top Row: Icon and Badge */}
             <div className="flex justify-between items-start w-full mb-3 relative z-10">
                 <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors shrink-0", 
                     isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : 
                     isDev ? cn(iconColors[color], "bg-indigo-50 dark:bg-indigo-900/20") :
-                    "bg-muted text-muted-foreground"
+                    cn(iconColors[color], "opacity-60")
                 )}>
-                    {isLocked ? <LockClosedIcon className="w-4 h-4 md:w-5 md:h-5"/> : isDev ? <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5 text-indigo-500"/> : <Icon className="w-4 h-4 md:w-5 md:h-5"/>}
+                    {isDev ? <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5 text-indigo-500"/> : <Icon className="w-4 h-4 md:w-5 md:h-5"/>}
                 </div>
 
-                {/* Status Badge */}
                 {!isLive && (
                     <div className="shrink-0 ml-2 mt-0.5">
                          {isLocked ? (
-                             <div className="w-5 h-5 bg-muted/80 rounded-full flex items-center justify-center">
-                                 <LockClosedIcon className="w-3 h-3 text-muted-foreground"/>
+                             <div className="w-5 h-5 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                                 <LockClosedIcon className="w-3 h-3 text-amber-600 dark:text-amber-400"/>
                              </div>
                          ) : (
                              <span className="flex items-center gap-1.5 px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[6.5px] md:text-[7.5px] font-bold uppercase tracking-wider rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
-                                 {/* The Blinking Dot */}
                                  <span className="relative flex h-1 w-1 md:h-1.5 md:w-1.5 align-middle">
                                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                                       <span className="relative inline-flex rounded-full h-1 w-1 md:h-1.5 md:w-1.5 bg-indigo-500"></span>
@@ -547,7 +545,7 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
                 <h3 className={cn("font-bold text-xs md:text-sm lg:text-base transition-colors truncate", 
                      isLive ? "text-foreground group-hover:text-inherit" : 
                      isDev ? "text-foreground" : 
-                     "text-muted-foreground"
+                     "text-foreground/70"
                 )}>
                     {label}
                 </h3>
@@ -562,7 +560,11 @@ function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE
         </motion.div>
     )
 
-    // Always allow navigation so FeatureGuard can handle the "Deposit Required" or "Coming Soon" UI
+    // Locked cards open the unlock modal instead of navigating
+    if (isLocked && onLockedClick) {
+        return <div onClick={onLockedClick} className="block group cursor-pointer">{content}</div>
+    }
+
     return <Link href={href} className="block group">{content}</Link>
 }
 
@@ -576,7 +578,6 @@ function IdentityCard({ user }: any) {
                 <div className="min-w-0 flex-1 w-full">
                    <h3 className="font-bold text-foreground font-serif text-lg">Identity Card</h3>
                    <p className="text-sm text-muted-foreground mb-6 sm:mb-4">Your digital access keys.</p>
-                   
                    <div className="space-y-4 sm:space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between p-3 sm:p-2 bg-muted/30 rounded-lg border border-border">
                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">User ID</span>
@@ -612,9 +613,7 @@ function ReferralCard({ user }: any) {
 
     return (
         <div className="p-6 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 rounded-2xl border border-indigo-100 dark:border-slate-800 flex flex-col justify-center shadow-sm relative overflow-hidden group transition-colors">
-             {/* Decor */}
              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/30 transition-colors"></div>
-             
              <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
                    <div>
@@ -628,7 +627,6 @@ function ReferralCard({ user }: any) {
 
                 {user.referralCode ? (
                     <div className="space-y-3">
-                        {/* 1. Referral Link (Primary) */}
                         <div className="bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-indigo-100 dark:border-slate-700 shadow-sm">
                             <label className="text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-wider mb-1 block">Your Personal Link</label>
                             <div className="flex items-center gap-2">
@@ -640,8 +638,6 @@ function ReferralCard({ user }: any) {
                                 <CopyButton text={referralLink} color="indigo" />
                             </div>
                         </div>
-
-                        {/* 2. Code Only (Secondary) */}
                         <div className="flex items-center justify-between gap-3 px-1">
                              <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Referral Code:</span>
                              <div className="flex items-center gap-2">

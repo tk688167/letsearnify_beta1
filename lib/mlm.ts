@@ -3,19 +3,16 @@ import { mintArnForDeposit } from "@/lib/tokens";
 
 // --- CONFIGURATION ---
 
-// 3-Level Commission Rates by Tier (Percentage)
-// 3-Level Commission Rates by Tier (Percentage)
 export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: number }> = {
-    NEWBIE:   { L1: 5,  L2: 3,  L3: 2 },  // Total 10%
-    BRONZE:   { L1: 9,  L2: 4,  L3: 2 },  // Total 15%
-    SILVER:   { L1: 12, L2: 5,  L3: 3 },  // Total 20%
-    GOLD:     { L1: 15, L2: 7,  L3: 3 },  // Total 25%
-    PLATINUM: { L1: 18, L2: 8,  L3: 4 },  // Total 30%
-    DIAMOND:  { L1: 22, L2: 9,  L3: 4 },  // Total 35%
-    EMERALD:  { L1: 26, L2: 10, L3: 4 }   // Total 40%
+    NEWBIE:   { L1: 5,  L2: 3,  L3: 2 },
+    BRONZE:   { L1: 9,  L2: 4,  L3: 2 },
+    SILVER:   { L1: 12, L2: 5,  L3: 3 },
+    GOLD:     { L1: 15, L2: 7,  L3: 3 },
+    PLATINUM: { L1: 18, L2: 8,  L3: 4 },
+    DIAMOND:  { L1: 22, L2: 9,  L3: 4 },
+    EMERALD:  { L1: 26, L2: 10, L3: 4 }
 };
 
-// Default Fallback (if DB is empty)
 export const DEFAULT_TIER_REQUIREMENTS: Record<string, { arn: number, directs: number }> = {
     NEWBIE:   { arn: 0,      directs: 0 },
     BRONZE:   { arn: 100,    directs: 2 },
@@ -26,7 +23,6 @@ export const DEFAULT_TIER_REQUIREMENTS: Record<string, { arn: number, directs: n
     EMERALD:  { arn: 100000, directs: 100 }
 };
 
-// Withdrawal Limits by Tier (Percentage of Balance per 24h)
 export const TIER_WITHDRAWAL_LIMITS: Record<string, number> = {
     NEWBIE:   10,
     BRONZE:   12,
@@ -37,7 +33,6 @@ export const TIER_WITHDRAWAL_LIMITS: Record<string, number> = {
     EMERALD:  30
 };
 
-// Achievement Rewards by Tier
 export const TIER_REWARDS: Record<string, { balance: number, arn: number, description: string }> = {
     BRONZE:   { balance: 1.0,   arn: 10,   description: "Bronze Milestone Gift" },
     SILVER:   { balance: 5.0,   arn: 50,   description: "Silver Achievement Reward" },
@@ -47,7 +42,6 @@ export const TIER_REWARDS: Record<string, { balance: number, arn: number, descri
     EMERALD:  { balance: 1000.0,arn: 10000,description: "Emerald Ultimate Achievement Reward" }
 };
 
-// Helper: Fetch Tier Rules from DB
 export async function getTierRequirements(tx?: any) {
     const db = tx || prisma;
     try {
@@ -74,7 +68,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error("User not found");
     
-    // Check if account is already unlocked AND not expired
     const isCurrentlyUnlocked = user.isActiveMember && (!user.unlockExpiry || new Date(user.unlockExpiry) > new Date());
     if (isCurrentlyUnlocked) throw new Error("User account is already active and unlocked.");
 
@@ -82,7 +75,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
     const expiry = new Date();
     expiry.setMonth(expiry.getMonth() + 3);
 
-    // 1. Activate User and set expiry
     await db.user.update({
         where: { id: userId },
         data: { 
@@ -94,7 +86,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         }
     });
 
-    // 2. Clear out locked balances (Move to active balance)
     if (user.lockedBalance > 0 || user.lockedArnBalance > 0) {
         await db.user.update({
             where: { id: userId },
@@ -125,27 +116,18 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         }
     });
 
-    // 3. Pool Distributions ($1.00 Total)
-    
-    // REWARD (Achievement): 20% ($0.20)
     await db.pool.upsert({
         where: { name: "REWARD" },
         update: { balance: { increment: 0.20 } },
         create: { name: "REWARD", balance: 0.20, percentage: 20 }
     });
 
-    // 4. Referral Pool Distribution for $1 Activation
     const referralEmissions = await distributeCommissions(userId, 1.0, db);
     
-    // CBSP & Royalty Pools (Currently inactive, structural preparation)
-    // When active, these would be calculated here (e.g. 5% each)
     const cbspAmount = 0.0;
     const royaltyAmount = 0.0;
-    
-    // Company Remainder
     const companyRemainder = 1.0 - 0.20 - referralEmissions - cbspAmount - royaltyAmount;
 
-    // Record Unlock Activation
     await db.unlockActivation.create({
         data: {
             userId: userId,
@@ -158,7 +140,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         }
     });
 
-    // Handle Company Remainder
     if (companyRemainder > 0) {
         await db.pool.upsert({
             where: { name: "COMPANY" },
@@ -167,27 +148,30 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         });
     }
 
-    // 5. Admin Notification (Log)
+    // ── FIX ISSUE 1: Update referrer's activeMembers count ──
+    if (user.referredByCode) {
+        const referrer = await db.user.findUnique({
+            where: { referralCode: user.referredByCode },
+            select: { id: true }
+        });
+        if (referrer) {
+            await refreshUserMlmStats(referrer.id, db);
+            console.log(`[MLM] Updated activeMembers count for referrer ${referrer.id}`);
+        }
+    }
+
     await db.adminLog.create({
         data: {
             adminId: "SYSTEM",
             targetUserId: userId,
             actionType: "USER_ACTIVATION",
-            details: `User ${user.email || userId} successfully unlocked their account through $1 activation. Achv: $0.20, Refs: $${referralEmissions.toFixed(2)}, Company: $${companyRemainder.toFixed(2)}`
+            details: `User ${user.email || userId} activated. Achv: $0.20, Refs: $${referralEmissions.toFixed(2)}, Company: $${companyRemainder.toFixed(2)}`
         }
     });
 
-    // Check Upgrade for the User (Self)
     await checkTierUpgrade(userId, db);
 }
 
-/**
- * Main Entry Point: Process a New USD Deposit
- * 
- * 1. Mint ARN Tokens (System Power)
- * 2. Distribute 3-Level MLM Commissions (USD)
- * 3. Check for Tier Upgrades (Upline & Self)
- */
 export async function finalizeDeposit(userId: string, amount: number, txId: string, description: string = "", tx?: any) {
     console.log(`[MLM] Finalizing deposit of $${amount} for user ${userId}. TX: ${txId}`);
     const db = tx || prisma;
@@ -196,7 +180,6 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
     if (!user) throw new Error("User not found");
 
     if (amount > 0) {
-        // Mint ARN Tokens (Power) for the remaining amount
         try {
             await mintArnForDeposit(userId, amount, txId, db);
         } catch (e) {
@@ -204,32 +187,27 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
             throw e;
         }
 
-        // Distribute Commissions (USD) only if the user is active/unlocked
         if (user.isActiveMember) {
-            // Note: Currently, normal deposits distribute commissions too.
             await distributeCommissions(userId, amount, db);
         } else {
             console.log(`[MLM] Skipping commission distribution for unactivated user ${userId}.`);
         }
     }
 
-    // Check Upgrade for the User (Self)
     await checkTierUpgrade(userId, db);
 }
 
-// Alias for backward compatibility if needed, though we should prefer finalizeDeposit
 export const processMlmDeposit = async (userId: string, amount: number, txId: string) => {
     return finalizeDeposit(userId, amount, txId, "Legacy Process Call");
 };
 
 /**
- * Distributes USD commissions up 3 levels based on the referrer's Tier.
- * Returns the total amount of USD distributed to referrers.
+ * Distributes USD commissions up 3 levels.
+ * NOW creates Transaction records so commissions show in wallet history.
  */
 async function distributeCommissions(sourceUserId: string, amount: number, db: any): Promise<number> {
     let totalDistributed = 0;
     
-    // Fetch Upline Tree
     const tree = await db.referralTree.findUnique({
         where: { userId: sourceUserId },
         include: {
@@ -239,13 +217,19 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
 
     if (!tree) return 0;
 
+    // Get source user's name for description
+    const sourceUser = await db.user.findUnique({
+        where: { id: sourceUserId },
+        select: { name: true, email: true }
+    });
+    const sourceName = sourceUser?.name || sourceUser?.email || "a team member";
+
     const uplineIds = [tree.advisorId, tree.supervisorId, tree.managerId].filter((id: string | null) => id !== null) as string[];
 
     for (let i = 0; i < uplineIds.length; i++) {
         const uplineId = uplineIds[i];
-        const level = i + 1; // 1, 2, 3
+        const level = i + 1;
 
-        // Fetch Referrer's Tier and status
         const referrer = await db.user.findUnique({
             where: { id: uplineId },
             select: { id: true, tier: true, activeMembers: true, arnBalance: true, isActiveMember: true }
@@ -253,19 +237,16 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
 
         if (!referrer) continue;
 
-        // Calculate Rate based on THEIR tier
         const validTier = TIER_COMMISSIONS[referrer.tier] ? referrer.tier : "NEWBIE";
         const rates = TIER_COMMISSIONS[validTier];
         const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3;
 
         if (rate > 0) {
             const commissionUSD = amount * (rate / 100);
-            const commissionARN = commissionUSD * 10; // 1 USD = 10 ARN
+            const commissionARN = commissionUSD * 10;
             
-            // Check if referrer is active
             const isUplineActive = referrer.isActiveMember;
 
-            // PAY THE USER
             await db.user.update({
                 where: { id: uplineId },
                 data: isUplineActive ? { 
@@ -277,7 +258,6 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
                 }
             });
 
-            // Log Commission
             await db.referralCommission.create({
                 data: {
                     earnerId: uplineId,
@@ -288,10 +268,26 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
                 }
             });
 
+            // ╔══════════════════════════════════════════════════════════╗
+            // ║  FIX: Create Transaction so commission shows in wallet  ║
+            // ╚══════════════════════════════════════════════════════════╝
+            if (isUplineActive) {
+                await db.transaction.create({
+                    data: {
+                        userId: uplineId,
+                        amount: commissionUSD,
+                        arnMinted: commissionARN,
+                        type: "REFERRAL_COMMISSION",
+                        status: "COMPLETED",
+                        method: "SYSTEM",
+                        description: `L${level} commission (${rate}%) from ${sourceName}'s $${amount.toFixed(2)} activity`
+                    }
+                });
+            }
+
             totalDistributed += commissionUSD;
             console.log(`[MLM] ${isUplineActive ? 'Paid' : 'Locked'} $${commissionUSD} (L${level} @ ${rate}%) for ${uplineId}`);
             
-            // Check upgrade for upline (activity based)
             if (isUplineActive) {
                 await checkTierUpgrade(uplineId, db);
             }
@@ -302,8 +298,9 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
 }
 
 /**
- * checks if a user qualifies for the next tier.
- * Logic: Must have >= Required ARN AND >= Required Active Directs.
+ * Checks if a user qualifies for the next tier.
+ * ARN from ANY source counts (referrals, spins, tasks, deposits).
+ * Team size = total active members across 3 levels.
  */
 export async function checkTierUpgrade(userId: string, tx?: any) {
     const db = tx || prisma;
@@ -323,10 +320,8 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
 
     if (!user) return;
 
-    // Determine current tier index
     const currentTierIndex = TIER_ORDER.indexOf(user.tier) >= 0 ? TIER_ORDER.indexOf(user.tier) : 0;
     
-    // Count total active network members (3 levels)
     const userWithNetwork = await db.user.findUnique({
         where: { id: userId },
         select: {
@@ -367,36 +362,18 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
     const currentArn = user.arnBalance || 0;
     const teamSize = totalActiveNetwork;
 
-    // Check next tiers
     const tierRules = await getTierRequirements(db);
 
-    // Calculate Thresholds based on configured rules
-    // The requirement defined for each Tier is the ABSOLUTE value required to reach it.
-    
     const tierThresholds: Record<string, { arn: number, directs: number }> = {};
-    
     for (const tierName of TIER_ORDER) {
         tierThresholds[tierName] = tierRules[tierName] || DEFAULT_TIER_REQUIREMENTS[tierName] || { arn: 0, directs: 0 };
     }
 
-    // Now check if user qualifies for higher tiers
-    // Iterate from next tier upwards
     for (let i = currentTierIndex + 1; i < TIER_ORDER.length; i++) {
         const nextTier = TIER_ORDER[i];
-        
-        // The threshold to ENTTER 'nextTier' is what we calculated above
         const threshold = tierThresholds[nextTier];
 
-        // Strict Check: User Total >= Cumulative Threshold
         if (currentArn >= threshold.arn && teamSize >= threshold.directs) {
-            // QUALIFIED for this tier!
-            // But we continue loop? No, usually we upgrade step by step or jump?
-            // If we jump, we should check the HIGHEST usage.
-            // But for safety, let's just upgrade to this one and let the next event (or loop) handle further jumps.
-            // Or simpler: Update to this tier, then continue checking? 
-            // Better: Find the HIGHEST reachable tier.
-            
-            // Actually, safe approach: Upgrade to this tier.
             console.log(`[MLM] UPGRADE: User ${userId} promoted to ${nextTier}`);
             
             await db.user.update({
@@ -404,7 +381,6 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
                 data: { tier: nextTier }
             });
 
-            // Grant Tier Rewards
             await grantTierRewards(userId, nextTier, db);
             
             await db.mLMLog.create({
@@ -416,18 +392,17 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
                 }
             });
         } else {
-            // Cannot reach this tier, stop checking higher ones
             break;
         }
     }
 }
 
 /**
- * Helper: Refreshes specific user stats if needed (e.g. active members count)
- * Can be called periodically or on login
+ * Refreshes user's activeMembers count from actual DB data.
  */
-export async function refreshUserMlmStats(userId: string) {
-    const user = await prisma.user.findUnique({
+export async function refreshUserMlmStats(userId: string, tx?: any) {
+    const db = tx || prisma;
+    const user = await db.user.findUnique({
         where: { id: userId },
         select: {
             id: true,
@@ -468,29 +443,22 @@ export async function refreshUserMlmStats(userId: string) {
         });
     }
 
-    await prisma.user.update({
+    await db.user.update({
         where: { id: userId },
         data: { activeMembers: totalActiveNetwork }
     });
 }
 
-/**
- * Generates a unique referral code.
- * Format: 8 characters, uppercase alphanumeric.
- */
 export function generateReferralCode(): string {
     return Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
-/**
- * Generates a unique 7-digit Member ID.
- */
 export function generateMemberId(): string {
     return Math.floor(1000000 + Math.random() * 9000000).toString();
 }
 
 /**
- * Adds ARN points to a user (e.g. from Spin or Tasks) and checks for tier upgrade.
+ * Adds ARN + equivalent USD to user. Intentional gift — withdrawable after $1 activation.
  */
 export async function addUserPoints(userId: string, amount: number, tx?: any) {
     const db = tx || prisma;
@@ -510,9 +478,6 @@ export async function getTierRules() {
     return await getTierRequirements(prisma);
 }
 
-/**
- * Grants milestone rewards upon tier upgrade.
- */
 export async function grantTierRewards(userId: string, tier: string, tx?: any) {
     const db = tx || prisma;
     const reward = TIER_REWARDS[tier];
@@ -537,7 +502,6 @@ export async function grantTierRewards(userId: string, tier: string, tx?: any) {
         }
     });
 
-    // Also log as a transaction for visibility
     await db.transaction.create({
         data: {
             userId: userId,
@@ -551,9 +515,58 @@ export async function grantTierRewards(userId: string, tier: string, tx?: any) {
     });
 }
 
-/**
- * Helper: Get current withdrawal limit percentage for a user's tier.
- */
 export function getTierWithdrawLimit(tier: string): number {
     return TIER_WITHDRAWAL_LIMITS[tier] || 10;
+}
+
+/**
+ * Check account expiry/inactivity and re-lock if needed.
+ * Called from dashboard service instead of inline side-effects.
+ */
+export async function checkAccountLock(userId: string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { 
+                id: true, 
+                isActiveMember: true, 
+                unlockExpiry: true, 
+                lastActivityAt: true 
+            }
+        });
+
+        if (!user || !user.isActiveMember) return;
+
+        const now = new Date();
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+        const isExpired = user.unlockExpiry && new Date(user.unlockExpiry) < now;
+        const isInactive = user.lastActivityAt && new Date(user.lastActivityAt) < threeMonthsAgo;
+
+        if (isExpired || isInactive) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { isActiveMember: false }
+            });
+            
+            await prisma.mLMLog.create({
+                data: {
+                    userId: user.id,
+                    type: "ACCOUNT_RE_LOCKED",
+                    amount: 0,
+                    description: isExpired 
+                        ? "Account re-locked due to 3-month unlock expiry." 
+                        : "Account re-locked due to 3 months of continuous inactivity."
+                }
+            });
+        } else {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { lastActivityAt: now }
+            });
+        }
+    } catch (error) {
+        console.error("[MLM] checkAccountLock error:", error);
+    }
 }

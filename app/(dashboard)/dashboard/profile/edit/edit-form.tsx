@@ -29,11 +29,17 @@ export default function EditForm({ user }: EditFormProps) {
   const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const [preview, setPreview] = useState<string | null>(null)
   const [isRemoved, setIsRemoved] = useState(false)
+
+  const passwordMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword
+  const passwordMatch = confirmPassword.length > 0 && newPassword === confirmPassword
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -43,7 +49,6 @@ export default function EditForm({ user }: EditFormProps) {
          setMessage({ type: "error", text: "File size exceeds 2MB limit." })
          return
       }
-      
       const reader = new FileReader()
       reader.onloadend = () => {
         setPreview(reader.result as string)
@@ -62,10 +67,21 @@ export default function EditForm({ user }: EditFormProps) {
 
   async function handleSubmit(formData: FormData) {
     setMessage(null)
+
+    // Validate password match on client side
+    const np = formData.get("newPassword") as string
+    const cp = formData.get("confirmNewPassword") as string
+    if (np && np !== cp) {
+      setMessage({ type: "error", text: "New passwords do not match." })
+      return
+    }
+
     startTransition(async () => {
       try {
         await updateProfile(formData)
         setMessage({ type: "success", text: "Settings saved successfully!" })
+        setNewPassword("")
+        setConfirmPassword("")
         router.refresh()
       } catch (error: any) {
         setMessage({ type: "error", text: error.message || "Something went wrong." })
@@ -76,11 +92,11 @@ export default function EditForm({ user }: EditFormProps) {
   return (
     <div className="bg-card rounded-[2rem] shadow-sm border border-border p-5 sm:p-8">
       {message && (
-        <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 border ${
+        <div className={"mb-6 p-4 rounded-xl flex items-center gap-3 border " + (
           message.type === "success" 
             ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" 
             : "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20"
-        }`}>
+        )}>
           {message.type === "success" ? (
             <CheckCircleIcon className="w-5 h-5 shrink-0" />
           ) : (
@@ -114,34 +130,17 @@ export default function EditForm({ user }: EditFormProps) {
             </div>
             
             <div className="text-center sm:text-left flex-1 w-full">
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <input 
-                type="hidden" 
-                name="image" 
-                value={isRemoved ? "REMOVE" : (preview || user?.image || "")} 
-              />
+              <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
+              <input type="hidden" name="image" value={isRemoved ? "REMOVE" : (preview || user?.image || "")} />
               
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center sm:justify-start">
-                  <button 
-                    type="button" 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full sm:w-auto text-sm font-bold text-primary px-5 py-2.5 bg-primary/10 border border-primary/20 rounded-xl hover:bg-primary/20 hover:border-primary/30 transition-all"
-                  >
+                  <button type="button" onClick={() => fileInputRef.current?.click()}
+                    className="w-full sm:w-auto text-sm font-bold text-primary px-5 py-2.5 bg-primary/10 border border-primary/20 rounded-xl hover:bg-primary/20 hover:border-primary/30 transition-all">
                     Change Photo
                   </button>
-                  
                   {!isRemoved && (user?.image || preview) && (
-                      <button 
-                        type="button" 
-                        onClick={handleRemovePhoto}
-                        className="w-full sm:w-auto text-sm font-bold text-red-600 dark:text-red-400 px-5 py-2.5 bg-red-500/10 border border-red-500/20 rounded-xl hover:bg-red-500/20 hover:border-red-500/30 transition-all flex items-center justify-center gap-2"
-                      >
+                      <button type="button" onClick={handleRemovePhoto}
+                        className="w-full sm:w-auto text-sm font-bold text-red-600 dark:text-red-400 px-5 py-2.5 bg-red-500/10 border border-red-500/20 rounded-xl hover:bg-red-500/20 hover:border-red-500/30 transition-all flex items-center justify-center gap-2">
                         <TrashIcon className="w-4 h-4" />
                         Remove
                       </button>
@@ -154,34 +153,21 @@ export default function EditForm({ user }: EditFormProps) {
           <div className="grid sm:grid-cols-2 gap-5 sm:gap-6 w-full">
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Full Name</label>
-              <input 
-                name="name"
-                defaultValue={user?.name || ""}
-                type="text" 
+              <input name="name" defaultValue={user?.name || ""} type="text" 
                 className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground hover:border-primary/40 placeholder:text-muted-foreground/50" 
-                placeholder="Ex. John Doe"
-              />
+                placeholder="Ex. John Doe" />
             </div>
             <div className="space-y-2">
                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Phone Number</label>
-               <input 
-                 name="phoneNumber"
-                 // @ts-ignore
-                 defaultValue={user?.phoneNumber || ""} 
-                 type="tel" 
+               <input name="phoneNumber" defaultValue={user?.phoneNumber || ""} type="tel" 
                  className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground hover:border-primary/40 placeholder:text-muted-foreground/50" 
-                 placeholder="+1 (555) 000-0000"
-               />
+                 placeholder="+1 (555) 000-0000" />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Email Address</label>
-              <input 
-                name="email"
-                defaultValue={user?.email || ""}
-                type="email" 
+              <input name="email" defaultValue={user?.email || ""} type="email" 
                 className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground hover:border-primary/40 placeholder:text-muted-foreground/50" 
-                placeholder="hello@example.com"
-              />
+                placeholder="hello@example.com" />
             </div>
           </div>
         </section>
@@ -191,8 +177,7 @@ export default function EditForm({ user }: EditFormProps) {
         {/* Section 2: Platform Details (Read-only) */}
         <section>
           <h2 className="text-xl font-bold font-serif text-foreground mb-6">Platform Details</h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-             {/* Read-Only Member ID */}
+          <div className="grid sm:grid-cols-2 gap-4">
              <div className="bg-secondary/50 p-4 sm:p-5 rounded-xl border border-border space-y-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -203,7 +188,6 @@ export default function EditForm({ user }: EditFormProps) {
                    {formatUserId(user?.memberId)}
                 </div>
              </div>
-             {/* Read-Only Tier */}
              <div className="bg-secondary/50 p-4 sm:p-5 rounded-xl border border-border space-y-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none" />
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -212,17 +196,6 @@ export default function EditForm({ user }: EditFormProps) {
                 </div>
                 <div className="font-sans font-bold text-foreground">
                    {user?.tier} Member
-                </div>
-             </div>
-             {/* Read-Only KYC Status */}
-             <div className="bg-secondary/50 p-4 sm:p-5 rounded-xl border border-border space-y-1 relative overflow-hidden">
-                <div className={`absolute top-0 right-0 w-16 h-16 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 pointer-events-none ${user?.kycStatus === 'VERIFIED' ? 'bg-emerald-500/10' : 'bg-red-500/10'}`} />
-                <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                   <CheckCircleIcon className="w-4 h-4" />
-                   <span className="text-[10px] font-bold uppercase tracking-widest">KYC Status</span>
-                </div>
-                <div className={`font-sans font-bold ${user?.kycStatus === 'VERIFIED' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                   {user?.kycStatus === 'VERIFIED' ? 'Verified' : 'Pending Verification'}
                 </div>
              </div>
           </div>
@@ -243,6 +216,9 @@ export default function EditForm({ user }: EditFormProps) {
                           <option value="en">English (United States)</option>
                           <option value="es">Español</option>
                           <option value="fr">Français</option>
+                          <option value="ur">Urdu</option>
+                          <option value="hi">Hindi</option>
+                          <option value="ar">العربية</option>
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                           <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -258,6 +234,9 @@ export default function EditForm({ user }: EditFormProps) {
                           <option value="USD">USD ($)</option>
                           <option value="EUR">EUR (€)</option>
                           <option value="GBP">GBP (£)</option>
+                          <option value="PKR">PKR (₨)</option>
+                          <option value="INR">INR (₹)</option>
+                          <option value="AED">AED (د.إ)</option>
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                           <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -269,53 +248,57 @@ export default function EditForm({ user }: EditFormProps) {
 
         <div className="h-px w-full bg-border/50" />
 
-        {/* Section 4: Security */}
+        {/* Section 4: Change Password */}
         <section>
-           <h2 className="text-xl font-bold font-serif text-foreground mb-6">Change Password</h2>
-           <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-              <div className="space-y-2 relative">
+           <h2 className="text-xl font-bold font-serif text-foreground mb-2">Change Password</h2>
+           <p className="text-sm text-muted-foreground mb-6">Leave blank if you don't want to change your password.</p>
+           <div className="space-y-5 sm:space-y-6">
+              {/* Current Password */}
+              <div className="space-y-2">
                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Current Password</label>
                  <div className="relative">
-                   <input 
-                     name="currentPassword"
-                     type={showCurrentPassword ? "text" : "password"}
+                   <input name="currentPassword" type={showCurrentPassword ? "text" : "password"}
                      className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
-                     placeholder="••••••••"
-                   />
-                   <button
-                     type="button"
-                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors"
-                   >
-                     {showCurrentPassword ? (
-                       <EyeSlashIcon className="w-5 h-5" />
-                     ) : (
-                       <EyeIcon className="w-5 h-5" />
-                     )}
+                     placeholder="Enter your current password" />
+                   <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
+                     {showCurrentPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
                    </button>
                  </div>
               </div>
-              <div className="space-y-2 relative">
-                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">New Password</label>
-                 <div className="relative">
-                   <input 
-                     name="newPassword"
-                     type={showNewPassword ? "text" : "password"}
-                     className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
-                     placeholder="••••••••"
-                   />
-                   <button
-                     type="button"
-                     onClick={() => setShowNewPassword(!showNewPassword)}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors"
-                   >
-                     {showNewPassword ? (
-                       <EyeSlashIcon className="w-5 h-5" />
-                     ) : (
-                       <EyeIcon className="w-5 h-5" />
-                     )}
-                   </button>
-                 </div>
+
+              {/* New Password */}
+              <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
+                <div className="space-y-2">
+                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">New Password</label>
+                   <div className="relative">
+                     <input name="newPassword" type={showNewPassword ? "text" : "password"}
+                       value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                       className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
+                       placeholder="Min. 8 characters" />
+                     <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
+                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
+                       {showNewPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                     </button>
+                   </div>
+                </div>
+
+                {/* Confirm New Password */}
+                <div className="space-y-2">
+                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Confirm New Password</label>
+                   <div className="relative">
+                     <input name="confirmNewPassword" type={showConfirmPassword ? "text" : "password"}
+                       value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                       className={"w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40 " + (passwordMismatch ? "border-red-500" : passwordMatch ? "border-emerald-500" : "border-border")}
+                       placeholder="Re-enter new password" />
+                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
+                       {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                     </button>
+                   </div>
+                   {passwordMismatch && <p className="text-xs text-red-500 font-medium pl-1">Passwords don't match</p>}
+                   {passwordMatch && <p className="text-xs text-emerald-500 font-medium pl-1">Passwords match</p>}
+                </div>
               </div>
            </div>
         </section>
@@ -323,18 +306,12 @@ export default function EditForm({ user }: EditFormProps) {
         {/* Sticky Action Bar */}
         <div className="sticky bottom-20 md:bottom-6 z-50 pt-2 md:pt-4 flex justify-end">
            <div className="flex flex-row items-center gap-3 bg-card/90 backdrop-blur-xl border border-border p-3 rounded-2xl shadow-xl shadow-black/10 w-full md:w-auto">
-             <button 
-               type="button" 
-               onClick={() => router.back()}
-               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm bg-secondary text-foreground font-semibold rounded-xl border border-border hover:bg-muted transition-colors opacity-90 hover:opacity-100"
-             >
+             <button type="button" onClick={() => router.back()}
+               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm bg-secondary text-foreground font-semibold rounded-xl border border-border hover:bg-muted transition-colors opacity-90 hover:opacity-100">
                Discard
              </button>
-             <button 
-               type="submit" 
-               disabled={isPending}
-               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5"
-             >
+             <button type="submit" disabled={isPending || passwordMismatch}
+               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5">
                {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckCircleIcon className="w-4 h-4" />}
                Save All Changes
              </button>

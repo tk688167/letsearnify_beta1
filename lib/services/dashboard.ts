@@ -1,6 +1,5 @@
-
 import { prisma } from "@/lib/prisma"
-import { getTierRequirements, DEFAULT_TIER_REQUIREMENTS } from "@/lib/mlm"
+import { getTierRequirements, DEFAULT_TIER_REQUIREMENTS, checkAccountLock } from "@/lib/mlm"
 
 export interface DashboardDataResult {
     user: any;
@@ -12,6 +11,12 @@ export interface DashboardDataResult {
 
 export async function getDashboardData(userId: string): Promise<DashboardDataResult> {
     try {
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  FIX ISSUE 5: Check lock status via dedicated function  ║
+        // ║  instead of doing write operations in a read function   ║
+        // ╚══════════════════════════════════════════════════════════╝
+        await checkAccountLock(userId);
+
         const [
           user, 
           pools, 
@@ -67,50 +72,6 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
             return { user: null, pools: [], isOffline: false, isMarketplaceLive: false, isMudarabahLive: false };
         }
 
-        const now = new Date();
-        const threeMonthsAgo = new Date();
-        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-        // Check for expiry or inactivity re-lock
-        if (user.isActiveMember) {
-            const unlockExpiry = (user as any).unlockExpiry;
-            const lastActivityAt = (user as any).lastActivityAt;
-
-            const isExpired = unlockExpiry && new Date(unlockExpiry) < now;
-            const isInactive = lastActivityAt && new Date(lastActivityAt) < threeMonthsAgo;
-
-            if (isExpired || isInactive) {
-                await prisma.user.update({
-                    where: { id: userId },
-                    data: { isActiveMember: false }
-                });
-                
-                await prisma.mLMLog.create({
-                    data: {
-                        userId,
-                        type: "ACCOUNT_RE_LOCKED",
-                        amount: 0,
-                        description: isExpired ? "Account re-locked due to 3-month unlock expiry." : "Account re-locked due to 3 months of continuous inactivity."
-                    }
-                });
-                user.isActiveMember = false;
-            } else {
-                // Update last activity
-                await prisma.user.update({
-                    where: { id: userId },
-                    // @ts-ignore
-                    data: { lastActivityAt: now }
-                });
-            }
-        } else {
-            // Update last activity for locked users too
-            await prisma.user.update({
-                where: { id: userId },
-                // @ts-ignore
-                data: { lastActivityAt: now }
-            });
-        }
-
         const pendingDeposit = (cryptoPendingDeposits._sum.amount || 0) + (merchantPendingDeposits._sum.amount || 0);
         const pendingWithdrawal = (cryptoPendingWithdrawals._sum.amount || 0) + (merchantPendingWithdrawals._sum.amount || 0);
         const totalWithdrawal = (cryptoCompletedWithdrawals._sum.amount || 0) + (merchantCompletedWithdrawals._sum.amount || 0);
@@ -140,7 +101,6 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
 
     } catch (error) {
         console.error("⚠️ Dashboard Service Error [getDashboardData]:", error);
-        // Fallback Data
         const mockUser = {
             id: userId,
             name: "User (Offline)",

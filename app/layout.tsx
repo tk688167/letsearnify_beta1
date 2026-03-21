@@ -7,6 +7,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "./components/ui/CookieConsent";
 import { ThemeProvider } from "./components/theme-provider";
+import { Suspense } from "react";
+import RouteLoader from "./components/RouteLoader";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -66,7 +68,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Organization Schema for JSON-LD
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -106,6 +107,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <RouteLoader />
+          </Suspense>
           <ScrollToTop />
           <BackButton />
           <Toaster position="top-center" />

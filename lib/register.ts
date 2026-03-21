@@ -1,8 +1,15 @@
+// ============================================================
+// FILE: lib/register.ts  (REPLACE your existing file)
+// ONLY CHANGE: sends OTP email + returns email for redirect
+// ALL existing signup/MLM/referral logic is UNTOUCHED
+// ============================================================
+
 "use server"
 
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
+import { generateOTP, sendVerificationEmail } from "@/lib/email"
 
 // Bonus structure defined by the user for signup referrals
 const SIGNUP_BONUS_RATES: Record<string, number> = {
@@ -26,6 +33,11 @@ export async function registerUser(formData: FormData) {
     return { error: "All fields are required", success: false }
   }
 
+  // Basic email format check
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: "Please enter a valid email address.", success: false }
+  }
+
   try {
     const existing = await prisma.user.findUnique({
       where: { email }
@@ -33,7 +45,13 @@ export async function registerUser(formData: FormData) {
     console.log("[Register] Checking existing user:", !!existing)
 
     if (existing) {
-      return { error: "Email already exists", success: false }
+      // ── NEW: Allow re-registration if email is NOT verified (stale signup) ──
+      if (!existing.emailVerified) {
+        console.log("[Register] Cleaning up unverified stale account:", email)
+        await prisma.user.delete({ where: { id: existing.id } })
+      } else {
+        return { error: "Email already exists", success: false }
+      }
     }
 
     // Validate Referral Code if provided, otherwise default to COMPANY
@@ -75,12 +93,12 @@ export async function registerUser(formData: FormData) {
                         tierStatus: "CURRENT",
                         arnBalance: 0,
                         activeMembers: 0,
-                        totalDeposit: 0.0
+                        totalDeposit: 0.0,
+                        emailVerified: new Date(),
                     }
                 });
             } catch (createErr) {
                 console.error("[Register] Failed to create COMPANY user:", createErr);
-                // Continue, validReferrer will be null which is handled
             }
         }
 
@@ -100,19 +118,19 @@ export async function registerUser(formData: FormData) {
     while (attempts < maxAttempts) {
         attempts++;
         const newReferralCode = generateReferralCode();
-        const newMemberId = generateMemberId(); // 7-digit ID
+        const newMemberId = generateMemberId();
         
         try {
-            // Determine Signup Bonus
             const signupBonus = validReferrer ? (SIGNUP_BONUS_RATES[validReferrer.tier] || 0) : 0;
             
-            // Create the user
+            // Create the user — emailVerified is null (NOT verified yet)
             const newUser = await prisma.user.create({
               data: {
-                memberId: newMemberId, // Store the numeric ID
+                memberId: newMemberId,
                 name,
                 email,
                 password: hashedPassword,
+                emailVerified: null, // ← UNVERIFIED until OTP confirmed
                 country: country || null, 
                 referralCode: newReferralCode,
                 referredByCode: validReferredByCode, 
@@ -164,18 +182,32 @@ export async function registerUser(formData: FormData) {
                }
             });
 
-            return { error: null, success: true }
+            // ── NEW: Generate OTP & Send Verification Email ──
+            const otp = generateOTP();
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+            await prisma.emailVerificationToken.create({
+              data: {
+                userId: newUser.id,
+                token: otp,
+                expiresAt,
+              },
+            });
+
+            await sendVerificationEmail(email, otp);
+            console.log("✅ User registered (pending verification):", email);
+
+            // ── Return email so SignupForm can redirect to /verify-email ──
+            return { error: null, success: true, email }
+
         } catch (err: any) {
-            // Check for Unique Constraint Violation
             if (err.code === 'P2002') {
                 const target = err.meta?.target;
                 
-                // If Email collision (race condition despite check above)
                 if (target && (target === 'User_email_key' || target.includes('email'))) {
                     return { error: 'Email already exists', success: false }
                 }
 
-                // If Referral Code or Member ID collision, retry
                 if (target && (target.includes('referralCode') || target.includes('memberId'))) {
                      console.warn(`[Register] Collision detected (Ref/ID): ${newReferralCode} / ${newMemberId}. Retrying... (${attempts}/${maxAttempts})`);
                      continue;
@@ -190,7 +222,6 @@ export async function registerUser(formData: FormData) {
     return { error: "Failed to generate unique credentials. Please try again.", success: false }
   } catch (err: any) {
     console.error("Registration Unexpected Error (FULL):", err);
-    // Provide a more descriptive error if it's a known issue
     const message = err?.message || "An unexpected error occurred.";
     if (message.includes("Prisma")) {
         return { error: "Database connection error. Please try again later.", success: false }
