@@ -94,9 +94,9 @@ function LoginContent() {
 
         <div className="p-7 sm:p-8 flex flex-col gap-5">
           <div className="text-center">
-            <div className="flex justify-center mb-3">
-              <Logo size="md" />
-            </div>
+           <div className="flex justify-center mb-3 brightness-200">
+    <Logo size="md" />
+</div>
             <h1 className="text-lg font-bold text-white tracking-tight">Welcome back</h1>
             <p className="text-xs text-slate-500 mt-0.5">Sign in to access your earnings</p>
           </div>

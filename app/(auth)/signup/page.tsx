@@ -51,9 +51,9 @@ function SignupPageContent() {
         <div className="p-6 sm:p-7 flex flex-col gap-4">
           {/* Header */}
           <div className="text-center">
-            <div className="flex justify-center mb-2.5">
-              <Logo size="md" />
-            </div>
+            <div className="flex justify-center mb-2.5 brightness-200">
+    <Logo size="md" />
+</div>
             <h1 className="text-lg font-bold text-white tracking-tight">Create your account</h1>
             <p className="text-xs text-slate-500 mt-0.5">Join thousands of earners — takes under a minute</p>
           </div>
