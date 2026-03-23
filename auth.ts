@@ -5,7 +5,7 @@ import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { authConfig } from "@/auth.config"
-import { generateReferralCode } from "@/lib/mlm"
+import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
 // ─────────────────────────────────────────────────────────────
@@ -245,6 +245,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             }
 
             const newReferralCode = generateReferralCode()
+            const newMemberId = generateMemberId()
 
             // Only update if this user doesn't already have a referral code
             // (prevents overwriting data for existing credential users)
@@ -255,6 +256,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     where: { id: user.id },
                     data: {
                         referralCode: newReferralCode,
+                        memberId: newMemberId,
                         referredByCode: validReferredByCode,
                         tier: "NEWBIE" as any,
                         tierStatus: "CURRENT" as any,
@@ -298,6 +300,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 
                 console.log("✅ Google Signup: MLM Setup Complete for", user.email)
             } else {
+                // User already has referral code — but check if memberId is missing
+                if (!currentUser?.memberId) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { memberId: generateMemberId() }
+                    })
+                    console.log("🔧 Generated missing memberId for:", user.email)
+                }
                 console.log("ℹ️ User already has referral code, skipping MLM setup:", user.email)
             }
 
