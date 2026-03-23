@@ -12,10 +12,9 @@ export async function POST() {
 
         const userId = session.user.id;
 
-        // Fetch user context precisely
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, balance: true, isActiveMember: true }
+            select: { id: true, balance: true, isActiveMember: true, referredByCode: true }
         });
 
         if (!user) {
@@ -30,7 +29,15 @@ export async function POST() {
             return NextResponse.json({ error: "Insufficient wallet balance. You need at least $1.00 to unlock your account." }, { status: 400 });
         }
 
-        // Perform the Unlock in an isolated Transaction
+        // Fix null referredByCode before transaction
+        if (!user.referredByCode) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { referredByCode: 'COMPANY' }
+            });
+        }
+
+        // Perform the Unlock in an isolated Transaction with extended timeout
         await prisma.$transaction(async (prismaTx) => {
             // Deduct from Balance
             await prismaTx.user.update({
@@ -54,6 +61,9 @@ export async function POST() {
 
             // Trigger activation distributions
             await unlockUserAccount(userId, prismaTx);
+        }, {
+            maxWait: 10000,
+            timeout: 30000,
         });
 
         return NextResponse.json({ success: true, message: "Account successfully unlocked." });
