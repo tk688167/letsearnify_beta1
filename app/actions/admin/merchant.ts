@@ -152,7 +152,7 @@ export async function approveMerchantTransaction(transactionId: string) {
     }
 
     // ── PRE-LOAD imports BEFORE the transaction to avoid timeout ──
-    const { unlockUserAccount, checkTierUpgrade } = await import("@/lib/mlm")
+    const { checkTierUpgrade } = await import("@/lib/mlm")
 
     // ── Ensure user has referredByCode (fix for users with null) ──
     const targetUser = await prisma.user.findUnique({
@@ -211,44 +211,13 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 5. Check if user should be auto-unlocked
+            // 5. Check tier upgrade (only if user is already active)
             const user = await tx.user.findUnique({
-                where: { id: transaction.userId },
-                select: { id: true, balance: true, isActiveMember: true }
-            })
-
-            if (user && !user.isActiveMember && user.balance >= 1.0) {
-                // Auto-deduct $1 and trigger full unlock flow
-                await tx.user.update({
-                    where: { id: transaction.userId },
-                    data: {
-                        balance: { decrement: 1.0 },
-                        arnBalance: { decrement: 10.0 }
-                    }
-                })
-
-                await tx.transaction.create({
-                    data: {
-                        userId: transaction.userId,
-                        amount: 1.0,
-                        type: "UNLOCK_FEE",
-                        status: "COMPLETED",
-                        description: "Auto-unlocked via merchant deposit approval ($1.00 deducted)."
-                    }
-                })
-
-                // Already imported above — no dynamic import inside tx
-                await unlockUserAccount(transaction.userId, tx)
-            }
-
-            // 6. Check tier upgrade for the user
-            const updatedUser = await tx.user.findUnique({
                 where: { id: transaction.userId },
                 select: { isActiveMember: true }
             })
 
-            if (updatedUser?.isActiveMember) {
-                // Already imported above — no dynamic import inside tx
+            if (user?.isActiveMember) {
                 await checkTierUpgrade(transaction.userId, tx)
             }
         }
