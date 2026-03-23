@@ -270,9 +270,9 @@ export async function approveMerchantTransaction(transactionId: string) {
     revalidatePath("/dashboard/wallet")
     revalidatePath("/dashboard")
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Approve Transaction Error:", error)
-    return { success: false, error: "Failed to approve transaction" }
+    return { success: false, error: `FAILED: ${error?.message?.substring(0, 200) || "Unknown error"}` }
   }
 }
 
