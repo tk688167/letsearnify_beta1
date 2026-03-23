@@ -33,7 +33,7 @@ export async function createCountry(data: { name: string, code: string, currency
         name: data.name,
         code: data.code.toUpperCase(),
         currency: data.currency.toUpperCase(),
-        status: "ACTIVE", // Default to active for now
+        status: "ACTIVE",
         exchangeRate: data.exchangeRate || 1.0,
         serviceFee: data.serviceFee || 0.0
       }
@@ -116,12 +116,7 @@ export async function updatePaymentMethod(id: string, data: { name?: string, acc
       where: { id },
       data
     })
-    // We might not know the countryId here easily to revalidate specific path, 
-    // but we can revalidate the general admin path or fetch from DB if needed.
-    // Ideally we pass countryId or fetch it. For now, simple update.
-    // Revalidate all potentially affected paths
-    revalidatePath("/admin/merchant") // Covers [countryId] as well? No, need specific path but lack ID.
-    // However, for user wallet, global revalidation works.
+    revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method updated" }
   } catch (error) {
@@ -156,6 +151,22 @@ export async function approveMerchantTransaction(transactionId: string) {
         return { success: false, error: "Transaction not found or already processed" }
     }
 
+    // ── PRE-LOAD imports BEFORE the transaction to avoid timeout ──
+    const { unlockUserAccount, checkTierUpgrade } = await import("@/lib/mlm")
+
+    // ── Ensure user has referredByCode (fix for users with null) ──
+    const targetUser = await prisma.user.findUnique({
+        where: { id: transaction.userId },
+        select: { id: true, referredByCode: true }
+    })
+    if (targetUser && !targetUser.referredByCode) {
+        await prisma.user.update({
+            where: { id: targetUser.id },
+            data: { referredByCode: 'COMPANY' }
+        })
+    }
+
+    // ── Run transaction with extended timeout (30s instead of default 5s) ──
     await prisma.$transaction(async (tx) => {
         // 1. Update merchant transaction status
         await tx.merchantTransaction.update({
@@ -165,7 +176,7 @@ export async function approveMerchantTransaction(transactionId: string) {
 
         if (transaction.type === 'DEPOSIT') {
             const amount = transaction.amount
-            const arnToMint = amount * 10 // 1 USD = 10 ARN
+            const arnToMint = amount * 10
 
             // 2. Credit user balance + ARN + totalDeposit
             await tx.user.update({
@@ -177,7 +188,7 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 3. Create Transaction record (shows in wallet history)
+            // 3. Create Transaction record
             await tx.transaction.create({
                 data: {
                     userId: transaction.userId,
@@ -226,22 +237,18 @@ export async function approveMerchantTransaction(transactionId: string) {
                     }
                 })
 
-                // Import and call unlockUserAccount with the transaction context
-                const { unlockUserAccount } = await import("@/lib/mlm")
+                // Already imported above — no dynamic import inside tx
                 await unlockUserAccount(transaction.userId, tx)
             }
 
-            // 6. Distribute commissions if user is active (or just became active)
+            // 6. Check tier upgrade for the user
             const updatedUser = await tx.user.findUnique({
                 where: { id: transaction.userId },
                 select: { isActiveMember: true }
             })
 
-            if (updatedUser?.isActiveMember && amount > 1.0) {
-                // Commissions on the remaining amount (deposit minus the $1 unlock fee)
-                const { finalizeDeposit } = await import("@/lib/mlm")
-                // Only distribute commissions, don't re-mint (already minted above)
-                const { checkTierUpgrade } = await import("@/lib/mlm")
+            if (updatedUser?.isActiveMember) {
+                // Already imported above — no dynamic import inside tx
                 await checkTierUpgrade(transaction.userId, tx)
             }
         }
@@ -264,6 +271,9 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
         }
+    }, {
+        maxWait: 10000,  // Max time to wait for a connection (10s)
+        timeout: 30000,  // Max time for the transaction to complete (30s)
     })
     
     revalidatePath("/admin/merchant/deposits")
@@ -290,8 +300,8 @@ export async function rejectMerchantTransaction(transactionId: string) {
 
     revalidatePath("/admin/merchant/deposits")
     return { success: true }
-  }  catch (error: any) {
-    console.error("Approve Transaction Error:", error)
+  } catch (error: any) {
+    console.error("Reject Transaction Error:", error)
     return { success: false, error: `FAILED: ${error?.message?.substring(0, 200) || "Unknown error"}` }
   }
 }
