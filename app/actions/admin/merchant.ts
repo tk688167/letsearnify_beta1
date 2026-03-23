@@ -290,8 +290,8 @@ export async function rejectMerchantTransaction(transactionId: string) {
 
     revalidatePath("/admin/merchant/deposits")
     return { success: true }
-  } catch (error) {
-    console.error("Reject Transaction Error:", error)
-    return { success: false, error: "Failed to reject transaction" }
+  }  catch (error: any) {
+    console.error("Approve Transaction Error:", error)
+    return { success: false, error: `FAILED: ${error?.message?.substring(0, 200) || "Unknown error"}` }
   }
 }
