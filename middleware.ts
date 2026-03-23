@@ -3,21 +3,25 @@ import { authConfig } from "./auth.config"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
-// 1. Rate Limiting Map (Basic In-Memory for single instance/demo)
-// For robust prod scale, use Redis/Upstash
 const rateLimitMap = new Map();
 
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req
+
+  // ─────────────────────────────────────────────────────────────
+  // 0. SKIP heavy processing for NextAuth callback routes
+  //    These are Google OAuth redirects — don't interfere with them
+  // ─────────────────────────────────────────────────────────────
+  if (nextUrl.pathname.startsWith("/api/auth")) {
+    // Still run NextAuth session logic for auth routes
+    const session = await NextAuth(authConfig).auth(req as any)
+    return NextResponse.next()
+  }
   
-  // -------------------------------------------------------------------------
-  // 1. SECURITY HEADERS (OWASP Recommendations)
-  // -------------------------------------------------------------------------
+  // ─────────────────────────────────────────────────────────────
+  // 1. SECURITY HEADERS
+  // ─────────────────────────────────────────────────────────────
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
-  
-  // Allow scripts from self and trusted sources (Stripe, etc. if needed)
-  // 'unsafe-inline' and 'unsafe-eval' often needed for Next.js dev/production hydration in some versions or 3rd party libs
-  // Using nonce is best practice.
   
   const cspHeader = `
     default-src 'self';
@@ -25,11 +29,11 @@ export default async function middleware(req: NextRequest) {
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https://* http://*;
     font-src 'self' data:;
+    connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self';
+    form-action 'self' https://accounts.google.com;
     frame-ancestors 'none';
-    block-all-mixed-content;
     upgrade-insecure-requests;
   `.replace(/\s{2,}/g, ' ').trim()
 
@@ -37,13 +41,13 @@ export default async function middleware(req: NextRequest) {
   requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('Content-Security-Policy', cspHeader)
 
-  // -------------------------------------------------------------------------
-  // 2. RATE LIMITING (Basic)
-  // -------------------------------------------------------------------------
-  if (nextUrl.pathname.startsWith("/api/auth") || nextUrl.pathname.startsWith("/api/admin")) {
+  // ─────────────────────────────────────────────────────────────
+  // 2. RATE LIMITING
+  // ─────────────────────────────────────────────────────────────
+  if (nextUrl.pathname.startsWith("/api/admin")) {
       const ip = req.headers.get("x-forwarded-for") ?? "127.0.0.1"
-      const limit = 100 // Requests per window
-      const windowMs = 60 * 1000 // 1 minute
+      const limit = 100
+      const windowMs = 60 * 1000
       
       const key = `${ip}:${nextUrl.pathname}`
       const current = rateLimitMap.get(key) || { count: 0, startTime: Date.now() }
@@ -65,27 +69,16 @@ export default async function middleware(req: NextRequest) {
       }
   }
 
-  // -------------------------------------------------------------------------
-  // 3. AUTHENTICATION (NextAuth)
-  // -------------------------------------------------------------------------
-  // Run NextAuth with modified headers
+  // ─────────────────────────────────────────────────────────────
+  // 3. AUTHENTICATION
+  // ─────────────────────────────────────────────────────────────
   const session = await NextAuth(authConfig).auth(req as any)
 
-  // Redirect authenticated users from Home to the correct landing page
   if (nextUrl.pathname === "/" && session?.user) {
       const role = (session.user as any)?.role
       return NextResponse.redirect(new URL(role === "ADMIN" ? "/admin" : "/dashboard", nextUrl))
   }
-  
-  // Anti-Gravity: Strict Route Protection
-  // If we had isActive in session, we would check it here.
-  // Pending `auth.ts` review.
 
-
-
-  // NOTE: NextAuth middleware usually handles redirect protection based on authConfig.
-  // We can add custom Role checks here if needed, but usually done in component/api.
-  
   // Return response with headers
   const response = NextResponse.next({
     request: {
@@ -103,6 +96,13 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)', '/api/auth/:path*', '/api/admin/:path*'],
+  matcher: [
+    /*
+     * Match all paths EXCEPT:
+     * - _next/static, _next/image (Next.js internals)
+     * - favicon.ico, robots.txt, sitemap.xml (static files)
+     * - public folder images
+     */
+    '/((?!_next/static|_next/image|favicon\\.ico|robots\\.txt|sitemap\\.xml|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)',
+  ],
 }

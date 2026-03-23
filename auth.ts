@@ -71,7 +71,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       }
     }),
     Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
+      // Force consent screen to ensure we always get a proper token
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
     Credentials({
         id: "impersonation",
@@ -113,19 +123,25 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async createUser({ user }) {
         try {
             console.log("✨ Google Signup: Processing new user", user.email)
-            const { cookies } = await import("next/headers")
-            const cookieStore = await cookies()
-            const referralCodeInput = cookieStore.get("referral_code")?.value
-
+            
             let validReferredByCode = 'COMPANY'
             
-            if (referralCodeInput) {
-                const referrer = await prisma.user.findUnique({ 
-                    where: { referralCode: referralCodeInput } 
-                })
-                if (referrer) {
-                    validReferredByCode = referralCodeInput
+            // Try to read referral code from cookie
+            try {
+                const { cookies } = await import("next/headers")
+                const cookieStore = await cookies()
+                const referralCodeInput = cookieStore.get("referral_code")?.value
+
+                if (referralCodeInput) {
+                    const referrer = await prisma.user.findUnique({ 
+                        where: { referralCode: referralCodeInput } 
+                    })
+                    if (referrer) {
+                        validReferredByCode = referralCodeInput
+                    }
                 }
+            } catch (cookieError) {
+                console.warn("⚠️ Could not read referral cookie (expected in some flows):", cookieError)
             }
 
             const newReferralCode = generateReferralCode()
@@ -175,26 +191,89 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 }
             })
             
-            console.log("✅ Google Signup: MLM Setup Complete")
+            console.log("✅ Google Signup: MLM Setup Complete for", user.email)
 
         } catch (error) {
             console.error("❌ Google Signup Error:", error)
+            // Don't throw — let the user still sign in even if MLM setup fails
+            // They can be fixed later via admin
         }
     }
   },
-  // ALL callbacks defined here directly — no spread from authConfig
   callbacks: {
+    // ── NEW: signIn callback to handle Google OAuth edge cases ──
+    async signIn({ user, account, profile }) {
+      // Always allow credentials & impersonation
+      if (account?.provider === "credentials" || account?.provider === "impersonation") {
+        return true
+      }
+
+      // For Google sign-in
+      if (account?.provider === "google") {
+        try {
+          // Check if the email from Google is valid
+          if (!profile?.email) {
+            console.error("❌ Google sign-in: No email in profile")
+            return false
+          }
+
+          // Check if user exists with this email but signed up via credentials (no emailVerified)
+          const existingUser = await prisma.user.findUnique({
+            where: { email: profile.email.toLowerCase() }
+          })
+
+          if (existingUser && !existingUser.emailVerified) {
+            // Auto-verify email since Google already verified it
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { emailVerified: new Date() }
+            })
+            console.log("✅ Auto-verified email for existing user via Google:", profile.email)
+          }
+
+          return true
+        } catch (error) {
+          console.error("❌ Google signIn callback error:", error)
+          // Still allow sign-in even if our check fails
+          return true
+        }
+      }
+
+      return true
+    },
+
     authorized: authConfig.callbacks.authorized,
-    async jwt({ token, user }) {
+
+    async jwt({ token, user, account, trigger }) {
+      // On initial sign-in (user object is available)
       if (user) {
         token.role = (user as any).role || "USER"
         token.id = user.id
         token.isActiveMember = (user as any).isActiveMember || false
         token.memberId = (user as any).memberId || ""
+        
         if (user.id === "super-admin-id") {
             token.isActiveMember = true
             token.memberId = "777777"
         }
+
+        // For Google sign-in, fetch the latest user data from DB
+        // because the user object from adapter might not have our custom fields yet
+        if (account?.provider === "google" && user.id && user.id !== "super-admin-id") {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: user.id }
+            })
+            if (dbUser) {
+              token.role = dbUser.role
+              token.memberId = dbUser.memberId
+              token.isActiveMember = dbUser.isActiveMember
+            }
+          } catch (error) {
+            console.error("Error fetching Google user data in JWT:", error)
+          }
+        }
+
         return token
       }
       
@@ -219,6 +298,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       }
       return token
     },
+
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string
