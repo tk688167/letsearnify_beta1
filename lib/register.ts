@@ -1,9 +1,3 @@
-// ============================================================
-// FILE: lib/register.ts  (REPLACE your existing file)
-// ONLY CHANGE: sends OTP email + returns email for redirect
-// ALL existing signup/MLM/referral logic is UNTOUCHED
-// ============================================================
-
 "use server"
 
 import { prisma } from "@/lib/prisma"
@@ -11,15 +5,17 @@ import bcrypt from "bcryptjs"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { generateOTP, sendVerificationEmail } from "@/lib/email"
 
-// Bonus structure defined by the user for signup referrals
+// ── Signup Bonus Rates (ARN given to NEW USER based on REFERRER's tier) ──
+// Per PDF: The signup bonus is given to the new user (invitee), NOT the inviter.
+// These are ARN tokens, NOT USD. (10 ARN = 1 USD)
 const SIGNUP_BONUS_RATES: Record<string, number> = {
-  NEWBIE: 1,
-  BRONZE: 2,
-  SILVER: 3,
-  GOLD: 5,
-  PLATINUM: 6,
-  DIAMOND: 8,
-  EMERALD: 10
+  NEWBIE:   5,
+  BRONZE:   6,
+  SILVER:   7,
+  GOLD:     8,
+  PLATINUM: 9,
+  DIAMOND:  10,
+  EMERALD:  15
 };
 
 export async function registerUser(formData: FormData) {
@@ -33,19 +29,14 @@ export async function registerUser(formData: FormData) {
     return { error: "All fields are required", success: false }
   }
 
-  // Basic email format check
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "Please enter a valid email address.", success: false }
   }
 
   try {
-    const existing = await prisma.user.findUnique({
-      where: { email }
-    })
-    console.log("[Register] Checking existing user:", !!existing)
+    const existing = await prisma.user.findUnique({ where: { email } })
 
     if (existing) {
-      // ── NEW: Allow re-registration if email is NOT verified (stale signup) ──
       if (!existing.emailVerified) {
         console.log("[Register] Cleaning up unverified stale account:", email)
         await prisma.user.delete({ where: { id: existing.id } })
@@ -54,11 +45,10 @@ export async function registerUser(formData: FormData) {
       }
     }
 
-    // Validate Referral Code if provided, otherwise default to COMPANY
+    // Validate Referral Code
     let validReferrer = null;
     let validReferredByCode = null;
     
-    // 1. Try input code
     if (referralCodeInput) {
       const referrer = await prisma.user.findUnique({
         where: { referralCode: referralCodeInput }
@@ -69,22 +59,19 @@ export async function registerUser(formData: FormData) {
       }
     }
 
-    // 2. Fallback to COMPANY if no valid input
+    // Fallback to COMPANY
     if (!validReferrer) {
-        console.log("[Register] Resolving COMPANY referrer")
         let companyReferrer = await prisma.user.findUnique({
             where: { referralCode: 'COMPANY' }
         });
 
-        // AUTO-CREATE COMPANY USER IF MISSING (Self-Healing)
         if (!companyReferrer) {
-            console.log("[Register] Initializing COMPANY system user");
             try {
                 companyReferrer = await prisma.user.create({
                     data: {
                         memberId: "0000000",
                         name: "LetsEarnify Company",
-                        email: "admin@letsearnify.com",
+                        email: "system@letsearnify.com",
                         password: await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin123", 10),
                         referralCode: "COMPANY",
                         role: "ADMIN",
@@ -107,9 +94,7 @@ export async function registerUser(formData: FormData) {
             validReferredByCode = 'COMPANY';
         }
     }
-    console.log("[Register] Final Referrer:", validReferrer?.email || "None")
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
     let attempts = 0;
@@ -121,36 +106,39 @@ export async function registerUser(formData: FormData) {
         const newMemberId = generateMemberId();
         
         try {
-            const signupBonus = validReferrer ? (SIGNUP_BONUS_RATES[validReferrer.tier] || 0) : 0;
+            // ── Signup bonus: ARN tokens given to NEW USER based on REFERRER's tier ──
+            // Per PDF: "Talha receives the signup bonus (e.g., 5 ARN if Ali is Newbie)"
+            // This bonus is LOCKED until the new user activates with $1
+            const referrerTier = validReferrer?.tier || "NEWBIE"
+            const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5
             
-            // Create the user — emailVerified is null (NOT verified yet)
             const newUser = await prisma.user.create({
               data: {
                 memberId: newMemberId,
                 name,
                 email,
                 password: hashedPassword,
-                emailVerified: null, // ← UNVERIFIED until OTP confirmed
+                emailVerified: null,
                 country: country || null, 
                 referralCode: newReferralCode,
                 referredByCode: validReferredByCode, 
                 tier: "NEWBIE",
                 tierStatus: "CURRENT",
                 arnBalance: 0,
-                lockedArnBalance: signupBonus,
+                lockedArnBalance: signupBonusArn,  // Locked ARN signup bonus
                 activeMembers: 0,
                 totalDeposit: 0.0,
                 isActiveMember: false
               }
             })
 
-            if (signupBonus > 0) {
+            if (signupBonusArn > 0) {
                await prisma.mLMLog.create({
                  data: {
                    userId: newUser.id,
                    type: "LOCKED_SIGNUP_BONUS",
-                   amount: signupBonus,
-                   description: `Received signup bonus of ${signupBonus} ARN (Locked until $1 Activation)`
+                   amount: signupBonusArn,
+                   description: `Signup bonus: ${signupBonusArn} ARN (based on referrer's ${referrerTier} tier). Locked until $1 activation.`
                  }
                });
             }
@@ -182,9 +170,9 @@ export async function registerUser(formData: FormData) {
                }
             });
 
-            // ── NEW: Generate OTP & Send Verification Email ──
+            // ── OTP & Verification Email ──
             const otp = generateOTP();
-            const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
             await prisma.emailVerificationToken.create({
               data: {
@@ -195,25 +183,21 @@ export async function registerUser(formData: FormData) {
             });
 
             await sendVerificationEmail(email, otp);
-            console.log("✅ User registered (pending verification):", email);
+            console.log(`✅ User registered: ${email} (bonus: ${signupBonusArn} ARN from ${referrerTier} referrer)`);
 
-            // ── Return email so SignupForm can redirect to /verify-email ──
             return { error: null, success: true, email }
 
         } catch (err: any) {
             if (err.code === 'P2002') {
                 const target = err.meta?.target;
-                
                 if (target && (target === 'User_email_key' || target.includes('email'))) {
                     return { error: 'Email already exists', success: false }
                 }
-
                 if (target && (target.includes('referralCode') || target.includes('memberId'))) {
-                     console.warn(`[Register] Collision detected (Ref/ID): ${newReferralCode} / ${newMemberId}. Retrying... (${attempts}/${maxAttempts})`);
+                     console.warn(`[Register] Collision: ${newReferralCode}/${newMemberId}. Retry ${attempts}/${maxAttempts}`);
                      continue;
                 }
             }
-            
             console.error("Registration Error:", err);
             return { error: 'Something went wrong during registration. Please try again.', success: false }
         }
@@ -221,7 +205,7 @@ export async function registerUser(formData: FormData) {
 
     return { error: "Failed to generate unique credentials. Please try again.", success: false }
   } catch (err: any) {
-    console.error("Registration Unexpected Error (FULL):", err);
+    console.error("Registration Unexpected Error:", err);
     const message = err?.message || "An unexpected error occurred.";
     if (message.includes("Prisma")) {
         return { error: "Database connection error. Please try again later.", success: false }

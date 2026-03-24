@@ -654,3 +654,12 @@ model DailyEarningInvestment {
   @@index([userId])
   @@index([status])
 }
+model AdminNotification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  message   String
+  metadata  String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

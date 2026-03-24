@@ -25,12 +25,12 @@ export async function getUserTasks() {
           select: {
             id: true,
             status: true,
-            remarks: true // Added info
+            remarks: true
           }
         }
       },
       orderBy: {
-        reward: "desc" // Highest reward first
+        reward: "desc"
       }
     })
 
@@ -38,7 +38,7 @@ export async function getUserTasks() {
       ...task,
       isCompleted: task.completions.length > 0,
       completionStatus: task.completions[0]?.status || null,
-      completionRemarks: task.completions[0]?.remarks || null // Added info
+      completionRemarks: task.completions[0]?.remarks || null
     }))
   } catch (error) {
     console.error("Failed to fetch user tasks:", error)
@@ -77,6 +77,12 @@ export async function completeTask(taskId: string, proof: string) {
       return { success: false, error: "This task is no longer active" }
     }
 
+    // Get user info for notification
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { name: true, email: true }
+    })
+
     // Check if user already completed this task
     const existingCompletion = await prisma.taskCompletion.findFirst({
       where: {
@@ -87,32 +93,49 @@ export async function completeTask(taskId: string, proof: string) {
 
     if (existingCompletion) {
         if (existingCompletion.status === "PENDING") {
-             // Block if already pending
              return { success: false, error: "Task is already pending review." }
         } else if (existingCompletion.status === "APPROVED") {
-             // Block if already approved
              return { success: false, error: "You have already completed this task" }
         }
         
-        // If REJECTED, allow re-submission by updating the existing record
-        // Status -> PENDING, Update Proof, Clear Remarks
+        // If REJECTED, allow re-submission
         await prisma.taskCompletion.update({
             where: { id: existingCompletion.id },
             data: {
                 status: "PENDING",
                 proof: proof,
-                remarks: null, // Clear previous rejection remarks
-                createdAt: new Date() // Refresh timestamp to show as new
+                remarks: null,
+                createdAt: new Date()
             }
         })
+
+        // Create admin notification for re-submission
+        try {
+            await prisma.adminNotification.create({
+                data: {
+                    type: "TASK_RESUBMISSION",
+                    title: "Task Re-submitted",
+                    message: `${user?.name || user?.email || 'A user'} re-submitted proof for "${task.title}" (${task.reward} ARN)`,
+                    metadata: JSON.stringify({
+                        taskId: task.id,
+                        taskTitle: task.title,
+                        userId: session.user.id,
+                        reward: task.reward
+                    })
+                }
+            })
+        } catch (notifError) {
+            // Don't fail the task submission if notification fails
+            console.warn("Failed to create admin notification:", notifError)
+        }
         
         revalidatePath("/dashboard/tasks")
+        revalidatePath("/admin/tasks/approvals")
         return {
             success: true,
-            message: `Task re-submitted! use will review your proof again.`,
+            message: `Task re-submitted! We will review your proof again.`,
             pending: true
         }
-
     }
 
     // Create pending completion record
@@ -122,11 +145,31 @@ export async function completeTask(taskId: string, proof: string) {
           taskId: taskId,
           status: "PENDING",
           proof: proof,
-          pointsEarned: 0 // No points yet
+          pointsEarned: 0
         }
     })
 
+    // Create admin notification for new submission
+    try {
+        await prisma.adminNotification.create({
+            data: {
+                type: "TASK_SUBMISSION",
+                title: "New Task Proof Submitted",
+                message: `${user?.name || user?.email || 'A user'} submitted proof for "${task.title}" (${task.reward} ARN)`,
+                metadata: JSON.stringify({
+                    taskId: task.id,
+                    taskTitle: task.title,
+                    userId: session.user.id,
+                    reward: task.reward
+                })
+            }
+        })
+    } catch (notifError) {
+        console.warn("Failed to create admin notification:", notifError)
+    }
+
     revalidatePath("/dashboard/tasks")
+    revalidatePath("/admin/tasks/approvals")
 
     return {
       success: true,

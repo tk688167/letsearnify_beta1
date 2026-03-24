@@ -1,46 +1,46 @@
 "use server"
 
 import { auth } from "@/auth"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { cwd } from "process"
 
-export async function uploadProof(formData: FormData) {
-    const session = await auth()
-    if (!session?.user?.id) {
-        return { error: "Unauthorized" }
-    }
-
-    const file = formData.get("file") as File
-    if (!file) {
-        return { error: "No file provided" }
-    }
-
-    if (!file.type.startsWith("image/")) {
-        return { error: "File must be an image" }
-    }
-
-    // simplistic: in prod use UUID or safe naming
-    const timestamp = Date.now()
-    const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
-    const filename = `${timestamp}-${session.user?.id.slice(0,5)}-${safeName}`
-    
+/**
+ * Upload proof image for task completion.
+ * Sends to /api/upload/proof which handles file storage.
+ */
+export async function uploadProof(formData: FormData): Promise<{ error?: string; path?: string }> {
     try {
+        const session = await auth()
+        if (!session?.user?.id) {
+            return { error: "Unauthorized" }
+        }
+
+        const file = formData.get("file") as File
+        if (!file || file.size === 0) {
+            return { error: "No file selected" }
+        }
+
+        // Validate file type
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+        if (!allowedTypes.includes(file.type)) {
+            return { error: "Invalid file type. Use JPG, PNG, WEBP or GIF." }
+        }
+
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            return { error: "File too large. Max size is 5MB." }
+        }
+
+        // Convert to base64 data URL for storage
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
+        const base64 = buffer.toString("base64")
+        const dataUrl = `data:${file.type};base64,${base64}`
 
-        // Ensure directory exists
-        const uploadDir = join(cwd(), "public", "uploads", "proofs")
-        await mkdir(uploadDir, { recursive: true })
-
-        const path = join(uploadDir, filename)
-        await writeFile(path, buffer)
-        
-        // Return relative path for DB
-        return { success: true, path: `/uploads/proofs/${filename}` }
+        // For Vercel deployment, we store the base64 string directly as proof
+        // The admin can view it directly since browsers render data URLs
+        return { path: dataUrl }
 
     } catch (error: any) {
-        console.error("Upload error:", error)
-        return { error: "Failed to save file" }
+        console.error("Upload proof error:", error)
+        return { error: error.message || "Failed to save file" }
     }
 }

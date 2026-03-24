@@ -47,6 +47,7 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
 
             const isLocked = !user?.isActiveMember;
 
+            // 1. Update completion status
             await tx.taskCompletion.update({
                 where: { id: completionId },
                 data: {
@@ -56,6 +57,7 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 }
             })
 
+            // 2. Credit user (locked if not active, live if active)
             await tx.user.update({
                 where: { id: completion.userId },
                 data: (isLocked ? {
@@ -67,6 +69,7 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 }) as any
             })
 
+            // 3. Create transaction record for wallet history
             await tx.transaction.create({
                 data: {
                     userId: completion.userId,
@@ -74,22 +77,36 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                     amount: reward,
                     status: isLocked ? "LOCKED" : "COMPLETED",
                     method: "SYSTEM",
-                    description: `Task Approved: ${completion.task.title} ${isLocked ? '(Locked)' : ''}`,
-                    arnMinted: reward * 10  // Fixed: was `reward`, should be reward * 10
+                    description: `Task Approved: ${completion.task.title} ${isLocked ? '(Locked - activate to withdraw)' : ''}`,
+                    arnMinted: reward * 10
                 }
             })
+
+            // 4. Log in MLM system
+            await tx.mLMLog.create({
+                data: {
+                    userId: completion.userId,
+                    type: "TASK_REWARD",
+                    amount: reward,
+                    description: `Earned ${reward * 10} ARN ($${reward.toFixed(2)}) for completing: ${completion.task.title}`
+                }
+            })
+        }, {
+            maxWait: 10000,
+            timeout: 30000,
         })
 
-        // Check if task reward triggers a tier upgrade
+        // Check tier upgrade outside transaction
         await checkTierUpgrade(completion.userId)
 
         revalidatePath("/admin/tasks/approvals")
         revalidatePath("/dashboard")
+        revalidatePath("/dashboard/tasks")
         revalidatePath("/dashboard/wallet")
         return { success: true }
     } catch (error: any) {
         console.error("Approval error:", error)
-        return { success: false, error: error.message || "Failed to approve task" }
+        return { success: false, error: `Failed: ${error.message?.substring(0, 200) || "Unknown error"}` }
     }
 }
 
@@ -109,9 +126,10 @@ export async function rejectTaskCompletion(completionId: string, remarks?: strin
         })
 
         revalidatePath("/admin/tasks/approvals")
+        revalidatePath("/dashboard/tasks")
         return { success: true }
-    } catch (error) {
+    } catch (error: any) {
         console.error("Rejection error:", error)
-        return { success: false, error: "Failed to reject task" }
+        return { success: false, error: `Failed: ${error.message?.substring(0, 200) || "Unknown error"}` }
     }
 }
