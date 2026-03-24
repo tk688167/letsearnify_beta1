@@ -8,29 +8,12 @@ import { authConfig } from "@/auth.config"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
-// ─────────────────────────────────────────────────────────────
-// HOW NextAuth handleLoginOrRegister WORKS (from source):
-//
-// 1. getUserByAccount({ provider, providerAccountId })
-//    → If found: sign in as that user (DONE, no linking needed)
-//    → If NOT found: continue to step 2
-//
-// 2. getUserByEmail(profile.email)
-//    → If found AND allowDangerousEmailAccountLinking=true:
-//      set user = userByEmail, then call linkAccount()
-//    → If found AND linking NOT allowed: throw OAuthAccountNotLinked
-//    → If NOT found: call createUser(), then linkAccount()
-//
-// PROBLEM: When createUser returns an EXISTING user (our override),
-// NextAuth still calls linkAccount which creates the Account record.
-// This is fine for first login. On second login, getUserByAccount
-// finds the record and signs in directly. WORKS.
-//
-// The bug was: the signIn callback was ALSO trying to create
-// Account records, causing P2002 unique constraint violations,
-// and returning true despite the error — but NextAuth's internal
-// handleLoginOrRegister still threw OAuthAccountNotLinked.
-// ─────────────────────────────────────────────────────────────
+// ── Signup Bonus (ARN given to NEW USER based on REFERRER's tier) ──
+// Per PDF: bonus goes to the invitee, NOT the inviter
+const SIGNUP_BONUS_RATES: Record<string, number> = {
+  NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
+  PLATINUM: 9, DIAMOND: 10, EMERALD: 15
+}
 
 function CustomPrismaAdapter(p: typeof prisma) {
   const baseAdapter = PrismaAdapter(p) as any
@@ -38,19 +21,13 @@ function CustomPrismaAdapter(p: typeof prisma) {
   return {
     ...baseAdapter,
 
-    // When Google user already exists (signed up via credentials),
-    // return that user instead of creating a duplicate.
-    // NextAuth will then call linkAccount() to create the Account record.
     async createUser(data: any) {
       const email = data.email?.toLowerCase()
 
       if (email) {
-        const existingUser = await p.user.findUnique({
-          where: { email },
-        })
+        const existingUser = await p.user.findUnique({ where: { email } })
 
         if (existingUser) {
-          // Update with Google profile info (image, emailVerified)
           const updated = await p.user.update({
             where: { id: existingUser.id },
             data: {
@@ -64,16 +41,13 @@ function CustomPrismaAdapter(p: typeof prisma) {
         }
       }
 
-      // Truly new user — create normally
       const newUser = await baseAdapter.createUser(data)
       console.log("✨ [Adapter] Created new user:", newUser.email)
       return newUser
     },
 
-    // Handle duplicate linking gracefully — prevent P2002 crashes
     async linkAccount(account: any) {
       try {
-        // Check if already linked
         const existing = await p.account.findUnique({
           where: {
             provider_providerAccountId: {
@@ -84,7 +58,6 @@ function CustomPrismaAdapter(p: typeof prisma) {
         })
 
         if (existing) {
-          // Update tokens (they change each login)
           await p.account.update({
             where: { id: existing.id },
             data: {
@@ -99,7 +72,6 @@ function CustomPrismaAdapter(p: typeof prisma) {
           return existing
         }
 
-        // Create new link
         const result = await p.account.create({
           data: {
             userId: account.userId,
@@ -247,11 +219,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             const newReferralCode = generateReferralCode()
             const newMemberId = generateMemberId()
 
-            // Only update if this user doesn't already have a referral code
-            // (prevents overwriting data for existing credential users)
             const currentUser = await prisma.user.findUnique({ where: { id: user.id! } })
             
             if (!currentUser?.referralCode) {
+                // ── Calculate signup bonus based on referrer's tier ──
+                const referrer = await prisma.user.findUnique({
+                    where: { referralCode: validReferredByCode },
+                    select: { id: true, tier: true }
+                })
+                const referrerTier = referrer?.tier || "NEWBIE"
+                const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5
+
                 await prisma.user.update({
                     where: { id: user.id },
                     data: {
@@ -261,6 +239,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         tier: "NEWBIE" as any,
                         tierStatus: "CURRENT" as any,
                         arnBalance: 0,
+                        lockedArnBalance: signupBonusArn,  // ← Signup bonus (locked)
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
@@ -268,18 +247,26 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 })
 
+                // Log the signup bonus
+                if (signupBonusArn > 0) {
+                    await prisma.mLMLog.create({
+                        data: {
+                            userId: user.id!,
+                            type: "LOCKED_SIGNUP_BONUS",
+                            amount: signupBonusArn,
+                            description: `Signup bonus: ${signupBonusArn} ARN (referrer tier: ${referrerTier}). Locked until $1 activation.`
+                        }
+                    })
+                }
+
                 let advisorId = null
                 let supervisorId = null
                 let managerId = null
                 
-                const actualReferrer = await prisma.user.findUnique({
-                    where: { referralCode: validReferredByCode }
-                })
-
-                if (actualReferrer) {
-                    advisorId = actualReferrer.id
+                if (referrer) {
+                    advisorId = referrer.id
                     const referrerTree = await prisma.referralTree.findUnique({
-                        where: { userId: actualReferrer.id }
+                        where: { userId: referrer.id }
                     })
                     if (referrerTree) {
                         supervisorId = referrerTree.advisorId
@@ -287,7 +274,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 }
 
-                // Only create tree if it doesn't exist
                 const existingTree = await prisma.referralTree.findUnique({
                     where: { userId: user.id! }
                 })
@@ -298,15 +284,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     })
                 }
                 
-                console.log("✅ Google Signup: MLM Setup Complete for", user.email)
+                console.log(`✅ Google Signup: ${user.email} - bonus: ${signupBonusArn} ARN, referrer: ${referrerTier}`)
             } else {
-                // User already has referral code — but check if memberId is missing
-                if (!currentUser?.memberId) {
+                // Existing user — just ensure memberId exists
+                if (!currentUser?.memberId || currentUser.memberId === currentUser.id) {
                     await prisma.user.update({
                         where: { id: user.id },
                         data: { memberId: generateMemberId() }
                     })
-                    console.log("🔧 Generated missing memberId for:", user.email)
                 }
                 console.log("ℹ️ User already has referral code, skipping MLM setup:", user.email)
             }
@@ -317,7 +302,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     }
   },
   callbacks: {
-    // ── signIn: ONLY verify email, do NOT touch accounts table ──
     async signIn({ user, account, profile }) {
       if (account?.provider === "credentials" || account?.provider === "impersonation") {
         return true
@@ -357,7 +341,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             token.memberId = "777777"
         }
 
-        // For Google, fetch fresh data since adapter user may lack custom fields
         if (account?.provider === "google" && user.id && user.id !== "super-admin-id") {
           try {
             const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
