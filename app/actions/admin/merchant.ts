@@ -20,13 +20,8 @@ export async function getCountries() {
 
 export async function createCountry(data: { name: string, code: string, currency: string, exchangeRate?: number, serviceFee?: number }) {
   try {
-    const existing = await prisma.merchantCountry.findUnique({
-      where: { name: data.name }
-    })
-
-    if (existing) {
-      return { success: false, error: "Country already exists" }
-    }
+    const existing = await prisma.merchantCountry.findUnique({ where: { name: data.name } })
+    if (existing) return { success: false, error: "Country already exists" }
 
     await prisma.merchantCountry.create({
       data: {
@@ -50,10 +45,7 @@ export async function createCountry(data: { name: string, code: string, currency
 
 export async function updateCountry(id: string, data: { name?: string, code?: string, currency?: string, status?: string, exchangeRate?: number, serviceFee?: number }) {
   try {
-    await prisma.merchantCountry.update({
-      where: { id },
-      data
-    })
+    await prisma.merchantCountry.update({ where: { id }, data })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Country updated successfully" }
@@ -64,9 +56,7 @@ export async function updateCountry(id: string, data: { name?: string, code?: st
 
 export async function deleteCountry(id: string) {
   try {
-    await prisma.merchantCountry.delete({
-      where: { id }
-    })
+    await prisma.merchantCountry.delete({ where: { id } })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Country deleted successfully" }
@@ -74,7 +64,6 @@ export async function deleteCountry(id: string) {
     return { success: false, error: "Failed to delete country" }
   }
 }
-
 
 // --- Payment Method Management ---
 
@@ -93,13 +82,7 @@ export async function getPaymentMethods(countryId: string) {
 export async function addPaymentMethod(countryId: string, data: { name: string, accountNumber: string, accountName: string, instructions?: string }) {
   try {
     await prisma.merchantPaymentMethod.create({
-      data: {
-        countryId,
-        name: data.name,
-        accountNumber: data.accountNumber,
-        accountName: data.accountName,
-        instructions: data.instructions
-      }
+      data: { countryId, name: data.name, accountNumber: data.accountNumber, accountName: data.accountName, instructions: data.instructions }
     })
     revalidatePath(`/admin/merchant/${countryId}`)
     revalidatePath("/dashboard/wallet")
@@ -112,10 +95,7 @@ export async function addPaymentMethod(countryId: string, data: { name: string, 
 
 export async function updatePaymentMethod(id: string, data: { name?: string, accountNumber?: string, accountName?: string, instructions?: string }) {
   try {
-    await prisma.merchantPaymentMethod.update({
-      where: { id },
-      data
-    })
+    await prisma.merchantPaymentMethod.update({ where: { id }, data })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method updated" }
@@ -126,9 +106,7 @@ export async function updatePaymentMethod(id: string, data: { name?: string, acc
 
 export async function deletePaymentMethod(id: string) {
   try {
-    await prisma.merchantPaymentMethod.delete({
-      where: { id }
-    })
+    await prisma.merchantPaymentMethod.delete({ where: { id } })
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method deleted" }
   } catch (error) {
@@ -151,10 +129,10 @@ export async function approveMerchantTransaction(transactionId: string) {
         return { success: false, error: "Transaction not found or already processed" }
     }
 
-    // ── PRE-LOAD imports BEFORE the transaction to avoid timeout ──
-    const { checkTierUpgrade } = await import("@/lib/mlm")
+    // Pre-load imports outside transaction
+    const { checkTierUpgrade, distributeCommissions: _dc } = await import("@/lib/mlm")
 
-    // ── Ensure user has referredByCode (fix for users with null) ──
+    // Fix null referredByCode
     const targetUser = await prisma.user.findUnique({
         where: { id: transaction.userId },
         select: { id: true, referredByCode: true }
@@ -166,7 +144,6 @@ export async function approveMerchantTransaction(transactionId: string) {
         })
     }
 
-    // ── Run transaction with extended timeout (30s instead of default 5s) ──
     await prisma.$transaction(async (tx) => {
         // 1. Update merchant transaction status
         await tx.merchantTransaction.update({
@@ -176,7 +153,7 @@ export async function approveMerchantTransaction(transactionId: string) {
 
         if (transaction.type === 'DEPOSIT') {
             const amount = transaction.amount
-            const arnToMint = amount * 10
+            const arnToMint = amount * 10 // 10 ARN = 1 USD
 
             // 2. Credit user balance + ARN + totalDeposit
             await tx.user.update({
@@ -211,18 +188,92 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 5. Check tier upgrade (only if user is already active)
+            // 5. Check if user is active — if so, distribute referral commissions
+            // Per PDF: "When Talha deposits, Ali receives his referral reward"
             const user = await tx.user.findUnique({
                 where: { id: transaction.userId },
                 select: { isActiveMember: true }
             })
 
             if (user?.isActiveMember) {
+                // Distribute commissions to upline (L1, L2, L3)
+                // This is the referral reward that fires on every deposit by an active user
+                const tree = await tx.referralTree.findUnique({
+                    where: { userId: transaction.userId }
+                })
+
+                if (tree) {
+                    const { TIER_COMMISSIONS } = await import("@/lib/mlm")
+                    const sourceUser = await tx.user.findUnique({
+                        where: { id: transaction.userId },
+                        select: { name: true, email: true }
+                    })
+                    const sourceName = sourceUser?.name || sourceUser?.email || "a team member"
+
+                    const uplineIds = [tree.advisorId, tree.supervisorId, tree.managerId].filter(Boolean) as string[]
+
+                    for (let i = 0; i < uplineIds.length; i++) {
+                        const uplineId = uplineIds[i]
+                        const level = i + 1
+
+                        const referrer = await tx.user.findUnique({
+                            where: { id: uplineId },
+                            select: { id: true, tier: true, isActiveMember: true }
+                        })
+                        if (!referrer) continue
+
+                        const validTier = TIER_COMMISSIONS[referrer.tier] ? referrer.tier : "NEWBIE"
+                        const rates = TIER_COMMISSIONS[validTier]
+                        const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3
+
+                        if (rate > 0) {
+                            const commissionUSD = amount * (rate / 100)
+                            const commissionARN = commissionUSD * 10
+
+                            await tx.user.update({
+                                where: { id: uplineId },
+                                data: referrer.isActiveMember ? {
+                                    arnBalance: { increment: commissionARN },
+                                    balance: { increment: commissionUSD }
+                                } : {
+                                    lockedArnBalance: { increment: commissionARN },
+                                    lockedBalance: { increment: commissionUSD }
+                                }
+                            })
+
+                            await tx.referralCommission.create({
+                                data: {
+                                    earnerId: uplineId,
+                                    sourceUserId: transaction.userId,
+                                    amount: commissionUSD,
+                                    level: level,
+                                    percentage: rate
+                                }
+                            })
+
+                            if (referrer.isActiveMember) {
+                                await tx.transaction.create({
+                                    data: {
+                                        userId: uplineId,
+                                        amount: commissionUSD,
+                                        arnMinted: commissionARN,
+                                        type: "REFERRAL_COMMISSION",
+                                        status: "COMPLETED",
+                                        method: "SYSTEM",
+                                        description: `L${level} commission (${rate}%) from ${sourceName}'s $${amount.toFixed(2)} deposit`
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+
+                // Check tier upgrade for the depositor
                 await checkTierUpgrade(transaction.userId, tx)
             }
         }
         
-        // WITHDRAWAL: Deduct from balance
+        // WITHDRAWAL
         if (transaction.type === 'WITHDRAWAL') {
             await tx.user.update({
                 where: { id: transaction.userId },
@@ -241,8 +292,8 @@ export async function approveMerchantTransaction(transactionId: string) {
             })
         }
     }, {
-        maxWait: 10000,  // Max time to wait for a connection (10s)
-        timeout: 30000,  // Max time for the transaction to complete (30s)
+        maxWait: 10000,
+        timeout: 30000,
     })
     
     revalidatePath("/admin/merchant/deposits")

@@ -3,6 +3,7 @@ import { mintArnForDeposit } from "@/lib/tokens";
 
 // --- CONFIGURATION ---
 
+// Exported so merchant.ts can use it for deposit commissions
 export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: number }> = {
     NEWBIE:   { L1: 5,  L2: 3,  L3: 2 },
     BRONZE:   { L1: 9,  L2: 4,  L3: 2 },
@@ -122,6 +123,8 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         create: { name: "REWARD", balance: 0.20, percentage: 20 }
     });
 
+    // Distribute referral commissions from the $1 unlock fee
+    // Per PDF: "When Talha deposits $1 to unlock, Ali receives his referral reward"
     const referralEmissions = await distributeCommissions(userId, 1.0, db);
     
     const cbspAmount = 0.0;
@@ -148,7 +151,7 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         });
     }
 
-    // ── FIX ISSUE 1: Update referrer's activeMembers count ──
+    // Update referrer's activeMembers count
     if (user.referredByCode) {
         const referrer = await db.user.findUnique({
             where: { referralCode: user.referredByCode },
@@ -203,21 +206,21 @@ export const processMlmDeposit = async (userId: string, amount: number, txId: st
 
 /**
  * Distributes USD commissions up 3 levels.
- * NOW creates Transaction records so commissions show in wallet history.
+ * Per PDF: Referral earnings are only released when the referred user is active.
+ * Creates Transaction records so commissions show in wallet history.
+ * 
+ * EXPORTED so merchant.ts can also call it for deposit commissions.
  */
-async function distributeCommissions(sourceUserId: string, amount: number, db: any): Promise<number> {
+export async function distributeCommissions(sourceUserId: string, amount: number, db: any): Promise<number> {
     let totalDistributed = 0;
     
     const tree = await db.referralTree.findUnique({
         where: { userId: sourceUserId },
-        include: {
-            user: { select: { name: true } }
-        }
+        include: { user: { select: { name: true } } }
     });
 
     if (!tree) return 0;
 
-    // Get source user's name for description
     const sourceUser = await db.user.findUnique({
         where: { id: sourceUserId },
         select: { name: true, email: true }
@@ -268,9 +271,6 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
                 }
             });
 
-            // ╔══════════════════════════════════════════════════════════╗
-            // ║  FIX: Create Transaction so commission shows in wallet  ║
-            // ╚══════════════════════════════════════════════════════════╝
             if (isUplineActive) {
                 await db.transaction.create({
                     data: {
@@ -299,8 +299,12 @@ async function distributeCommissions(sourceUserId: string, amount: number, db: a
 
 /**
  * Checks if a user qualifies for the next tier.
- * ARN from ANY source counts (referrals, spins, tasks, deposits).
- * Team size = total active members across 3 levels.
+ * 
+ * Per PDF:
+ * - ARN from ALL sources counts: signup bonus, tasks, spins, referral rewards, deposits
+ * - Team size = TOTAL signups (users who joined with your referral code), NOT just active members
+ * - "Each user who joins using your referral code = 1 Signup"
+ * - "There are no restrictions on who can sign up, every valid referral is counted equally"
  */
 export async function checkTierUpgrade(userId: string, tx?: any) {
     const db = tx || prisma;
@@ -310,11 +314,7 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
             id: true, 
             tier: true, 
             arnBalance: true,
-            balance: true,
-            referrals: { 
-                where: { isActiveMember: true },
-                select: { id: true } 
-            }
+            referralCode: true
         }
     });
 
@@ -322,45 +322,17 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
 
     const currentTierIndex = TIER_ORDER.indexOf(user.tier) >= 0 ? TIER_ORDER.indexOf(user.tier) : 0;
     
-    const userWithNetwork = await db.user.findUnique({
-        where: { id: userId },
-        select: {
-            referrals: {
-                where: { isActiveMember: true },
-                select: {
-                    id: true,
-                    referrals: {
-                        where: { isActiveMember: true },
-                        select: {
-                            id: true,
-                            referrals: {
-                                where: { isActiveMember: true },
-                                select: { id: true }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    let totalActiveNetwork = 0;
-    if (userWithNetwork?.referrals) {
-        userWithNetwork.referrals.forEach((l1: any) => {
-            totalActiveNetwork++;
-            if (l1.referrals) {
-                l1.referrals.forEach((l2: any) => {
-                    totalActiveNetwork++;
-                    if (l2.referrals) {
-                        totalActiveNetwork += l2.referrals.length;
-                    }
-                });
-            }
-        });
+    // Count TOTAL signups (all users who used this referral code, regardless of active status)
+    // Per PDF: "Each user who joins using your referral code = 1 Signup"
+    let totalSignups = 0;
+    if (user.referralCode) {
+        totalSignups = await db.user.count({
+            where: { referredByCode: user.referralCode }
+        })
     }
 
     const currentArn = user.arnBalance || 0;
-    const teamSize = totalActiveNetwork;
+    const teamSize = totalSignups;
 
     const tierRules = await getTierRequirements(db);
 
@@ -374,7 +346,7 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
         const threshold = tierThresholds[nextTier];
 
         if (currentArn >= threshold.arn && teamSize >= threshold.directs) {
-            console.log(`[MLM] UPGRADE: User ${userId} promoted to ${nextTier}`);
+            console.log(`[MLM] UPGRADE: User ${userId} promoted to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${teamSize}/${threshold.directs})`);
             
             await db.user.update({
                 where: { id: userId },
@@ -388,7 +360,7 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
                     userId: userId,
                     type: "TIER_UPGRADE",
                     amount: 0,
-                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Team: ${teamSize}/${threshold.directs})`
+                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${teamSize}/${threshold.directs})`
                 }
             });
         } else {
@@ -521,7 +493,6 @@ export function getTierWithdrawLimit(tier: string): number {
 
 /**
  * Check account expiry/inactivity and re-lock if needed.
- * Called from dashboard service instead of inline side-effects.
  */
 export async function checkAccountLock(userId: string) {
     try {
