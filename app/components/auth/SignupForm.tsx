@@ -5,7 +5,7 @@ import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
-import { signIn } from "next-auth/react"
+import { signIn, signOut } from "next-auth/react"
 
 interface SignupFormProps {
   referralCode?: string
@@ -92,6 +92,10 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     try {
       const ref = document.querySelector('input[name="referralCode"]') as HTMLInputElement
       if (ref?.value) document.cookie = "referral_code=" + ref.value + "; path=/; max-age=3600"
+      
+      // Clear any existing session first to prevent logging into referrer's account
+      await signOut({ redirect: false })
+      
       await signIn("google", { callbackUrl: "/dashboard" })
     } catch {
       setError("Google sign-in failed.")

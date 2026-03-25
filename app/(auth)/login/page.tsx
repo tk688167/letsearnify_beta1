@@ -1,14 +1,6 @@
-// ============================================================
-// FILE: app/(auth)/login/page.tsx  (REPLACE)
-// CHANGES:
-//   1. ?verified=true → green success banner
-//   2. EMAIL_NOT_VERIFIED error → redirect to /verify-email
-// ALL other logic is 100% identical to your original
-// ============================================================
-
 "use client"
 
-import { signIn, getSession } from "next-auth/react"
+import { signIn, signOut, getSession } from "next-auth/react"
 import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -35,7 +27,6 @@ function LoginContent() {
     try {
       const res = await signIn("credentials", { redirect: false, email, password })
       if (res?.error) {
-        // ── NEW: if email not verified, redirect to verify page ──
         if (res.error === "EMAIL_NOT_VERIFIED") {
           router.push(`/verify-email?email=${encodeURIComponent(email)}`)
           return
@@ -58,8 +49,15 @@ function LoginContent() {
 
   const handleGoogle = async () => {
     setIsGoogleLoading(true)
-    try { await signIn("google", { callbackUrl: "/dashboard" }) }
-    catch { setError("Google sign-in failed. Try again."); setIsGoogleLoading(false) }
+    try {
+      // Clear any existing session first to prevent stale session issues
+      await signOut({ redirect: false })
+      
+      await signIn("google", { callbackUrl: "/dashboard" })
+    } catch {
+      setError("Google sign-in failed. Try again.")
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
@@ -94,9 +92,9 @@ function LoginContent() {
 
         <div className="p-7 sm:p-8 flex flex-col gap-5">
           <div className="text-center">
-           <div className="flex justify-center mb-3 brightness-200">
-    <Logo size="md" />
-</div>
+            <div className="flex justify-center mb-3">
+              <Logo size="md" />
+            </div>
             <h1 className="text-lg font-bold text-white tracking-tight">Welcome back</h1>
             <p className="text-xs text-slate-500 mt-0.5">Sign in to access your earnings</p>
           </div>
