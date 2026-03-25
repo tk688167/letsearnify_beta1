@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
-import { Tier } from "@prisma/client"
+import { finalizeDeposit } from "@/lib/mlm"
 
 export async function DELETE(
   req: Request,
