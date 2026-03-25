@@ -357,10 +357,10 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           </div>
       </div>
 
-      <TierProgress 
+    <TierProgress 
          currentTier={user.tier} 
-         points={balance * 10} 
-         activeMembers={user.activeMembers || 0} 
+         points={user.arnBalance || 0} 
+         activeMembers={user.totalSignups || user.activeMembers || 0} 
          tierRules={user.tierRules} 
          referralCode={user.referralCode}
       />

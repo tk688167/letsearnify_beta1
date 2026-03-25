@@ -8,24 +8,16 @@ import { authConfig } from "@/auth.config"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
-// Signup Bonus (ARN given to NEW USER based on REFERRER's tier)
-const SIGNUP_BONUS_RATES: Record<string, number> = {
-  NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
-  PLATINUM: 9, DIAMOND: 10, EMERALD: 15
-}
-
 function CustomPrismaAdapter(p: typeof prisma) {
   const baseAdapter = PrismaAdapter(p) as any
-
   return {
     ...baseAdapter,
-
     async createUser(data: any) {
       const email = data.email?.toLowerCase()
       if (email) {
         const existingUser = await p.user.findUnique({ where: { email } })
         if (existingUser) {
-          const updated = await p.user.update({
+          return await p.user.update({
             where: { id: existingUser.id },
             data: {
               emailVerified: data.emailVerified || new Date(),
@@ -33,47 +25,24 @@ function CustomPrismaAdapter(p: typeof prisma) {
               name: existingUser.name || data.name,
             },
           })
-          return updated
         }
       }
-      const newUser = await baseAdapter.createUser(data)
-      return newUser
+      return await baseAdapter.createUser(data)
     },
-
     async linkAccount(account: any) {
       try {
         const existing = await p.account.findUnique({
-          where: {
-            provider_providerAccountId: {
-              provider: account.provider,
-              providerAccountId: account.providerAccountId,
-            },
-          },
+          where: { provider_providerAccountId: { provider: account.provider, providerAccountId: account.providerAccountId } },
         })
-
         if (existing) {
           await p.account.update({
             where: { id: existing.id },
-            data: {
-              access_token: account.access_token,
-              refresh_token: account.refresh_token ?? existing.refresh_token,
-              expires_at: account.expires_at,
-              id_token: account.id_token,
-              session_state: account.session_state,
-            },
+            data: { access_token: account.access_token, refresh_token: account.refresh_token ?? existing.refresh_token, expires_at: account.expires_at, id_token: account.id_token, session_state: account.session_state },
           })
           return existing
         }
-
         return await p.account.create({
-          data: {
-            userId: account.userId, type: account.type,
-            provider: account.provider, providerAccountId: account.providerAccountId,
-            access_token: account.access_token, refresh_token: account.refresh_token,
-            expires_at: account.expires_at, token_type: account.token_type,
-            scope: account.scope, id_token: account.id_token,
-            session_state: account.session_state,
-          },
+          data: { userId: account.userId, type: account.type, provider: account.provider, providerAccountId: account.providerAccountId, access_token: account.access_token, refresh_token: account.refresh_token, expires_at: account.expires_at, token_type: account.token_type, scope: account.scope, id_token: account.id_token, session_state: account.session_state },
         })
       } catch (error: any) {
         if (error?.code === "P2002") return
@@ -92,20 +61,16 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     Credentials({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-
         const email = (credentials.email as string).toLowerCase().trim()
         const password = (credentials.password as string).trim()
-
         if (email === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
           return { ...ADMIN_USER_OBJECT } as any
         }
-
         try {
           const user = await prisma.user.findUnique({ where: { email } })
           if (!user || !user.password) return null
           if (!user.emailVerified) throw new Error("EMAIL_NOT_VERIFIED")
-          const passwordsMatch = await bcrypt.compare(password, user.password)
-          if (passwordsMatch) return user
+          if (await bcrypt.compare(password, user.password)) return user
           return null
         } catch (dbError: any) {
           if (dbError.message === "EMAIL_NOT_VERIFIED") throw dbError
@@ -120,8 +85,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       authorization: { params: { prompt: "consent", access_type: "offline", response_type: "code" } },
     }),
     Credentials({
-        id: "impersonation",
-        name: "Impersonation",
+        id: "impersonation", name: "Impersonation",
         credentials: { token: { label: "Token", type: "text" } },
         async authorize(credentials) {
             if (!credentials?.token) return null
@@ -134,10 +98,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 const user = await prisma.user.findUnique({ where: { id: payload.targetUserId } })
                 if (!user) return null
                 return user
-            } catch (error) {
-                console.error("Impersonation failed:", error)
-                return null
-            }
+            } catch (error) { console.error("Impersonation failed:", error); return null }
         }
     })
   ],
@@ -145,38 +106,23 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     async createUser({ user }) {
         try {
             let validReferredByCode = 'COMPANY'
-            
             try {
                 const { cookies } = await import("next/headers")
                 const cookieStore = await cookies()
                 const referralCodeInput = cookieStore.get("referral_code")?.value
                 if (referralCodeInput) {
-                    const referrer = await prisma.user.findUnique({ 
-                        where: { referralCode: referralCodeInput } 
-                    })
+                    const referrer = await prisma.user.findUnique({ where: { referralCode: referralCodeInput } })
                     if (referrer) validReferredByCode = referralCodeInput
                 }
-            } catch (cookieError) {
-                console.warn("⚠️ Could not read referral cookie:", cookieError)
-            }
-
-            const newReferralCode = generateReferralCode()
-            const newMemberId = generateMemberId()
+            } catch { /* cookie read may fail in some flows */ }
 
             const currentUser = await prisma.user.findUnique({ where: { id: user.id! } })
             
             if (!currentUser?.referralCode) {
-                // Calculate signup bonus based on referrer's tier
-                const referrer = await prisma.user.findUnique({
-                    where: { referralCode: validReferredByCode },
-                    select: { id: true, tier: true, referralCode: true }
-                })
-                const referrerTier = referrer?.tier || "NEWBIE"
-                const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5
-                const signupBonusUsd = signupBonusArn / 10
+                const newReferralCode = generateReferralCode()
+                const newMemberId = generateMemberId()
 
-                // Everything goes to REAL balance — visible immediately
-                // Withdrawals blocked by isActiveMember, not by locked wallet
+                // NO signup bonus at registration — granted at unlock
                 await prisma.user.update({
                     where: { id: user.id },
                     data: {
@@ -185,8 +131,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         referredByCode: validReferredByCode,
                         tier: "NEWBIE" as any,
                         tierStatus: "CURRENT" as any,
-                        arnBalance: signupBonusArn,    // Real balance
-                        balance: signupBonusUsd,        // Real USD
+                        arnBalance: 0,
+                        balance: 0,
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
@@ -194,36 +140,16 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 })
 
-                if (signupBonusArn > 0) {
-                    await prisma.mLMLog.create({
-                        data: {
-                            userId: user.id!,
-                            type: "SIGNUP_BONUS",
-                            amount: signupBonusArn,
-                            description: `Signup bonus: ${signupBonusArn} ARN ($${signupBonusUsd.toFixed(2)}) from ${referrerTier} referrer.`
-                        }
-                    })
-
-                    await prisma.transaction.create({
-                        data: {
-                            userId: user.id!,
-                            amount: signupBonusUsd,
-                            arnMinted: signupBonusArn,
-                            type: "SIGNUP_BONUS",
-                            status: "COMPLETED",
-                            method: "SYSTEM",
-                            description: `Welcome bonus: ${signupBonusArn} ARN`
-                        }
-                    })
-                }
+                // Create referral tree
+                const referrer = await prisma.user.findUnique({
+                    where: { referralCode: validReferredByCode },
+                    select: { id: true, referralCode: true }
+                })
 
                 let advisorId = null, supervisorId = null, managerId = null
-                
                 if (referrer) {
                     advisorId = referrer.id
-                    const referrerTree = await prisma.referralTree.findUnique({
-                        where: { userId: referrer.id }
-                    })
+                    const referrerTree = await prisma.referralTree.findUnique({ where: { userId: referrer.id } })
                     if (referrerTree) {
                         supervisorId = referrerTree.advisorId
                         managerId = referrerTree.supervisorId
@@ -232,33 +158,25 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
                 const existingTree = await prisma.referralTree.findUnique({ where: { userId: user.id! } })
                 if (!existingTree) {
-                    await prisma.referralTree.create({
-                        data: { userId: user.id!, advisorId, supervisorId, managerId }
-                    })
+                    await prisma.referralTree.create({ data: { userId: user.id!, advisorId, supervisorId, managerId } })
                 }
 
-                // Check tier upgrade for referrer (new signup counts)
+                // Check referrer's tier (new signup counts)
                 if (referrer && referrer.referralCode !== 'COMPANY') {
                     try {
                         const { checkTierUpgrade } = await import("@/lib/mlm")
                         await checkTierUpgrade(referrer.id)
-                    } catch (e) {
-                        console.warn("Tier check failed:", e)
-                    }
+                    } catch { /* non-critical */ }
                 }
                 
-                console.log(`✅ Google Signup: ${user.email} | Bonus: ${signupBonusArn} ARN | Referrer: ${referrerTier}`)
+                console.log(`✅ Google Signup: ${user.email} | Ref: ${validReferredByCode} | No bonus until unlock`)
             } else {
+                // Existing user — ensure memberId
                 if (!currentUser?.memberId || currentUser.memberId === currentUser.id) {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { memberId: generateMemberId() }
-                    })
+                    await prisma.user.update({ where: { id: user.id }, data: { memberId: generateMemberId() } })
                 }
             }
-        } catch (error) {
-            console.error("❌ Google Signup Error:", error)
-        }
+        } catch (error) { console.error("❌ Google Signup Error:", error) }
     }
   },
   callbacks: {
@@ -266,63 +184,37 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       if (account?.provider === "credentials" || account?.provider === "impersonation") return true
       if (account?.provider === "google" && profile?.email) {
         try {
-          const email = profile.email.toLowerCase()
-          const existingUser = await prisma.user.findUnique({ where: { email } })
+          const existingUser = await prisma.user.findUnique({ where: { email: profile.email.toLowerCase() } })
           if (existingUser && !existingUser.emailVerified) {
             await prisma.user.update({ where: { id: existingUser.id }, data: { emailVerified: new Date() } })
           }
-        } catch (error) {
-          console.error("❌ Google signIn callback error:", error)
-        }
+        } catch { /* non-critical */ }
       }
       return true
     },
-
     authorized: authConfig.callbacks.authorized,
-
     async jwt({ token, user, account }) {
       if (user) {
         token.role = (user as any).role || "USER"
         token.id = user.id
         token.isActiveMember = (user as any).isActiveMember || false
         token.memberId = (user as any).memberId || ""
-        
-        if (user.id === "super-admin-id") {
-            token.isActiveMember = true
-            token.memberId = "777777"
-        }
-
+        if (user.id === "super-admin-id") { token.isActiveMember = true; token.memberId = "777777" }
         if (account?.provider === "google" && user.id && user.id !== "super-admin-id") {
           try {
             const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-            if (dbUser) {
-              token.role = dbUser.role
-              token.memberId = dbUser.memberId
-              token.isActiveMember = dbUser.isActiveMember
-            }
-          } catch (error) {
-            console.error("JWT Google user fetch error:", error)
-          }
+            if (dbUser) { token.role = dbUser.role; token.memberId = dbUser.memberId; token.isActiveMember = dbUser.isActiveMember }
+          } catch { /* non-critical */ }
         }
         return token
       }
-      
-      if (!token.sub) return token
-      if (token.sub === "super-admin-id") return token
-      
+      if (!token.sub || token.sub === "super-admin-id") return token
       try {
         const existingUser = await prisma.user.findUnique({ where: { id: token.sub } })
-        if (existingUser) {
-          token.role = existingUser.role
-          token.memberId = existingUser.memberId
-          token.isActiveMember = existingUser.isActiveMember
-        }
-      } catch (error) {
-        console.error("JWT refresh error:", error)
-      }
+        if (existingUser) { token.role = existingUser.role; token.memberId = existingUser.memberId; token.isActiveMember = existingUser.isActiveMember }
+      } catch { /* non-critical */ }
       return token
     },
-
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string

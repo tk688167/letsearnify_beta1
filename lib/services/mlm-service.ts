@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma"
 import { startOfDay } from "date-fns"
 
@@ -18,16 +17,40 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                referrals: { // Level 1
-                    include: {
+                referrals: { // Level 1 — ALL users who used this user's referral code
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        tier: true,
+                        arnBalance: true,
+                        isActiveMember: true,
+                        createdAt: true,
                         referrals: { // Level 2
-                            include: {
-                                referrals: true // Level 3
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                tier: true,
+                                arnBalance: true,
+                                isActiveMember: true,
+                                createdAt: true,
+                                referrals: { // Level 3
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        tier: true,
+                                        arnBalance: true,
+                                        isActiveMember: true,
+                                        createdAt: true,
+                                    }
+                                }
                             }
                         }
                     }
                 },
-                referralsMade: { // Commissions Earned
+                referralsMade: { // Commissions earned by this user
                     orderBy: { createdAt: 'desc' },
                     take: 50,
                     include: {
@@ -43,19 +66,35 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             return { user: null, referralTree: [], stats: { teamSize: 0, totalEarnings: 0, todayEarnings: 0 }, isOffline: false };
         }
 
-
-        // Process Referral Tree (Only Unlocked/Active members count)
+        // Build referral tree — show ALL signups (not just active)
+        // Per PDF: "Each user who joins using your referral code = 1 Signup"
+        // "There are no restrictions, every valid referral is counted equally"
         let referralTree: any[] = [];
-        // Flatten the Tree
+        
         if (user.referrals) {
-            user.referrals.filter((u: any) => u.isActiveMember).forEach((l1: any) => {
-                referralTree.push({ ...l1, level: 1 })
+            user.referrals.forEach((l1: any) => {
+                referralTree.push({ 
+                    id: l1.id, name: l1.name, email: l1.email, 
+                    tier: l1.tier, arnBalance: l1.arnBalance,
+                    isActiveMember: l1.isActiveMember,
+                    createdAt: l1.createdAt, level: 1 
+                })
                 if (l1.referrals) {
-                    l1.referrals.filter((u: any) => u.isActiveMember).forEach((l2: any) => {
-                        referralTree.push({ ...l2, level: 2 })
+                    l1.referrals.forEach((l2: any) => {
+                        referralTree.push({ 
+                            id: l2.id, name: l2.name, email: l2.email, 
+                            tier: l2.tier, arnBalance: l2.arnBalance,
+                            isActiveMember: l2.isActiveMember,
+                            createdAt: l2.createdAt, level: 2 
+                        })
                         if (l2.referrals) {
-                            l2.referrals.filter((u: any) => u.isActiveMember).forEach((l3: any) => {
-                                referralTree.push({ ...l3, level: 3 })
+                            l2.referrals.forEach((l3: any) => {
+                                referralTree.push({ 
+                                    id: l3.id, name: l3.name, email: l3.email, 
+                                    tier: l3.tier, arnBalance: l3.arnBalance,
+                                    isActiveMember: l3.isActiveMember,
+                                    createdAt: l3.createdAt, level: 3 
+                                })
                             })
                         }
                     })
@@ -63,7 +102,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             })
         }
 
-        // Stats Aggregation
+        // Stats
         const totalEarningsAgg = await prisma.referralCommission.aggregate({
             where: { earnerId: userId },
             _sum: { amount: true }
@@ -77,6 +116,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             _sum: { amount: true }
         });
 
+        // teamSize = total signups across all 3 levels (not just active)
         return { 
             user, 
             referralTree, 
@@ -95,7 +135,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                 id: userId, 
                 name: "User (Offline)", 
                 tier: "NEWBIE", 
-                points: 0, 
+                arnBalance: 0, 
                 activeMembers: 0,
                 referralCode: "OFFLINE",
                 balance: 0,

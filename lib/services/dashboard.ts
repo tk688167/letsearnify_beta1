@@ -11,10 +11,6 @@ export interface DashboardDataResult {
 
 export async function getDashboardData(userId: string): Promise<DashboardDataResult> {
     try {
-        // ╔══════════════════════════════════════════════════════════╗
-        // ║  FIX ISSUE 5: Check lock status via dedicated function  ║
-        // ║  instead of doing write operations in a read function   ║
-        // ╚══════════════════════════════════════════════════════════╝
         await checkAccountLock(userId);
 
         const [
@@ -41,16 +37,12 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
               balance: true,
               tier: true,
               arnBalance: true,
-              lockedArnBalance: true,
-              // @ts-ignore
               memberId: true, 
               referralCode: true,
               isActiveMember: true,
               totalDeposit: true,
               activeMembers: true,
-              // @ts-ignore
               unlockExpiry: true,
-              // @ts-ignore
               lastActivityAt: true,
             }
           }),
@@ -63,7 +55,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
           prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "PENDING" }, _sum: { amount: true } }),
           prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: { in: ["APPROVED", "COMPLETED"] } }, _sum: { amount: true } }),
           prisma.referralCommission.aggregate({ where: { earnerId: userId }, _sum: { amount: true } }),
-          prisma.transaction.aggregate({ where: { userId, type: "REWARD" }, _sum: { amount: true } }),
+          prisma.transaction.aggregate({ where: { userId, type: "TASK_REWARD", status: "COMPLETED" }, _sum: { amount: true } }),
           prisma.systemConfig.findUnique({ where: { key: "MARKETPLACE_MODE" } }),
           prisma.systemConfig.findUnique({ where: { key: "MUDARABAH_CONFIG" } })
         ]);
@@ -71,6 +63,11 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
         if (!user) {
             return { user: null, pools: [], isOffline: false, isMarketplaceLive: false, isMudarabahLive: false };
         }
+
+        // Count total signups AFTER we have user.referralCode
+        const totalSignups = user.referralCode 
+            ? await prisma.user.count({ where: { referredByCode: user.referralCode } }) 
+            : 0;
 
         const pendingDeposit = (cryptoPendingDeposits._sum.amount || 0) + (merchantPendingDeposits._sum.amount || 0);
         const pendingWithdrawal = (cryptoPendingWithdrawals._sum.amount || 0) + (merchantPendingWithdrawals._sum.amount || 0);
@@ -81,6 +78,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
         const userWithRules = {
             ...user,
             tierRules,
+            totalSignups,
             pendingDeposit,
             pendingWithdrawal,
             totalWithdrawal,
@@ -108,12 +106,12 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
             balance: 0,
             tier: "NEWBIE",
             arnBalance: 0,
-            lockedArnBalance: 0,
-            memberId: 0,
+            memberId: "0000000",
             referralCode: "OFFLINE",
             isActiveMember: false,
             totalDeposit: 0,
             activeMembers: 0,
+            totalSignups: 0,
             tierRules: DEFAULT_TIER_REQUIREMENTS
         };
 
