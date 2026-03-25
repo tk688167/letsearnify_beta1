@@ -3,7 +3,6 @@ import { mintArnForDeposit } from "@/lib/tokens";
 
 // --- CONFIGURATION ---
 
-// Exported so merchant.ts can use it for deposit commissions
 export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: number }> = {
     NEWBIE:   { L1: 5,  L2: 3,  L3: 2 },
     BRONZE:   { L1: 9,  L2: 4,  L3: 2 },
@@ -62,6 +61,12 @@ export async function getTierRequirements(tx?: any) {
 
 const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 
+// ─────────────────────────────────────────────────────────────
+// UNLOCK USER ACCOUNT
+// Called when user pays $1 to unlock.
+// No more "locked balance release" — balances are already real.
+// Unlock just enables withdrawals and premium features.
+// ─────────────────────────────────────────────────────────────
 export async function unlockUserAccount(userId: string, tx?: any) {
     console.log(`[MLM] Unlocking account for user ${userId}.`);
     const db = tx || prisma;
@@ -86,34 +91,13 @@ export async function unlockUserAccount(userId: string, tx?: any) {
             premiumBonusSpins: { increment: 2 } 
         }
     });
-
-    if (user.lockedBalance > 0 || user.lockedArnBalance > 0) {
-        await db.user.update({
-            where: { id: userId },
-            data: {
-                balance: { increment: user.lockedBalance },
-                arnBalance: { increment: user.lockedArnBalance },
-                lockedBalance: 0,
-                lockedArnBalance: 0
-            }
-        });
-        
-        await db.mLMLog.create({
-            data: {
-                userId: userId,
-                type: "LOCKED_BALANCE_RELEASED",
-                amount: user.lockedBalance,
-                description: `Released $${user.lockedBalance.toFixed(2)} and ${user.lockedArnBalance} ARN from locked storage upon activation.`
-            }
-        });
-    }
     
     await db.mLMLog.create({
         data: {
             userId: userId,
             type: "ACCOUNT_UNLOCK",
             amount: 1.0,
-            description: "Account unlocked for 3 months via $1 activation."
+            description: "Account unlocked for 3 months via $1 activation. Withdrawals enabled."
         }
     });
 
@@ -124,7 +108,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
     });
 
     // Distribute referral commissions from the $1 unlock fee
-    // Per PDF: "When Talha deposits $1 to unlock, Ali receives his referral reward"
     const referralEmissions = await distributeCommissions(userId, 1.0, db);
     
     const cbspAmount = 0.0;
@@ -139,7 +122,7 @@ export async function unlockUserAccount(userId: string, tx?: any) {
             referrals: referralEmissions,
             cbsp: cbspAmount,
             royalty: royaltyAmount,
-            company: companyRemainder
+            company: Math.max(companyRemainder, 0)
         }
     });
 
@@ -159,7 +142,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         });
         if (referrer) {
             await refreshUserMlmStats(referrer.id, db);
-            console.log(`[MLM] Updated activeMembers count for referrer ${referrer.id}`);
         }
     }
 
@@ -168,7 +150,7 @@ export async function unlockUserAccount(userId: string, tx?: any) {
             adminId: "SYSTEM",
             targetUserId: userId,
             actionType: "USER_ACTIVATION",
-            details: `User ${user.email || userId} activated. Achv: $0.20, Refs: $${referralEmissions.toFixed(2)}, Company: $${companyRemainder.toFixed(2)}`
+            details: `User ${user.email || userId} activated. Achv: $0.20, Refs: $${referralEmissions.toFixed(2)}, Company: $${Math.max(companyRemainder, 0).toFixed(2)}`
         }
     });
 
@@ -190,10 +172,9 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
             throw e;
         }
 
+        // Always distribute commissions if user is active
         if (user.isActiveMember) {
             await distributeCommissions(userId, amount, db);
-        } else {
-            console.log(`[MLM] Skipping commission distribution for unactivated user ${userId}.`);
         }
     }
 
@@ -206,10 +187,10 @@ export const processMlmDeposit = async (userId: string, amount: number, txId: st
 
 /**
  * Distributes USD commissions up 3 levels.
- * Per PDF: Referral earnings are only released when the referred user is active.
- * Creates Transaction records so commissions show in wallet history.
  * 
- * EXPORTED so merchant.ts can also call it for deposit commissions.
+ * KEY CHANGE: Always credits real balance (arnBalance + balance).
+ * No more locked balances. Withdrawal is blocked by isActiveMember check,
+ * not by having a separate locked wallet.
  */
 export async function distributeCommissions(sourceUserId: string, amount: number, db: any): Promise<number> {
     let totalDistributed = 0;
@@ -235,7 +216,7 @@ export async function distributeCommissions(sourceUserId: string, amount: number
 
         const referrer = await db.user.findUnique({
             where: { id: uplineId },
-            select: { id: true, tier: true, activeMembers: true, arnBalance: true, isActiveMember: true }
+            select: { id: true, tier: true, isActiveMember: true }
         });
 
         if (!referrer) continue;
@@ -247,17 +228,13 @@ export async function distributeCommissions(sourceUserId: string, amount: number
         if (rate > 0) {
             const commissionUSD = amount * (rate / 100);
             const commissionARN = commissionUSD * 10;
-            
-            const isUplineActive = referrer.isActiveMember;
 
+            // Always credit real balance — withdrawal is blocked by isActiveMember
             await db.user.update({
                 where: { id: uplineId },
-                data: isUplineActive ? { 
-                   arnBalance: { increment: commissionARN },
-                   balance: { increment: commissionUSD }
-                } : {
-                   lockedArnBalance: { increment: commissionARN },
-                   lockedBalance: { increment: commissionUSD }
+                data: { 
+                    arnBalance: { increment: commissionARN },
+                    balance: { increment: commissionUSD }
                 }
             });
 
@@ -271,26 +248,23 @@ export async function distributeCommissions(sourceUserId: string, amount: number
                 }
             });
 
-            if (isUplineActive) {
-                await db.transaction.create({
-                    data: {
-                        userId: uplineId,
-                        amount: commissionUSD,
-                        arnMinted: commissionARN,
-                        type: "REFERRAL_COMMISSION",
-                        status: "COMPLETED",
-                        method: "SYSTEM",
-                        description: `L${level} commission (${rate}%) from ${sourceName}'s $${amount.toFixed(2)} activity`
-                    }
-                });
-            }
+            await db.transaction.create({
+                data: {
+                    userId: uplineId,
+                    amount: commissionUSD,
+                    arnMinted: commissionARN,
+                    type: "REFERRAL_COMMISSION",
+                    status: "COMPLETED",
+                    method: "SYSTEM",
+                    description: `L${level} commission (${rate}%) from ${sourceName}'s $${amount.toFixed(2)} activity`
+                }
+            });
 
             totalDistributed += commissionUSD;
-            console.log(`[MLM] ${isUplineActive ? 'Paid' : 'Locked'} $${commissionUSD} (L${level} @ ${rate}%) for ${uplineId}`);
+            console.log(`[MLM] Paid $${commissionUSD} (L${level} @ ${rate}%) to ${uplineId}`);
             
-            if (isUplineActive) {
-                await checkTierUpgrade(uplineId, db);
-            }
+            // Check tier upgrade for the referrer who earned commission
+            await checkTierUpgrade(uplineId, db);
         }
     }
     
@@ -301,10 +275,8 @@ export async function distributeCommissions(sourceUserId: string, amount: number
  * Checks if a user qualifies for the next tier.
  * 
  * Per PDF:
- * - ARN from ALL sources counts: signup bonus, tasks, spins, referral rewards, deposits
- * - Team size = TOTAL signups (users who joined with your referral code), NOT just active members
- * - "Each user who joins using your referral code = 1 Signup"
- * - "There are no restrictions on who can sign up, every valid referral is counted equally"
+ * - ARN from ALL sources counts (all in arnBalance now — no locked split)
+ * - Team size = TOTAL signups (everyone who used your referral code)
  */
 export async function checkTierUpgrade(userId: string, tx?: any) {
     const db = tx || prisma;
@@ -322,8 +294,7 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
 
     const currentTierIndex = TIER_ORDER.indexOf(user.tier) >= 0 ? TIER_ORDER.indexOf(user.tier) : 0;
     
-    // Count TOTAL signups (all users who used this referral code, regardless of active status)
-    // Per PDF: "Each user who joins using your referral code = 1 Signup"
+    // Count ALL signups (everyone who used this referral code, regardless of active status)
     let totalSignups = 0;
     if (user.referralCode) {
         totalSignups = await db.user.count({
@@ -332,7 +303,6 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
     }
 
     const currentArn = user.arnBalance || 0;
-    const teamSize = totalSignups;
 
     const tierRules = await getTierRequirements(db);
 
@@ -345,8 +315,8 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
         const nextTier = TIER_ORDER[i];
         const threshold = tierThresholds[nextTier];
 
-        if (currentArn >= threshold.arn && teamSize >= threshold.directs) {
-            console.log(`[MLM] UPGRADE: User ${userId} promoted to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${teamSize}/${threshold.directs})`);
+        if (currentArn >= threshold.arn && totalSignups >= threshold.directs) {
+            console.log(`[MLM] UPGRADE: ${userId} → ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${totalSignups}/${threshold.directs})`);
             
             await db.user.update({
                 where: { id: userId },
@@ -360,7 +330,7 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
                     userId: userId,
                     type: "TIER_UPGRADE",
                     amount: 0,
-                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${teamSize}/${threshold.directs})`
+                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${totalSignups}/${threshold.directs})`
                 }
             });
         } else {
@@ -369,9 +339,6 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
     }
 }
 
-/**
- * Refreshes user's activeMembers count from actual DB data.
- */
 export async function refreshUserMlmStats(userId: string, tx?: any) {
     const db = tx || prisma;
     const user = await db.user.findUnique({
@@ -429,9 +396,6 @@ export function generateMemberId(): string {
     return Math.floor(1000000 + Math.random() * 9000000).toString();
 }
 
-/**
- * Adds ARN + equivalent USD to user. Intentional gift — withdrawable after $1 activation.
- */
 export async function addUserPoints(userId: string, amount: number, tx?: any) {
     const db = tx || prisma;
     if (amount > 0) {
@@ -454,8 +418,6 @@ export async function grantTierRewards(userId: string, tier: string, tx?: any) {
     const db = tx || prisma;
     const reward = TIER_REWARDS[tier];
     if (!reward) return;
-
-    console.log(`[MLM] Granting ${tier} rewards to ${userId}: $${reward.balance}, ${reward.arn} ARN`);
 
     await db.user.update({
         where: { id: userId },
@@ -491,9 +453,6 @@ export function getTierWithdrawLimit(tier: string): number {
     return TIER_WITHDRAWAL_LIMITS[tier] || 10;
 }
 
-/**
- * Check account expiry/inactivity and re-lock if needed.
- */
 export async function checkAccountLock(userId: string) {
     try {
         const user = await prisma.user.findUnique({

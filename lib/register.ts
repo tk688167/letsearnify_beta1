@@ -5,9 +5,7 @@ import bcrypt from "bcryptjs"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { generateOTP, sendVerificationEmail } from "@/lib/email"
 
-// ── Signup Bonus Rates (ARN given to NEW USER based on REFERRER's tier) ──
-// Per PDF: The signup bonus is given to the new user (invitee), NOT the inviter.
-// These are ARN tokens, NOT USD. (10 ARN = 1 USD)
+// Signup Bonus: ARN given to NEW USER based on REFERRER's tier
 const SIGNUP_BONUS_RATES: Record<string, number> = {
   NEWBIE:   5,
   BRONZE:   6,
@@ -38,14 +36,12 @@ export async function registerUser(formData: FormData) {
 
     if (existing) {
       if (!existing.emailVerified) {
-        console.log("[Register] Cleaning up unverified stale account:", email)
         await prisma.user.delete({ where: { id: existing.id } })
       } else {
         return { error: "Email already exists", success: false }
       }
     }
 
-    // Validate Referral Code
     let validReferrer = null;
     let validReferredByCode = null;
     
@@ -59,7 +55,6 @@ export async function registerUser(formData: FormData) {
       }
     }
 
-    // Fallback to COMPANY
     if (!validReferrer) {
         let companyReferrer = await prisma.user.findUnique({
             where: { referralCode: 'COMPANY' }
@@ -106,12 +101,12 @@ export async function registerUser(formData: FormData) {
         const newMemberId = generateMemberId();
         
         try {
-            // ── Signup bonus: ARN tokens given to NEW USER based on REFERRER's tier ──
-            // Per PDF: "Talha receives the signup bonus (e.g., 5 ARN if Ali is Newbie)"
-            // This bonus is LOCKED until the new user activates with $1
             const referrerTier = validReferrer?.tier || "NEWBIE"
             const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5
+            const signupBonusUsd = signupBonusArn / 10  // 10 ARN = 1 USD
             
+            // Signup bonus goes to REAL arnBalance and balance
+            // User can see it immediately but cannot withdraw until unlocked
             const newUser = await prisma.user.create({
               data: {
                 memberId: newMemberId,
@@ -124,11 +119,11 @@ export async function registerUser(formData: FormData) {
                 referredByCode: validReferredByCode, 
                 tier: "NEWBIE",
                 tierStatus: "CURRENT",
-                arnBalance: 0,
-                lockedArnBalance: signupBonusArn,  // Locked ARN signup bonus
+                arnBalance: signupBonusArn,       // Real balance — visible immediately
+                balance: signupBonusUsd,           // USD equivalent
                 activeMembers: 0,
                 totalDeposit: 0.0,
-                isActiveMember: false
+                isActiveMember: false              // Withdrawals blocked until $1 unlock
               }
             })
 
@@ -136,25 +131,36 @@ export async function registerUser(formData: FormData) {
                await prisma.mLMLog.create({
                  data: {
                    userId: newUser.id,
-                   type: "LOCKED_SIGNUP_BONUS",
+                   type: "SIGNUP_BONUS",
                    amount: signupBonusArn,
-                   description: `Signup bonus: ${signupBonusArn} ARN (based on referrer's ${referrerTier} tier). Locked until $1 activation.`
+                   description: `Signup bonus: ${signupBonusArn} ARN ($${signupBonusUsd.toFixed(2)}) from ${referrerTier} tier referrer. Withdraw after $1 activation.`
+                 }
+               });
+
+               // Create transaction so it shows in wallet history
+               await prisma.transaction.create({
+                 data: {
+                   userId: newUser.id,
+                   amount: signupBonusUsd,
+                   arnMinted: signupBonusArn,
+                   type: "SIGNUP_BONUS",
+                   status: "COMPLETED",
+                   method: "SYSTEM",
+                   description: `Welcome bonus: ${signupBonusArn} ARN`
                  }
                });
             }
 
-            // --- MLM: Create Referral Tree Entry ---
+            // MLM: Create Referral Tree
             let advisorId = null;
             let supervisorId = null;
             let managerId = null;
 
             if (validReferrer) {
                advisorId = validReferrer.id;
-               
                const referrerTree = await prisma.referralTree.findUnique({
                   where: { userId: validReferrer.id }
                });
-
                if (referrerTree) {
                   supervisorId = referrerTree.advisorId; 
                   managerId = referrerTree.supervisorId; 
@@ -162,28 +168,29 @@ export async function registerUser(formData: FormData) {
             }
 
             await prisma.referralTree.create({
-               data: {
-                  userId: newUser.id,
-                  advisorId,
-                  supervisorId,
-                  managerId
-               }
+               data: { userId: newUser.id, advisorId, supervisorId, managerId }
             });
 
-            // ── OTP & Verification Email ──
+            // Check tier upgrade for the referrer (new signup counts toward their tier)
+            if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
+                try {
+                    const { checkTierUpgrade } = await import("@/lib/mlm")
+                    await checkTierUpgrade(validReferrer.id)
+                } catch (e) {
+                    console.warn("[Register] Tier check failed:", e)
+                }
+            }
+
+            // OTP & Verification Email
             const otp = generateOTP();
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
             await prisma.emailVerificationToken.create({
-              data: {
-                userId: newUser.id,
-                token: otp,
-                expiresAt,
-              },
+              data: { userId: newUser.id, token: otp, expiresAt }
             });
 
             await sendVerificationEmail(email, otp);
-            console.log(`✅ User registered: ${email} (bonus: ${signupBonusArn} ARN from ${referrerTier} referrer)`);
+            console.log(`✅ Registered: ${email} | Bonus: ${signupBonusArn} ARN | Referrer: ${referrerTier}`);
 
             return { error: null, success: true, email }
 
@@ -194,7 +201,6 @@ export async function registerUser(formData: FormData) {
                     return { error: 'Email already exists', success: false }
                 }
                 if (target && (target.includes('referralCode') || target.includes('memberId'))) {
-                     console.warn(`[Register] Collision: ${newReferralCode}/${newMemberId}. Retry ${attempts}/${maxAttempts}`);
                      continue;
                 }
             }

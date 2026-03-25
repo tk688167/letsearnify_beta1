@@ -8,8 +8,7 @@ import { authConfig } from "@/auth.config"
 import { generateReferralCode, generateMemberId } from "@/lib/mlm"
 import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
-// ── Signup Bonus (ARN given to NEW USER based on REFERRER's tier) ──
-// Per PDF: bonus goes to the invitee, NOT the inviter
+// Signup Bonus (ARN given to NEW USER based on REFERRER's tier)
 const SIGNUP_BONUS_RATES: Record<string, number> = {
   NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
   PLATINUM: 9, DIAMOND: 10, EMERALD: 15
@@ -23,10 +22,8 @@ function CustomPrismaAdapter(p: typeof prisma) {
 
     async createUser(data: any) {
       const email = data.email?.toLowerCase()
-
       if (email) {
         const existingUser = await p.user.findUnique({ where: { email } })
-
         if (existingUser) {
           const updated = await p.user.update({
             where: { id: existingUser.id },
@@ -36,13 +33,10 @@ function CustomPrismaAdapter(p: typeof prisma) {
               name: existingUser.name || data.name,
             },
           })
-          console.log("✅ [Adapter] Returning existing user for Google sign-in:", email)
           return updated
         }
       }
-
       const newUser = await baseAdapter.createUser(data)
-      console.log("✨ [Adapter] Created new user:", newUser.email)
       return newUser
     },
 
@@ -68,32 +62,21 @@ function CustomPrismaAdapter(p: typeof prisma) {
               session_state: account.session_state,
             },
           })
-          console.log("🔗 [Adapter] Updated existing account link:", account.provider)
           return existing
         }
 
-        const result = await p.account.create({
+        return await p.account.create({
           data: {
-            userId: account.userId,
-            type: account.type,
-            provider: account.provider,
-            providerAccountId: account.providerAccountId,
-            access_token: account.access_token,
-            refresh_token: account.refresh_token,
-            expires_at: account.expires_at,
-            token_type: account.token_type,
-            scope: account.scope,
-            id_token: account.id_token,
+            userId: account.userId, type: account.type,
+            provider: account.provider, providerAccountId: account.providerAccountId,
+            access_token: account.access_token, refresh_token: account.refresh_token,
+            expires_at: account.expires_at, token_type: account.token_type,
+            scope: account.scope, id_token: account.id_token,
             session_state: account.session_state,
           },
         })
-        console.log("🔗 [Adapter] Linked", account.provider, "to userId:", account.userId)
-        return result
       } catch (error: any) {
-        if (error?.code === "P2002") {
-          console.log("🔗 [Adapter] Account already linked (race condition), ignoring")
-          return
-        }
+        if (error?.code === "P2002") return
         throw error
       }
     },
@@ -103,57 +86,29 @@ function CustomPrismaAdapter(p: typeof prisma) {
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: CustomPrismaAdapter(prisma) as any,
-  session: { 
-    strategy: "jwt",
-    maxAge: 48 * 60 * 60,
-  },
+  session: { strategy: "jwt", maxAge: 48 * 60 * 60 },
   trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
-        console.log("🔍 AUTH ATTEMPT:", credentials?.email)
-
-        if (!credentials?.email || !credentials?.password) {
-          console.log("❌ Missing credentials")
-          return null
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
         const email = (credentials.email as string).toLowerCase().trim()
         const password = (credentials.password as string).trim()
 
-        if (
-          email === ADMIN_CREDENTIALS.email.toLowerCase() &&
-          password === ADMIN_CREDENTIALS.password
-        ) {
-          console.log("🔐 ADMIN BYPASS LOGIN:", ADMIN_CREDENTIALS.email)
+        if (email === ADMIN_CREDENTIALS.email.toLowerCase() && password === ADMIN_CREDENTIALS.password) {
           return { ...ADMIN_USER_OBJECT } as any
         }
 
         try {
           const user = await prisma.user.findUnique({ where: { email } })
-
-          if (!user || !user.password) {
-            console.log("❌ User not found or no password:", email)
-            return null
-          }
-
-          if (!user.emailVerified) {
-            console.log("❌ Email not verified for", email)
-            throw new Error("EMAIL_NOT_VERIFIED")
-          }
-
+          if (!user || !user.password) return null
+          if (!user.emailVerified) throw new Error("EMAIL_NOT_VERIFIED")
           const passwordsMatch = await bcrypt.compare(password, user.password)
-
-          if (passwordsMatch) {
-            console.log("✅ Login Successful for:", user.email)
-            return user
-          }
-
-          console.log("❌ Password mismatch for", email)
+          if (passwordsMatch) return user
           return null
         } catch (dbError: any) {
           if (dbError.message === "EMAIL_NOT_VERIFIED") throw dbError
-          console.error("💾 Database error:", dbError.message)
           throw new Error("DATABASE_UNAVAILABLE")
         }
       }
@@ -162,13 +117,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       allowDangerousEmailAccountLinking: true,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
+      authorization: { params: { prompt: "consent", access_type: "offline", response_type: "code" } },
     }),
     Credentials({
         id: "impersonation",
@@ -181,12 +130,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 const secret = process.env.AUTH_SECRET
                 if (!secret) throw new Error("Missing AUTH_SECRET")
                 const payload = jwt.verify(credentials.token as string, secret) as any
-                if (payload.type !== "impersonation" || !payload.targetUserId) {
-                    throw new Error("Invalid token type")
-                }
+                if (payload.type !== "impersonation" || !payload.targetUserId) throw new Error("Invalid token type")
                 const user = await prisma.user.findUnique({ where: { id: payload.targetUserId } })
                 if (!user) return null
-                console.log("🎭 Impersonation:", user.email)
                 return user
             } catch (error) {
                 console.error("Impersonation failed:", error)
@@ -198,8 +144,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
         try {
-            console.log("✨ Google Signup event: Processing", user.email)
-            
             let validReferredByCode = 'COMPANY'
             
             try {
@@ -222,14 +166,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             const currentUser = await prisma.user.findUnique({ where: { id: user.id! } })
             
             if (!currentUser?.referralCode) {
-                // ── Calculate signup bonus based on referrer's tier ──
+                // Calculate signup bonus based on referrer's tier
                 const referrer = await prisma.user.findUnique({
                     where: { referralCode: validReferredByCode },
-                    select: { id: true, tier: true }
+                    select: { id: true, tier: true, referralCode: true }
                 })
                 const referrerTier = referrer?.tier || "NEWBIE"
                 const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5
+                const signupBonusUsd = signupBonusArn / 10
 
+                // Everything goes to REAL balance — visible immediately
+                // Withdrawals blocked by isActiveMember, not by locked wallet
                 await prisma.user.update({
                     where: { id: user.id },
                     data: {
@@ -238,8 +185,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         referredByCode: validReferredByCode,
                         tier: "NEWBIE" as any,
                         tierStatus: "CURRENT" as any,
-                        arnBalance: 0,
-                        lockedArnBalance: signupBonusArn,  // ← Signup bonus (locked)
+                        arnBalance: signupBonusArn,    // Real balance
+                        balance: signupBonusUsd,        // Real USD
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
@@ -247,21 +194,30 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 })
 
-                // Log the signup bonus
                 if (signupBonusArn > 0) {
                     await prisma.mLMLog.create({
                         data: {
                             userId: user.id!,
-                            type: "LOCKED_SIGNUP_BONUS",
+                            type: "SIGNUP_BONUS",
                             amount: signupBonusArn,
-                            description: `Signup bonus: ${signupBonusArn} ARN (referrer tier: ${referrerTier}). Locked until $1 activation.`
+                            description: `Signup bonus: ${signupBonusArn} ARN ($${signupBonusUsd.toFixed(2)}) from ${referrerTier} referrer.`
+                        }
+                    })
+
+                    await prisma.transaction.create({
+                        data: {
+                            userId: user.id!,
+                            amount: signupBonusUsd,
+                            arnMinted: signupBonusArn,
+                            type: "SIGNUP_BONUS",
+                            status: "COMPLETED",
+                            method: "SYSTEM",
+                            description: `Welcome bonus: ${signupBonusArn} ARN`
                         }
                     })
                 }
 
-                let advisorId = null
-                let supervisorId = null
-                let managerId = null
+                let advisorId = null, supervisorId = null, managerId = null
                 
                 if (referrer) {
                     advisorId = referrer.id
@@ -274,28 +230,32 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 }
 
-                const existingTree = await prisma.referralTree.findUnique({
-                    where: { userId: user.id! }
-                })
-                
+                const existingTree = await prisma.referralTree.findUnique({ where: { userId: user.id! } })
                 if (!existingTree) {
                     await prisma.referralTree.create({
                         data: { userId: user.id!, advisorId, supervisorId, managerId }
                     })
                 }
+
+                // Check tier upgrade for referrer (new signup counts)
+                if (referrer && referrer.referralCode !== 'COMPANY') {
+                    try {
+                        const { checkTierUpgrade } = await import("@/lib/mlm")
+                        await checkTierUpgrade(referrer.id)
+                    } catch (e) {
+                        console.warn("Tier check failed:", e)
+                    }
+                }
                 
-                console.log(`✅ Google Signup: ${user.email} - bonus: ${signupBonusArn} ARN, referrer: ${referrerTier}`)
+                console.log(`✅ Google Signup: ${user.email} | Bonus: ${signupBonusArn} ARN | Referrer: ${referrerTier}`)
             } else {
-                // Existing user — just ensure memberId exists
                 if (!currentUser?.memberId || currentUser.memberId === currentUser.id) {
                     await prisma.user.update({
                         where: { id: user.id },
                         data: { memberId: generateMemberId() }
                     })
                 }
-                console.log("ℹ️ User already has referral code, skipping MLM setup:", user.email)
             }
-
         } catch (error) {
             console.error("❌ Google Signup Error:", error)
         }
@@ -303,27 +263,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "credentials" || account?.provider === "impersonation") {
-        return true
-      }
-
+      if (account?.provider === "credentials" || account?.provider === "impersonation") return true
       if (account?.provider === "google" && profile?.email) {
         try {
           const email = profile.email.toLowerCase()
           const existingUser = await prisma.user.findUnique({ where: { email } })
-
           if (existingUser && !existingUser.emailVerified) {
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: { emailVerified: new Date() }
-            })
-            console.log("✅ Auto-verified email via Google:", email)
+            await prisma.user.update({ where: { id: existingUser.id }, data: { emailVerified: new Date() } })
           }
         } catch (error) {
           console.error("❌ Google signIn callback error:", error)
         }
       }
-
       return true
     },
 
@@ -353,7 +304,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
             console.error("JWT Google user fetch error:", error)
           }
         }
-
         return token
       }
       
