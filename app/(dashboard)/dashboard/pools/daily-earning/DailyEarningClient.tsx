@@ -110,7 +110,7 @@ export default function DailyEarningPoolContent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 pb-12 px-4 sm:px-6 lg:px-8">
       
       {/* Back Button */}
       <Link 
@@ -126,34 +126,34 @@ export default function DailyEarningPoolContent() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 rounded-xl md:rounded-3xl p-6 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl"
+        className="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 rounded-xl md:rounded-3xl p-5 sm:p-8 md:p-12 text-white relative overflow-hidden shadow-2xl"
       >
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10 mix-blend-overlay"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div>
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20 shadow-inner">
-                <ChartBarIcon className="w-8 h-8 text-purple-300" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/10 backdrop-blur-md rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/20 shadow-inner">
+                <ChartBarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-300" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-5xl font-black mb-2 tracking-tight">Daily Earning Pool</h1>
-                <p className="text-purple-200 text-lg font-medium">Earn 1% Daily Profit</p>
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black mb-1 sm:mb-2 tracking-tight leading-tight">Daily Earning Pool</h1>
+                <p className="text-purple-200 text-sm sm:text-lg font-medium">Earn 1.0% Fixed Daily Yield</p>
               </div>
             </div>
-            <p className="text-purple-100/80 leading-relaxed max-w-2xl text-base md:text-lg">
-              A high-yield, automated 30-day lock pool. Allocate funds from your Daily Earnings Wallet, lock them for 30 days, and earn 1% every 24 hours. After 30 days, your principal + profit return automatically.
+            <p className="text-purple-100/70 leading-relaxed text-sm sm:text-base md:text-lg max-w-2xl">
+              A premium, high-yield lock pool. Allocate funds from your Daily Earnings Wallet, lock them for 30 days, and earn 1% every 24 hours. After the 30-day period, your principal + profit return automatically.
             </p>
           </div>
           
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-w-[300px] shrink-0">
-             <div className="flex items-center justify-between mb-4">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 sm:p-6 w-full md:w-auto md:min-w-[260px] md:shrink-0">
+             <div className="flex items-center justify-between mb-3 sm:mb-4">
                <span className="text-sm font-bold text-purple-200/70 uppercase tracking-widest">Global Rate</span>
                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full border border-emerald-500/30">Active</span>
              </div>
              <div className="flex items-baseline gap-1 mb-1">
-               <p className="text-5xl font-black font-mono tracking-tighter">1.0<span className="text-2xl text-purple-300/80">%</span></p>
+               <p className="text-4xl sm:text-5xl font-black font-mono tracking-tighter">1.0<span className="text-xl sm:text-2xl text-purple-300/80">%</span></p>
              </div>
              <p className="text-indigo-200/80 text-sm font-medium">Daily Fixed Yield</p>
           </div>
@@ -170,14 +170,17 @@ export default function DailyEarningPoolContent() {
                 <BanknotesIcon className="w-8 h-8 text-indigo-500/20" />
              </div>
              
-             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 relative z-10">Start New Pool</h2>
+             <h2 className="text-xl font-bold text-foreground mb-6 relative z-10 flex items-center gap-2">
+                <PlusIcon className="w-5 h-5 text-indigo-500" />
+                Start New Pool
+             </h2>
              
              <form onSubmit={handleInvest} className="space-y-4 relative z-10">
                <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Allocation Amount</label>
+                    <label className="text-sm font-bold text-muted-foreground">Allocation Amount</label>
                     <div className="text-right">
-                       <span className="text-[10px] block text-gray-400 font-bold uppercase tracking-tight">Daily Wallet</span>
+                       <span className="text-[10px] block text-muted-foreground/60 font-bold uppercase tracking-tight">Daily Wallet</span>
                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">${dailyBalance.toFixed(2)}</span>
                     </div>
                   </div>
@@ -189,32 +192,32 @@ export default function DailyEarningPoolContent() {
                       type="number"
                       step="0.01"
                       min="1"
-                      className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl focus:ring-0 focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors font-mono text-lg text-gray-900 dark:text-white"
+                      className="w-full pl-8 pr-4 py-3 bg-muted/30 border-2 border-border rounded-xl focus:ring-0 focus:border-indigo-500 transition-colors font-mono text-lg text-foreground"
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       required
                     />
                   </div>
-                  <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-2 font-medium">
-                     Min: $1.00 • Lock: 30 Days @ 1%/Day
+                  <p className="text-[10px] text-indigo-500 mt-2 font-bold uppercase tracking-widest">
+                     Min: $1.00 • 30 Day Term
                   </p>
                </div>
 
-               {error && <div className="p-3 bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 rounded-lg text-sm font-bold border border-red-100 dark:border-red-900/30">{error}</div>}
-               {success && <div className="p-3 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 rounded-lg text-sm font-bold border border-emerald-100 dark:border-emerald-900/30">{success}</div>}
+               {error && <div className="p-3 bg-destructive/10 text-destructive rounded-lg text-sm font-bold border border-destructive/20">{error}</div>}
+               {success && <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg text-sm font-bold border border-emerald-500/20">{success}</div>}
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-indigo-500/20 hover:scale-105 disabled:opacity-50 disabled:scale-100 flex justify-center items-center gap-2"
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2"
                 >
                   {isSubmitting ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <>
                       <PlusIcon className="w-5 h-5" />
-                      Create New Pool
+                      Create Investment
                     </>
                   )}
                 </button>
@@ -222,7 +225,10 @@ export default function DailyEarningPoolContent() {
            </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 sm:p-8 border border-gray-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Transfer Funds</h2>
+                <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                   <ArrowPathIcon className="w-5 h-5 text-indigo-500" />
+                   Transfer Wallet Funds
+                </h2>
                 
                 {/* Direction Selector */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
@@ -233,7 +239,7 @@ export default function DailyEarningPoolContent() {
                       "p-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
                       transferDirection === "MAIN_TO_DAILY" 
                         ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
-                        : "bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 text-gray-500"
+                        : "bg-muted border-border text-muted-foreground"
                     )}
                   >
                     Main → Daily
@@ -245,7 +251,7 @@ export default function DailyEarningPoolContent() {
                       "p-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all",
                       transferDirection === "DAILY_TO_MAIN" 
                         ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
-                        : "bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 text-gray-500"
+                        : "bg-muted border-border text-muted-foreground"
                     )}
                   >
                     Daily → Main
@@ -255,8 +261,8 @@ export default function DailyEarningPoolContent() {
                 <form onSubmit={handleTransfer} className="space-y-4">
                    <div>
                      <div className="flex justify-between items-center mb-2">
-                       <label className="text-sm font-bold text-gray-600 dark:text-gray-300">Amount to Transfer</label>
-                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">
+                       <label className="text-sm font-bold text-muted-foreground">Amount to Transfer</label>
+                       <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest leading-none">
                          Available: ${transferDirection === "MAIN_TO_DAILY" ? mainBalance.toFixed(2) : dailyBalance.toFixed(2)}
                        </span>
                      </div>
@@ -267,7 +273,7 @@ export default function DailyEarningPoolContent() {
                        <input
                          type="number"
                          step="0.01"
-                         className="w-full pl-8 pr-4 py-3 bg-gray-50 dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-xl font-mono text-gray-900 dark:text-white focus:border-indigo-500 outline-none transition-all"
+                         className="w-full pl-8 pr-4 py-3 bg-muted/30 border-2 border-border rounded-xl font-mono text-foreground focus:border-indigo-500 outline-none transition-all"
                          placeholder="0.00"
                          value={transferAmount}
                          onChange={(e) => setTransferAmount(e.target.value)}
@@ -280,7 +286,7 @@ export default function DailyEarningPoolContent() {
                    <button
                      type="submit"
                      disabled={isTransferring}
-                     className="w-full py-4 bg-gray-950 dark:bg-white text-white dark:text-gray-950 font-bold rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                     className="w-full py-4 bg-foreground text-background font-bold rounded-xl transition-all disabled:opacity-50 hover:bg-foreground/90 active:scale-95 shadow-lg"
                    >
                      {isTransferring ? "Processing..." : `Transfer to ${transferDirection === "MAIN_TO_DAILY" ? "Daily Wallet" : "Main Balance"}`}
                    </button>
@@ -319,37 +325,37 @@ export default function DailyEarningPoolContent() {
         <div className="lg:col-span-2 space-y-6">
            
            {/* --- PREMIUM STATS GRID --- */}
-           <div className="grid grid-cols-2 gap-4">
-               <StatBox 
-                 label="Main Balance" 
-                 value={`$${mainBalance.toFixed(2)}`} 
-                 icon={WalletIcon} 
-                 color="white" 
-               />
-               <StatBox 
-                 label="Earning Wallet" 
-                 value={`$${dailyBalance.toFixed(2)}`} 
-                 icon={CurrencyDollarIcon} 
-                 color="indigo" 
-               />
-               <StatBox 
-                 label="Active Pools" 
-                 value={activeInvestments.filter(inv => inv.status === "ACTIVE").length.toString()} 
-                 icon={GridIcon} 
-                 color="blue" 
-               />
-               <StatBox 
-                 label="Total Earnings" 
-                 value={`$${totalProfit.toFixed(2)}`} 
-                 icon={ChartBarIcon} 
-                 color="emerald" 
-               />
-           </div>
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatBox 
+                  label="Available Bal." 
+                  value={`$${mainBalance.toFixed(2)}`} 
+                  icon={WalletIcon} 
+                  color="indigo" 
+                />
+                <StatBox 
+                  label="Daily Wallet" 
+                  value={`$${dailyBalance.toFixed(2)}`} 
+                  icon={CurrencyDollarIcon} 
+                  color="purple" 
+                />
+                <StatBox 
+                  label="Active Pools" 
+                  value={activeInvestments.filter(inv => inv.status === "ACTIVE").length.toString()} 
+                  icon={GridIcon} 
+                  color="blue" 
+                />
+                <StatBox 
+                  label="Total Profit" 
+                  value={`$${totalProfit.toFixed(2)}`} 
+                  icon={ChartBarIcon} 
+                  color="emerald" 
+                />
+            </div>
 
            {/* Active Contracts Section */}
            <div className="space-y-6">
               <div className="flex items-center justify-between">
-                 <h2 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-2">
+                 <h2 className="text-xl font-black text-foreground dark:text-white uppercase tracking-tighter flex items-center gap-2">
                     <ClockIcon className="w-6 h-6 text-indigo-500" />
                     Running Pools
                  </h2>
@@ -384,64 +390,72 @@ export default function DailyEarningPoolContent() {
                        const daysRemaining = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
 
                        return (
-                         <motion.div 
-                           key={inv.id} 
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           className={`bg-white/[0.03] border ${isComplete ? 'border-emerald-500/20' : 'border-white/10'} rounded-3xl p-6 sm:p-8 hover:bg-white/[0.05] transition-all group overflow-hidden relative`}
-                         >
-                            {isComplete && <div className="absolute top-0 right-0 px-4 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-xl">Matured</div>}
-                            
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
-                               <div className="flex items-start gap-4">
-                                  <div className={`w-12 h-12 ${isComplete ? 'bg-emerald-500/20' : 'bg-indigo-500/20'} rounded-2xl flex items-center justify-center shrink-0`}>
-                                     <ChartBarIcon className={`w-6 h-6 ${isComplete ? 'text-emerald-400' : 'text-indigo-400'}`} />
-                                  </div>
-                                  <div>
-                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Principal Amount</p>
-                                     <p className="text-3xl font-mono font-black text-white">${inv.amount.toFixed(2)}</p>
-                                  </div>
-                               </div>
+                          <motion.div 
+                            key={inv.id} 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`bg-card border ${isComplete ? 'border-emerald-500/30' : 'border-border'} rounded-[2rem] p-6 sm:p-8 hover:shadow-xl hover:shadow-indigo-500/5 transition-all group overflow-hidden relative shadow-sm`}
+                          >
+                             {isComplete && <div className="absolute top-0 right-0 px-4 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-bl-xl shadow-md">MATURED</div>}
+                             
+                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-8">
+                                <div className="flex items-start gap-4">
+                                   <div className={`w-14 h-14 ${isComplete ? 'bg-emerald-500/10' : 'bg-indigo-500/10'} rounded-2xl flex items-center justify-center shrink-0 border border-indigo-500/10`}>
+                                      <ChartBarIcon className={`w-7 h-7 ${isComplete ? 'text-emerald-500' : 'text-indigo-500'}`} />
+                                   </div>
+                                   <div>
+                                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                         <ShieldCheckIcon className="w-3 h-3 text-indigo-500/60" />
+                                         Pool Allocation
+                                      </p>
+                                      <p className="text-3xl font-mono font-black text-foreground">${inv.amount.toFixed(2)}</p>
+                                   </div>
+                                </div>
 
-                               <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-                                  <div>
-                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Profit Earned</p>
-                                     <p className="text-xl font-mono font-black text-emerald-400">+${inv.profitEarned.toFixed(2)}</p>
-                                  </div>
-                                  <div>
-                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Time Left</p>
-                                     <p className="text-xl font-mono font-black text-white">{isComplete ? 0 : daysRemaining} <span className="text-[10px] font-black text-indigo-400">DAYS</span></p>
-                                  </div>
-                                  <div className="hidden sm:block">
-                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Daily Rate</p>
-                                     <p className="text-xl font-mono font-black text-indigo-300">1.0%</p>
-                                  </div>
-                               </div>
-                            </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-6">
+                                   <div>
+                                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Profit Yield</p>
+                                      <p className="text-xl font-mono font-black text-emerald-600 dark:text-emerald-400">
+                                         +${inv.profitEarned.toFixed(2)}
+                                      </p>
+                                   </div>
+                                   <div>
+                                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Time Remaining</p>
+                                      <p className="text-xl font-mono font-black text-foreground">
+                                         {isComplete ? 0 : daysRemaining} <span className="text-[10px] text-indigo-500">DAYS</span>
+                                      </p>
+                                   </div>
+                                   <div className="hidden sm:block">
+                                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Fixed Rate</p>
+                                      <p className="text-xl font-mono font-black text-indigo-500">1.0%</p>
+                                   </div>
+                                </div>
+                             </div>
 
-                            {/* Progress Bar Container */}
-                            <div className="space-y-4">
-                               <div className="flex justify-between items-end">
-                                  <div className="flex items-center gap-2">
-                                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Lock Status</span>
-                                     <span className="px-1.5 py-0.5 bg-indigo-500/10 text-indigo-300 text-[9px] font-black rounded border border-indigo-500/20">30 DAYS TERM</span>
-                                  </div>
-                                  <span className="text-xs font-black text-white font-mono">{isComplete ? 100 : Math.floor(progress)}%</span>
-                               </div>
-                               <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/5 p-px">
-                                  <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${isComplete ? 100 : progress}%` }}
-                                    transition={{ duration: 1, ease: "easeOut" }}
-                                    className={`h-full bg-gradient-to-r ${isComplete ? 'from-emerald-500 to-emerald-400' : 'from-indigo-500 via-indigo-400 to-indigo-500'} rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]`}
-                                  />
-                               </div>
-                               <div className="flex justify-between text-[9px] font-black text-gray-500 uppercase tracking-widest">
-                                  <span>Started {format(startDate, 'MMM dd')}</span>
-                                  <span>Matures {format(expiryDate, 'MMM dd')}</span>
-                               </div>
-                            </div>
-                         </motion.div>
+                             {/* Progress Bar Container */}
+                             <div className="space-y-4">
+                                <div className="flex justify-between items-end">
+                                   <div className="flex items-center gap-2">
+                                      <div className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-wider ${isComplete ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600'}`}>
+                                         {isComplete ? '30 Days Matured' : '30 Days Lock-in'}
+                                      </div>
+                                   </div>
+                                   <span className="text-xs font-black text-indigo-600 font-mono">{isComplete ? 100 : Math.floor(progress)}%</span>
+                                </div>
+                                <div className="h-3 bg-muted rounded-full overflow-hidden p-0.5 border border-border/50 shadow-inner">
+                                   <motion.div 
+                                     initial={{ width: 0 }}
+                                     animate={{ width: `${isComplete ? 100 : progress}%` }}
+                                     transition={{ duration: 1.5, ease: "circOut" }}
+                                     className={`h-full rounded-full shadow-[0_0_15px_rgba(99,102,241,0.3)] ${isComplete ? 'bg-gradient-to-r from-emerald-500 to-emerald-400' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 bg-[length:200%_auto] animate-gradient'}`}
+                                   />
+                                </div>
+                                <div className="flex justify-between text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                                   <span className="flex items-center gap-1"><ClockIcon className="w-3 h-3" /> {format(startDate, 'MMM dd, yyyy')}</span>
+                                   <span className="flex items-center gap-1"><ShieldCheckIcon className="w-3 h-3" /> {isComplete ? 'Matured' : `Matures ${format(expiryDate, 'MMM dd')}`}</span>
+                                </div>
+                             </div>
+                          </motion.div>
                        )
                     })
                 )}
@@ -459,19 +473,20 @@ function cn(...classes: string[]) {
 
 function StatBox({ label, value, icon: Icon, color }: any) {
     const colorMap: any = {
-        white: "text-white/40 group-hover:text-white",
-        indigo: "text-indigo-400 group-hover:text-indigo-300",
-        emerald: "text-emerald-400 group-hover:text-emerald-300",
-        blue: "text-blue-400 group-hover:text-blue-300",
-        amber: "text-amber-400 group-hover:text-amber-300",
+        white: "bg-muted text-foreground",
+        indigo: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
+        emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+        blue: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
+        amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+        purple: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
     }
     return (
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-5 sm:p-6 transition-all hover:bg-white/10 group">
-            <div className={cn("w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center mb-4 transition-colors", colorMap[color])}>
-                <Icon className="w-5 h-5" />
+        <div className="bg-card border border-border rounded-3xl p-4 sm:p-6 transition-all hover:bg-muted/50 group shadow-sm hover:shadow-md">
+            <div className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center mb-4 transition-all border", colorMap[color])}>
+                <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1 group-hover:text-white/50 transition-colors">{label}</p>
-            <p className="text-xl sm:text-2xl font-mono font-black text-white">{value}</p>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-foreground transition-colors">{label}</p>
+            <p className="text-xl sm:text-2xl font-mono font-black text-foreground">{value}</p>
         </div>
     )
 }

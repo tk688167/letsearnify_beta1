@@ -19,7 +19,8 @@ import {
   GiftIcon,
   ChartBarIcon,
   ChartPieIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  BoltIcon
 } from "@heroicons/react/24/outline"
 import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
@@ -162,6 +163,7 @@ export default function MobileNav({ session }: { session: Session | null }) {
                 <MobileNavItem href="/dashboard/referrals" icon={<UserIcon className="w-5 h-5"/>} label="Partners" pathname={pathname} close={closeMenu} color="purple" />
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Finance</div>
+                <MobileNavItem href="/dashboard/pools/daily-earning" icon={<BoltIcon className="w-5 h-5"/>} label="Daily Earning Pool" pathname={pathname} close={closeMenu} color="teal" />
                 <MobileNavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" pathname={pathname} close={closeMenu} color="blue" />
                 <MobileNavItem href="/dashboard/surveys" icon={<ClipboardDocumentCheckIcon className="w-5 h-5"/>} label="Surveys" pathname={pathname} close={closeMenu} color="purple" />
                 <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
