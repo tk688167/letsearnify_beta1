@@ -94,7 +94,7 @@ export default async function ReferralsPage() {
      where: { earnerId: user.id },
      _sum: { amount: true }
   })
-  const totalEarnings = totalEarningsAgg._sum.amount || 0
+  const totalEarnings = totalEarningsAgg._sum.  amount || 0
 
   // Today's Earnings
   const todayEarningsAgg = await prisma.referralCommission.aggregate({
