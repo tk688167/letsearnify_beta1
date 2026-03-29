@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         }
 
         // 2. Parse overrides (optional)
-        const body = await req.json().catch(() => ({})); 
+        const body = await req.json().catch(() => ({}));
         const { percentage = 4.0 } = body;
 
         // 3. Get Pool Logic
