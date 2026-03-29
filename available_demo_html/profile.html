@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | Let'$Earnify</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #050505;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- Hero Section --- */
+        .profile-hero {
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.9), rgba(10, 10, 10, 1));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 30px 30px;
+            margin-bottom: 40px;
+        }
+
+        .hero-glow {
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(30, 144, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar-xl {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid rgba(30, 144, 255, 0.5);
+            padding: 5px;
+            background: url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80') center/cover;
+            background-clip: content-box;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .profile-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+            color: #fff;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            background: rgba(0, 255, 127, 0.15);
+            color: #00ff7f;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 127, 0.2);
+        }
+
+        /* --- Main Grid Layout --- */
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            padding-bottom: 60px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.3s;
+        }
+
+        .section-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Wallet Mini */
+        .wallet-mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .mini-stat {
+            background: linear-gradient(135deg, rgba(30, 144, 255, 0.1), rgba(0, 0, 0, 0));
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(30, 144, 255, 0.1);
+        }
+
+        .mini-stat h4 {
+            margin: 0 0 5px;
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        .mini-stat p {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Achievements */
+        .badges-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 80px;
+            gap: 8px;
+        }
+
+        .badge-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.1);
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .badge-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+        }
+
+        .badge-name {
+            font-size: 0.75rem;
+            color: #ccc;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .activity-item {
+            padding: 15px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            background: rgba(255, 255, 255, 0.01);
+            margin-bottom: 2px;
+        }
+
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #1E90FF;
+            box-shadow: 0 0 8px #1E90FF;
+        }
+
+        .activity-title {
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .activity-meta {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-meta {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header (Consistent) -->
+    <header class="header"
+        style="background: rgba(10,10,10,0.95); position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 1px solid var(--glass-border);">
+        <div class="container nav-container"
+            style="display: flex; justify-content: space-between; align-items: center; height: 70px;">
+            <div class="logo">Let'sEarnify</div>
+
+            <!-- Close/Back Button -->
+            <button class="back-btn" onclick="window.history.back()"
+                style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; cursor: pointer; transition: all 0.3s;">
+                <i class="fas fa-times"></i> Close
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="profile-hero">
+        <div class="hero-glow"></div>
+        <div class="container hero-content">
+            <div class="profile-avatar-xl"></div>
+            <div class="profile-info">
+                <h1>Sarah Jenkins</h1>
+                <div class="profile-meta">
+                    <div class="meta-item"><i class="fas fa-at"></i> @sarahjenkins</div>
+                    <div class="meta-item"><i class="fas fa-calendar-alt"></i> Joined Dec 2024</div>
+                    <div class="meta-item status-badge">Verified Member</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+
+        <div class="profile-grid">
+
+            <!-- LEFT COLUMN -->
+            <div class="left-col">
+
+                <!-- 1. Wallet Overview -->
+                <div class="section-card reveal reveal-up">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-wallet" style="color: #1E90FF;"></i> Wallet Overview
+                        </div>
+                        <button class="btn-sm"
+                            style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: #aaa; padding: 4px 10px; border-radius: 4px; font-size: 0.7rem;">Detail</button>
+                    </div>
+                    <div class="wallet-mini-grid">
+                        <div class="mini-stat">
+                            <h4>Available Balance</h4>
+                            <p>$0.00</p>
+                        </div>
+                        <div class="mini-stat"
+                            style="border-color: rgba(255, 165, 0, 0.2); background: linear-gradient(135deg, rgba(255, 165, 0, 0.1), rgba(0,0,0,0));">
+                            <h4>Pending</h4>
+                            <p style="color: #FFA500;">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Contact & Personal -->
+                <div class="section-card reveal reveal-up" style="animation-delay: 0.1s;">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-user-shield" style="color: #00ff7f;"></i> Personal
+                            Information</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <div class="meta-item"
+                            style="justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span style="color: #888;">Email</span>
+                            <span style="color: #fff;">sarah.j@example.com</span>
+                        </div>
+                        <div class="meta-item"
+                            style="justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <span style="color: #888;">Phone</span>
+                            <span style="color: #fff;">+1 (555) 000-8888</span>
+                        </div>
+                        <div class="meta-item" style="justify-content: space-between;">
+                            <span style="color: #888;">Location</span>
+                            <span style="color: #fff;">New York, USA</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Referral Stats -->
+                <div class="section-card reveal reveal-up" style="animation-delay: 0.2s;">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-users" style="color: #9370DB;"></i> Referral Network
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                        <span style="color: #aaa; font-size: 0.9rem;">Total Invited</span>
+                        <span style="font-size: 1.2rem; font-weight: 700; color: #fff;">0</span>
+                    </div>
+                    <div
+                        style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin-bottom: 20px;">
+                        <div style="width: 65%; height: 100%; background: #9370DB;"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div
+                            style="text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #888;">Active</div>
+                            <div style="font-size: 1rem; color: #fff; font-weight: 600;">0</div>
+                        </div>
+                        <div
+                            style="text-align: center; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #888;">Earnings</div>
+                            <div style="font-size: 1rem; color: #00ff7f; font-weight: 600;">$0</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="right-col">
+
+                <!-- 4. Achievements -->
+                <div class="section-card reveal reveal-up" style="animation-delay: 0.3s;">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-trophy" style="color: #ffd700;"></i> Achievements
+                        </div>
+                        <span style="font-size: 0.7rem; color: #888;">Level 1</span>
+                    </div>
+                    <div class="badges-grid">
+                        <div class="badge-item">
+                            <div class="badge-icon"><i class="fas fa-user-check"></i></div>
+                            <span class="badge-name">Verified</span>
+                        </div>
+                        <div class="badge-item">
+                            <div class="badge-icon"
+                                style="background: rgba(255, 255, 255, 0.05); color: #666; border-color: rgba(255,255,255,0.1);">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <span class="badge-name">Locked</span>
+                        </div>
+                        <div class="badge-item">
+                            <div class="badge-icon"
+                                style="background: rgba(255, 255, 255, 0.05); color: #666; border-color: rgba(255,255,255,0.1);">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <span class="badge-name">Locked</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Activity Feed -->
+                <div class="section-card reveal reveal-up" style="animation-delay: 0.4s;">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-history" style="color: #aaa;"></i> Recent Activity
+                        </div>
+                    </div>
+                    <div class="activity-feed">
+                        <div class="activity-item"
+                            style="border: none; text-align: center; color: #666; padding: 20px;">
+                            No recent activity found.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reveals = document.querySelectorAll('.reveal');
+            reveals.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
+    </script>
+</body>
+
+</html>

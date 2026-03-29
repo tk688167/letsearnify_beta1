@@ -1,0 +1,140 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { 
+  Bars3Icon, 
+  XMarkIcon,
+  HomeIcon, 
+  BriefcaseIcon, 
+  BanknotesIcon, 
+  ShoppingBagIcon, 
+  UserIcon, 
+  Cog6ToothIcon, 
+  GlobeAltIcon,
+  ArrowLeftStartOnRectangleIcon,
+  CreditCardIcon
+} from "@heroicons/react/24/outline"
+import { Session } from "next-auth"
+import { signOut } from "next-auth/react" 
+
+export default function MobileNav({ session }: { session: Session | null }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+
+  const closeMenu = () => setIsOpen(false)
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 flex justify-between items-center md:hidden">
+         <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsOpen(true)}
+              className="p-1 -ml-1 text-gray-600 hover:text-blue-600 focus:outline-none"
+            >
+               <Bars3Icon className="w-7 h-7" />
+            </button>
+            <Link href="/dashboard" className="font-serif font-bold text-lg text-gray-900 cursor-pointer">Let'$Earnify</Link>
+         </div>
+         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-blue-500/20">
+            {session?.user?.name?.[0] || "U"}
+         </div>
+      </header>
+
+      {/* Drawer Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-gray-900/20 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Drawer Panel */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out md:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex flex-col h-full">
+           <div className="p-6 pb-2 flex justify-between items-start">
+             <div>
+               <Link href="/dashboard">
+                 <h1 className="text-2xl font-serif font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent cursor-pointer">
+                   Let'$Earnify
+                 </h1>
+               </Link>
+               <p className="text-xs text-gray-400 mt-1 font-medium tracking-wider uppercase">Beta Release</p>
+             </div>
+             <button onClick={closeMenu} className="p-1 text-gray-400 hover:text-gray-600">
+               <XMarkIcon className="w-6 h-6" />
+             </button>
+           </div>
+
+           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+              <div className="px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Platform</div>
+              <MobileNavItem href="/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Welcome" pathname={pathname} close={closeMenu} color="blue" />
+              <MobileNavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" pathname={pathname} close={closeMenu} color="gray" />
+              <MobileNavItem href="/dashboard/referrals" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Partners" pathname={pathname} close={closeMenu} color="purple" />
+              <MobileNavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier Progress" pathname={pathname} close={closeMenu} color="yellow" />
+              <MobileNavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" pathname={pathname} close={closeMenu} color="emerald" />
+              <MobileNavItem href="/dashboard/investments" icon={<BanknotesIcon className="w-5 h-5"/>} label="Mudaraba Pool" pathname={pathname} close={closeMenu} color="teal" />
+              <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
+              <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="Wallet" pathname={pathname} close={closeMenu} color="indigo" />
+              
+              <div className="pt-8 px-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">Account</div>
+              <MobileNavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="My Profile" pathname={pathname} close={closeMenu} color="gray" />
+              <MobileNavItem href="/dashboard/settings" icon={<Cog6ToothIcon className="w-5 h-5"/>} label="Settings" pathname={pathname} close={closeMenu} color="gray" />
+           </nav>
+
+           <div className="p-4 m-4 bg-gray-50 rounded-2xl border border-gray-100">
+             <div className="flex items-center gap-3 mb-3">
+               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md shadow-blue-500/20">
+                 {session?.user?.name?.[0] || "U"}
+               </div>
+               <div className="overflow-hidden">
+                 <div className="font-bold text-sm text-gray-900 truncate">{session?.user?.name || "User"}</div>
+                 <div className="text-xs text-gray-500 truncate">{session?.user?.email}</div>
+               </div>
+             </div>
+             <button 
+               onClick={() => signOut({ callbackUrl: "/" })}
+               className="flex items-center justify-center gap-2 w-full py-2.5 text-xs font-bold text-red-600 bg-white border border-red-50 hover:bg-red-50 rounded-xl transition-all shadow-sm"
+             >
+               <ArrowLeftStartOnRectangleIcon className="w-4 h-4" />
+               Sign Out
+             </button>
+           </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function MobileNavItem({ href, icon, label, pathname, close, color }: { href: string, icon: React.ReactNode, label: string, pathname: string, close: () => void, color: string }) {
+  const isActive = pathname === href
+  
+  const themeStyles: Record<string, { active: string, hover: string, text: string }> = {
+    blue: { active: "bg-blue-50 text-blue-700", hover: "hover:text-blue-600 hover:bg-blue-50", text: "text-blue-600" },
+    purple: { active: "bg-purple-50 text-purple-700", hover: "hover:text-purple-600 hover:bg-purple-50", text: "text-purple-600" },
+    emerald: { active: "bg-emerald-50 text-emerald-700", hover: "hover:text-emerald-600 hover:bg-emerald-50", text: "text-emerald-600" },
+    teal: { active: "bg-teal-50 text-teal-700", hover: "hover:text-teal-600 hover:bg-teal-50", text: "text-teal-600" },
+    orange: { active: "bg-orange-50 text-orange-700", hover: "hover:text-orange-600 hover:bg-orange-50", text: "text-orange-600" },
+    indigo: { active: "bg-indigo-50 text-indigo-700", hover: "hover:text-indigo-600 hover:bg-indigo-50", text: "text-indigo-600" },
+    gray: { active: "bg-gray-100 text-gray-900", hover: "hover:text-gray-900 hover:bg-gray-100", text: "text-gray-900" }
+  }
+
+  const theme = themeStyles[color] || themeStyles.blue
+
+  return (
+    <Link 
+      href={href} 
+      onClick={close}
+      className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 text-[15px] font-medium group ${
+        isActive 
+          ? `${theme.active} shadow-sm` 
+          : `text-gray-600 ${theme.hover}`
+      }`}
+    >
+      <span className={`${isActive ? theme.text : "text-gray-400 group-hover:" + theme.text.replace("text-", "text-")} transition-colors`}>{icon}</span>
+      {label}
+    </Link>
+  )
+}

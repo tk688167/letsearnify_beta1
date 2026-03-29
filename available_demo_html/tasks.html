@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Tasks | Earnify</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Sidebar (Shared Structure) -->
+    <!-- Sidebar removed for this page -->
+
+    <!-- Custom Styles for Tasks Page -->
+    <style>
+        /* Scoped Layout Styles */
+        .tasks-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .filter-bar::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari */
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #4caf50;
+            color: #fff;
+            border-color: #4caf50;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+        }
+
+        /* Grid Layout */
+        .tasks-feed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 30px;
+        }
+
+        /* Task Card */
+        .task-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(25, 25, 25, 0.8);
+        }
+
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .brand-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            position: relative;
+        }
+
+        .brand-icon::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 16px;
+            opacity: 0.2;
+            background: currentColor;
+        }
+
+        .difficulty-badge {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #888;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Card Body */
+        .card-body h3 {
+            font-size: 1.25rem;
+            color: #fff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .card-body p {
+            font-size: 0.9rem;
+            color: #999;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Tags */
+        .tags-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.8rem;
+            color: #ccc;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .reward-amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #4caf50;
+            letter-spacing: -0.5px;
+        }
+
+        .btn-start {
+            background: white;
+            color: black;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            background: #f0f0f0;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .tasks-container {
+                padding: 20px;
+            }
+
+            .tasks-feed-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                padding-bottom: 5px;
+            }
+        }
+    </style>
+
+    <main class="main-content" style="margin-left: 0; width: 100%; min-height: 100vh; background: #0a0a0a;">
+        <!-- Top Header -->
+        <header class="dashboard-header" style="background: transparent;">
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div class="search-bar"
+                style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-search" style="color: #666;"></i>
+                <input type="text" placeholder="Search for opportunities..." style="color: #fff;">
+            </div>
+            <div class="header-actions">
+                <div class="icon-btn notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tasks-container">
+            <!-- Page Title -->
+            <div class="section-header reveal reveal-up" style="margin-bottom: 30px;">
+                <h1
+                    style="font-size: 2.2rem; color: #fff; margin-bottom: 10px; font-family: 'Playfair Display', serif;">
+                    Available Tasks</h1>
+                <p style="color: #888; font-size: 1.1rem;">Explore 150+ opportunities to earn today.</p>
+            </div>
+
+            <!-- Modern Filter Bar -->
+            <div class="filter-bar reveal reveal-up">
+                <button class="filter-btn active">All Tasks</button>
+                <button class="filter-btn">Social Media</button>
+                <button class="filter-btn">Surveys</button>
+                <button class="filter-btn">App Testing</button>
+                <button class="filter-btn">High Reward 🔥</button>
+                <button class="filter-btn">Quick & Easy</button>
+            </div>
+
+            <!-- Modern Tasks Grid -->
+            <div class="tasks-feed-grid">
+
+                <!-- Task 1: Twitter -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #1DA1F2;">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <span class="difficulty-badge">Easy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Follow on Twitter</h3>
+                        <p>Stay updated with our latest news. Follow @EarnifyOfficial and verify.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 30 sec</span>
+                            <span class="tag">Social</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.20</span>
+                        <button class="btn-start"
+                            onclick="closeModal('notificationModal'); alert('Task Started: Follow Twitter')">Start
+                            Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 2: YouTube -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #FF0000;">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <span class="difficulty-badge">Easy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Subscribe to YouTube</h3>
+                        <p>Support our channel and never miss an update video. Watch 1 min + Subscribe.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 2 min</span>
+                            <span class="tag">Video</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.30</span>
+                        <button class="btn-start" onclick="alert('Task Started: YouTube Subscribe')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 3: Telegram -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #0088cc;">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <span class="difficulty-badge">Medium</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Join Telegram Channel</h3>
+                        <p>Get exclusive signals and community updates directly on Telegram.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 1 min</span>
+                            <span class="tag">Community</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.25</span>
+                        <button class="btn-start" onclick="alert('Task Started: Join Telegram')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 4: Instagram -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #C13584;">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <span class="difficulty-badge">Easy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Like Instagram Post</h3>
+                        <p>Engage with our latest announcement post. Like and leave a positive comment.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 45 sec</span>
+                            <span class="tag">Social</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.10</span>
+                        <button class="btn-start" onclick="alert('Task Started: Instagram Like')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 5: App Download (High Reward) -->
+                <div class="task-card reveal reveal-up" style="border-color: rgba(76, 175, 80, 0.3);">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #4caf50;">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <span class="difficulty-badge" style="color: #4caf50; border-color: #4caf50;">High Pay</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Download Trading App</h3>
+                        <p>Install our partner trading app, register, and reach Level 5.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 10 min</span>
+                            <span class="tag">App</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$2.50</span>
+                        <button class="btn-start" style="background: #4caf50; color: #fff;"
+                            onclick="alert('Task Started: App Download')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 6: Discord -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #5865F2;">
+                            <i class="fab fa-discord"></i>
+                        </div>
+                        <span class="difficulty-badge">Easy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Join Discord Server</h3>
+                        <p>Become part of the fastest growing crypto community on Discord.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 1 min</span>
+                            <span class="tag">Community</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.25</span>
+                        <button class="btn-start" onclick="alert('Task Started: Join Discord')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 7: Survey -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #FF9800;">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <span class="difficulty-badge">Medium</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Market Research Survey</h3>
+                        <p>Complete a short survey about your crypto investing habits.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 5 min</span>
+                            <span class="tag">Survey</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$1.20</span>
+                        <button class="btn-start" onclick="alert('Task Started: Survey')">Start Task</button>
+                    </div>
+                </div>
+
+                <!-- Task 8: Watch Video -->
+                <div class="task-card reveal reveal-up">
+                    <div class="card-header">
+                        <div class="brand-icon" style="color: #fbc02d;">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <span class="difficulty-badge">Easy</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Watch Promo Video</h3>
+                        <p>Watch the full 30-second promotional video for our partner.</p>
+                        <div class="tags-row">
+                            <span class="tag"><i class="fas fa-clock"></i> 30 sec</span>
+                            <span class="tag">Video</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="reward-amount">$0.50</span>
+                        <button class="btn-start" onclick="alert('Task Started: Watch Video')">Watch</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Modal (Reused) -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content" style="border-color: var(--primary-gold);">
+            <span class="close-modal" onclick="closeModal('notificationModal')">&times;</span>
+            <h2 id="notifTitle">Notification</h2>
+            <p id="notifMessage">Message</p>
+            <button class="btn btn-primary" onclick="closeModal('notificationModal')">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
