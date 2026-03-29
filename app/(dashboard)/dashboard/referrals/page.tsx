@@ -52,7 +52,7 @@ export default async function ReferralsPage() {
                name: n.name,
                email: n.email,
                tier: n.tier,
-               arnBalance: n.points || 0, // Fallback if n.points exists in tree OR n.arnBalance
+               arnBalance: n.arnBalance ?? 0,
                createdAt: n.createdAt,
                level: n.level
             }))}
