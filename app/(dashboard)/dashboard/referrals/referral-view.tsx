@@ -22,8 +22,11 @@ type ReferralNode = {
   email: string | null
   tier: string
   arnBalance: number
+  isActiveMember?: boolean
+  lastUnlockAt?: Date | null
   createdAt: Date
-  level: number 
+  level: 1 | 2 | 3
+  withdrawnTotal?: number
   depositTotal?: number 
 }
 
@@ -31,7 +34,15 @@ type Commission = {
   id: string
   amount: number
   level: number
-  sourceUser: { name: string | null; email: string | null }
+  percentage?: number
+  sourceUserId?: string
+  sourceUserWithdrawn?: number
+  txDescription?: string | null
+  txArnMinted?: number
+  txStatus?: string
+  txMethod?: string | null
+  txCreatedAt?: Date
+  sourceUser: { id?: string; name: string | null; email: string | null; isActiveMember?: boolean; lastUnlockAt?: Date | null }
   createdAt: Date
 }
 
@@ -63,6 +74,34 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   const filteredTree = levelFilter === "all" 
     ? referralTree 
     : referralTree.filter(node => node.level === levelFilter)
+
+  const levelRate = (level: 1 | 2 | 3) => {
+    if (level === 1) return TIER_COMMISSIONS[currentTier]?.L1 ?? 5
+    if (level === 2) return TIER_COMMISSIONS[currentTier]?.L2 ?? 3
+    return TIER_COMMISSIONS[currentTier]?.L3 ?? 2
+  }
+
+  const earningsByUser = commissions.reduce<Record<string, { total: number; count: number; lastAt: Date | null }>>((acc, comm) => {
+    if (!comm.sourceUserId) return acc
+    if (!acc[comm.sourceUserId]) {
+      acc[comm.sourceUserId] = { total: 0, count: 0, lastAt: null }
+    }
+    const bucket = acc[comm.sourceUserId]
+    bucket.total += comm.amount || 0
+    bucket.count += 1
+    const currentDate = new Date(comm.createdAt)
+    if (!bucket.lastAt || currentDate.getTime() > bucket.lastAt.getTime()) {
+      bucket.lastAt = currentDate
+    }
+    return acc
+  }, {})
+
+  const unlockedCommissions = commissions.filter(
+    (comm) => !!comm.sourceUser?.isActiveMember || !!comm.sourceUser?.lastUnlockAt
+  )
+  const unlockedReferrals = referralTree.filter(
+    (node) => !!node.isActiveMember || !!node.lastUnlockAt
+  )
 
   const copyCode = () => {
     if (user.referralCode) {
@@ -282,13 +321,16 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
             <thead className="bg-muted/40 text-[10px] font-black text-muted-foreground uppercase tracking-widest border-b border-border">
               <tr>
                 <th className="px-5 py-4 w-1/3">Partner Details</th>
-                <th className="px-5 py-4 w-1/4">Tier Status</th>
-                <th className="px-5 py-4 w-1/4">Network Depth</th>
+                <th className="px-5 py-4 w-1/6">Tier Status</th>
+                <th className="px-5 py-4 w-1/5">Network Depth</th>
+                <th className="px-5 py-4 w-1/4">Earning History</th>
                 <th className="px-5 py-4 w-1/6 text-right">Join Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border text-sm">
-              {filteredTree.map(node => (
+              {filteredTree.map(node => {
+                const userEarning = earningsByUser[node.id]
+                return (
                 <tr key={node.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -311,14 +353,27 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                       "bg-pink-50 dark:bg-pink-500/10 text-pink-600 dark:text-pink-400 ring-1 ring-pink-200 dark:ring-pink-500/30"
                     }`}>Level {node.level}</span>
                   </td>
+                  <td className="px-5 py-4">
+                    <div className="text-[11px] font-bold text-foreground">
+                      L{node.level} Rate: {levelRate(node.level)}%
+                    </div>
+                    <div className="text-[10px] text-muted-foreground font-medium">
+                      {userEarning ? `Earned: +$${userEarning.total.toFixed(2)} (${userEarning.count} tx)` : "Earned: $0.00 (0 tx)"}
+                    </div>
+                    {userEarning?.lastAt && (
+                      <div className="text-[9px] text-muted-foreground uppercase tracking-wide">
+                        Last: {format(new Date(userEarning.lastAt), "MMM d, yyyy")}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-5 py-4 text-right text-muted-foreground font-medium text-[11px]">
                     {format(new Date(node.createdAt), "MMM d, yyyy")}
                   </td>
                 </tr>
-              ))}
+              )})}
               {filteredTree.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-12 text-center text-muted-foreground font-medium text-sm">No partners at this depth yet.</td>
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground font-medium text-sm">No partners at this depth yet.</td>
                 </tr>
               )}
             </tbody>
@@ -353,6 +408,19 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                   {format(new Date(node.createdAt), "MMM d, yy")}
                 </div>
               </div>
+              <div className="mt-3 pt-3 border-t border-border">
+                <div className="text-[10px] font-bold text-foreground">
+                  Lvl {node.level} Rate: {levelRate(node.level)}%
+                </div>
+                <div className="text-[10px] text-muted-foreground font-medium">
+                  {(() => {
+                    const userEarning = earningsByUser[node.id]
+                    return userEarning
+                      ? `Earned: +$${userEarning.total.toFixed(2)} (${userEarning.count} tx)`
+                      : "Earned: $0.00 (0 tx)"
+                  })()}
+                </div>
+              </div>
             </div>
           ))}
           {filteredTree.length === 0 && (
@@ -372,31 +440,73 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
           <span className="text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Live Updates</span>
         </div>
         <div className="max-h-[400px] overflow-y-auto p-3 sm:p-5 space-y-2 sm:space-y-3 scrollbar-hide">
-          {commissions.length > 0 ? commissions.map(comm => (
+          {unlockedCommissions.length > 0 ? unlockedCommissions.map(comm => (
             <div key={comm.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-muted/40 border border-border hover:bg-card hover:shadow-sm transition-all">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-500/20">
                   <BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-bold text-foreground text-xs sm:text-sm truncate">Network Commission</div>
-                  <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">Level {comm.level} Activity</div>
+                  <div className="font-bold text-foreground text-xs sm:text-sm truncate">
+                    {comm.sourceUser?.name || comm.sourceUser?.email || "Network Member"}
+                  </div>
+                  <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">
+                    Level {comm.level} | Earned +${comm.amount.toFixed(2)} | Withdrawn ${(
+                      comm.sourceUserWithdrawn || 0
+                    ).toFixed(2)}
+                  </div>
+                  <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium truncate">
+                    {comm.txDescription || `L${comm.level} commission (${comm.percentage || levelRate(comm.level as 1 | 2 | 3)}%)`}
+                  </div>
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">+${comm.amount.toFixed(2)}</div>
+                {(comm.txArnMinted || 0) > 0 && (
+                  <div className="text-[9px] font-bold text-blue-500">+{(comm.txArnMinted || 0).toFixed(2)} ARN</div>
+                )}
                 <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 hidden sm:block">
-                  {format(new Date(comm.createdAt), "MMM d, yyyy")}
+                  {format(new Date(comm.txCreatedAt || comm.createdAt), "MMM d, yyyy")}
+                </div>
+                <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 hidden sm:block">
+                  {comm.txStatus || "COMPLETED"}
                 </div>
               </div>
             </div>
-          )) : (
+          )) : unlockedReferrals.length > 0 ? unlockedReferrals.map((node) => {
+            const userEarning = earningsByUser[node.id]
+            return (
+              <div key={node.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-muted/40 border border-border">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 border border-indigo-100 dark:border-indigo-500/20 font-black">
+                    {node.name?.[0] || "U"}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-bold text-foreground text-xs sm:text-sm truncate">
+                      {node.name || node.email || "Network Member"}
+                    </div>
+                    <div className="text-[10px] sm:text-[11px] text-muted-foreground font-medium">
+                      Level {node.level} | Earned +${(userEarning?.total || 0).toFixed(2)} | Withdrawn ${(node.withdrawnTotal || 0).toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
+                    +${(userEarning?.total || 0).toFixed(2)}
+                  </div>
+                  <div className="text-[9px] text-muted-foreground font-bold uppercase tracking-wider mt-0.5 hidden sm:block">
+                    {format(new Date(node.createdAt), "MMM d, yyyy")}
+                  </div>
+                </div>
+              </div>
+            )
+          }) : (
             <div className="text-center py-12 sm:py-16">
               <div className="w-14 h-14 bg-muted/50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CurrencyDollarIcon className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="text-sm sm:text-base font-bold text-foreground">No Network Commissions Yet</h3>
-              <p className="text-[11px] sm:text-xs text-muted-foreground font-medium mt-1">Earnings will appear here as your team expands.</p>
+              <h3 className="text-sm sm:text-base font-bold text-foreground">No Unlock Earnings Yet</h3>
+              <p className="text-[11px] sm:text-xs text-muted-foreground font-medium mt-1">History will appear when your referrals complete the $1 unlock.</p>
             </div>
           )}
         </div>

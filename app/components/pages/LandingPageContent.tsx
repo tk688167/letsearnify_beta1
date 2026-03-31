@@ -818,11 +818,11 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               </div>
               <div className="p-6">
                 {refCode && (
-                  <div className="mb-6 p-4 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800 rounded-xl flex items-start gap-3">
-                    <StarIcon className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+                  <div className="mb-6 p-4 bg-indigo-100 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl flex items-start gap-3">
+                    <StarIcon className="w-5 h-5 text-indigo-700 dark:text-indigo-400 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm font-bold text-indigo-900 dark:text-indigo-200">Referral Applied!</p>
-                      <p className="text-xs text-indigo-700 dark:text-indigo-400 mt-1">
+                      <p className="text-xs text-indigo-800 dark:text-indigo-300 mt-1">
                         You are joining with code <span className="font-mono font-bold">{refCode}</span>.
                       </p>
                     </div>

@@ -53,14 +53,25 @@ export default async function ReferralsPage() {
                email: n.email,
                tier: n.tier,
                arnBalance: n.arnBalance ?? 0,
+               isActiveMember: !!n.isActiveMember,
+               lastUnlockAt: n.lastUnlockAt,
                createdAt: n.createdAt,
-               level: n.level
+               level: n.level,
+               withdrawnTotal: n.withdrawnTotal || 0
             }))}
             commissions={displayUser.referralsMade?.map((c: any) => ({
                id: c.id,
                amount: c.amount,
                level: c.level,
+               percentage: c.percentage,
+               sourceUserId: c.sourceUserId,
                sourceUser: c.sourceUser,
+               sourceUserWithdrawn: c.sourceUserWithdrawn || 0,
+               txDescription: c.txDescription,
+               txArnMinted: c.txArnMinted || 0,
+               txStatus: c.txStatus || "COMPLETED",
+               txMethod: c.txMethod,
+               txCreatedAt: c.txCreatedAt || c.createdAt,
                createdAt: c.createdAt
             })) || []}
          />

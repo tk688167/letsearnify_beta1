@@ -1,11 +1,12 @@
 "use client"
 
 import { registerUser } from "@/lib/register"
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
 import { signIn, signOut } from "next-auth/react"
+import { useTheme } from "next-themes"
 
 interface SignupFormProps {
   referralCode?: string
@@ -31,28 +32,6 @@ const strengthMeta = [
   { label: "Strong", color: "#10b981" },
 ]
 
-const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  color: "#f8fafc",
-  height: "38px",
-  borderRadius: "10px",
-  outline: "none",
-  width: "100%",
-  padding: "0 12px",
-  fontSize: "13px",
-  transition: "border-color 0.15s, box-shadow 0.15s",
-}
-
-const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = "rgba(99,130,246,0.55)"
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.12)"
-}
-const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-  e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"
-  e.currentTarget.style.boxShadow = "none"
-}
-
 export default function SignupForm({ referralCode = "", isModal = false }: SignupFormProps) {
   const [showPwd, setShowPwd] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -61,11 +40,54 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
+
+  const { theme, resolvedTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted && (theme === "dark" || resolvedTheme === "dark")
+
+  const inputStyle = useMemo((): React.CSSProperties => {
+    // Dark mode is already visually good. The bug is that light mode currently uses the same "dark" alpha colors.
+    return {
+      background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)",
+      border: isDark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(15,23,42,0.12)",
+      color: isDark ? "#f8fafc" : "#0f172a",
+      height: "38px",
+      borderRadius: "10px",
+      outline: "none",
+      width: "100%",
+      padding: "0 12px",
+      fontSize: "13px",
+      transition: "border-color 0.15s, box-shadow 0.15s",
+    }
+  }, [isDark])
+
+  const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = "rgba(99,130,246,0.55)"
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.12)"
+  }
+
+  const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = isDark ? "rgba(255,255,255,0.09)" : "rgba(15,23,42,0.12)"
+    e.currentTarget.style.boxShadow = "none"
+  }
 
   const strength = useMemo(() => getStrength(pwd), [pwd])
   const match = confirm.length > 0 && pwd === confirm
   const mismatch = confirm.length > 0 && pwd !== confirm
+
+  const labelClass = isDark
+    ? "text-[10px] font-semibold text-slate-400 tracking-wider uppercase block mb-1"
+    : "text-[10px] font-semibold text-slate-600 tracking-wider uppercase block mb-1"
+
+  const selectOptionStyle = isDark
+    ? { background: "#0f172a", color: "#94a3b8" }
+    : { background: "#ffffff", color: "#334155" }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -103,8 +125,6 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     }
   }
 
-  const labelClass = "text-[10px] font-semibold text-slate-400 tracking-wider uppercase block mb-1"
-
   return (
     <div className={isModal ? "" : ""}>
       {error && (
@@ -138,9 +158,9 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
               style={{ ...inputStyle, appearance: "none", paddingRight: "32px" }}
               onFocus={focusOn} onBlur={focusOff}
             >
-              <option value="" style={{ background: "#0f172a", color: "#94a3b8" }}>Select country</option>
+              <option value="" style={selectOptionStyle}>Select country</option>
               {[["AF","Afghanistan"],["AL","Albania"],["DZ","Algeria"],["AR","Argentina"],["AM","Armenia"],["AU","Australia"],["AT","Austria"],["AZ","Azerbaijan"],["BH","Bahrain"],["BD","Bangladesh"],["BE","Belgium"],["BR","Brazil"],["BG","Bulgaria"],["CA","Canada"],["CL","Chile"],["CN","China"],["CO","Colombia"],["HR","Croatia"],["CY","Cyprus"],["CZ","Czech Republic"],["DK","Denmark"],["EG","Egypt"],["FI","Finland"],["FR","France"],["DE","Germany"],["GR","Greece"],["HK","Hong Kong"],["HU","Hungary"],["IN","India"],["ID","Indonesia"],["IR","Iran"],["IQ","Iraq"],["IE","Ireland"],["IT","Italy"],["JP","Japan"],["JO","Jordan"],["KZ","Kazakhstan"],["KW","Kuwait"],["LB","Lebanon"],["MY","Malaysia"],["MX","Mexico"],["MA","Morocco"],["NL","Netherlands"],["NZ","New Zealand"],["NO","Norway"],["OM","Oman"],["PK","Pakistan"],["PS","Palestine"],["PH","Philippines"],["PL","Poland"],["PT","Portugal"],["QA","Qatar"],["RO","Romania"],["RU","Russia"],["SA","Saudi Arabia"],["SG","Singapore"],["ZA","South Africa"],["KR","South Korea"],["ES","Spain"],["LK","Sri Lanka"],["SE","Sweden"],["CH","Switzerland"],["TH","Thailand"],["TR","Turkey"],["UA","Ukraine"],["AE","United Arab Emirates"],["UK","United Kingdom"],["US","United States"],["VN","Vietnam"],["YE","Yemen"]]
-                .map(([val, name]) => <option key={val} value={val} style={{ background: "#0f172a" }}>{name}</option>)}
+                .map(([val, name]) => <option key={val} value={val} style={selectOptionStyle}>{name}</option>)}
             </select>
             <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
               <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

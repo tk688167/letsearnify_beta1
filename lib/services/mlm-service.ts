@@ -17,12 +17,12 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
-                referralsMade: { // Commissions earned by this user
+                referralCommissions: { // Commissions earned by this user
                     orderBy: { createdAt: 'desc' },
-                    take: 50,
+                    take: 100,
                     include: {
                         sourceUser: {
-                            select: { name: true, email: true }
+                            select: { id: true, name: true, email: true, isActiveMember: true, lastUnlockAt: true }
                         }
                     }
                 }
@@ -45,6 +45,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                     tier: true,
                     arnBalance: true,
                     isActiveMember: true,
+                    lastUnlockAt: true,
                     createdAt: true,
                     referrals: {
                         select: {
@@ -54,6 +55,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                             tier: true,
                             arnBalance: true,
                             isActiveMember: true,
+                            lastUnlockAt: true,
                             createdAt: true,
                             referrals: {
                                 select: {
@@ -63,6 +65,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                                     tier: true,
                                     arnBalance: true,
                                     isActiveMember: true,
+                                    lastUnlockAt: true,
                                     createdAt: true,
                                 },
                             },
@@ -90,6 +93,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                             tier: true,
                             arnBalance: true,
                             isActiveMember: true,
+                            lastUnlockAt: true,
                             createdAt: true,
                         },
                     },
@@ -115,6 +119,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                 tier: u.tier,
                 arnBalance: u.arnBalance,
                 isActiveMember: u.isActiveMember,
+                lastUnlockAt: u.lastUnlockAt,
                 createdAt: u.createdAt,
                 level,
             };
@@ -130,6 +135,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             tier: any;
             arnBalance: number;
             isActiveMember: boolean;
+            lastUnlockAt: Date | null;
             createdAt: Date;
         }, level: 1 | 2 | 3) => ({
             id: n.id,
@@ -138,6 +144,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             tier: n.tier,
             arnBalance: n.arnBalance,
             isActiveMember: n.isActiveMember,
+            lastUnlockAt: n.lastUnlockAt,
             createdAt: n.createdAt,
             level,
         });
@@ -169,6 +176,93 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
 
+        const referralUserIds = referralTree.map((n) => n.id);
+        const referralWithdrawAgg = referralUserIds.length > 0
+            ? await prisma.transaction.groupBy({
+                by: ["userId"],
+                where: {
+                    userId: { in: referralUserIds },
+                    type: "WITHDRAWAL",
+                    status: "COMPLETED",
+                },
+                _sum: { amount: true },
+            })
+            : [];
+        const referralWithdrawByUser = new Map(
+            referralWithdrawAgg.map((row) => [row.userId, row._sum.amount || 0])
+        );
+        const referralTreeWithWithdrawals = referralTree.map((n) => ({
+            ...n,
+            withdrawnTotal: referralWithdrawByUser.get(n.id) || 0,
+        }));
+
+        // Match earned referral commissions with wallet transaction details
+        const commissionTx = await prisma.transaction.findMany({
+            where: { userId, type: "REFERRAL_COMMISSION" },
+            orderBy: { createdAt: "desc" },
+            take: 200,
+            select: {
+                id: true,
+                amount: true,
+                arnMinted: true,
+                description: true,
+                status: true,
+                method: true,
+                createdAt: true,
+            },
+        });
+        const usedTx = new Set<string>();
+        const matchedCommissions = (user.referralCommissions || []).map((c: any) => {
+            const cTime = new Date(c.createdAt).getTime();
+            const tx = commissionTx.find((t) => {
+                if (usedTx.has(t.id)) return false;
+                const sameAmount = Math.abs((t.amount || 0) - (c.amount || 0)) < 0.00001;
+                const nearTime = Math.abs(new Date(t.createdAt).getTime() - cTime) <= 10 * 60 * 1000;
+                return sameAmount && nearTime;
+            });
+            if (tx) usedTx.add(tx.id);
+            return {
+                ...c,
+                txDescription: tx?.description || null,
+                txArnMinted: tx?.arnMinted || 0,
+                txStatus: tx?.status || null,
+                txMethod: tx?.method || null,
+                txCreatedAt: tx?.createdAt || null,
+            };
+        });
+        // Keep compatibility with existing page prop mapping
+        (user as any).referralsMade = matchedCommissions;
+
+        // Attach source user withdrawal totals for Recent Network Earnings feed.
+        const sourceUserIds = Array.from(
+            new Set(
+                ((user as any).referralsMade || [])
+                    .map((c: any) => c.sourceUserId)
+                    .filter(Boolean)
+            )
+        ) as string[];
+
+        const withdrawalAgg = sourceUserIds.length > 0
+            ? await prisma.transaction.groupBy({
+                by: ["userId"],
+                where: {
+                    userId: { in: sourceUserIds },
+                    type: "WITHDRAWAL",
+                    status: "COMPLETED",
+                },
+                _sum: { amount: true },
+            })
+            : [];
+
+        const withdrawalBySource = new Map(
+            withdrawalAgg.map((row) => [row.userId, row._sum.amount || 0])
+        );
+
+        (user as any).referralsMade = ((user as any).referralsMade || []).map((c: any) => ({
+            ...c,
+            sourceUserWithdrawn: withdrawalBySource.get(c.sourceUserId) || 0,
+        }));
+
         // Stats
         const totalEarningsAgg = await prisma.referralCommission.aggregate({
             where: { earnerId: userId },
@@ -186,9 +280,9 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         // teamSize = total signups across all 3 levels (not just active)
         return { 
             user, 
-            referralTree, 
+            referralTree: referralTreeWithWithdrawals, 
             stats: {
-                teamSize: referralTree.length,
+                teamSize: referralTreeWithWithdrawals.length,
                 totalEarnings: totalEarningsAgg._sum.amount || 0,
                 todayEarnings: todayEarningsAgg._sum.amount || 0
             },
