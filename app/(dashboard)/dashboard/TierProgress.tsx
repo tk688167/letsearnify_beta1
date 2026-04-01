@@ -134,6 +134,20 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
     // Default formatting
     const style = TIER_STYLES[currentTierName] || TIER_STYLES["NEWBIE"];
 
+    // Explicit color map for the progress bar — avoids string-manipulation hacks
+    // that produce malformed CSS tokens (e.g. "dark:bg-bg-gray-800") and crash
+    // mobile WebKit's GPU paint layer.
+    const PROGRESS_BAR_COLOR: Record<string, string> = {
+        NEWBIE:   "bg-gray-400",
+        BRONZE:   "bg-orange-400",
+        SILVER:   "bg-slate-400",
+        GOLD:     "bg-yellow-400",
+        PLATINUM: "bg-slate-500",
+        DIAMOND:  "bg-blue-500",
+        EMERALD:  "bg-emerald-500",
+    };
+    const progressBarColor = PROGRESS_BAR_COLOR[currentTierName] ?? "bg-indigo-500";
+
     const copyToClipboard = () => {
         if (referralCode) {
             navigator.clipboard.writeText(referralCode);
@@ -182,7 +196,7 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
                        
                        <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
                            <div 
-                               className={`h-full rounded-full transition-all duration-1000 ${style.badge.replace('text-', 'bg-').split(' ')[0]}`} 
+                               className={`h-full rounded-full transition-all duration-500 ${progressBarColor}`} 
                                style={{ width: `${progress}%` }}
                            ></div>
                        </div>
