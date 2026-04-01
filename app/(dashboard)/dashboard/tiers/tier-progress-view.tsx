@@ -1,11 +1,13 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useMemo, useState } from "react"
 import { 
   CheckCircleIcon, 
   LockClosedIcon, 
   StarIcon,
   UsersIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
 import { TIER_COMMISSIONS, TIER_WITHDRAWAL_LIMITS, TIER_REWARDS } from "@/lib/mlm"
@@ -32,6 +34,7 @@ type TierProgressViewProps = {
 
 export default function TierProgressView({ user, stats, tierConfig, referralTree }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf(user.tier)
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const calcPercent = (current: number, min: number, max: number) => {
       if (max <= min) return 100 
@@ -39,6 +42,73 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
       const needed = max - min
       return Math.min((gained / needed) * 100, 100)
   }
+
+  const networkMembersTable = useMemo(() => {
+    return (
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden ">
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <UsersIcon className="w-5 h-5 text-indigo-500" />
+            Network Members
+          </h3>
+          <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
+            {referralTree.length} Partners
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 dark:bg-gray-800/50 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">
+              <tr>
+                <th className="px-6 py-4">Partner</th>
+                <th className="px-6 py-4 text-center">Level</th>
+                <th className="px-6 py-4 text-center">Tier</th>
+                <th className="px-6 py-4 text-right">Join Date</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              {referralTree.length > 0 ? referralTree.map((member) => (
+                <tr key={member.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center font-bold text-indigo-600 border border-indigo-100 dark:border-indigo-800/50">
+                        {member.name?.[0]?.toUpperCase() || "U"}
+                      </div>
+                      <div>
+                        <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">{member.name || "Member Account"}</div>
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400">{member.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded text-[10px] font-bold border",
+                      member.level === 1 ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50" :
+                      member.level === 2 ? "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800/50" :
+                      "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/50"
+                    )}>
+                      LVL {member.level}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest">{member.tier}</span>
+                  </td>
+                  <td className="px-6 py-4 text-right text-[11px] font-medium text-gray-500 dark:text-gray-400">
+                    {new Date(member.createdAt).toLocaleDateString()}
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 font-medium">
+                    No network members found yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }, [referralTree])
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 max-w-5xl mx-auto">
@@ -62,7 +132,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
           </div>
           <h1 className="text-3xl md:text-4xl font-serif font-black tracking-tight leading-tight mb-2 text-white">
             Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-300">Journey</span>
+            <span className="text-transparent bg-clip-text bg-linear-to-r from-amber-200 to-yellow-300">Journey</span>
           </h1>
           <p className="text-amber-200/70 text-sm max-w-sm mx-auto mb-4">Unlock higher commissions as you progress through the tiers</p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 border border-amber-400/20 text-[11px] font-semibold text-amber-300">
@@ -70,7 +140,24 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
             Current Tier: {user.tier}
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/8 to-transparent" />
+      </div>
+
+      {/* Mobile: History button opens Network Members popup */}
+      <div className="md:hidden -mt-2">
+        <button
+          type="button"
+          onClick={() => setIsHistoryOpen(true)}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold
+            bg-white/90 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100
+            shadow-sm active:scale-[0.99] transition"
+        >
+          <UsersIcon className="w-4 h-4 text-indigo-500" />
+          History
+          <span className="ml-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
+            {referralTree.length}
+          </span>
+        </button>
       </div>
 
       {/* ═══ TIMELINE CONTAINER ═══ */}
@@ -142,7 +229,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                             isCurrent ? "border-indigo-100/60 dark:border-indigo-800/40" : "border-gray-100/60 dark:border-gray-700/40"
                           }`}>
                                <div className="flex items-center gap-4">
-                                   <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-sm border flex-shrink-0 transition-all duration-300 ${
+                                   <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-sm border shrink-0 transition-all duration-300 ${
                                        isLocked ? "bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 grayscale opacity-50" : "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"
                                    }`}>
                                        {style.icon}
@@ -152,11 +239,11 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                          isCurrent ? "text-indigo-900 dark:text-indigo-200" : isCompleted ? "text-gray-800 dark:text-gray-200" : "text-gray-500 dark:text-gray-500"
                                        }`}>
                                            {tierName}
-                                           {isCompleted && <CheckCircleIcon className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />}
+                                          {isCompleted && <CheckCircleIcon className="w-4 h-4 text-emerald-500 dark:text-emerald-400 shrink-0" />}
                                            {isCurrent && (
                                              <span className="text-[9px] bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-full uppercase font-bold tracking-wide border border-indigo-200/60 dark:border-indigo-700/40">Active</span>
                                            )}
-                                           {isLocked && <LockClosedIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-600 flex-shrink-0" />}
+                                          {isLocked && <LockClosedIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-600 shrink-0" />}
                                        </h3>
                                       <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] sm:text-xs mt-1">
                                            <span className={isLocked ? "text-gray-400 dark:text-gray-600" : "text-gray-500 dark:text-gray-400"}>
@@ -235,11 +322,11 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                           {isFinal && (
                              <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-5">
                                  <div className={`p-3 sm:p-4 rounded-xl border flex items-center justify-center gap-2.5 text-sm font-medium ${
-                                     isCurrent ? "bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-100 dark:border-indigo-800/40 text-indigo-800 dark:text-indigo-300"
+                                     isCurrent ? "bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 border-indigo-100 dark:border-indigo-800/40 text-indigo-800 dark:text-indigo-300"
                                      : isCompleted ? "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400"
                                      : "bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700/60 text-gray-500 dark:text-gray-500"
                                  }`}>
-                                    <SparklesIcon className={`w-4 h-4 flex-shrink-0 ${
+                                    <SparklesIcon className={`w-4 h-4 shrink-0 ${
                                       isCurrent ? "text-indigo-500 dark:text-indigo-400" : isCompleted ? "text-emerald-500 dark:text-emerald-400" : "text-gray-400 dark:text-gray-600"
                                     }`} />
                                     <span className="text-xs sm:text-sm text-center">
@@ -258,68 +345,41 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
       </div>
       
       {/* ═══ NETWORK MEMBERS TABLE ═══ */}
-      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <UsersIcon className="w-5 h-5 text-indigo-500" />
-                Network Members
-            </h3>
-            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
-                {referralTree.length} Partners
-            </span>
-        </div>
-        <div className="overflow-x-auto">
-            <table className="w-full text-left">
-                <thead className="bg-gray-50 dark:bg-gray-800/50 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">
-                    <tr>
-                        <th className="px-6 py-4">Partner</th>
-                        <th className="px-6 py-4 text-center">Level</th>
-                        <th className="px-6 py-4 text-center">Tier</th>
-                        <th className="px-6 py-4 text-right">Join Date</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {referralTree.length > 0 ? referralTree.map((member) => (
-                        <tr key={member.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors group">
-                            <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center font-bold text-indigo-600 border border-indigo-100 dark:border-indigo-800/50">
-                                        {member.name?.[0]?.toUpperCase() || "U"}
-                                    </div>
-                                    <div>
-                                        <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">{member.name || "Member Account"}</div>
-                                        <div className="text-[10px] text-gray-500 dark:text-gray-400">{member.email}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                                <span className={cn(
-                                    "px-2 py-0.5 rounded text-[10px] font-bold border",
-                                    member.level === 1 ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50" :
-                                    member.level === 2 ? "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800/50" :
-                                    "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/50"
-                                )}>
-                                    LVL {member.level}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest">{member.tier}</span>
-                            </td>
-                            <td className="px-6 py-4 text-right text-[11px] font-medium text-gray-500 dark:text-gray-400">
-                                {new Date(member.createdAt).toLocaleDateString()}
-                            </td>
-                        </tr>
-                    )) : (
-                        <tr>
-                            <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 font-medium">
-                                No network members found yet.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-        </div>
+      <div className="hidden md:block">
+        {networkMembersTable}
       </div>
+
+      {/* Mobile popup */}
+      {isHistoryOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            onClick={() => setIsHistoryOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[88vh] rounded-t-3xl bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UsersIcon className="w-5 h-5 text-indigo-500" />
+                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">Network Members</div>
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
+                  {referralTree.length}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryOpen(false)}
+                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
+                aria-label="Close"
+              >
+                <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+              </button>
+            </div>
+            <div className="overflow-y-auto max-h-[calc(88vh-52px)] p-4">
+              {networkMembersTable}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

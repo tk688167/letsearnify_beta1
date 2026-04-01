@@ -2,15 +2,47 @@
 
 import SignupForm from "../../components/auth/SignupForm"
 import { useSearchParams } from "next/navigation"
-import { Suspense } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import Logo from "@/app/components/ui/Logo"
+import { useTheme } from "next-themes"
 
 function SignupPageContent() {
   const searchParams = useSearchParams()
   const refCode = searchParams.get("ref") || ""
+  const [mounted, setMounted] = useState(false)
+  const { theme, resolvedTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isDark = mounted && (theme === "dark" || resolvedTheme === "dark")
+
+  const cardStyle = useMemo<React.CSSProperties>(() => {
+    if (isDark) {
+      return {
+        background: "rgba(8,14,38,0.75)",
+        backdropFilter: "blur(24px)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "24px",
+        boxShadow: "0 0 0 1px rgba(139,92,246,0.08), 0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
+      }
+    }
+    return {
+      background: "rgba(255,255,255,0.72)",
+      backdropFilter: "blur(18px)",
+      border: "1px solid rgba(15,23,42,0.10)",
+      borderRadius: "24px",
+      boxShadow: "0 0 0 1px rgba(37,99,235,0.08), 0 24px 70px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.7)",
+    }
+  }, [isDark])
 
   return (
-    <div className="fixed inset-0 bg-[#050816] flex items-center justify-center overflow-hidden">
+    <div className={`
+      fixed inset-0 flex items-center justify-center overflow-hidden
+      bg-background text-foreground
+      ${isDark ? "bg-[#050816] text-white" : ""}
+    `}>
       {/* ── Layered animated background ── */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0"
@@ -35,13 +67,7 @@ function SignupPageContent() {
 
       {/* ── Card ── */}
       <div className="relative w-full max-w-[440px] mx-4 flex flex-col"
-        style={{
-          background: "rgba(8,14,38,0.75)",
-          backdropFilter: "blur(24px)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderRadius: "24px",
-          boxShadow: "0 0 0 1px rgba(139,92,246,0.08), 0 24px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)",
-        }}
+        style={cardStyle}
       >
         {/* Top glow accent */}
         <div className="absolute -top-px left-1/2 -translate-x-1/2 w-48 h-px"
@@ -51,11 +77,15 @@ function SignupPageContent() {
         <div className="p-6 sm:p-7 flex flex-col gap-4">
           {/* Header */}
           <div className="text-center">
-            <div className="flex justify-center mb-2.5 brightness-200">
-    <Logo size="md" />
-</div>
-            <h1 className="text-lg font-bold text-white tracking-tight">Create your account</h1>
-            <p className="text-xs text-slate-500 mt-0.5">Join thousands of earners — takes under a minute</p>
+            <div className={isDark ? "flex justify-center mb-2.5 brightness-200" : "flex justify-center mb-2.5"}>
+              <Logo size="md" variant={isDark ? "light" : "dark"} />
+            </div>
+            <h1 className={isDark ? "text-lg font-bold text-white tracking-tight" : "text-lg font-bold text-foreground tracking-tight"}>
+              Create your account
+            </h1>
+            <p className={isDark ? "text-xs text-slate-500 mt-0.5" : "text-xs text-muted-foreground mt-0.5"}>
+              Join thousands of earners — takes under a minute
+            </p>
           </div>
 
           {/* Signup form */}

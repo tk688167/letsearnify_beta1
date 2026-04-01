@@ -82,14 +82,15 @@ export default async function TierPage() {
 
   if (!user) redirect("/login")
   
-  const teamSize = referralTree.length
+  // Tier requirements are based on DIRECT referrals only (Level 1).
+  const directTeamSize = Array.isArray((user as any)?.referrals) ? (user as any).referrals.length : 0
 
   return (
     <div className="p-4 sm:p-6 md:p-10 min-h-screen bg-gray-50/50 dark:bg-gray-950 space-y-6 transition-colors duration-300">
          
          <TierProgressView 
             user={{ tier: user.tier, arnBalance: user.arnBalance || 0, balance: user.balance || 0 }}
-            stats={{ teamSize: referralTree.length }}
+            stats={{ teamSize: directTeamSize }}
             tierConfig={tierConfig}
             referralTree={referralTree}
          />
