@@ -114,7 +114,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
     <div className="space-y-8 animate-in fade-in duration-700 max-w-5xl mx-auto">
       
       {/* ═══ HERO BANNER ═══ */}
-      <div className="relative overflow-hidden rounded-2xl text-white"
+      <div className="relative isolate overflow-hidden rounded-2xl text-white"
         style={{ background: "linear-gradient(135deg, #1c1917 0%, #44250a 50%, #1c1003 100%)" }}>
         <div className="absolute -top-8 -right-8 w-36 h-36 bg-amber-600/15 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-yellow-500/12 rounded-full blur-3xl pointer-events-none" />
@@ -204,7 +204,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                      whileInView={{ opacity: 1, x: 0 }}
                      viewport={{ once: true, margin: "-40px" }}
                      transition={{ duration: 0.4, delay: index * 0.05 }}
-                     className="relative md:pl-24"
+                     className="relative isolate md:pl-24"
                    >
                       {/* Timeline Dot */}
                       <div className={`absolute left-[-19px] md:left-4 top-6 sm:top-8 w-3.5 h-3.5 rounded-full border-2 z-10 transition-all duration-500 ${
@@ -353,7 +353,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
       {isHistoryOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/60"
             onClick={() => setIsHistoryOpen(false)}
           />
           <div className="absolute inset-x-0 bottom-0 max-h-[88vh] rounded-t-3xl bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">

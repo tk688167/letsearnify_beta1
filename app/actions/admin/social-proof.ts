@@ -6,39 +6,54 @@ import { revalidatePath } from "next/cache"
 
 // --- STATS MANAGEMENT ---
 
-export async function getSocialProofStats() {
-    try {
-        // Parallel Usage of Prisma Aggregations
-        const [userCount, activeCount, depositSum, payoutSum] = await Promise.all([
-            prisma.user.count(),
-            prisma.user.count({ where: { isActiveMember: true } }),
-            prisma.transaction.aggregate({
-                _sum: { amount: true },
-                where: { type: "DEPOSIT", status: "COMPLETED" }
-            }),
-            prisma.transaction.aggregate({
-                _sum: { amount: true },
-                where: { type: "WITHDRAWAL", status: "COMPLETED" }
-            })
-        ])
+const FALLBACK_STATS = {
+    totalUsers: 0,
+    totalDeposited: 0,
+    totalPayouts: 0,
+    activeOnline: 0,
+    updatedAt: new Date()
+}
 
-        return {
-            totalUsers: userCount,
-            totalDeposited: depositSum._sum.amount || 0,
-            totalPayouts: payoutSum._sum.amount || 0,
-            activeOnline: activeCount, // Using 'activeOnline' key to maintain frontend compatibility
-            updatedAt: new Date()
+export async function getSocialProofStats() {
+    // Race DB queries against a 5-second timeout to avoid blocking the landing page
+    // when the DB connection is slow or temporarily unavailable.
+    const timeout = new Promise<typeof FALLBACK_STATS>((resolve) =>
+        setTimeout(() => {
+            console.warn("getSocialProofStats: DB query timed out, using fallback data.")
+            resolve(FALLBACK_STATS)
+        }, 5000)
+    )
+
+    const dbQuery = (async () => {
+        try {
+            // Parallel Usage of Prisma Aggregations
+            const [userCount, activeCount, depositSum, payoutSum] = await Promise.all([
+                prisma.user.count(),
+                prisma.user.count({ where: { isActiveMember: true } }),
+                prisma.transaction.aggregate({
+                    _sum: { amount: true },
+                    where: { type: "DEPOSIT", status: "COMPLETED" }
+                }),
+                prisma.transaction.aggregate({
+                    _sum: { amount: true },
+                    where: { type: "WITHDRAWAL", status: "COMPLETED" }
+                })
+            ])
+
+            return {
+                totalUsers: userCount,
+                totalDeposited: depositSum._sum.amount || 0,
+                totalPayouts: payoutSum._sum.amount || 0,
+                activeOnline: activeCount, // Using 'activeOnline' key to maintain frontend compatibility
+                updatedAt: new Date()
+            }
+        } catch (error) {
+            console.error("DB Stats Aggregation Failed:", error)
+            return FALLBACK_STATS
         }
-    } catch (error) {
-        console.error("DB Stats Aggregation Failed:", error)
-        return {
-            totalUsers: 0,
-            totalDeposited: 0,
-            totalPayouts: 0,
-            activeOnline: 0,
-            updatedAt: new Date()
-        }
-    }
+    })()
+
+    return Promise.race([dbQuery, timeout])
 }
 
 // Previously updateSocialProofStats - Removed as stats are now auto-calculated.
