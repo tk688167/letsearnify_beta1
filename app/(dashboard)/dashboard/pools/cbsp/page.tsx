@@ -13,7 +13,7 @@ export default async function CbspPoolPage() {
   if (!session?.user?.id) redirect("/login")
 
   return (
-    <FeatureGuard title="CBSP Pool" feature="pools">
+    <FeatureGuard title="CBSP Pool" feature="cbsp">
       <div className="p-6 md:p-8">
         <CbspPoolContent />
       </div>

@@ -17,6 +17,9 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
+                referrer: {
+                    select: { name: true, referralCode: true }
+                },
                 referralCommissions: { // Commissions earned by this user
                     orderBy: { createdAt: 'desc' },
                     take: 100,
@@ -277,9 +280,14 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             _sum: { amount: true }
         });
 
+        // Count direct signups (L1 only)
+        const totalSignups = await prisma.user.count({
+            where: { referredByCode: user.referralCode }
+        });
+
         // teamSize = total signups across all 3 levels (not just active)
         return { 
-            user, 
+            user: { ...user, totalSignups }, 
             referralTree: referralTreeWithWithdrawals, 
             stats: {
                 teamSize: referralTreeWithWithdrawals.length,

@@ -14,12 +14,139 @@ import {
   ChartBarIcon,
   ArrowRightIcon
 } from "@heroicons/react/24/outline"
+import { LockClosedIcon } from "@heroicons/react/24/solid"
 
-export default function PoolsPageContent() {
+export default function PoolsPageContent({ isActiveMember = true }: { isActiveMember?: boolean }) {
   const pathname = usePathname();
   const isDashboard = pathname?.startsWith("/dashboard");
 
   const getHref = (slug: string) => isDashboard ? `/dashboard/pools/${slug}` : "/login";
+
+  const innerContent = (
+    <>
+      {/* Pool Cards Grid */}
+      <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-4 sm:mb-6 text-center md:text-left">Choose a Pool to Learn More</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
+        
+        {/* Daily Earning Pool */}
+        <PoolCard
+          href={getHref("daily-earning")}
+          icon={ChartBarIcon}
+          title="Daily Earning Pool"
+          subtitle="1% Daily Return"
+          description="Lock funds for exactly 30 days and earn a guaranteed 1% compound profit every 24 hours."
+          stats={[
+            { label: "Funding Source", value: "Direct Wallet Transfer" },
+            { label: "Distribution Rate", value: "Daily (1%)" },
+            { label: "Lock Period", value: "30 Days" }
+          ]}
+          colorTheme="indigo"
+          delay={0.05}
+        />
+
+        {/* CBSP Pool Card */}
+        <PoolCard
+          href={getHref("cbsp")}
+          icon={CurrencyDollarIcon}
+          title="CBSP Pool"
+          subtitle="Weekly Profit Sharing"
+          description="The Company-Based Sharing Pool automates weekly distributions to eligible members globally."
+          stats={[
+            { label: "Funding Source", value: "Deposit Fees (5%)" },
+            { label: "Distribution Rate", value: "Weekly (3%)" },
+            { label: "Eligibility", value: "All Active Tiers" }
+          ]}
+          colorTheme="blue"
+          delay={0.1}
+          isLocked={isDashboard && !isActiveMember}
+        />
+
+        {/* Royalty Pool Card */}
+        <PoolCard
+          href={getHref("royalty")}
+          icon={TrophyIcon}
+          title="Royalty Pool"
+          subtitle="Top Performer Rewards"
+          description="Exclusive monthly bonuses dedicated to high achievers who reach leadership levels."
+          stats={[
+            { label: "Funding Source", value: "Deposit Fees (5%)" },
+            { label: "Distribution Rate", value: "Monthly (1%)" },
+            { label: "Eligibility", value: "Platinum & Above" }
+          ]}
+          colorTheme="amber"
+          delay={0.2}
+          isLocked={isDashboard && !isActiveMember}
+        />
+
+        {/* Achievement Pool Card */}
+        <PoolCard
+          href={getHref("achievement")}
+          icon={GiftIcon}
+          title="Achievement Pool"
+          subtitle="Milestone Bonuses"
+          description="Instant algorithmic rewards triggered by completing network expansion milestones."
+          stats={[
+            { label: "Funding Source", value: "System Fees (1%)" },
+            { label: "Distribution Rate", value: "Instant Payout" },
+            { label: "Eligibility", value: "Milestone Criteria" }
+          ]}
+          colorTheme="fuchsia"
+          delay={0.3}
+        />
+      </div>
+
+      {/* Mechanics Section */}
+      <div className="bg-background/50 backdrop-blur-md rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 border border-border/50">
+        <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-6 sm:mb-8 text-center md:text-left">How Pool Allocation Works</h2>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
+            <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
+              <CurrencyDollarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">1. Continuous Funding</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                A strictly defined percentage of all network fees is automatically pipelined into securely locked smart-contracts representing each pool.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
+            <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
+              <ChartBarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-indigo-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">2. Exponential Growth</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                As the platform's global network expands, the pooled liquidity grows rapidly, increasing the potential payout sizes for eligible members.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30 sm:col-span-2 lg:col-span-1">
+            <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 shrink-0">
+              <SparklesIcon className="w-5 sm:w-6 h-5 sm:h-6 text-rose-500" />
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">3. Automated Payouts</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                Audited algorithms calculate user shares and execute distributions automatically (weekly, monthly, or instantly) directly to your withdrawal wallet.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  if (isDashboard) {
+    return (
+      <div className="w-full">
+        {innerContent}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col font-sans selection:bg-primary/30">
@@ -57,118 +184,7 @@ export default function PoolsPageContent() {
               </div>
             </div>
 
-            {/* Pool Cards Grid */}
-            <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-4 sm:mb-6 text-center md:text-left">Choose a Pool to Learn More</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16">
-              
-              {/* Daily Earning Pool */}
-              <PoolCard
-                href={getHref("daily-earning")}
-                icon={ChartBarIcon}
-                title="Daily Earning Pool"
-                subtitle="1% Daily Return"
-                description="Lock funds for exactly 30 days and earn a guaranteed 1% compound profit every 24 hours."
-                stats={[
-                  { label: "Funding Source", value: "Direct Wallet Transfer" },
-                  { label: "Distribution Rate", value: "Daily (1%)" },
-                  { label: "Lock Period", value: "30 Days" }
-                ]}
-                colorTheme="indigo"
-                delay={0.05}
-              />
-
-              {/* CBSP Pool Card */}
-              <PoolCard
-                href={getHref("cbsp")}
-                icon={CurrencyDollarIcon}
-                title="CBSP Pool"
-                subtitle="Weekly Profit Sharing"
-                description="The Company-Based Sharing Pool automates weekly distributions to eligible members globally."
-                stats={[
-                  { label: "Funding Source", value: "Deposit Fees (5%)" },
-                  { label: "Distribution Rate", value: "Weekly (3%)" },
-                  { label: "Eligibility", value: "All Active Tiers" }
-                ]}
-                colorTheme="blue"
-                delay={0.1}
-              />
-
-              {/* Royalty Pool Card */}
-              <PoolCard
-                href={getHref("royalty")}
-                icon={TrophyIcon}
-                title="Royalty Pool"
-                subtitle="Top Performer Rewards"
-                description="Exclusive monthly bonuses dedicated to high achievers who reach leadership levels."
-                stats={[
-                  { label: "Funding Source", value: "Deposit Fees (5%)" },
-                  { label: "Distribution Rate", value: "Monthly (1%)" },
-                  { label: "Eligibility", value: "Platinum & Above" }
-                ]}
-                colorTheme="amber"
-                delay={0.2}
-              />
-
-              {/* Achievement Pool Card */}
-              <PoolCard
-                href={getHref("achievement")}
-                icon={GiftIcon}
-                title="Achievement Pool"
-                subtitle="Milestone Bonuses"
-                description="Instant algorithmic rewards triggered by completing network expansion milestones."
-                stats={[
-                  { label: "Funding Source", value: "System Fees (1%)" },
-                  { label: "Distribution Rate", value: "Instant Payout" },
-                  { label: "Eligibility", value: "Milestone Criteria" }
-                ]}
-                colorTheme="fuchsia"
-                delay={0.3}
-              />
-            </div>
-
-            {/* Mechanics Section */}
-            <div className="bg-background/50 backdrop-blur-md rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 border border-border/50">
-              <h2 className="text-lg sm:text-2xl font-bold text-foreground mb-6 sm:mb-8 text-center md:text-left">How Pool Allocation Works</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
-                    <CurrencyDollarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">1. Continuous Funding</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      A strictly defined percentage of all network fees is automatically pipelined into securely locked smart-contracts representing each pool.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 shrink-0">
-                    <ChartBarIcon className="w-5 sm:w-6 h-5 sm:h-6 text-indigo-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">2. Exponential Growth</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      As the platform's global network expands, the pooled liquidity grows rapidly, increasing the potential payout sizes for eligible members.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-3 sm:gap-4 bg-card/40 p-5 rounded-2xl border border-border/30 sm:col-span-2 lg:col-span-1">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 rounded-xl sm:rounded-2xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20 shrink-0">
-                    <SparklesIcon className="w-5 sm:w-6 h-5 sm:h-6 text-rose-500" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-foreground text-base sm:text-lg mb-1 sm:mb-2">3. Automated Payouts</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                      Audited algorithms calculate user shares and execute distributions automatically (weekly, monthly, or instantly) directly to your withdrawal wallet.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            {innerContent}
           </motion.div>
         
         </div>
@@ -180,33 +196,37 @@ export default function PoolsPageContent() {
 }
 
 // Internal component for Pool Cards
-function PoolCard({ href, icon: Icon, title, subtitle, description, stats, colorTheme, delay }: any) {
+function PoolCard({ href, icon: Icon, title, subtitle, description, stats, colorTheme, delay, isLocked }: any) {
   
   // Dynamic color mapping for Tailwind
-  const colors: Record<string, { bgAccent: string; iconText: string; hoverBorder: string; statBg: string }> = {
+  const colors: Record<string, { bgAccent: string; iconText: string; hoverBorder: string; statBg: string; textAccent: string }> = {
     blue: {
       bgAccent: "bg-blue-500/10 border-blue-500/20",
       iconText: "text-blue-500 absolute w-full h-full p-3 sm:p-3.5",
       hoverBorder: "hover:border-blue-500/40",
-      statBg: "bg-blue-500/5 border-blue-500/10"
+      statBg: "bg-blue-500/5 border-blue-500/10",
+      textAccent: "text-blue-500"
     },
     amber: {
       bgAccent: "bg-amber-500/10 border-amber-500/20",
       iconText: "text-amber-500 absolute w-full h-full p-3 sm:p-3.5",
       hoverBorder: "hover:border-amber-500/40",
-      statBg: "bg-amber-500/5 border-amber-500/10"
+      statBg: "bg-amber-500/5 border-amber-500/10",
+      textAccent: "text-amber-500"
     },
     fuchsia: {
       bgAccent: "bg-fuchsia-500/10 border-fuchsia-500/20",
       iconText: "text-fuchsia-500 absolute w-full h-full p-3 sm:p-3.5",
       hoverBorder: "hover:border-fuchsia-500/40",
-      statBg: "bg-fuchsia-500/5 border-fuchsia-500/10"
+      statBg: "bg-fuchsia-500/5 border-fuchsia-500/10",
+      textAccent: "text-fuchsia-500"
     },
     indigo: {
       bgAccent: "bg-indigo-500/10 border-indigo-500/20",
       iconText: "text-indigo-500 absolute w-full h-full p-3 sm:p-3.5",
       hoverBorder: "hover:border-indigo-500/40",
-      statBg: "bg-indigo-500/5 border-indigo-500/10"
+      statBg: "bg-indigo-500/5 border-indigo-500/10",
+      textAccent: "text-indigo-500"
     }
   }
 
@@ -220,9 +240,20 @@ function PoolCard({ href, icon: Icon, title, subtitle, description, stats, color
       transition={{ duration: 0.5, delay }}
       className="h-full"
     >
-      <Link href={href} className="flex flex-col h-full">
-        <div className={`flex flex-col h-full bg-card/60 rounded-2xl sm:rounded-3xl border border-border/50 shadow-md ${theme.hoverBorder} transition-all duration-300 group hover:-translate-y-1 overflow-hidden relative`}>
+      <Link href={href} className="flex flex-col h-full relative">
+        <div className={`flex flex-col h-full bg-card/60 rounded-2xl sm:rounded-3xl border border-border/50 shadow-md ${theme.hoverBorder} transition-all duration-300 group hover:-translate-y-1 overflow-hidden relative ${isLocked ? 'grayscale-[0.3]' : ''}`}>
           
+          {/* Locked Overlay */}
+          {isLocked && (
+            <div className="absolute inset-0 z-30 bg-slate-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center shadow-lg mb-3 animate-bounce">
+                <LockClosedIcon className="w-6 h-6 text-black" />
+              </div>
+              <span className="text-white font-black text-xs uppercase tracking-[0.2em] mb-1">Premium Feature</span>
+              <span className="text-amber-400 text-[10px] font-bold uppercase tracking-widest">Active Members Only</span>
+            </div>
+          )}
+
           <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all z-20 hidden sm:block">
              <ArrowRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
           </div>
@@ -248,7 +279,6 @@ function PoolCard({ href, icon: Icon, title, subtitle, description, stats, color
               ))}
             </div>
           </div>
-
         </div>
       </Link>
     </motion.div>

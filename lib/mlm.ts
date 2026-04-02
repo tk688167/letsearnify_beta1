@@ -10,7 +10,7 @@ export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: numb
     GOLD:     { L1: 15, L2: 7,  L3: 3 },
     PLATINUM: { L1: 18, L2: 8,  L3: 4 },
     DIAMOND:  { L1: 22, L2: 9,  L3: 4 },
-    EMERALD:  { L1: 26, L2: 10, L3: 4 }
+    EMERALD:  { L1: 25, L2: 10, L3: 5 }
 };
 
 // Signup bonus given to NEW USER when they UNLOCK (not at signup)
@@ -23,10 +23,10 @@ export const DEFAULT_TIER_REQUIREMENTS: Record<string, { arn: number, directs: n
     NEWBIE:   { arn: 0,      directs: 0 },
     BRONZE:   { arn: 400,    directs: 40 },
     SILVER:   { arn: 1000,   directs: 100 },
-    GOLD:     { arn: 2500,   directs: 250 },
-    PLATINUM: { arn: 5000,   directs: 500 },
-    DIAMOND:  { arn: 10000,  directs: 1000 },
-    EMERALD:  { arn: 25000,  directs: 2500 }
+    GOLD:     { arn: 1800,   directs: 250 },
+    PLATINUM: { arn: 1500,   directs: 500 },
+    DIAMOND:  { arn: 7000,   directs: 1200 },
+    EMERALD:  { arn: 15000,  directs: 250 }
 };
 
 export const TIER_WITHDRAWAL_LIMITS: Record<string, number> = {
@@ -93,52 +93,7 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         }
     });
 
-    // 2. Grant signup bonus to THIS USER based on referrer's tier
-    // Per PDF: "Talha receives the signup bonus (e.g., 5 ARN if Ali is Newbie)"
-    // This happens at unlock, not at signup
-    if (user.referredByCode && user.referredByCode !== 'COMPANY') {
-        const referrer = await db.user.findUnique({
-            where: { referralCode: user.referredByCode },
-            select: { tier: true }
-        });
-        
-        if (referrer) {
-            const referrerTier = referrer.tier || "NEWBIE";
-            const signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5;
-            const signupBonusUsd = signupBonusArn / 10;
-
-            await db.user.update({
-                where: { id: userId },
-                data: {
-                    arnBalance: { increment: signupBonusArn },
-                    balance: { increment: signupBonusUsd }
-                }
-            });
-
-            await db.transaction.create({
-                data: {
-                    userId: userId,
-                    amount: signupBonusUsd,
-                    arnMinted: signupBonusArn,
-                    type: "SIGNUP_BONUS",
-                    status: "COMPLETED",
-                    method: "SYSTEM",
-                    description: `Signup bonus: ${signupBonusArn} ARN (referrer tier: ${referrerTier})`
-                }
-            });
-
-            await db.mLMLog.create({
-                data: {
-                    userId: userId,
-                    type: "SIGNUP_BONUS",
-                    amount: signupBonusArn,
-                    description: `Received ${signupBonusArn} ARN signup bonus (referrer: ${referrerTier} tier)`
-                }
-            });
-
-            console.log(`[MLM] Granted ${signupBonusArn} ARN signup bonus to ${userId}`);
-        }
-    }
+    // 2. Signup bonus is now granted immediately at registration.
     
     await db.mLMLog.create({
         data: {
@@ -150,23 +105,31 @@ export async function unlockUserAccount(userId: string, tx?: any) {
     });
 
     // 3. Pool allocation
+    let rewardPercentage = 20;
+    const existingRewardPool = await db.pool.findUnique({ where: { name: "REWARD" } });
+    if (existingRewardPool && existingRewardPool.percentage > 0) {
+        rewardPercentage = existingRewardPool.percentage;
+    }
+    
+    const achievementAllocation = 1.0 * (rewardPercentage / 100);
+
     await db.pool.upsert({
         where: { name: "REWARD" },
-        update: { balance: { increment: 0.20 } },
-        create: { name: "REWARD", balance: 0.20, percentage: 20 }
+        update: { balance: { increment: achievementAllocation } },
+        create: { name: "REWARD", balance: achievementAllocation, percentage: rewardPercentage }
     });
 
     // 4. Distribute referral commissions from the $1 unlock
     // Per PDF: "When Talha deposits $1 to unlock, Ali receives his referral reward"
     const referralEmissions = await distributeCommissions(userId, 1.0, db);
     
-    const companyRemainder = Math.max(1.0 - 0.20 - referralEmissions, 0);
+    const companyRemainder = Math.max(1.0 - achievementAllocation - referralEmissions, 0);
 
     await db.unlockActivation.create({
         data: {
             userId: userId,
             amount: 1.0,
-            achievementPool: 0.20,
+            achievementPool: achievementAllocation,
             referrals: referralEmissions,
             cbsp: 0.0,
             royalty: 0.0,

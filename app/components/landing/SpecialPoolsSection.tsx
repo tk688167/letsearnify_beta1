@@ -24,7 +24,7 @@ export default function SpecialPoolsSection() {
            <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-4 sm:mb-6 tracking-tight">
              Diversified Risk-Reward <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Portfolios</span>
            </h2>
-           <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
+           <p className="text-base sm:text-lg md:text-xl text-black dark:text-muted-foreground max-w-2xl mx-auto leading-relaxed px-2">
              From high-growth dynamic opportunities to rock-solid safety nets, our ecosystem is designed for every type of earner.
            </p>
         </motion.div>
@@ -94,7 +94,7 @@ function PoolCard({ title, subtitle, desc, benefits, icon, gradient, accent, but
              </div>
           </div>
           
-          <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-10 flex-1">
+          <p className="text-black dark:text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-10 flex-1 font-medium">
              {desc}
           </p>
           
@@ -102,7 +102,7 @@ function PoolCard({ title, subtitle, desc, benefits, icon, gradient, accent, but
              {benefits.map((benefit: string, i: number) => (
                <div key={i} className="flex items-center gap-3">
                   <div className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full ${accent} flex items-center justify-center text-[10px] sm:text-xs`}>✓</div>
-                  <span className="text-muted-foreground font-medium text-xs sm:text-sm md:text-base">{benefit}</span>
+                  <span className="text-black dark:text-muted-foreground font-black text-xs sm:text-sm md:text-base">{benefit}</span>
                </div>
              ))}
           </div>

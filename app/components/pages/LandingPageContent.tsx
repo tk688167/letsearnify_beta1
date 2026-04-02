@@ -77,7 +77,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-60"></span>
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
               </div>
-              <span className="text-[8px] sm:text-[9px] font-black text-foreground/80 tracking-[0.15em] uppercase whitespace-nowrap">Platform Live <span className="text-muted-foreground/40 mx-1">|</span> Earning In Progress</span>
+              <span className="text-[8px] sm:text-[9px] font-black text-black dark:text-foreground/80 tracking-[0.15em] uppercase whitespace-nowrap">Platform Live <span className="text-muted-foreground/40 mx-1">|</span> Earning In Progress</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -85,130 +85,131 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="font-serif font-black mb-6 leading-[1.05] md:leading-[1.1] tracking-tight drop-shadow-sm flex flex-col items-center justify-center text-center w-full"
+              className="font-serif font-black mb-8 leading-[1.05] md:leading-[1.1] tracking-tight drop-shadow-sm flex flex-col items-center justify-center text-center w-full"
             >
-              <span className="text-[1.75rem] sm:text-5xl md:text-6xl lg:text-7xl text-foreground whitespace-nowrap">
+              <span className="text-[2rem] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-foreground">
                 Scale Your Income.
               </span>
-              <span className="text-[1.5rem] sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5.5rem] leading-[1] text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 mt-1 sm:mt-2 whitespace-nowrap">
+              <span className="text-[1.65rem] sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[1] text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 mt-1 sm:mt-2">
                 Secure Your Future.
               </span>
             </motion.h1>
 
-             {/* Secondary Headline (Pricing in Premium Box) */}
+             {/* Minimal Activation Badge */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2, type: "spring", stiffness: 100 }}
-              className="flex justify-center mb-8"
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex justify-center mb-10"
             >
-              <div className="relative group perspective-1000 cursor-default">
-                {/* Outer Glow */}
-                <div className="absolute -inset-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-2xl blur-md opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                
-                {/* Premium Box Container */}
-                <div className="relative flex items-center gap-4 bg-gradient-to-br from-card to-card/50 backdrop-blur-xl border border-border/80 shadow-2xl rounded-2xl p-2.5 pr-6 transition-all duration-300 transform-gpu group-hover:-translate-y-1">
-                  
-                  {/* The $1 Badge */}
-                  <div className="flex items-center justify-center bg-gradient-to-br from-amber-400 to-orange-600 rounded-xl px-4 py-2 shadow-inner shadow-white/20">
-                    <span className="font-sans text-2xl sm:text-3xl font-black text-white mr-0.5 tracking-tight">
-                      $
-                    </span>
-                    <span className="font-sans text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none">
-                      1
-                    </span>
+              <div className="relative group cursor-default">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/40 to-orange-500/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 bg-background/50 backdrop-blur-xl border border-amber-500/30 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.1)]">
+                     <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 text-white font-black text-xs shadow-inner shadow-white/20">
+                        $1
+                     </div>
+                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-200/80">
+                        One-Time Activation Required
+                     </span>
                   </div>
-
-                  {/* The Hook Text */}
-                  <div className="flex flex-col items-start justify-center">
-                    <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/80 mb-0.5">
-                      Activation Fee
-                    </span>
-                    <span className="text-sm sm:text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-foreground to-foreground/70">
-                      Unlocks Everything.
-                    </span>
-                  </div>
-                </div>
               </div>
             </motion.div>
 
-            {/* Sub-headline */}
+            {/* Sub-headline / Tagline */}
             <motion.p
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="text-sm md:text-base font-medium text-muted-foreground mb-6 max-w-2xl mx-auto leading-relaxed"
+              className="text-sm md:text-base font-medium text-black dark:text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed border-t border-border/40 pt-6"
             >
-              A single <span className="text-foreground font-bold text-indigo-400">activation key</span> unlocks five powerful, synergistic income streams. <br className="hidden md:block" />
-              Build a resilient digital portfolio with zero monthly fees and pure upside.
+              <span className="text-foreground font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-emerald-500">One key unlocks infinite potential.</span> <br/>
+              A single lifetime activation fee grants permanent access to all five income streams.
             </motion.p>
 
-            {/* Primary CTAs */}
+            {/* Primary CTAs (Redesigned) */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.45 }}
-              className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-6 w-full max-w-xl mx-auto px-4"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 w-full max-w-2xl mx-auto px-4"
             >
-              {/* Sign Up Button */}
-              <Link href="/signup" className="group relative w-full sm:w-1/2">
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 rounded-[14px] blur opacity-60 group-hover:opacity-100 animate-pulse transition duration-500"></div>
-                <button className="relative w-full px-5 py-3.5 bg-foreground text-background rounded-[14px] shadow-2xl flex flex-col items-center justify-center gap-0.5 transition-transform duration-300 group-hover:scale-[1.02]">
-                  <div className="flex items-center gap-1.5 font-black text-base sm:text-lg">
-                    Sign Up & Activate
-                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                  <span className="text-[9px] font-bold text-background/80 uppercase tracking-[0.1em] relative top-px">Only $1 • Lifetime Access</span>
-                </button>
+              {/* Sign Up / Create Account */}
+              <Link href="/signup" className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16">
+                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-primary to-emerald-500 group-hover:scale-110 transition-transform duration-500"></div>
+                 <div className="absolute inset-[1px] bg-background/10 backdrop-blur-md rounded-[15px] group-hover:bg-background/0 transition-all duration-500"></div>
+                 <button className="relative w-full h-full flex flex-col items-center justify-center gap-0.5 text-white">
+                    <span className="flex items-center gap-2 font-black text-lg sm:text-xl uppercase tracking-tighter">
+                       Get Started Now
+                       <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                    <span className="text-[10px] font-black opacity-80 uppercase tracking-widest leading-none">Lifetime Access • Only $1</span>
+                 </button>
               </Link>
 
-              {/* Login Button */}
-              <Link href="/login" className="group relative w-full sm:w-1/2">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[14px] opacity-0 group-hover:opacity-40 transition duration-500 blur-md"></div>
-                <button className="relative w-full px-5 py-3.5 bg-card/80 backdrop-blur-xl border border-border/80 text-foreground rounded-[14px] shadow-xl flex flex-col items-center justify-center gap-0.5 transition-all duration-300 hover:bg-card hover:border-indigo-500/50 group-hover:scale-[1.02]">
-                  <div className="flex items-center gap-1.5 font-bold text-base sm:text-lg">
-                    Log In to Dashboard
-                  </div>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.1em] group-hover:text-indigo-400 transition-colors relative top-px">Access Your Account</span>
-                </button>
+              {/* Login / Dashboard Access */}
+              <Link href="/login" className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16 border border-border/80 hover:border-indigo-500/50 transition-colors">
+                 <div className="absolute inset-0 bg-secondary/50 backdrop-blur-xl group-hover:bg-indigo-500/5 transition-all"></div>
+                 <button className="relative w-full h-full flex flex-col items-center justify-center gap-0.5 text-foreground group-hover:text-indigo-400 transition-colors">
+                    <span className="font-bold text-lg sm:text-xl tracking-tight">Login Dashboard</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-black/90 dark:text-white/60">Existing Member Access</span>
+                 </button>
               </Link>
             </motion.div>
 
-            {/* Quick trust line */}
+            {/* Quick trust line — Minimal Fees Display */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.55, duration: 0.8 }}
-              className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[10px] md:text-xs text-muted-foreground/80 font-medium mb-8"
+              className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[9px] sm:text-[11px] text-black/60 dark:text-muted-foreground/60 font-black uppercase tracking-[0.25em] mb-12 sm:mb-20"
             >
               {["No subscription fees", "Instant activation", "Withdraw anytime", "Global platform"].map((t, i) => (
-                <span key={i} className="flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-green-500 inline-block"></span>
-                  {t}
-                </span>
+                <React.Fragment key={i}>
+                  <span className="hover:text-primary transition-colors cursor-default whitespace-nowrap">{t}</span>
+                  {i < 3 && <span className="hidden sm:inline text-border/30">•</span>}
+                </React.Fragment>
               ))}
             </motion.div>
 
-            {/* 4 Feature Boxes (2x2 on mobile, 4x1 on desktop) */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.8 }}
-              className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto mb-10 px-4 sm:px-6"
-            >
-              {[
-                { title: "Daily Tasks", desc: "Watch & Click", icon: "⚡" },
-                { title: "Investments", desc: "Weekly Profit", icon: "🏦" },
-                { title: "Reels", desc: "Watch & Earn", icon: "�" },
-                { title: "Team Earning", desc: "Invite Friends", icon: "🤝" }
-              ].map((item, i) => (
-                <div key={i} className="bg-card/50 backdrop-blur-md border border-border/60 p-4 sm:p-5 rounded-xl flex flex-col items-center justify-center text-center hover:border-primary/50 transition-all hover:shadow-lg hover:-translate-y-1 cursor-default group">
-                  <div className="text-2xl sm:text-3xl mb-1.5 sm:mb-2 opacity-90 group-hover:scale-110 transition-transform">{item.icon}</div>
-                  <h3 className="font-bold text-xs sm:text-sm text-foreground mb-1 leading-tight">{item.title}</h3>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground/90 uppercase font-semibold tracking-wide w-full px-1">{item.desc}</p>
+            {/* Professional 6-Box Feature Section */}
+            <section className="mt-16 mb-20 px-4 sm:px-6">
+              <FadeIn>
+                <div className="text-center mb-10">
+                  <h2 className="text-2xl sm:text-3xl font-serif font-black mb-3 text-foreground tracking-tight">
+                    One Ecosystem. Six Streams.
+                  </h2>
+                  <p className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-[0.2em] mb-8">
+                    Unified opportunities to scale your digital future
+                  </p>
                 </div>
-              ))}
-            </motion.div>
+                
+                <div className="grid grid-cols-2 gap-3 sm:gap-5 max-w-2xl mx-auto">
+                  {[
+                    { title: "Non-Subscription", icon: "💎" },
+                    { title: "Daily Tasks", icon: "⚡" },
+                    { title: "Investments", icon: "🏦" },
+                    { title: "Reel", icon: "🎬" },
+                    { title: "Team Earning", icon: "🤝" },
+                    { title: "Daily Online Cool", icon: "🌐" }
+                  ].map((item, i) => (
+                    <div 
+                      key={i} 
+                      className="group bg-card/30 backdrop-blur-xl border border-border/50 p-4 sm:p-6 rounded-2xl flex items-center gap-3 sm:gap-4 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 cursor-default"
+                    >
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-background flex items-center justify-center text-xl sm:text-2xl shadow-inner border border-border/40 group-hover:scale-110 transition-transform">
+                        {item.icon}
+                      </div>
+                      <div className="flex flex-col">
+                        <h3 className="font-black text-[9px] sm:text-[11px] text-foreground uppercase tracking-widest leading-tight group-hover:text-primary transition-colors">
+                          {item.title}
+                        </h3>
+                        <div className="h-0.5 w-4 bg-primary/20 mt-1 rounded-full group-hover:w-full transition-all duration-500"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </FadeIn>
+            </section>
 
             {/* Payment Partners Strip */}
             <motion.div
@@ -218,7 +219,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               className="w-full px-2 lg:px-4"
             >
               <div className="bg-card/40 backdrop-blur-md border border-border/50 rounded-xl py-4 shadow-md max-w-3xl mx-auto overflow-hidden relative">
-                <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground/60 uppercase tracking-[0.2em] mb-3 text-center">
+                <p className="text-[9px] md:text-[10px] font-black text-black dark:text-muted-foreground/60 uppercase tracking-[0.2em] mb-3 text-center">
                   Accepted Payment Methods
                 </p>
                 <div className="relative w-full overflow-hidden mask-gradient-x">
@@ -269,7 +270,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                       Driven by the <span className="text-transparent bg-clip-text bg-gradient-to-br from-amber-400 to-orange-600 inline-block transform hover:scale-105 transition-transform duration-300">$1</span> Activation Model
                     </h2>
                     
-                    <p className="text-sm sm:text-base text-muted-foreground/90 max-w-lg mx-auto leading-relaxed relative z-10">
+                    <p className="text-sm sm:text-base text-black dark:text-muted-foreground/90 max-w-lg mx-auto leading-relaxed relative z-10">
                       We believe earning shouldn't cost a fortune. Instead of charging monthly $20–$100 subscriptions, LetsEarnify operates on a <strong className="text-foreground border-b border-primary/30 pb-0.5">single, lifetime $1 activation fee</strong>. This deliberate design unlocks the entire ecosystem forever.
                     </p>
                   </div>
@@ -326,24 +327,21 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                   ))}
                 </div>
               </FadeIn>
-
-              {/* Right: The $1 Visual Card */}
               <FadeIn delay={0.2}>
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-[2rem] sm:rounded-[2.5rem] blur-2xl opacity-20 animate-pulse"></div>
-                  <div className="relative bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 rounded-[2rem] sm:rounded-[2.5rem] border border-white/10 p-6 sm:p-10 md:p-14 text-center shadow-2xl overflow-hidden group hover:scale-[1.01] transition-transform duration-500">
+                  <div className="relative bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 rounded-[2rem] sm:rounded-[2.5rem] border border-gray-100 dark:border-white/10 p-6 sm:p-10 md:p-14 text-center shadow-2xl overflow-hidden group hover:scale-[1.01] transition-transform duration-500">
                     {/* Shine */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 via-indigo-500/5 to-indigo-500/0 dark:via-white/5 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
-                    <div className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4">One-Time Activation Fee</div>
+                    <div className="text-[10px] sm:text-xs font-black text-black dark:text-gray-500 uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-4">One-Time Activation Fee</div>
                     
                     <div className="flex items-start justify-center gap-1 mb-3">
-                      <span className="text-3xl sm:text-4xl font-bold text-gray-400 mt-2 sm:mt-3">$</span>
-                      <span className="text-[7rem] sm:text-[8rem] md:text-[9rem] font-black text-white leading-none tracking-tighter">1</span>
+                      <span className="text-[7rem] sm:text-[8rem] md:text-[9rem] font-black text-black dark:text-white leading-none tracking-tighter">$1</span>
                     </div>
 
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-400 text-xs font-bold rounded-full mb-8 border border-green-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-bold rounded-full mb-8 border border-green-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
                       Pay Once. Earn Forever.
                     </div>
 
@@ -356,30 +354,30 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                         "Spin Wheel daily rewards",
                         "Freelance marketplace listing"
                       ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
-                          <div className="w-5 h-5 rounded-full bg-indigo-500/20 flex items-center justify-center shrink-0">
-                            <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                        <div key={i} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
+                          <div className="w-5 h-5 rounded-full bg-indigo-500/10 dark:bg-indigo-500/20 flex items-center justify-center shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-indigo-600 dark:bg-indigo-400"></div>
                           </div>
                           {item}
                         </div>
                       ))}
                     </div>
 
-                    <Link href="/signup" className="block w-full py-5 rounded-xl bg-white text-gray-900 font-black text-lg hover:bg-gray-100 transition-all shadow-lg shadow-white/10 active:scale-95">
+                    <Link href="/signup" className="block w-full py-5 rounded-xl bg-indigo-600 text-white dark:bg-white dark:text-gray-900 font-black text-lg hover:bg-indigo-700 dark:hover:bg-gray-100 transition-all shadow-lg shadow-indigo-200 dark:shadow-white/10 active:scale-95">
                       Activate for $1 Now
                     </Link>
 
                     <div className="mt-6 flex items-center justify-center gap-2">
-                      <span className="text-xs text-gray-600">Already a member?</span>
-                      <Link href="/login" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
-                        Log In →
+                      <span className="text-xs text-gray-500">Already a member?</span>
+                      <Link href="/login" className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 transition-colors">
+                        Log In &rarr;
                       </Link>
                     </div>
 
-                    <div className="mt-8 grid grid-cols-3 gap-2 border-t border-white/5 pt-6 opacity-50">
-                      <div className="text-[10px] uppercase font-bold text-gray-500">🔒 Secure</div>
-                      <div className="text-[10px] uppercase font-bold text-gray-500">⚡ Instant</div>
-                      <div className="text-[10px] uppercase font-bold text-gray-500">🌍 Global</div>
+                    <div className="mt-8 grid grid-cols-3 gap-2 border-t border-gray-100 dark:border-white/5 pt-6 opacity-60">
+                      <div className="text-[10px] uppercase font-black text-black/60 dark:text-gray-500">🔒 Secure</div>
+                      <div className="text-[10px] uppercase font-black text-black/60 dark:text-gray-500">⚡ Instant</div>
+                      <div className="text-[10px] uppercase font-black text-black/60 dark:text-gray-500">🌍 Global</div>
                     </div>
                   </div>
                 </div>
@@ -406,7 +404,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-4 sm:mb-6 text-foreground tracking-tight">
                   Diversified Income Architecture
                 </h2>
-                <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto px-2">
+                <p className="text-base sm:text-lg md:text-xl text-black dark:text-muted-foreground max-w-2xl mx-auto px-2">
                   Stop depending on one income source. Build a multi-stream portfolio with zero technical knowledge required.
                 </p>
               </div>
@@ -510,7 +508,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-4 sm:mb-6 tracking-tight">
                   Four Steps to Your First Earning
                 </h2>
-                <p className="text-muted-foreground max-w-lg mx-auto text-base sm:text-lg px-2">
+                <p className="text-black dark:text-muted-foreground max-w-lg mx-auto text-base sm:text-lg px-2">
                   From zero to earning in under 5 minutes. No experience required.
                 </p>
               </div>
@@ -539,7 +537,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                     {idx + 1}
                   </div>
                   <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-2.5 text-foreground relative z-10 font-serif">{step.title}</h3>
-                  <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed relative z-10">{step.desc}</p>
+                  <p className="text-black dark:text-muted-foreground text-xs sm:text-sm leading-relaxed relative z-10">{step.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -573,7 +571,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold mb-4 sm:mb-6 tracking-tight">
                   Financial Trust. Engineering Quality.
                 </h2>
-                <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg px-2">
+                <p className="text-black dark:text-muted-foreground max-w-xl mx-auto text-base sm:text-lg px-2">
                   Built on principles of security, transparency, and ethical earning.
                 </p>
               </div>
@@ -627,7 +625,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-black text-foreground tracking-tight mb-3 leading-tight">
                   Always Here <br className="hidden md:block" /> To Help
                 </h2>
-                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6 max-w-sm">
+                <p className="text-black dark:text-muted-foreground text-sm sm:text-base leading-relaxed mb-6 max-w-sm">
                   Quick solutions for onboarding, daily tasks, and withdrawals. Your success journey is fully supported.
                 </p>
                 <Link href="/support" className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-foreground text-background rounded-xl font-bold text-sm hover:bg-foreground/90 transition-all shadow-md group w-full sm:w-auto">
@@ -702,26 +700,29 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                   Infinite Opportunity.
                 </span>
               </h2>
-              <p className="text-sm sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-1 sm:px-0">
+              <p className="text-sm sm:text-lg md:text-xl text-black dark:text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-1 sm:px-0">
                 Financial freedom doesn't need a fortune to start. LetsEarnify was built so that anyone —
                 anywhere in the world — can build real, diversified digital income.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full max-w-[280px] sm:max-w-none mx-auto mb-8 sm:mb-10">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-[320px] sm:max-w-2xl mx-auto mb-10 px-4">
                 <Link
                   href="/signup"
-                  className="group relative w-full sm:w-auto block"
+                  className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16"
                 >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-fuchsia-500 rounded-xl sm:rounded-2xl blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
-                  <button className="relative w-full px-4 sm:px-10 py-3.5 sm:py-5 bg-foreground text-background rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg shadow-xl flex items-center justify-center gap-2 hover:bg-foreground/90 transition-all group-hover:-translate-y-0.5">
-                    Create Account — $1 Only
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-primary to-emerald-500 group-hover:scale-110 transition-transform duration-500"></div>
+                  <button className="relative w-full h-full flex items-center justify-center gap-2 text-white font-black text-sm sm:text-lg shadow-xl group-hover:-translate-y-0.5 transition-all">
+                    Create Account — Only $1
                     <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
                 <Link
                   href="/login"
-                  className="w-full sm:w-auto px-4 sm:px-10 py-3.5 sm:py-5 bg-card border-2 border-border text-foreground rounded-xl sm:rounded-2xl font-bold text-sm sm:text-lg hover:border-primary/40 hover:bg-primary/5 transition-all text-center flex items-center justify-center"
+                  className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16 border border-border/80 hover:border-indigo-500/50 transition-colors"
                 >
-                  Sign In to Dashboard
+                  <div className="absolute inset-0 bg-secondary/30 backdrop-blur-xl group-hover:bg-indigo-500/5 transition-all"></div>
+                  <button className="relative w-full h-full flex items-center justify-center gap-2 text-foreground font-bold text-sm sm:text-lg group-hover:text-indigo-400 transition-colors">
+                    Sign In to Dashboard
+                  </button>
                 </Link>
               </div>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-6 text-[11px] sm:text-sm text-muted-foreground font-medium">
@@ -747,7 +748,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               <Link href="/" className="text-2xl font-serif font-bold bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent mb-6 inline-block">
                 Let'$Earnify
               </Link>
-              <p className="text-muted-foreground text-sm leading-relaxed mt-4">
+              <p className="text-black dark:text-muted-foreground text-sm leading-relaxed mt-4 font-medium">
                 A structured digital earning platform where one $1 activation unlocks five income streams — permanently.
               </p>
               <div className="flex gap-3 mt-6">
@@ -761,7 +762,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             </div>
             <div>
               <h4 className="font-bold mb-6 text-foreground">Platform</h4>
-              <ul className="space-y-4 text-sm text-muted-foreground">
+              <ul className="space-y-4 text-sm text-black/80 dark:text-muted-foreground font-medium">
                 <li><Link href="/#features" className="hover:text-primary transition-colors">Features</Link></li>
                 <li><Link href="/security" className="hover:text-primary transition-colors">Security & Trust</Link></li>
                 <li><Link href="/about#how-it-works" className="hover:text-primary transition-colors">How it Works</Link></li>
@@ -769,7 +770,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             </div>
             <div>
               <h4 className="font-bold mb-6 text-foreground">Company</h4>
-              <ul className="space-y-4 text-sm text-muted-foreground">
+              <ul className="space-y-4 text-sm text-black/80 dark:text-muted-foreground font-medium">
                 <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
                 <li><Link href="/stories" className="hover:text-primary transition-colors">Success Stories</Link></li>
                 <li><Link href="/support" className="hover:text-primary transition-colors">Contact</Link></li>
@@ -777,14 +778,14 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             </div>
             <div>
               <h4 className="font-bold mb-6 text-foreground">Legal</h4>
-              <ul className="space-y-4 text-sm text-muted-foreground">
+              <ul className="space-y-4 text-sm text-black/80 dark:text-muted-foreground font-medium">
                 <li><Link href="/security" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
                 <li><Link href="/terms#risk-disclosure" className="hover:text-primary transition-colors">Risk Disclosure</Link></li>
               </ul>
             </div>
           </div>
-          <div className="text-center text-sm text-muted-foreground border-t border-border pt-10">
+          <div className="text-center text-sm text-black/60 dark:text-muted-foreground border-t border-border pt-10 font-medium">
             © {new Date().getFullYear()} Let'$Earnify. All rights reserved.
           </div>
         </div>
@@ -876,7 +877,7 @@ function FeatureCard({ title, desc, icon, gradient, delay, badge, stat }: {
         {icon}
       </div>
       <h3 className="font-bold text-xl mb-3 text-foreground font-serif">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed text-sm mb-4">{desc}</p>
+      <p className="text-black dark:text-muted-foreground leading-relaxed text-sm mb-4">{desc}</p>
       {stat && (
         <div className="text-[11px] font-bold text-primary uppercase tracking-wider border-t border-border pt-4 mt-auto">
           {stat}
@@ -900,7 +901,7 @@ function TrustCard({ title, desc, icon, color, hoverBorder, delay }: {
     >
       <div className={`w-20 h-20 ${color.split(' ')[0]} ${color.split(' ')[1]} rounded-full flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-transform`}>{icon}</div>
       <h3 className="font-bold text-xl mb-3 text-foreground">{title}</h3>
-      <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
+      <p className="text-black dark:text-muted-foreground text-sm leading-relaxed">{desc}</p>
     </motion.div>
   )
 }

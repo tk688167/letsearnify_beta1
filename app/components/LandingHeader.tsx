@@ -36,8 +36,8 @@ export default function LandingHeader() {
       <header className="fixed top-0 left-0 w-full z-40 glass-panel border-b-0 bg-background/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex justify-between items-center relative">
           
-          {/* Mobile Left: Hamburger Menu */}
-          <div className="xl:hidden flex-1 flex justify-start z-50">
+          {/* Mobile Left: Hamburger Menu — hidden at lg (1024px)+ desktop */}
+          <div className="lg:hidden flex-1 flex justify-start z-50">
             <button 
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 sm:p-2.5 text-foreground hover:bg-secondary rounded-xl transition-colors shrink-0 outline-none"
@@ -47,15 +47,15 @@ export default function LandingHeader() {
             </button>
           </div>
 
-          {/* Desktop Left: Logo (relative) | Mobile Center: Logo (absolute) */}
-          <div className="z-50 absolute inset-0 flex items-center justify-center pointer-events-none xl:static xl:justify-start xl:inset-auto xl:pointer-events-auto xl:flex-1">
-            <div className="pointer-events-auto">
-              <Logo size="lg" className="scale-90 xl:scale-100 origin-left" />
+          {/* Logo — centered on mobile, left-aligned on desktop */}
+          <div className="z-50 absolute inset-0 flex items-center justify-center pointer-events-none lg:static lg:justify-start lg:inset-auto lg:pointer-events-auto lg:flex-1">
+            <div className="pointer-events-auto translate-y-0.5 sm:translate-y-0">
+              <Logo size="md" className="lg:scale-110 origin-left" />
             </div>
           </div>
           
-          {/* Desktop Center: Navigation */}
-          <nav className="hidden xl:flex items-center justify-center gap-1 lg:gap-1.5 p-1.5 bg-background/50 border border-border/60 hover:border-border/80 backdrop-blur-xl rounded-full shadow-sm text-sm font-semibold whitespace-nowrap transition-all">
+          {/* Desktop Center: Navigation — visible at lg (1024px)+ */}
+          <nav className="hidden lg:flex items-center justify-center gap-1 lg:gap-1.5 p-1.5 bg-background/50 border border-border/60 hover:border-border/80 backdrop-blur-xl rounded-full shadow-sm text-sm font-semibold whitespace-nowrap transition-all">
             <Link href="/features" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">Features</Link>
             <Link href="/how-it-works" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">How it Works</Link>
             <Link href="/about" className="px-4 py-2 rounded-full hover:bg-secondary/60 text-muted-foreground hover:text-foreground transition-colors">About</Link>
@@ -68,7 +68,8 @@ export default function LandingHeader() {
           <div className="flex-1 flex justify-end items-center gap-3 z-50">
              <ThemeToggle />
              
-             <div className="hidden xl:flex items-center gap-3 pl-3 border-l border-border/50">
+             {/* Desktop Auth Buttons — visible at lg (1024px)+ */}
+             <div className="hidden lg:flex items-center gap-3 pl-3 border-l border-border/50">
                <Link 
                  href="/login" 
                  className="flex items-center justify-center px-5 py-2.5 text-foreground hover:text-primary text-base font-bold transition-colors"
@@ -86,17 +87,17 @@ export default function LandingHeader() {
         </div>
       </header>
 
-      {/* Mobile Sidebar Overlay Backdrop */}
+      {/* Mobile Sidebar Overlay Backdrop — hidden at lg+ */}
       {isOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity xl:hidden"
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar Drawer — hidden at lg+ */}
       <div 
-        className={`fixed inset-y-0 left-0 z-50 w-[85%] max-w-[320px] bg-background/95 backdrop-blur-2xl border-r border-border/50 transform transition-transform duration-300 ease-in-out shadow-2xl xl:hidden flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 w-[85%] max-w-[320px] bg-background/95 backdrop-blur-2xl border-r border-border/50 transform transition-transform duration-300 ease-in-out shadow-2xl lg:hidden flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

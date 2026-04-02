@@ -13,10 +13,10 @@ import {
 import { motion } from "framer-motion"
 
 const navItems = [
-  { name: 'Overview', href: '/dashboard', icon: HomeIcon, color: 'blue' },
+  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon, color: 'blue' },
   { name: 'Spin', href: '/dashboard/spin', icon: SparklesIcon, color: 'pink' },
   { name: 'Tasks', href: '/dashboard/tasks', icon: BriefcaseIcon, color: 'emerald' },
-  { name: 'Partners', href: '/dashboard/referrals', icon: UsersIcon, color: 'purple' },
+  { name: 'Partner Program', href: '/dashboard/referrals', icon: UsersIcon, color: 'purple' },
   { name: 'Wallet', href: '/dashboard/wallet', icon: CreditCardIcon, color: 'indigo' },
 ]
 

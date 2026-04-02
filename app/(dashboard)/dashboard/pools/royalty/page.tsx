@@ -13,7 +13,7 @@ export default async function RoyaltyPoolPage() {
   if (!session?.user?.id) redirect("/login")
 
   return (
-    <FeatureGuard title="Royalty Pool" feature="pools">
+    <FeatureGuard title="Royalty Pool" feature="royalty">
       <div className="p-6 md:p-8">
         <RoyaltyPoolContent />
       </div>

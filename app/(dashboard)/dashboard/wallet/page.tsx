@@ -93,26 +93,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-       <div className="relative overflow-hidden rounded-3xl text-white mb-8 shadow-sm border border-border"
-            style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0f172a 100%)" }}>
-         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
-         <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none translate-y-1/3 -translate-x-1/3" />
-         <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-         
-         <div className="relative z-10 px-6 sm:px-10 md:px-12 py-8 sm:py-10 text-left">
-             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-blue-300/80 mb-3 sm:mb-4">
-               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-               Secure Financial Hub
-             </div>
-             <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-black tracking-tight text-white mb-2 sm:mb-3 drop-shadow-sm leading-tight">
-                 Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-300">Wallet</span>
-             </h1>
-             <p className="text-blue-100/70 text-sm md:text-base max-w-xl font-medium">
-                 Manage your balances, deposit funds securely, and track your financial transactions across the platform.
-             </p>
-         </div>
-       </div>
-       
+
        <WalletClient 
           user={user} 
           transactions={JSON.parse(JSON.stringify(transactions))} 

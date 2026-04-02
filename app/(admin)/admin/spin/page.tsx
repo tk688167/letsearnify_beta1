@@ -10,31 +10,43 @@ export default async function AdminSpinPage() {
     const settings = await getSpinSettings()
 
     return (
-        <div className="p-4 md:p-8 space-y-6">
-            <div>
-                <h1 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Spin Management</h1>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Configure rewards, probabilities, and global settings for the Spin System.</p>
+        <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-serif font-bold tracking-tight text-slate-900 dark:text-white">Spin System</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 max-w-xl">
+                        Comprehensive management for your reward wheels. Configure segments, probabilities, and global settings with precision.
+                    </p>
+                </div>
             </div>
 
             <Tabs defaultValue="free" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 md:w-auto bg-gray-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
-                    <TabsTrigger value="free" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Free Wheel</TabsTrigger>
-                    <TabsTrigger value="premium" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Premium Wheel</TabsTrigger>
-                    <TabsTrigger value="settings" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Global Settings</TabsTrigger>
-                    <TabsTrigger value="timers" className="rounded-lg text-xs md:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:shadow-sm dark:text-slate-400 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white">Timer Controls</TabsTrigger>
+                <TabsList className="inline-flex w-full md:w-auto items-center justify-start bg-slate-100/80 dark:bg-slate-800/50 p-1 rounded-xl backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50">
+                    <TabsTrigger value="free" className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md text-slate-500 dark:text-slate-400">
+                        Free Wheel
+                    </TabsTrigger>
+                    <TabsTrigger value="premium" className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md text-slate-500 dark:text-slate-400">
+                        Premium Wheel
+                    </TabsTrigger>
+                    <TabsTrigger value="settings" className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md text-slate-500 dark:text-slate-400">
+                        Global Settings
+                    </TabsTrigger>
+                    <TabsTrigger value="timers" className="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md text-slate-500 dark:text-slate-400">
+                        Timer Controls
+                    </TabsTrigger>
                 </TabsList>
 
-                <div className="mt-6">
-                    <TabsContent value="free">
+                <div className="mt-8 transition-all duration-300">
+                    <TabsContent value="free" className="focus-visible:outline-none">
                         <SpinConfigClient initialRewards={freeRewards} spinType="FREE" />
                     </TabsContent>
-                    <TabsContent value="premium">
+                    <TabsContent value="premium" className="focus-visible:outline-none">
                         <SpinConfigClient initialRewards={premiumRewards} spinType="PREMIUM" />
                     </TabsContent>
-                    <TabsContent value="settings">
+                    <TabsContent value="settings" className="focus-visible:outline-none">
                         <SpinSettingsClient initialSettings={settings} />
                     </TabsContent>
-                    <TabsContent value="timers">
+                    <TabsContent value="timers" className="focus-visible:outline-none">
                         <TimerControlsClient />
                     </TabsContent>
                 </div>

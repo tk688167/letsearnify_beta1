@@ -129,23 +129,11 @@ export async function approveMerchantTransaction(transactionId: string) {
         return { success: false, error: "Transaction not found or already processed" }
     }
 
-    // Pre-load imports outside transaction
-    const { checkTierUpgrade, distributeCommissions: _dc } = await import("@/lib/mlm")
-
-    // Fix null referredByCode
-    const targetUser = await prisma.user.findUnique({
-        where: { id: transaction.userId },
-        select: { id: true, referredByCode: true }
-    })
-    if (targetUser && !targetUser.referredByCode) {
-        await prisma.user.update({
-            where: { id: targetUser.id },
-            data: { referredByCode: 'COMPANY' }
-        })
-    }
+    // 1. Pre-load imports outside transaction
+    const { checkTierUpgrade, TIER_COMMISSIONS } = await import("@/lib/mlm")
 
     await prisma.$transaction(async (tx) => {
-        // 1. Update merchant transaction status
+        // 2. Update merchant transaction status
         await tx.merchantTransaction.update({
             where: { id: transactionId },
             data: { status: 'APPROVED' }
@@ -155,7 +143,7 @@ export async function approveMerchantTransaction(transactionId: string) {
             const amount = transaction.amount
             const arnToMint = amount * 10 // 10 ARN = 1 USD
 
-            // 2. Credit user balance + ARN + totalDeposit
+            // 3. Credit user balance + ARN + totalDeposit
             await tx.user.update({
                 where: { id: transaction.userId },
                 data: { 
@@ -165,7 +153,7 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 3. Create Transaction record
+            // 4. Create Transaction record
             await tx.transaction.create({
                 data: {
                     userId: transaction.userId,
@@ -178,7 +166,7 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 4. Log ARN minting
+            // 5. Log ARN minting
             await tx.mLMLog.create({
                 data: {
                     userId: transaction.userId,
@@ -188,7 +176,7 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 5. Check if user is active — if so, distribute referral commissions
+            // 6. Check if user is active — if so, distribute referral commissions
             // Per PDF: "When Talha deposits, Ali receives his referral reward"
             const user = await tx.user.findUnique({
                 where: { id: transaction.userId },
@@ -197,13 +185,11 @@ export async function approveMerchantTransaction(transactionId: string) {
 
             if (user?.isActiveMember) {
                 // Distribute commissions to upline (L1, L2, L3)
-                // This is the referral reward that fires on every deposit by an active user
                 const tree = await tx.referralTree.findUnique({
                     where: { userId: transaction.userId }
                 })
 
                 if (tree) {
-                    const { TIER_COMMISSIONS } = await import("@/lib/mlm")
                     const sourceUser = await tx.user.findUnique({
                         where: { id: transaction.userId },
                         select: { name: true, email: true }
@@ -273,6 +259,16 @@ export async function approveMerchantTransaction(transactionId: string) {
             }
         }
         
+        // 7. Audit log Entry
+        await tx.adminLog.create({
+            data: {
+                adminId: session.user.id || "SYSTEM",
+                targetUserId: transaction.userId,
+                actionType: "MERCHANT_APPROVAL",
+                details: `Approved ${transaction.type} of ${transaction.amount} via ${transaction.paymentMethodId || 'MERCHANT'}. ID: ${transaction.id}`
+            }
+        })
+        
         // WITHDRAWAL
         if (transaction.type === 'WITHDRAWAL') {
             await tx.user.update({
@@ -313,9 +309,20 @@ export async function rejectMerchantTransaction(transactionId: string) {
         return { success: false, error: "Unauthorized" }
     }
 
-    await prisma.merchantTransaction.update({
-        where: { id: transactionId },
-        data: { status: 'REJECTED' }
+    await prisma.$transaction(async (tx) => {
+        await tx.merchantTransaction.update({
+            where: { id: transactionId },
+            data: { status: 'REJECTED' }
+        })
+
+        await tx.adminLog.create({
+            data: {
+                adminId: session.user.id || "SYSTEM",
+                targetUserId: transactionId, // Or find the actual user id if needed
+                actionType: "MERCHANT_REJECTION",
+                details: `Rejected merchant transaction ID: ${transactionId}`
+            }
+        })
     })
 
     revalidatePath("/admin/merchant/deposits")

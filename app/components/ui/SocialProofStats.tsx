@@ -24,40 +24,38 @@ export default function SocialProofStats({ stats }: SocialProofStatsProps) {
   const marqueeItems = [...data, ...data, ...data, ...data]
 
   return (
-    <section className="py-4 sm:py-5 border-y border-border/40 bg-card/10 backdrop-blur-md overflow-hidden relative shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
-        {/* Fade Gradients for smooth entrance/exit */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-20 md:w-32 bg-gradient-to-r from-background via-background/80 to-transparent z-10 pointer-events-none"></div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-20 md:w-32 bg-gradient-to-l from-background via-background/80 to-transparent z-10 pointer-events-none"></div>
-        
-        <div className="flex overflow-hidden items-center group py-2">
+    <section className="py-2.5 border-y border-border/40 bg-card/5 backdrop-blur-xl overflow-hidden relative">
+        <div className="flex overflow-hidden items-center group py-1">
              <motion.div
                 className="flex whitespace-nowrap items-center"
                 animate={{ x: ["0%", "-25%"] }}
                 transition={{
                     repeat: Infinity,
                     ease: "linear",
-                    duration: 35 // Slower, smoother, more professional
+                    duration: 40 // Even smoother for the compact look
                 }}
                 style={{ willChange: 'transform' }}
              >
                 {marqueeItems.map((item, index) => (
                     <div 
                         key={index}
-                        className="flex items-center gap-2 sm:gap-4 px-3 sm:px-10 md:px-16 min-w-max cursor-default transition-opacity duration-500 hover:!opacity-100 group-hover:opacity-40"
+                        className="flex items-center px-4 sm:px-8 min-w-max"
                     >
-                        <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-full bg-muted/50 border border-border/80 flex items-center justify-center shadow-sm">
-                            <span className="text-[10px] sm:text-base">{item.icon}</span>
+                        <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-secondary/30 border border-border/50 hover:border-primary/30 transition-all hover:bg-secondary/50 cursor-default group/pill shadow-sm">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-background flex items-center justify-center border border-border/60 shadow-inner">
+                                <span className="text-[10px] sm:text-sm">{item.icon}</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[11px] sm:text-base font-black text-foreground tracking-tight leading-none mb-0.5">
+                                    {item.value}
+                                </span>
+                                <span className="text-[7px] sm:text-[9px] font-bold text-black dark:text-muted-foreground uppercase tracking-widest leading-none">
+                                    {item.label}
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex flex-col justify-center">
-                            <span className="text-sm sm:text-xl md:text-2xl font-black text-foreground tracking-tight drop-shadow-sm">
-                                {item.value}
-                            </span>
-                            <span className="text-[8px] sm:text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-[0.2em] mt-0.5">
-                                {item.label}
-                            </span>
-                        </div>
-                        {/* Divider */}
-                        <div className="w-px h-6 sm:h-10 bg-border/40 ml-3 sm:ml-10 md:ml-16"></div>
+                        {/* Compact Dot Divider */}
+                        <div className="w-1 h-1 rounded-full bg-border/40 mx-4 sm:mx-8"></div>
                     </div>
                 ))}
              </motion.div>

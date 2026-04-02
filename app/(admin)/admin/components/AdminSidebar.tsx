@@ -62,9 +62,10 @@ const navigation = [
     href: "#",
     icon: BanknotesIcon,
     children: [
-      { name: "Pools Overview", href: "/admin/pools" },
+      { name: "Daily Earning Pool", href: "/admin/daily-pools", icon: "💎" },
       { name: "CBSPool", href: "/admin/pools/cbspool", icon: "💰" },
       { name: "Royalty Pool", href: "/admin/royalty", icon: "👑" },
+      { name: "Achievement Pool", href: "/admin/pools/achievement", icon: "🏆" },
     ],
   },
   { name: "Mudarabah Pool", href: "/admin/mudarabah", icon: ChartBarIcon },
@@ -120,7 +121,10 @@ export function AdminSidebar({
   return (
     <aside className="w-64 bg-white dark:bg-slate-950 border-r border-gray-100 dark:border-slate-800/60 flex flex-col hidden md:flex z-50 h-screen sticky top-0 overflow-y-auto transition-colors duration-200">
       <div className="px-5 pt-6 pb-4">
-        <Logo size="md" />
+        <div className="flex items-center justify-between">
+          <Logo size="md" />
+          <AdminNotificationBell />
+        </div>
         <div className="mt-1.5 flex items-center gap-2">
           <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md tracking-widest uppercase">Admin</span>
           <span className="text-[10px] text-gray-400 dark:text-slate-600 font-medium">Portal</span>
@@ -192,11 +196,10 @@ export function AdminSidebar({
       </nav>
 
       <div className="p-3 border-t border-gray-100 dark:border-slate-800/60 space-y-1">
-  {/* Notification Bell */}
-  <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/40 mb-1">
-    <span className="text-[12px] font-medium text-gray-500 dark:text-slate-400">Notifications</span>
-    <AdminNotificationBell />
-  </div>
+        <div className="flex items-center justify-between px-3 py-2 mb-1 rounded-xl bg-gray-50 dark:bg-slate-800/40 border border-transparent dark:border-slate-800/50">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Appearance</span>
+          <ThemeToggle />
+        </div>
         <Link href="/dashboard" className="flex items-center gap-2.5 px-3 py-2.5 w-full rounded-xl text-[13px] font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 transition-colors">
           <ArrowTopRightOnSquareIcon className="w-4 h-4" />Switch to Dashboard
         </Link>

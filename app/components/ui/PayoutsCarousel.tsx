@@ -39,7 +39,7 @@ export default function PayoutsCarousel({ proofs }: { proofs: any[] }) {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-muted-foreground text-lg max-w-2xl mx-auto"
+                        className="text-black dark:text-muted-foreground text-lg max-w-2xl mx-auto font-medium"
                     >
                         Real people, real earnings. Join thousands withdrawing instantly to their preferred wallets.
                     </motion.p>
@@ -71,11 +71,11 @@ export default function PayoutsCarousel({ proofs }: { proofs: any[] }) {
                                         
                                         <div className="bg-muted/30 backdrop-blur-md rounded-xl p-3 border border-border flex justify-between items-center group-hover:bg-muted/50 transition-colors">
                                            <div>
-                                               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Received</div>
+                                               <div className="text-[10px] text-black dark:text-muted-foreground uppercase tracking-widest font-black">Received</div>
                                                <div className="text-emerald-500 font-mono font-bold text-xl">${proof.amount.toFixed(2)}</div>
                                            </div>
                                            <div className="text-right">
-                                               <div className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Via</div>
+                                               <div className="text-[10px] text-black dark:text-muted-foreground uppercase tracking-widest font-black">Via</div>
                                                <div className="text-foreground text-sm font-semibold">{proof.method}</div>
                                            </div>
                                         </div>

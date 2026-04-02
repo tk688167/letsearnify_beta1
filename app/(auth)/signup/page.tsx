@@ -83,7 +83,7 @@ function SignupPageContent() {
             <h1 className={isDark ? "text-lg font-bold text-white tracking-tight" : "text-lg font-bold text-foreground tracking-tight"}>
               Create your account
             </h1>
-            <p className={isDark ? "text-xs text-slate-500 mt-0.5" : "text-xs text-muted-foreground mt-0.5"}>
+            <p className={isDark ? "text-xs text-slate-500 mt-0.5 font-medium" : "text-xs text-black mt-1 font-bold"}>
               Join thousands of earners — takes under a minute
             </p>
           </div>

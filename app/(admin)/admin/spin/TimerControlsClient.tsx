@@ -85,139 +85,186 @@ export default function TimerControlsClient() {
     }
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-8 max-w-5xl">
             {/* Search Section */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-5 shadow-sm">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">Search User</h3>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Search by User ID, Member ID, Email, or Name</p>
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-800/80 shadow-sm p-8 backdrop-blur-sm">
+                <div className="mb-6 flex items-center gap-3">
+                    <div className="p-2.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
+                        <MagnifyingGlassIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white">User Verification</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Locate a specific account to manually override spin cooldown timers.</p>
+                    </div>
+                </div>
 
-                <div className="flex gap-3">
-                    <div className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1 relative">
+                        <MagnifyingGlassIcon className="absolute left-4 top-4 w-5 h-5 text-slate-400 pointer-events-none" />
                         <input
                             type="text"
                             value={userId}
                             onChange={(e) => setUserId(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                            placeholder="Enter User ID, Email, or Name..."
-                            className="w-full px-4 py-2.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-400 dark:placeholder:text-slate-600 transition-all"
+                            placeholder="Search by User ID, Email, or Full Name..."
+                            className="w-full pl-12 pr-4 h-14 bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-[1.25rem] text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-600"
                         />
                     </div>
                     <button
                         onClick={handleSearch}
                         disabled={searching || !userId.trim()}
-                        className="px-5 py-2.5 bg-blue-600 dark:bg-blue-500 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-all flex items-center gap-2 text-sm"
+                        className="h-14 px-8 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-[1.25rem] hover:bg-indigo-700 dark:hover:bg-indigo-600 disabled:bg-slate-200 dark:disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-xl shadow-indigo-500/20 active:scale-95 flex items-center justify-center gap-2"
                     >
-                        <MagnifyingGlassIcon className="w-4 h-4" />
-                        {searching ? "Searching..." : "Search"}
+                        {searching ? (
+                            <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : "Execute Search"}
                     </button>
                 </div>
             </div>
 
             {/* User Result Section */}
             {userResult && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-5 shadow-sm space-y-5">
-                    {/* User Info */}
-                    <div className="pb-5 border-b border-gray-100 dark:border-slate-800">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3">User Information</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div>
-                                <span className="text-gray-500 dark:text-slate-400">Name:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">{userResult.name || "N/A"}</span>
+                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-indigo-100/50 dark:border-indigo-500/20 p-8 shadow-xl shadow-indigo-500/5 space-y-8 relative overflow-hidden transition-all animate-in slide-in-from-bottom-4 duration-500">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none" />
+                    
+                    {/* User Info Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-100 dark:border-slate-800/50">
+                        <div className="flex items-center gap-5">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-indigo-500/30">
+                                {userResult.name?.charAt(0) || "U"}
                             </div>
                             <div>
-                                <span className="text-gray-500 dark:text-slate-400">Email:</span>
-                                <span className="ml-2 font-medium text-gray-900 dark:text-white">{userResult.email || "N/A"}</span>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-none mb-1">{userResult.name || "Anonymous User"}</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{userResult.email}</p>
                             </div>
-                            <div>
-                                <span className="text-gray-500 dark:text-slate-400">User ID:</span>
-                                <span className="ml-2 font-mono text-xs text-gray-700 dark:text-slate-300">{userResult.id}</span>
-                            </div>
-                            <div>
-                                <span className="text-gray-500 dark:text-slate-400">Status:</span>
-                                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                                    userResult.isActiveMember
-                                        ? "bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400"
-                                        : "bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400"
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Membership Type</span>
+                                <span className={`text-[11px] font-bold uppercase tracking-wider ${
+                                    userResult.isActiveMember ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"
                                 }`}>
-                                    {userResult.isActiveMember ? "Active Member" : "Free User"}
+                                    {userResult.isActiveMember ? "Premium Partner" : "Standard User"}
                                 </span>
                             </div>
+                            <div className="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-0.5">Reference ID</span>
+                                <span className="text-[11px] font-mono text-slate-600 dark:text-slate-300">#{userResult.id.slice(-8).toUpperCase()}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Free Spin Status */}
-                    <div className="space-y-3">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
-                                    <ClockIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                    Free Spin Timer (48 hours)
-                                </h4>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                    Status: <span className={`font-semibold ${
-                                        userResult.freeSpinStatus === "Available" ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
-                                    }`}>
-                                        {userResult.freeSpinStatus}
-                                    </span>
-                                    {userResult.freeSpinHoursRemaining > 0 && (
-                                        <span className="ml-2 text-gray-500 dark:text-slate-500">({userResult.freeSpinHoursRemaining}h remaining)</span>
-                                    )}
-                                </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Free Spin Card */}
+                        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50 hover:border-indigo-500/30 transition-all group">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm group-hover:shadow-indigo-500/10 transition-all">
+                                        <ClockIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Free Spin Timer</h4>
+                                </div>
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                    userResult.freeSpinStatus === "Available" 
+                                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20" 
+                                        : "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20"
+                                }`}>
+                                    {userResult.freeSpinStatus}
+                                </span>
                             </div>
+                            
+                            <div className="mb-6">
+                                <div className="flex justify-between text-[11px] mb-2 font-bold tracking-tight">
+                                    <span className="text-slate-400 dark:text-slate-500">REMAINING COOLDOWN</span>
+                                    <span className="text-slate-900 dark:text-white font-mono">{userResult.freeSpinHoursRemaining}h</span>
+                                </div>
+                                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div 
+                                        className="bg-indigo-500 h-full rounded-full transition-all duration-1000" 
+                                        style={{ width: `${Math.max(0, Math.min(100, (48 - userResult.freeSpinHoursRemaining) / 48 * 100))}%` }} 
+                                    />
+                                </div>
+                            </div>
+
                             <button
                                 onClick={handleResetFreeSpin}
-                                disabled={resettingFree}
-                                className="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-all text-sm"
+                                disabled={resettingFree || userResult.freeSpinStatus === "Available"}
+                                className="w-full py-3 bg-white dark:bg-slate-900 text-slate-700 dark:text-white font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 dark:hover:bg-indigo-500 dark:hover:border-indigo-500 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                {resettingFree ? "Resetting..." : "Reset Timer"}
+                                {resettingFree ? "Processing..." : "Force Reset Timer"}
                             </button>
                         </div>
-                    </div>
 
-                    {/* Premium Spin Status */}
-                    <div className="space-y-3 pt-4 border-t border-gray-100 dark:border-slate-800">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
-                                <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 text-sm">
-                                    {userResult.isActiveMember ? (
-                                        <ClockIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                                    ) : (
-                                        <LockClosedIcon className="w-4 h-4 text-gray-400 dark:text-slate-600" />
-                                    )}
-                                    Premium Spin Timer (24 hours)
-                                </h4>
-                                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                    Status: <span className={`font-semibold ${
-                                        userResult.premiumSpinStatus === "Available" ? "text-green-600 dark:text-green-400" :
-                                        userResult.premiumSpinStatus.includes("Locked") ? "text-gray-400 dark:text-slate-500" : "text-orange-600 dark:text-orange-400"
-                                    }`}>
-                                        {userResult.premiumSpinStatus}
-                                    </span>
-                                    {userResult.premiumSpinHoursRemaining > 0 && (
-                                        <span className="ml-2 text-gray-500 dark:text-slate-500">({userResult.premiumSpinHoursRemaining}h remaining)</span>
-                                    )}
-                                </p>
+                        {/* Premium Spin Card */}
+                        <div className={`p-6 rounded-[2rem] border transition-all group ${
+                            userResult.isActiveMember 
+                                ? "bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-700/50 hover:border-amber-500/30" 
+                                : "bg-slate-100 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 opacity-75"
+                        }`}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-white dark:bg-slate-900 rounded-lg shadow-sm group-hover:shadow-amber-500/10 transition-all">
+                                        {userResult.isActiveMember ? (
+                                            <ClockIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                        ) : (
+                                            <LockClosedIcon className="w-5 h-5 text-slate-400 dark:text-slate-600" />
+                                        )}
+                                    </div>
+                                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">Premium Spin Timer</h4>
+                                </div>
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                    userResult.premiumSpinStatus === "Available" 
+                                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20" 
+                                        : userResult.premiumSpinStatus.includes("Locked") 
+                                            ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 border-slate-200 dark:border-slate-700"
+                                            : "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20"
+                                }`}>
+                                    {userResult.premiumSpinStatus}
+                                </span>
                             </div>
+                            
+                            <div className="mb-6">
+                                <div className="flex justify-between text-[11px] mb-2 font-bold tracking-tight">
+                                    <span className="text-slate-400 dark:text-slate-500">REMAINING COOLDOWN</span>
+                                    <span className="text-slate-900 dark:text-white font-mono">{userResult.premiumSpinHoursRemaining}h</span>
+                                </div>
+                                <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div 
+                                        className="bg-amber-500 h-full rounded-full transition-all duration-1000" 
+                                        style={{ width: `${Math.max(0, Math.min(100, (24 - userResult.premiumSpinHoursRemaining) / 24 * 100))}%` }} 
+                                    />
+                                </div>
+                            </div>
+
                             <button
                                 onClick={handleResetPremiumSpin}
-                                disabled={resettingPremium || !userResult.isActiveMember}
-                                className="px-4 py-2 bg-amber-600 dark:bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-700 disabled:bg-gray-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed transition-all text-sm"
+                                disabled={resettingPremium || !userResult.isActiveMember || userResult.premiumSpinStatus === "Available"}
+                                className="w-full py-3 bg-white dark:bg-slate-900 text-slate-700 dark:text-white font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-amber-600 hover:text-white hover:border-amber-600 dark:hover:bg-amber-500 dark:hover:border-amber-500 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-slate-700 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                             >
-                                {resettingPremium ? "Resetting..." : "Reset Timer"}
+                                {resettingPremium ? "Processing..." : userResult.isActiveMember ? "Force Reset Timer" : "Eligibility Locked"}
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Help Text */}
-            <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-xl p-4">
-                <p className="text-xs text-blue-900 dark:text-blue-300">
-                    <strong>Search Tips:</strong> You can search by User ID, Member ID, Email (partial match), or Name (partial match). The search is case-insensitive.
-                </p>
-                <p className="text-xs text-blue-900 dark:text-blue-300 mt-1.5">
-                    <strong>Note:</strong> Resetting a timer will allow the user to spin immediately. Use this feature carefully for customer support or testing purposes only.
-                </p>
+            {/* Help/Advisory Text */}
+            <div className="bg-slate-900/5 dark:bg-white/5 rounded-3xl p-6 border border-slate-200/50 dark:border-white/5 flex items-start gap-4">
+                <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm text-indigo-600 dark:text-indigo-400">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h5 className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Administrative Advisory</h5>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Manually resetting timers bypasses the system's pre-configured award frequencies. This action is irreversible and will grant the user an immediate spin opportunity. Please verify user eligibility before execution. 
+                        <strong> Search is active for ID, Email, and Full Name.</strong>
+                    </p>
+                </div>
             </div>
         </div>
     )

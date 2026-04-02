@@ -8,28 +8,28 @@ import { LockClosedIcon, CheckCircleIcon, ArrowRightIcon, XMarkIcon } from "@her
 
 interface FeatureGuardProps {
     title?: string;
-    feature?: 'tasks' | 'pools' | 'marketplace' | 'mudarabah' | 'partner' | 'default';
+    feature?: 'tasks' | 'pools' | 'cbsp' | 'royalty' | 'marketplace' | 'mudarabah' | 'partner' | 'default';
     previewMode?: boolean;
     children?: React.ReactNode; 
 }
 
 // Features that are NOT launched yet — after $1 unlock, show "Under Development"
 // When admin launches them, remove from this array
-const UNDER_DEVELOPMENT_FEATURES = ['marketplace', 'mudarabah', 'pools'];
+const UNDER_DEVELOPMENT_FEATURES = ['marketplace', 'mudarabah', 'cbsp', 'royalty'];
 
 // Feature-specific titles for the lock screen
 const FEATURE_TITLES: Record<string, string> = {
     marketplace: '🔒 Marketplace Locked',
     mudarabah: '🔒 Mudarabah Pool Locked',
     pools: '🔒 Reward Pools Locked',
-    partner: '🔒 Partner Features Locked',
+    partner: '🔒 Partner Program Locked',
 }
 
 const FEATURE_DESCRIPTIONS: Record<string, string> = {
     marketplace: 'This is the Marketplace page, where users can access platform products and services. To unlock the Marketplace and other premium features, please activate your account with $1.',
     mudarabah: 'This is the Mudarabah Pool, where users can access ethical investment opportunities. To unlock the Mudarabah Pool, please activate your account with $1.',
     pools: 'This is the Reward Pools section, where active members earn from CBSP, Royalty, and Achievement pools. To unlock Reward Pools, please activate your account with $1.',
-    partner: 'Partner features allow you to earn commissions from your referral network. To unlock Partner features, please activate your account with $1.',
+    partner: 'The Partner Program allows you to earn commissions from your referral network. To unlock the Partner Program, please activate your account with $1.',
 }
 
 // Under Development info per feature
@@ -44,10 +44,15 @@ const DEV_FEATURE_INFO: Record<string, { title: string, description: string, ico
         description: "The Mudarabah Pool is an ethical investment opportunity where your funds are invested in halal ventures. Profit sharing will be distributed monthly.",
         icon: "📈"
     },
-    pools: {
-        title: "Reward Pools",
-        description: "CBSP Pool, Royalty Pool, and Achievement Pool are being configured. Once live, active members will earn passive income from these community reward pools.",
-        icon: "🏆"
+    cbsp: {
+        title: "CBSP Pool",
+        description: "This feature is currently under development. You will be notified once it becomes available. The CBSP Pool logic is being finalized for launch.",
+        icon: "👥"
+    },
+    royalty: {
+        title: "Royalty Pool",
+        description: "This feature is currently under development. You will be notified once it becomes available. The Royalty Pool distribution mechanics are being finalized for launch.",
+        icon: "👑"
     },
 }
 

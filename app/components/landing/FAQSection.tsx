@@ -87,7 +87,7 @@ function FAQItem({ faq, idx }: { faq: { question: string, answer: string }, idx:
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-muted-foreground leading-relaxed text-xs sm:text-sm border-t border-border/50 pt-4">
+            <div className="px-5 sm:px-6 pb-5 sm:pb-6 text-black dark:text-muted-foreground leading-relaxed text-xs sm:text-sm border-t border-border/50 pt-4">
               {faq.answer}
             </div>
           </motion.div>

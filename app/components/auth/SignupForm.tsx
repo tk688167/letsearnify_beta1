@@ -7,6 +7,7 @@ import Link from "next/link"
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
 import { signIn, signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 
 interface SignupFormProps {
   referralCode?: string
@@ -26,9 +27,9 @@ function getStrength(p: string) {
 
 const strengthMeta = [
   { label: "Weak", color: "#ef4444" },
-  { label: "Weak", color: "#ef4444" },
-  { label: "Fair", color: "#f59e0b" },
-  { label: "Good", color: "#eab308" },
+  { label: "Weak", color: "#f87171" },
+  { label: "Fair", color: "#fbbf24" },
+  { label: "Good", color: "#fbbf24" },
   { label: "Strong", color: "#10b981" },
 ]
 
@@ -55,7 +56,9 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     // Dark mode is already visually good. The bug is that light mode currently uses the same "dark" alpha colors.
     return {
       background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)",
-      border: isDark ? "1px solid rgba(255,255,255,0.09)" : "1px solid rgba(15,23,42,0.12)",
+      borderWidth: "1px",
+      borderStyle: "solid",
+      borderColor: isDark ? "rgba(255,255,255,0.09)" : "rgba(15,23,42,0.15)",
       color: isDark ? "#f8fafc" : "#0f172a",
       height: "38px",
       borderRadius: "10px",
@@ -68,8 +71,9 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   }, [isDark])
 
   const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
-    e.currentTarget.style.borderColor = "rgba(99,130,246,0.55)"
-    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,130,246,0.12)"
+    e.currentTarget.style.borderColor = "#6366f1"
+    e.currentTarget.style.boxShadow = "0 0 0 4px rgba(99,102,241,0.1)"
+    e.currentTarget.style.background = isDark ? "rgba(255,255,255,0.06)" : "#ffffff"
   }
 
   const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -83,7 +87,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
 
   const labelClass = isDark
     ? "text-[10px] font-semibold text-slate-400 tracking-wider uppercase block mb-1"
-    : "text-[10px] font-semibold text-slate-600 tracking-wider uppercase block mb-1"
+    : "text-[10px] font-black text-black tracking-wider uppercase block mb-1"
 
   const selectOptionStyle = isDark
     ? { background: "#0f172a", color: "#94a3b8" }
@@ -163,7 +167,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 .map(([val, name]) => <option key={val} value={val} style={selectOptionStyle}>{name}</option>)}
             </select>
             <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
-              <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className={cn("w-3.5 h-3.5", isDark ? "text-slate-500" : "text-black")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
@@ -182,7 +186,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 onFocus={focusOn} onBlur={focusOff}
               />
               <button type="button" onClick={() => setShowPwd(!showPwd)}
-                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                className={cn("absolute inset-y-0 right-0 pr-2.5 flex items-center transition-colors", isDark ? "text-slate-500 hover:text-slate-300" : "text-black hover:text-gray-600")}>
                 {showPwd ? <EyeSlashIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
               </button>
             </div>
@@ -211,7 +215,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
                 onFocus={focusOn} onBlur={focusOff}
               />
               <button type="button" onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                className={cn("absolute inset-y-0 right-0 pr-2.5 flex items-center transition-colors", isDark ? "text-slate-500 hover:text-slate-300" : "text-black hover:text-gray-600")}>
                 {showConfirm ? <EyeSlashIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
               </button>
             </div>
@@ -222,7 +226,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
         {/* Row 4: Referral */}
         <div>
           <label htmlFor="referralCode" className={labelClass}>
-            Referral Code <span className="normal-case font-normal tracking-normal text-slate-600">(optional)</span>
+            Referral Code <span className={cn("normal-case font-bold tracking-normal", isDark ? "text-slate-500" : "text-black")}>(optional)</span>
           </label>
           <input id="referralCode" name="referralCode" type="text" defaultValue={referralCode}
             placeholder="Enter code"
@@ -244,26 +248,28 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
 
       {/* Divider */}
       <div className="flex items-center gap-3 my-3.5">
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-        <span className="text-[11px] text-slate-600 font-medium">or</span>
-        <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+        <div className="flex-1 h-px" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.12)" }} />
+        <span className={cn("text-[11px] font-black uppercase tracking-widest", isDark ? "text-slate-500" : "text-black")}>or</span>
+        <div className="flex-1 h-px" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(15,23,42,0.12)" }} />
       </div>
 
       {/* Google */}
       <button type="button" onClick={handleGoogle} disabled={loading || googleLoading}
-        className="h-10 w-full flex items-center justify-center gap-2.5 text-sm font-semibold text-slate-200 rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-85 active:scale-[0.98]"
-        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)" }}
+        className={cn(
+          "h-10 w-full flex items-center justify-center gap-2.5 text-sm font-bold rounded-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed hover:opacity-85 active:scale-[0.98] shadow-sm",
+          isDark ? "text-slate-200 bg-white/5 border border-white/10" : "text-black bg-white border border-gray-200"
+        )}
       >
         {googleLoading
-          ? <div className="w-4 h-4 border-2 border-slate-600 border-t-blue-400 rounded-full animate-spin" />
+          ? <div className="w-4 h-4 border-2 border-gray-600 border-t-blue-400 rounded-full animate-spin" />
           : <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="" className="w-4 h-4" />}
         Continue with Google
       </button>
 
       {!isModal && (
-        <p className="text-center text-xs text-slate-600 mt-3.5">
+        <p className={cn("text-center text-xs mt-3.5 font-medium", isDark ? "text-slate-500" : "text-black")}>
           Already have an account?{" "}
-          <Link href="/login" className="text-blue-400 hover:text-blue-300 font-semibold transition-colors">Sign in</Link>
+          <Link href="/login" className="text-blue-500 hover:text-blue-600 font-bold transition-colors underline underline-offset-4">Sign in</Link>
         </p>
       )}
     </div>

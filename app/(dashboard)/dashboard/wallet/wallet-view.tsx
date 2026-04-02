@@ -278,39 +278,31 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <p className="text-muted-foreground text-sm font-medium">No countries match &quot;{countrySearch}&quot;</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2.5">
               {filteredCountries.map(country => {
                 const isComingSoon = country.status === "COMING_SOON"
-                const methodCount = country.methods?.length || 0
                 const flag = COUNTRY_FLAGS[country.code?.toUpperCase()] || "🏳️"
                 return (
                   <button key={country.id} onClick={() => { if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } setSelectedCountry(country); setMessage(null); setCountrySearch("") }}
-                    className={cn("flex items-center gap-4 p-4 w-full rounded-2xl transition-all text-left group relative overflow-hidden",
+                    className={cn("flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border transition-all text-left w-full group",
                       isComingSoon
-                        ? "bg-muted/30 border border-border opacity-60 cursor-not-allowed"
-                        : "bg-card border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98]"
+                        ? "bg-muted/20 border-border opacity-50 cursor-not-allowed"
+                        : "bg-card border-border hover:border-green-500 hover:shadow-sm hover:bg-green-50/10 dark:hover:bg-green-900/10 active:scale-[0.99]"
                     )}>
-                    {/* Flag */}
-                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 transition-transform group-hover:scale-105",
-                      isComingSoon ? "bg-muted/50" : "bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-border shadow-sm"
-                    )}>
-                      {flag}
-                    </div>
-                    {/* Info */}
+                    <div className="text-2xl sm:text-3xl shrink-0 group-hover:scale-105 transition-transform">{flag}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={cn("font-bold text-sm", isComingSoon ? "text-muted-foreground" : "text-foreground")}>{country.name}</span>
-                        {isComingSoon ? (
-                          <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Coming Soon</span>
-                        ) : (
-                          <span className="text-[9px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Active</span>
-                        )}
+                      <div className="flex items-center justify-between gap-2">
+                         <div className="flex flex-row items-center gap-2 min-w-0">
+                            <span className={cn("font-bold text-sm truncate", isComingSoon ? "text-muted-foreground" : "text-foreground")}>{country.name}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">{country.code || country.name.substring(0,3).toUpperCase()}</span>
+                         </div>
+                         {isComingSoon ? (
+                             <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
+                         ) : (
+                             <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
+                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground font-medium mt-0.5">
-                        {isComingSoon ? `${country.currency} · Opening soon` : `${methodCount} payment ${methodCount === 1 ? "method" : "methods"} · ${country.currency}`}
-                      </p>
                     </div>
-                    {!isComingSoon && <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>}
                   </button>
                 )
               })}
@@ -333,18 +325,18 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             <p className="text-sm text-muted-foreground mt-1">Pay via {selectedCountry.name} local transfer</p>
           </div>
           {selectedCountry.methods && selectedCountry.methods.length > 0 ? (
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {selectedCountry.methods.map((m: any, idx: number) => (
                 <button key={m.id} onClick={() => { setSelectedPaymentMethod(m); setMessage(null) }}
-                  className="w-full text-left p-5 rounded-2xl border-2 border-border hover:border-green-500 hover:shadow-lg hover:shadow-green-500/10 transition-all group bg-card active:scale-[0.99]">
-                  <div className="flex items-center gap-4">
-                    <PaymentMethodIcon name={m.name} idx={idx} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-foreground text-base">{m.name}</div>
-                      <div className="text-xs text-muted-foreground font-medium mt-0.5">{m.accountName}</div>
+                  className="w-full text-left p-3.5 sm:p-4 rounded-xl border-2 border-border hover:border-green-500 hover:shadow-md hover:shadow-green-500/10 transition-all group bg-card flex items-center justify-between gap-3 active:scale-[0.99]">
+                  <div className="flex items-center gap-3">
+                    <div className="shrink-0"><PaymentMethodIcon name={m.name} idx={idx} /></div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-foreground text-sm truncate">{m.name}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium truncate mt-0.5 uppercase tracking-wider">{m.accountName}</div>
                     </div>
-                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
                   </div>
+                  <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
                 </button>
               ))}
             </div>
@@ -442,11 +434,24 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Payment Proof</label>
               <div className="relative group">
                 <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
-                <div className={`w-full min-h-[140px] rounded-2xl border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center gap-2 p-6 text-center ${screenshot ? "border-green-500 bg-green-50/10 dark:bg-green-900/10" : "border-border bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"}`}>
+                <div className={cn("w-full rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center p-2 text-center overflow-hidden", screenshot ? "border-green-500 bg-green-50 dark:bg-green-900/10 shadow-sm" : "border-dashed border-border min-h-[140px] bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40")}>
                   {screenshot ? (
-                    <div className="space-y-1.5"><CheckCircleIcon className="w-10 h-10 text-green-600 dark:text-green-400 mx-auto"/><p className="font-bold text-green-700 dark:text-green-400 text-sm">Receipt Attached!</p><p className="text-green-600 dark:text-green-500 text-xs">Tap to replace</p></div>
+                    <div className="w-full flex items-center gap-3 bg-card p-2 rounded-xl">
+                      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border bg-black/5">
+                        <img src={screenshot} alt="Proof" className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded</p>
+                        <p className="text-muted-foreground text-[10px] uppercase tracking-widest mt-0.5">Tap to replace image</p>
+                      </div>
+                      <CheckCircleIcon className="w-6 h-6 text-green-500 shrink-0 mx-2" />
+                    </div>
                   ) : (
-                    <div className="space-y-1.5"><ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground mx-auto"/><p className="font-bold text-foreground text-sm">Upload Screenshot</p><p className="text-muted-foreground text-xs">JPG, PNG or PDF</p></div>
+                    <div className="space-y-1.5 py-6">
+                       <ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground mx-auto"/>
+                       <p className="font-bold text-foreground text-sm">Upload Screenshot Image</p>
+                       <p className="text-muted-foreground text-xs">JPG, PNG or PDF formats</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -515,70 +520,99 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
        <Toaster position="top-center" toastOptions={{ style: { borderRadius: '12px', padding: '14px 20px', fontWeight: 700, fontSize: '14px' } }} />
        <div className="flex-1 space-y-6 md:space-y-8 min-w-0">
           
-           {/* 1. TOTAL BALANCE CARD */}
-           <div className="w-full bg-gradient-to-br from-blue-500 to-indigo-600 rounded-[2rem] p-5 sm:p-8 md:p-10 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-white/10 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2 pointer-events-none mix-blend-overlay"></div>
-              <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-indigo-900/20 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/2 pointer-events-none"></div>
-              <div className="relative z-10 w-full">
-                 <div className="flex flex-col xl:flex-row justify-between items-start gap-6 lg:gap-8">
-                    <div className="flex-1 w-full">
-                       <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs md:text-sm mb-2 flex items-center gap-2"><BanknotesIcon className="w-4 h-4 text-blue-200"/> Total ARN Tokens</h2>
-                       <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold font-serif tracking-tight text-white drop-shadow-md break-words leading-none">{((user.balance || 0) * 10).toFixed(2)} <span className="text-2xl lg:text-3xl text-blue-200">ARN</span></div>
-                       <div className="mt-3 text-blue-100 font-medium text-sm flex items-center gap-3">
-                           <span>≈ {formatCurrency(user.balance || 0)} USD</span>
-                           <span className={cn("px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30")}>{user.isActiveMember ? "Access Active" : "Account Locked"}</span>
+           {/* 1. MAIN WALLET HEADER & BALANCES */}
+           <div className="flex flex-col gap-4">
+               {/* Primary Balance Card */}
+               <div className="w-full bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-blue-500/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
+                  <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-white/10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                  <div className="absolute bottom-0 left-0 w-[150px] h-[150px] bg-blue-400/20 rounded-full blur-2xl -translate-x-1/2 translate-y-1/2" />
+                  
+                  <div className="relative z-10 w-full flex flex-col items-center">
+                     <div className="flex items-center gap-2 mb-3">
+                         <div className="p-1.5 bg-white/10 rounded-lg"><BanknotesIcon className="w-4 h-4 text-blue-200"/></div>
+                         <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs">Total Balance</h2>
+                     </div>
+                     <div className="text-4xl sm:text-5xl md:text-6xl font-black font-serif tracking-tight text-white mb-2 leading-none">
+                         {((user.balance || 0) * 10).toFixed(2)} <span className="text-xl sm:text-2xl text-blue-200">ARN</span>
+                     </div>
+                     <div className="flex items-center gap-2.5 mt-2">
+                         <span className="text-blue-100/90 font-medium text-sm">≈ {formatCurrency(user.balance || 0)} USD</span>
+                         <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30")}>
+                             {user.isActiveMember ? "Active" : "Locked"}
+                         </span>
+                     </div>
+                  </div>
+               </div>
+
+               {/* Minor Balances Grid */}
+               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+                       <div className="flex items-center gap-2 mb-2">
+                           <div className="p-1.5 bg-emerald-500/10 rounded-md shrink-0"><ChartPieIcon className="w-4 h-4 text-emerald-500" /></div>
+                           <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Mudarabah Pool</span>
                        </div>
-                       <div className="mt-5 flex flex-wrap flex-col sm:flex-row items-start sm:items-center gap-3">
-                           {user.lockedArnBalance > 0 && !user.isActiveMember && (
-                               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/20 border border-orange-500/30 backdrop-blur-sm w-full sm:w-auto">
-                                   <div className="p-2 bg-orange-500/20 rounded-lg shrink-0"><LockClosedIcon className="w-5 h-5 text-orange-400" /></div>
-                                   <div className="flex flex-col"><span className="text-[10px] uppercase font-bold text-orange-300 leading-none mb-1 tracking-wider whitespace-nowrap">Locked Bonus</span><span className="text-base font-bold text-white leading-none whitespace-nowrap">{user.lockedArnBalance.toFixed(2)} ARN</span></div>
-                               </div>
-                           )}
-                           <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
-                               <div className="p-1.5 sm:p-2 bg-emerald-500/20 rounded-lg shrink-0"><ChartPieIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-300" /></div>
-                               <div className="flex flex-col min-w-0 w-full"><span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-emerald-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate block">Mudarabah Pool Balance</span><span className="text-sm sm:text-base font-bold text-white leading-none truncate block">${(user.mudarabahBalance || 0).toFixed(2)} USD</span></div>
-                           </div>
-                           <div className="flex items-center gap-2 sm:gap-3 bg-white/10 hover:bg-white/20 transition-colors px-3 sm:px-4 py-3 rounded-xl border border-white/20 backdrop-blur-sm shadow-inner w-full sm:w-auto">
-                               <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg shrink-0"><BanknotesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" /></div>
-                               <div className="flex flex-col min-w-0 w-full"><span className="text-[9px] sm:text-[10px] uppercase tracking-widest text-blue-200 font-bold leading-tight sm:leading-none mb-0.5 sm:mb-1 truncate block">Daily Earning Pool Balance</span><span className="text-sm sm:text-base font-bold text-white leading-none truncate block">${(user.dailyEarningWallet || 0).toFixed(2)} USD</span></div>
-                           </div>
+                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">${(user.mudarabahBalance || 0).toFixed(2)}</span>
+                   </div>
+
+                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
+                       <div className="flex items-center gap-2 mb-2">
+                           <div className="p-1.5 bg-blue-500/10 rounded-md shrink-0"><BanknotesIcon className="w-4 h-4 text-blue-500" /></div>
+                           <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Daily Earning Pool</span>
                        </div>
-                    </div>
-                    {!user.isActiveMember && (
-                      <div className="w-full xl:w-[380px] shrink-0 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-2xl z-20">
-                          <h3 className="text-yellow-300 font-bold text-base sm:text-lg mb-2 flex items-center gap-2"><LockClosedIcon className="w-5 h-5" /> Account Locked</h3>
-                          <p className="text-blue-50 text-sm mb-5 opacity-90 leading-relaxed">You are missing out! Do you want to use <strong className="text-yellow-200">$1.00 USD</strong> from your wallet to unlock all platform features instantly?</p>
-                          <div className="flex flex-col gap-3">
-                              <button onClick={handleUnlockAccount} disabled={isUnlocking} className="w-full relative overflow-hidden group bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-4 py-3.5 sm:py-4 rounded-xl transition-all shadow-xl active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed">
-                                 <span className="relative flex items-center justify-center gap-2 text-sm sm:text-base">{isUnlocking ? "Unlocking..." : "Use $1 to Unlock Now"}{!isUnlocking && <ChevronRightIcon className="w-5 h-5" />}</span>
-                              </button>
-                              <p className="text-center text-xs text-white/70 font-medium">Available Wallet Balance: ${balance.toFixed(2)} USD</p>
-                          </div>
-                      </div>
-                    )}
+                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">${(user.dailyEarningWallet || 0).toFixed(2)}</span>
+                   </div>
+
+                   {user.lockedArnBalance > 0 && !user.isActiveMember && (
+                       <div className="bg-card border border-orange-500/30 rounded-2xl p-4 flex flex-col shadow-sm col-span-2 md:col-span-1">
+                           <div className="flex items-center gap-2 mb-2">
+                               <div className="p-1.5 bg-orange-500/10 rounded-md shrink-0"><LockClosedIcon className="w-4 h-4 text-orange-500" /></div>
+                               <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate text-orange-600 dark:text-orange-400">Locked Bonus</span>
+                           </div>
+                           <span className="text-lg md:text-xl font-bold text-foreground leading-none">{user.lockedArnBalance.toFixed(2)} ARN</span>
+                       </div>
+                   )}
+               </div>
+
+               {/* Unlock Section */}
+               {!user.isActiveMember && (
+                 <div className="w-full bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border-2 border-amber-500/20 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-5 transition-all w-full animate-in fade-in-50 zoom-in-95">
+                     <div className="flex-1">
+                         <h3 className="text-amber-600 dark:text-amber-400 font-bold text-base md:text-lg mb-1.5 flex items-center gap-2">
+                             <LockClosedIcon className="w-5 h-5" /> Account Locked
+                         </h3>
+                         <p className="text-muted-foreground text-xs md:text-sm font-medium leading-relaxed max-w-xl">
+                             You are missing out! Use <strong className="text-foreground">$1.00 USD</strong> from your wallet to unlock all platform features instantly.
+                         </p>
+                     </div>
+                     <div className="flex flex-col gap-2 shrink-0 sm:w-auto w-full">
+                         <button onClick={handleUnlockAccount} disabled={isUnlocking} className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-6 py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-sm">
+                            <span className="flex items-center justify-center gap-2">{isUnlocking ? "Unlocking..." : "Use $1 to Unlock"}{!isUnlocking && <ChevronRightIcon className="w-4 h-4" />}</span>
+                         </button>
+                     </div>
                  </div>
-              </div>
+               )}
            </div>
 
            {/* ACTION GRID */}
-           <div className="grid grid-cols-3 md:flex md:gap-4 gap-3 animate-in fade-in slide-in-from-top-2">
+           <div className="flex gap-2 sm:gap-3 animate-in fade-in slide-in-from-top-2 overflow-x-auto pb-1 hide-scrollbar">
                {[
-                   { id: 'deposit', label: 'Deposit', icon: ArrowDownTrayIcon, color: 'text-blue-600' },
-                   { id: 'withdraw', label: 'Swap & Withdraw', icon: ArrowUpTrayIcon, color: 'text-purple-600' },
-                   { id: 'transfer', label: 'Transfer', icon: ArrowPathIcon, color: 'text-orange-600' },
+                   { id: 'deposit', label: 'Deposit', icon: ArrowDownTrayIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                   { id: 'withdraw', label: 'Withdraw', icon: ArrowUpTrayIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                   { id: 'transfer', label: 'Transfer', icon: ArrowPathIcon, color: 'text-orange-500', bg: 'bg-orange-500/10' },
                ].map((item) => (
                    <button key={item.id} onClick={() => { setActiveTab(item.id); setMessage(null); }}
-                       className={cn("flex flex-col md:flex-row items-center justify-center gap-1.5 sm:gap-2 p-2 sm:p-3 md:px-8 md:py-4 rounded-xl sm:rounded-2xl border transition-all duration-200 flex-1 md:flex-none",
-                           activeTab === item.id ? "bg-card border-blue-500 ring-2 ring-blue-100 dark:ring-blue-900/30 shadow-lg scale-[1.02]" : "bg-card border-border hover:bg-muted/50 shadow-sm hover:shadow-md")}>
-                       <item.icon className={cn("w-5 h-5 sm:w-6 sm:h-6", activeTab === item.id ? item.color : "text-gray-400")} />
-                       <span className={cn("text-[9px] sm:text-xs md:text-sm font-bold uppercase tracking-wider text-center leading-tight", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
+                       className={cn("flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border transition-all flex-1 min-w-0 justify-center group",
+                           activeTab === item.id ? `bg-card border-${item.color.split('-')[1]}-500 shadow-sm` : "bg-card border-border hover:bg-muted/50")}>
+                       <div className={cn("p-1 sm:p-1.5 rounded-lg shrink-0 transition-colors", activeTab === item.id ? item.bg : "bg-muted group-hover:bg-muted-foreground/10")}>
+                           <item.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", activeTab === item.id ? item.color : "text-muted-foreground")} />
+                       </div>
+                       <span className={cn("text-[10px] sm:text-xs font-bold uppercase tracking-widest truncate", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
                    </button>
                ))}
            </div>
 
            {/* 2. ACTION FORM PANEL */}
-           <div className="bg-card rounded-[2rem] border border-border shadow-lg shadow-black/5 p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <div className="bg-card rounded-[1.5rem] border border-border shadow-md p-4 sm:p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
                   <h3 className="text-xl sm:text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-2 sm:gap-3">
                       {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
@@ -606,14 +640,49 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                  {/* === DEPOSIT === */}
                  {activeTab === "deposit" && (
                     <div className="space-y-8 animate-in fade-in">
-                        <div className="space-y-3">
-                           <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Select Method</label>
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                               <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Automated • Instant" icon={QrCodeIcon} selected={depositMethod} onClick={() => setDepositMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Deposit" sub="Local Agents" icon={BanknotesIcon} selected={depositMethod} onClick={() => { setDepositMethod("MERCHANT"); setMerchantModalType('DEPOSIT'); setMerchantModalOpen(true) }} color="green"/>
-                               <div className="md:col-span-2">
-                                 <MethodOption id="CARD" label="Debit / Credit Card" sub="Visa • Mastercard" icon={CreditCardIcon} selected={depositMethod} onClick={() => setDepositMethod("CARD")} color="gray"/>
-                               </div>
+                        <div className="space-y-2.5">
+                           <div className="flex items-center justify-between pl-1">
+                               <label className="text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest">Select Deposit Method</label>
+                           </div>
+                           <div className="flex flex-col md:grid md:grid-cols-3 gap-2.5">
+                               {/* Compact TRC-20 Card */}
+                               <button onClick={() => setDepositMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "TRC20" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 ring-1 ring-blue-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "TRC20" ? "bg-blue-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-blue-500/10 group-hover:text-blue-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5">
+                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "TRC20" ? "text-blue-600 dark:text-blue-400" : "text-foreground")}>TRC-20 Crypto</span>
+                                           <span className="shrink-0 text-[8px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-blue-200 dark:border-blue-800">Fast</span>
+                                       </div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Automated & global</span>
+                                   </div>
+                                    {depositMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-blue-500 shrink-0 ml-1" />}
+                               </button>
+
+                               {/* Compact Merchant Card */}
+                               <button onClick={() => { setDepositMethod("MERCHANT"); setMerchantModalType('DEPOSIT'); setMerchantModalOpen(true) }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "MERCHANT" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5">
+                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span>
+                                           <span className="shrink-0 text-[8px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">Popular</span>
+                                       </div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Bank details & wallets</span>
+                                   </div>
+                                    {depositMethod === "MERCHANT" && <CheckCircleIcon className="w-4 h-4 text-emerald-500 shrink-0 ml-1" />}
+                               </button>
+
+                               {/* Compact Card (Disabled) */}
+                               <button onClick={() => setDepositMethod("CARD")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "CARD" ? "border-gray-500 bg-gray-50 dark:bg-gray-900/10 ring-1 ring-gray-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "CARD" ? "bg-gray-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-gray-500/10 group-hover:text-gray-500")}><CreditCardIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5">
+                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "CARD" ? "text-gray-600 dark:text-gray-400" : "text-foreground")}>Credit Card</span>
+                                           <span className="shrink-0 text-[8px] font-bold bg-muted/60 text-muted-foreground px-1.5 py-0.5 rounded uppercase tracking-widest border border-border">Offline</span>
+                                       </div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Under maintenance</span>
+                                   </div>
+                                    {depositMethod === "CARD" && <CheckCircleIcon className="w-4 h-4 text-gray-500 shrink-0 ml-1" />}
+                               </button>
                            </div>
                         </div>
                         {depositMethod === "TRC20" && (
@@ -631,11 +700,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs rounded-lg leading-relaxed border border-blue-100 dark:border-blue-800/30"><strong>Note:</strong> Deposits are automatically converted to ARN Tokens (1 USD = 10 ARN).</div>
                                  </div>
                               </div>
-                              <div className="space-y-4">
-                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="Paste your transaction hash..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 dark:focus:ring-blue-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-8 pr-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 dark:focus:ring-blue-900/30 transition-all bg-card font-bold text-lg text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-2 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
-                                 <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">Submit Deposit</button>
-                              </div>
+                               <div className="space-y-3">
+                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Amount (USD)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-base text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-1 px-1 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
+                                  <button onClick={handleAction} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Submit Deposit</button>
+                               </div>
                            </div>
                         )}
                         {depositMethod === "CARD" && (
@@ -658,9 +727,24 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            </div>
                        ) : (
                          <>
-                           <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3 md:gap-4 lg:flex lg:flex-row">
-                               <MethodOption id="TRC20" label="TRC-20 Crypto" sub="Global • Fast" icon={QrCodeIcon} selected={withdrawalMethod} onClick={() => setWithdrawalMethod("TRC20")} color="blue"/>
-                               <MethodOption id="MERCHANT" label="Merchant Withdrawal" sub="Local Agents" icon={BanknotesIcon} selected={withdrawalMethod} onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} color="green"/>
+                           <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5">
+                               <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "TRC20" ? "bg-purple-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-purple-500/10 group-hover:text-purple-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "TRC20" ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>TRC-20 Crypto</span><span className="shrink-0 text-[8px] font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-purple-200 dark:border-purple-800">Global</span></div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Fast automated swap</span>
+                                   </div>
+                                    {withdrawalMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-purple-500 shrink-0 ml-1" />}
+                               </button>
+
+                               <button onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "MERCHANT" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span><span className="shrink-0 text-[8px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">Popular</span></div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Withdraw to bank</span>
+                                   </div>
+                                    {withdrawalMethod === "MERCHANT" && <CheckCircleIcon className="w-4 h-4 text-emerald-500 shrink-0 ml-1" />}
+                               </button>
                            </div>
                            {withdrawalMethod === "TRC20" && (
                                 <div className="space-y-4">
@@ -681,24 +765,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
                 {/* === TRANSFER === */}
                 {activeTab === "transfer" && (
-                   <div className="space-y-6 sm:space-y-8 animate-in fade-in">
-                      {!user.isActiveMember ? (
-                         <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
-                             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4"><ShieldCheckIcon className="w-8 h-8" /></div>
-                             <h3 className="text-xl font-bold text-foreground mb-2">Transfer Locked</h3><p className="text-muted-foreground max-w-sm mb-6 text-sm">You must activate your account with $1 before you can transfer funds.</p>
-                             <button onClick={() => setActiveTab("deposit")} className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all">Activate Now</button>
-                         </div>
-                      ) : (
-                         <>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                               <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
-                               <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1.5 px-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
-                            </div>
-                            <div className="mb-4"><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 pl-1">Amount</label><div className="relative"><span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-black text-xl text-foreground"/></div></div>
-                            <button onClick={handleAction} className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:scale-[1.01] active:scale-[0.98]">Transfer Funds</button>
-                         </>
-                      )}
-                   </div>
+                    <div className="space-y-4 animate-in fade-in">
+                             <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
+                             </div>
+                             <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
+                             <button onClick={handleAction} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Transfer Funds</button>
+                    </div>
                 )}
              </div>
           </div>

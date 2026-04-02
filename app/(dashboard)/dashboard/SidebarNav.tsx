@@ -24,10 +24,10 @@ interface SidebarNavProps {
 
 const NAV_ITEMS = [
   { href: "/dashboard/welcome", icon: "globe", label: "Explorer", color: "blue", locked: false, exact: false },
-  { href: "/dashboard/wallet", icon: "wallet", label: "Wallet", color: "indigo", locked: false, exact: false },
   { href: "/dashboard", icon: "chart", label: "Dashboard", color: "purple", locked: false, exact: true },
+  { href: "/dashboard/wallet", icon: "wallet", label: "My Wallet", color: "indigo", locked: false, exact: false },
   { href: "/dashboard/spin", icon: "sparkles", label: "Spin", color: "pink", locked: false, exact: false },
-  { href: "/dashboard/referrals", icon: "partners", label: "Partners", color: "purple", locked: false, exact: false },
+  { href: "/dashboard/referrals", icon: "partners", label: "Partner Program", color: "purple", locked: false, exact: false },
   { href: "/dashboard/tiers", icon: "tier", label: "Tier Progress", color: "yellow", locked: false, exact: false },
   { href: "/dashboard/tasks", icon: "briefcase", label: "Task Center", color: "emerald", locked: false, exact: false },
   { href: "/dashboard/pools/daily-earning", icon: "bolt", label: "Daily Earning", color: "teal", locked: false, exact: false },

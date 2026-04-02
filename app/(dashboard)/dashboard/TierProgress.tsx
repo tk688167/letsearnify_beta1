@@ -156,42 +156,42 @@ export function TierProgress({ currentTier, points, activeMembers, tierRules, re
     }
 
     return (
-        <div className={`relative overflow-hidden rounded-2xl shadow-sm col-span-full ${
+        <div className={`relative isolate overflow-hidden rounded-2xl shadow-sm col-span-full ${
             inHero 
                 ? "bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10" 
                 : `border ${style.border} bg-gradient-to-br ${style.bg}`
         }`}>
             
-            <div className="relative z-10 p-3 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="relative z-10 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
                 
                 {/* Identity & Status */}
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className="text-2xl sm:text-4xl filter drop-shadow-sm">{style.icon}</div>
-                    <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                            <h2 className={`text-xl font-bold tracking-tight ${inHero ? "text-white" : style.text}`}>
+                <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto min-w-0">
+                    <div className="text-3xl sm:text-4xl filter drop-shadow-sm shrink-0">{style.icon}</div>
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap sm:flex-nowrap">
+                            <h2 className={`text-lg sm:text-xl font-bold tracking-tight truncate ${inHero ? "text-white" : style.text}`}>
                                 {currentTierName}
                             </h2>
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${inHero ? "bg-white/20 text-white border-white/20" : `${style.badge} border ${style.border}`}`}>
+                            <span className={`px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0 ${inHero ? "bg-white/20 text-white border-white/20" : `${style.badge} border ${style.border}`}`}>
                                 Current
                             </span>
                         </div>
-                        <p className={`text-xs font-medium ${inHero ? "text-white/70" : "text-muted-foreground"}`}>
-                            {nextTier ? " Keep climbing to unlock more rewards!" : "You have reached the top!"}
+                        <p className={`text-[11px] sm:text-xs font-medium leading-relaxed break-words whitespace-normal ${inHero ? "text-white/70" : "text-muted-foreground"}`}>
+                            {nextTier ? "Keep climbing to unlock more rewards!" : "You have reached the top!"}
                         </p>
                     </div>
                 </div>
 
                 {/* Progress Section */}
                 {nextTier && (
-                    <div className={`w-full sm:max-w-xs rounded-xl border p-3 shadow-inner ${
+                    <div className={`w-full sm:max-w-xs rounded-xl border p-3.5 shadow-inner shrink-0 ${
                         inHero 
                             ? "bg-black/20 dark:bg-black/30 border-white/15" 
                             : "bg-card/70 border-border"
                     }`}>
-                           <div className="flex justify-between items-center mb-2">
-                               <span className={`text-xs font-bold uppercase tracking-wide ${inHero ? "text-white/60" : "text-muted-foreground"}`}>Next: <span className={inHero ? "text-white font-black" : style.text}>{nextTierName}</span></span>
-                               <span className={`text-xs font-bold ${inHero ? "text-white" : "text-foreground"}`}>{progress}%</span>
+                           <div className="flex justify-between items-center mb-2.5 gap-2">
+                               <span className={`text-[11px] sm:text-xs font-bold uppercase tracking-wide truncate ${inHero ? "text-white/60" : "text-muted-foreground"}`}>Next: <span className={inHero ? "text-white font-black" : style.text}>{nextTierName}</span></span>
+                               <span className={`text-xs font-bold shrink-0 ${inHero ? "text-white" : "text-foreground"}`}>{progress}%</span>
                        </div>
                        
                        <div className="h-2 bg-muted/50 rounded-full overflow-hidden">

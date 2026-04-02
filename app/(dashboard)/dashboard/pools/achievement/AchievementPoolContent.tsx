@@ -4,208 +4,150 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { 
   GiftIcon,
-  ArrowLeftIcon,
   SparklesIcon,
   TrophyIcon,
   CurrencyDollarIcon,
-  HomeIcon,
   RocketLaunchIcon,
-  StarIcon
+  ExclamationTriangleIcon,
+  ArrowRightIcon
 } from "@heroicons/react/24/outline"
+import InlineBackButton from "@/app/components/ui/InlineBackButton"
 
-export default function AchievementPoolContent() {
+export default function AchievementPoolContent({ percentage, balance }: { percentage: number, balance: number }) {
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      
-      {/* Back Button */}
-      <Link 
-        href="/dashboard/pools" 
-        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
-      >
-        <ArrowLeftIcon className="w-4 h-4" />
-        Back to Pools
-      </Link>
+    <div className="max-w-5xl mx-auto pb-24 px-4 sm:px-6 lg:px-8 mt-6">
+      <InlineBackButton className="mb-6 inline-flex" />
 
-      {/* Header */}
-      <motion.div
+      {/* Hero Section */}
+      <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-gradient-to-br from-blue-900 via-indigo-900 to-blue-800 rounded-2xl p-8 md:p-12 text-white relative overflow-hidden"
+        className="bg-card border border-border rounded-[2.5rem] p-8 sm:p-12 shadow-2xl relative overflow-hidden mb-8"
       >
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-5"></div>
+        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+          <GiftIcon className="w-64 h-64 text-amber-500" />
+        </div>
         
-        <div className="relative z-10">
-          <div className="flex items-start gap-4 mb-4">
-            <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 border border-white/20">
-              <GiftIcon className="w-9 h-9 text-white" />
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-wider rounded-lg mb-6 shadow-sm">
+            <TrophyIcon className="w-4 h-4" />
+            <span>Milestone Rewards Engine</span>
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-4">
+            Achievement Pool
+          </h1>
+          
+          <p className="text-lg text-muted-foreground leading-relaxed font-medium mb-8 max-w-2xl mx-auto">
+            The Achievement Pool is fundamentally designed to instantly reward your growth. It is autonomously funded by dedicating exactly <strong>{percentage}%</strong> of every $1 account unlock across the entire global network.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-background/50 border border-border/50 rounded-2xl p-6 shadow-inner">
+            <div className="text-center sm:text-left">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">Live Global Treasury</p>
+              <p className="text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">
+                ${balance.toFixed(2)}
+              </p>
             </div>
-            <div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-2">Achievement Pool</h1>
-              <p className="text-blue-100 text-lg font-medium">Celebrate Your Growth with Special Rewards</p>
+            <div className="hidden sm:block w-px h-12 bg-border/50"></div>
+            <div className="text-center sm:text-left">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-1">Funding Velocity</p>
+              <p className="text-xl font-bold text-foreground">
+                <span className="text-emerald-500">+{percentage}%</span> per User Activation
+              </p>
             </div>
           </div>
-          <p className="text-blue-50 leading-relaxed max-w-3xl text-lg">
-            Unlock exclusive rewards when you achieve important milestones on your LetsEarnify journey. Every step forward is worth celebrating!
-          </p>
         </div>
       </motion.div>
 
-      {/* Your First Achievement */}
-      <section>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Your First Achievement: Newbie to Bronze</h2>
+      {/* Grid Features */}
+      <h2 className="text-2xl font-bold text-foreground mb-6">How the Protocol Works</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 md:p-10 border-2 border-blue-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-              <RocketLaunchIcon className="w-7 h-7 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900">Special Surprise Reward</h3>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card/50 border border-border/50 rounded-3xl p-8"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-6">
+            <CurrencyDollarIcon className="w-6 h-6 text-indigo-500" />
           </div>
-
-          <p className="text-gray-700 leading-relaxed text-lg mb-6">
-            When you upgrade from <strong className="text-blue-900">Newbie to Bronze tier</strong>, you become eligible for a <strong className="text-blue-900">Special Surprise Reward</strong>! This is our way of celebrating your first major achievement on the platform.
+          <h3 className="text-xl font-bold text-foreground mb-3">Community Funding</h3>
+          <p className="text-muted-foreground leading-relaxed text-sm">
+            Whenever any new user signs up and activates their account by paying the $1 activation fee, exactly {percentage}% of that fee is immediately locked into this Achievement Treasury smart-contract.
           </p>
+        </motion.div>
 
-          <div className="bg-white rounded-xl p-6 border border-blue-200">
-            <p className="text-gray-600 leading-relaxed">
-              This reward marks the beginning of your growth journey with LetsEarnify. It's a token of appreciation for taking action and reaching your first milestone. Every achievement counts, and we believe in rewarding progress!
-            </p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card/50 border border-border/50 rounded-3xl p-8"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6">
+            <RocketLaunchIcon className="w-6 h-6 text-emerald-500" />
           </div>
-        </div>
-      </section>
-
-      {/* What Can You Receive? */}
-      <section>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">What Can You Receive?</h2>
-        <p className="text-gray-600 leading-relaxed mb-8">
-          Your Special Surprise Reward can take different forms. The reward type is determined by the platform and may include any of the following:
-        </p>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          
-          {/* ARN Tokens */}
-          <div className="bg-white rounded-xl p-6 border-2 border-blue-100 shadow-sm hover:shadow-lg transition-all group">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
-              <CurrencyDollarIcon className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">ARN Tokens</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Receive bonus ARN tokens directly to your wallet, ready to use or withdraw immediately.
-            </p>
-          </div>
-
-          {/* Digital Surprise */}
-          <div className="bg-white rounded-xl p-6 border-2 border-blue-100 shadow-sm hover:shadow-lg transition-all group">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
-              <SparklesIcon className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Digital Surprise Reward</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Get access to exclusive digital perks, bonuses, or special platform benefits.
-            </p>
-          </div>
-
-          {/* Physical Gift Hamper */}
-          <div className="bg-white rounded-xl p-6 border-2 border-blue-100 shadow-sm hover:shadow-lg transition-all group">
-            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-md">
-              <HomeIcon className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Physical Gift Hamper</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Receive a carefully curated gift hamper delivered directly to your home address.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 bg-blue-50 rounded-xl p-6 border border-blue-200">
-          <p className="text-gray-700 leading-relaxed">
-            <strong className="text-blue-900">Please note:</strong> The type of reward you receive will be determined by the platform. All rewards are designed to celebrate your achievement and motivate your continued growth!
+          <h3 className="text-xl font-bold text-foreground mb-3">Tier Progression</h3>
+          <p className="text-muted-foreground leading-relaxed text-sm">
+            You start as a Newbie. By actively participating, depositing, and building your network, you upgrade naturally. The moment you hit a new tier (like transitioning from Newbie to Bronze), you trigger the system.
           </p>
-        </div>
-      </section>
-
-      {/* How to Qualify */}
-      <section className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-8 border border-gray-200">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-          <TrophyIcon className="w-7 h-7 text-blue-600" />
-          How to Qualify for Your First Reward
-        </h3>
+        </motion.div>
         
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg p-6 border border-blue-200">
-            <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2 text-lg">
-              <span className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-              Start as a Newbie
-            </h4>
-            <p className="text-gray-700 leading-relaxed pl-9">
-              When you join LetsEarnify, you begin at the Newbie tier. This is your starting point on the platform.
-            </p>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card/50 border border-border/50 rounded-3xl p-8"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center mb-6">
+            <SparklesIcon className="w-6 h-6 text-fuchsia-500" />
           </div>
-
-          <div className="bg-white rounded-lg p-6 border border-blue-200">
-            <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2 text-lg">
-              <span className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-              Meet Bronze Tier Requirements
-            </h4>
-            <p className="text-gray-700 leading-relaxed pl-9">
-              Complete the requirements to upgrade to Bronze tier by earning points, making deposits, and building your network.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 border border-blue-200">
-            <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2 text-lg">
-              <span className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-              Unlock Your Surprise Reward
-            </h4>
-            <p className="text-gray-700 leading-relaxed pl-9">
-              Once you successfully upgrade to Bronze, you become eligible for your Special Surprise Reward. The platform will determine and deliver your reward!
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Motivational Section */}
-      <section className="bg-gradient-to-br from-blue-900 to-indigo-900 rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:2rem_2rem] opacity-5"></div>
-        
-        <div className="relative z-10">
-          <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/20">
-            <StarIcon className="w-9 h-9 text-white" />
-          </div>
-          
-          <h3 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-            Ready to Unlock Your First Achievement?
-          </h3>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Upgrade from Newbie to Bronze tier today and receive your Special Surprise Reward. Every journey begins with a single step—take yours now!
+          <h3 className="text-xl font-bold text-foreground mb-3">Instant Surprise Reward</h3>
+          <p className="text-muted-foreground leading-relaxed text-sm">
+            Upon upgrade, the protocol assesses the global treasury and releases a Special Surprise Reward. This could be direct ARN Tokens, exclusive digital perks, or physical gift hampers sent to your door.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/dashboard/tiers" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all"
-            >
-              <TrophyIcon className="w-5 h-5" />
-              View Tier Progress
-            </Link>
-            <Link 
-              href="/dashboard/wallet?tab=deposit" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-xl hover:bg-white/10 transition-all"
-            >
-              <CurrencyDollarIcon className="w-5 h-5" />
-              Make a Deposit
-            </Link>
+        </motion.div>
+      </div>
+
+      {/* Yield Fluctuation Notice (Same as Daily Earning for consistency) */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-8 sm:p-10 relative overflow-hidden mb-8"
+      >
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
+            <ExclamationTriangleIcon className="w-7 h-7 text-amber-500" />
+          </div>
+          <div>
+            <h3 className="text-xl font-black text-amber-600 dark:text-amber-500 mb-2 uppercase tracking-wide">
+              Yield Fluctuation Notice
+            </h3>
+            <p className="text-base text-foreground/80 leading-relaxed font-medium">
+              Because the Achievement Pool is directly correlated to the global volume of platform activations and user activity, the available payouts are dynamic.
+            </p>
+            <div className="mt-4 p-4 bg-background/50 rounded-2xl border border-border/50 shadow-inner">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                As a result, your cumulative rewards may occasionally reach equivalents of <strong>up to 30% monthly profit</strong> under high-traffic intervals, but sometimes they may be significantly less depending on new user acquisition. The system mathematically scales tier reward sizes to ensure the pool never runs out of liquidity.
+              </p>
+            </div>
           </div>
         </div>
-      </section>
+      </motion.div>
 
-      {/* Additional Note */}
-      <section className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-        <p className="text-gray-600 leading-relaxed text-center">
-          <strong className="text-gray-900">Remember:</strong> This is just the beginning! As you continue growing on LetsEarnify, more achievement milestones and rewards will become available at higher tier levels. Keep progressing, keep achieving!
-        </p>
-      </section>
+      {/* CTA */}
+      <div className="flex justify-center mt-12">
+        <Link 
+          href="/dashboard/tiers"
+          className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-indigo-500/20 hover:scale-105"
+        >
+          <TrophyIcon className="w-5 h-5" />
+          Track Your Next Tier
+        </Link>
+      </div>
+
     </div>
   )
 }

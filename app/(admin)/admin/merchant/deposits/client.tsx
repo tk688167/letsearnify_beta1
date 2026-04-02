@@ -152,7 +152,9 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
                           {isDeposit ? '+' : '-'}{formatCurrency(tx.amount)}
                         </div>
                         {tx.convertedAmount && (
-                          <div className="text-xs text-muted-foreground font-mono">{tx.convertedAmount.toLocaleString()} {tx.currency}</div>
+                          <div className="text-xs text-muted-foreground font-mono" suppressHydrationWarning>
+                            {tx.convertedAmount.toLocaleString()} {tx.currency}
+                          </div>
                         )}
                       </div>
                       <span className={cn("inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border", STATUS_STYLES[tx.status] || STATUS_STYLES.PENDING)}>
@@ -179,8 +181,8 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
                     )}
                     <div className="bg-muted/30 rounded-xl p-3">
                       <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Date</div>
-                      <div className="text-sm font-bold text-foreground">{new Date(tx.createdAt).toLocaleDateString()}</div>
-                      <div className="text-[10px] text-muted-foreground">{new Date(tx.createdAt).toLocaleTimeString()}</div>
+                      <div className="text-sm font-bold text-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div>
+                      <div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div>
                     </div>
                   </div>
 
@@ -211,12 +213,20 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
                     {isPendingTx && (
                       <div className="flex items-center gap-2">
                         <button onClick={() => handleApprove(tx.id)} disabled={isProcessing}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm">
-                          <CheckIcon className="w-4 h-4"/> Approve
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow-sm min-w-[100px]">
+                          {isProcessing ? (
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                          ) : (
+                            <><CheckIcon className="w-4 h-4"/> Approve</>
+                          )}
                         </button>
                         <button onClick={() => handleReject(tx.id)} disabled={isProcessing}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold transition-all disabled:opacity-50 border border-red-200 dark:border-red-800/30">
-                          <XMarkIcon className="w-4 h-4"/> Reject
+                          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold transition-all disabled:opacity-50 border border-red-200 dark:border-red-800/30 min-w-[100px]">
+                          {isProcessing ? (
+                            <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin"/>
+                          ) : (
+                            <><XMarkIcon className="w-4 h-4"/> Reject</>
+                          )}
                         </button>
                       </div>
                     )}

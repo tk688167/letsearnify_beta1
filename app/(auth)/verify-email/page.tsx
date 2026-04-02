@@ -197,9 +197,9 @@ function VerifyEmailContent() {
             <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight transition-colors">
               Check your email
             </h1>
-            <p className="text-xs text-gray-500 dark:text-slate-500 mt-1 leading-relaxed transition-colors">
+            <p className="text-xs text-black font-bold dark:text-slate-500 mt-1 leading-relaxed transition-colors">
               We sent a 6-digit code to{" "}
-              <span className="text-gray-700 dark:text-slate-300 font-medium">{email}</span>
+              <span className="text-blue-600 dark:text-slate-300 font-black">{email}</span>
             </p>
           </div>
 
@@ -262,12 +262,12 @@ function VerifyEmailContent() {
 
           {/* Resend / Back */}
           <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500 dark:text-slate-600 transition-colors">
+            <p className="text-xs text-black font-bold dark:text-slate-600 transition-colors">
               Didn&apos;t receive the code?{" "}
               <button
                 onClick={handleResend}
                 disabled={resendLoading || resendCooldown > 0}
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 font-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed underline underline-offset-4"
               >
                 {resendLoading
                   ? "Sending..."
@@ -276,9 +276,9 @@ function VerifyEmailContent() {
                   : "Resend code"}
               </button>
             </p>
-            <p className="text-xs text-gray-500 dark:text-slate-600 transition-colors">
+            <p className="text-xs text-black font-bold dark:text-slate-600 transition-colors">
               Wrong email?{" "}
-              <a href="/signup" className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-semibold transition-colors">
+              <a href="/signup" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 font-black transition-colors underline underline-offset-4">
                 Go back to signup
               </a>
             </p>

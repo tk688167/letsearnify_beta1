@@ -81,9 +81,21 @@ export async function registerUser(formData: FormData) {
         const newMemberId = generateMemberId()
         
         try {
-            // ── NO signup bonus at registration ──
-            // Per PDF: bonus is given when user UNLOCKS (pays $1)
-            // At signup: just create user with 0 balance
+            // Grant signup bonus immediately at signup based on referrer's tier
+            let signupBonusArn = 0;
+            let signupBonusUsd = 0;
+            let referrerTier = "NEWBIE";
+            
+            if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
+                referrerTier = validReferrer.tier || "NEWBIE";
+                const SIGNUP_BONUS_RATES: Record<string, number> = {
+                    NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
+                    PLATINUM: 9, DIAMOND: 10, EMERALD: 15
+                };
+                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5;
+                signupBonusUsd = signupBonusArn / 10;
+            }
+
             const newUser = await prisma.user.create({
               data: {
                 memberId: newMemberId,
@@ -94,13 +106,35 @@ export async function registerUser(formData: FormData) {
                 referralCode: newReferralCode,
                 referredByCode: validReferredByCode, 
                 tier: "NEWBIE", tierStatus: "CURRENT",
-                arnBalance: 0,
-                balance: 0,
+                arnBalance: signupBonusArn,
+                balance: signupBonusUsd,
                 activeMembers: 0,
                 totalDeposit: 0.0,
                 isActiveMember: false
               }
             })
+
+            if (signupBonusArn > 0) {
+               await prisma.transaction.create({
+                 data: {
+                    userId: newUser.id,
+                    amount: signupBonusUsd,
+                    arnMinted: signupBonusArn,
+                    type: "SIGNUP_BONUS",
+                    status: "COMPLETED",
+                    method: "SYSTEM",
+                    description: `Signup bonus: ${signupBonusArn} ARN (referrer tier: ${referrerTier})`
+                 }
+               })
+               await prisma.mLMLog.create({
+                 data: {
+                    userId: newUser.id,
+                    type: "SIGNUP_BONUS",
+                    amount: signupBonusArn,
+                    description: `Received ${signupBonusArn} ARN signup bonus (referrer: ${referrerTier} tier)`
+                 }
+               })
+            }
 
             // Create referral tree
             let advisorId = null, supervisorId = null, managerId = null
@@ -136,7 +170,7 @@ export async function registerUser(formData: FormData) {
             })
             await sendVerificationEmail(email, otp)
 
-            console.log(`✅ Registered: ${email} | Ref: ${validReferredByCode} | No bonus until unlock`)
+            console.log(`✅ Registered: ${email} | Ref: ${validReferredByCode} | Bonus applied`)
             return { error: null, success: true, email }
 
         } catch (err: any) {

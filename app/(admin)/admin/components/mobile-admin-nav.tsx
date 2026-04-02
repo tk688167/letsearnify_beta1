@@ -62,9 +62,10 @@ const navigation = [
     href: "#",
     icon: BanknotesIcon,
     children: [
-      { name: "Pools Overview", href: "/admin/pools" },
+      { name: "Daily Earning Pool", href: "/admin/daily-pools", icon: "💎" },
       { name: "CBSPool", href: "/admin/pools/cbspool", icon: "💰" },
       { name: "Royalty Pool", href: "/admin/royalty", icon: "👑" },
+      { name: "Achievement Pool", href: "/admin/pools/achievement", icon: "🏆" },
       { name: "Mudarabah Pools", href: "/admin/mudarabah", icon: "📈" },
     ],
   },

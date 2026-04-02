@@ -39,7 +39,10 @@ export default async function ReferralsPage() {
                tier: displayUser.tier,
                arnBalance: displayUser.arnBalance || 0,
                referralCode: displayUser.referralCode,
-               balance: displayUser.balance
+               balance: displayUser.balance,
+               totalSignups: (displayUser as any).totalSignups || 0,
+               referrerName: displayUser.referrer?.name,
+               referrerCode: displayUser.referrer?.referralCode
             }}
             stats={{
                teamSize: stats.teamSize, // total active network from mlm-service

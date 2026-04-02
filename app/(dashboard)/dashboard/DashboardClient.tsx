@@ -20,11 +20,11 @@ import {
   WrenchScrewdriverIcon,
   SparklesIcon,
   WalletIcon,
-  ClockIcon
+  ClockIcon,
+  TrophyIcon
 } from "@heroicons/react/24/outline"
-import { formatCurrency, formatUserId, cn } from "@/lib/utils"
+import { formatCurrency, formatUserId, cn, calculateTierProgress } from "@/lib/utils"
 import { CompanyPools } from "./CompanyPools"
-import { TierProgress } from "./TierProgress"
 import { DailyEarningWidget } from "@/app/components/dashboard/DailyEarningWidget"
 
 const FEATURE_FLAGS = {
@@ -115,12 +115,31 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
       // After unlock, check if feature is actually live
       if (featureKey === "PLAY_EARN") return FEATURE_FLAGS.PLAY_EARN ? "LIVE" : "DEV";
       if (featureKey === "MARKETPLACE") return isMarketplaceLive ? "LIVE" : "DEV";
-      if (featureKey === "MUDARABA" || featureKey === "POOLS") return isMudarabahLive ? "LIVE" : "DEV";
+      if (featureKey === "MUDARABA") return isMudarabahLive ? "LIVE" : "DEV";
+      if (featureKey === "POOLS") return "DEV";
       return "LIVE";
   }
 
   // Get modal info based on selected feature
   const modalInfo = unlockFeature ? FEATURE_INFO[unlockFeature] : null;
+
+  const { progress, nextTier } = calculateTierProgress(
+    user.tier,
+    user.arnBalance || 0,
+    user.totalSignups || 0,
+    user.tierRules || {}
+  );
+
+  const TIER_COLORS: Record<string, string> = {
+    NEWBIE: "from-slate-400 to-slate-500",
+    BRONZE: "from-orange-400 to-orange-500",
+    SILVER: "from-slate-300 to-slate-400",
+    GOLD: "from-amber-400 to-amber-500",
+    PLATINUM: "from-indigo-400 to-indigo-500",
+    DIAMOND: "from-blue-400 to-blue-500",
+    EMERALD: "from-emerald-400 to-emerald-500",
+  };
+  const tierColor = TIER_COLORS[nextTier] || "from-indigo-500 to-purple-500";
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-24">
@@ -308,44 +327,16 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           />
       </div>
 
-      {/* 5. DAILY EARNING WIDGET */}
+      {/* 5. DAILY EARNING WIDGET (Compact for Dashboard) */}
       <div className="pt-8">
-          <DailyEarningWidget />
+          <DailyEarningWidget isCompact={true} />
       </div>
 
-      {/* 4. IDENTITY & SECURITY */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <IdentityCard user={user} />
+      {/* 4. GROWTH & IDENTITY (Switched order) */}
+      <div className="pt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ReferralCard user={user} />
+          <IdentityCard user={user} />
       </div>
-
-      {/* 6. UNLOCK BANNER (If Locked) */}
-      {!isUnlocked && (
-          <motion.div 
-             initial={{ opacity: 0, scale: 0.95 }}
-             animate={{ opacity: 1, scale: 1 }}
-             className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-900 to-indigo-900 p-8 md:p-12 text-white shadow-2xl shadow-blue-900/20 group"
-          >
-             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-1000"></div>
-             <div className="relative z-10 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/10 text-blue-200">
-                   <LockClosedIcon className="w-3.5 h-3.5"/> Account Limited
-                </div>
-                <h3 className="text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight">Unlock Your <br/>Full Earnings Potential</h3>
-                <p className="text-blue-100/80 mb-8 leading-relaxed text-lg max-w-lg">
-                   Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even $1 can be withdrawn anytime.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                   <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
-                      Deposit $1.00 Now
-                   </Link>
-                   <Link href="/dashboard/how-it-works" className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-sm md:text-base">
-                      Learn More
-                   </Link>
-                </div>
-             </div>
-          </motion.div>
-      )}
 
       {/* 7. POOLS SECTION */}
       <div className="pt-8 relative">
@@ -353,17 +344,94 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               <h2 className="text-2xl font-bold text-foreground font-serif">Community Pools</h2>
           </div>
           <div className="relative">
-              <CompanyPools pools={pools} isLocked={getFeatureStatus("POOLS") === "LOCKED"} userTier={user.tier} />
+              <CompanyPools 
+                 pools={pools} 
+                 status={getFeatureStatus("POOLS")} 
+                 userTier={user.tier} 
+                 onLockedClick={() => openUnlockModal("POOLS")}
+              />
           </div>
       </div>
 
-    <TierProgress 
-         currentTier={user.tier} 
-         points={user.arnBalance || 0} 
-         activeMembers={user.totalSignups || user.activeMembers || 0} 
-         tierRules={user.tierRules} 
-         referralCode={user.referralCode}
-      />
+      <div className="pt-8">
+         <div className="relative overflow-hidden group bg-card border-none shadow-xl shadow-black/[0.03] dark:shadow-white/[0.02] rounded-[2.5rem] p-6 sm:p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+             {/* Decorative Background Icon & Glow */}
+             <div className="absolute -right-16 -top-16 text-amber-500/[0.03] rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+                 <TrophyIcon className="w-64 h-64" />
+             </div>
+             
+             <div className="flex-1 relative z-10 w-full">
+                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-500/10 rounded-full border border-amber-100 dark:border-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-500 mb-4">
+                    <SparklesIcon className="w-3 h-3" /> Performance Analytics
+                 </div>
+                 <h2 className="text-2xl sm:text-3xl font-black font-serif mb-2 text-foreground tracking-tight">Rank Progression</h2>
+                 <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
+                    Track your growth as you approach the <span className="text-foreground font-bold">{nextTier}</span> milestone. 
+                    Higher ranks unlock deeper network earnings and increased withdrawal limits.
+                 </p>
+             </div>
+             
+             <div className="flex-1 w-full max-w-md relative z-10 bg-background/40 backdrop-blur-md border border-white/10 dark:border-white/5 p-6 rounded-[2rem] shadow-2xl shadow-black/5">
+                 <div className="flex justify-between items-baseline mb-3">
+                     <div className="flex flex-col">
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">Current Progress</p>
+                        <p className="text-xs font-bold text-amber-500">Toward {nextTier}</p>
+                     </div>
+                     <div className="text-right">
+                        <span className="text-3xl font-black text-foreground tabular-nums tracking-tighter">{progress}%</span>
+                     </div>
+                 </div>
+                 
+                 <div className="h-4 bg-muted/30 rounded-full overflow-hidden p-1 border border-border/20 shadow-inner">
+                     <div 
+                        className={`h-full rounded-full bg-gradient-to-r ${tierColor} shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all duration-1000 ease-out`} 
+                        style={{ width: `${progress}%` }}
+                     />
+                 </div>
+                 
+                 <div className="mt-4 flex items-center justify-between">
+                    <div className="flex -space-x-2">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground">
+                                L{i}
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Real-time Tier Engine</p>
+                 </div>
+             </div>
+         </div>
+      </div>
+
+      {/* 6. UNLOCK BANNER (Moved to very bottom) */}
+      {!isUnlocked && (
+          <div className="pt-8">
+            <motion.div 
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-900 to-indigo-900 p-8 md:p-12 text-white shadow-2xl shadow-blue-900/20 group"
+            >
+               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-1000"></div>
+               <div className="relative z-10 max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/10 text-blue-200">
+                     <LockClosedIcon className="w-3.5 h-3.5"/> Account Limited
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight">Unlock Your <br/>Full Earnings Potential</h3>
+                  <p className="text-blue-100/80 mb-8 leading-relaxed text-lg max-w-lg">
+                     Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even $1 can be withdrawn anytime.
+                  </p>
+                  <div className="flex flex-wrap gap-4">
+                     <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
+                        Deposit $1.00 Now
+                     </Link>
+                     <Link href="/dashboard/how-it-works" className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-sm md:text-base">
+                        Learn More
+                     </Link>
+                  </div>
+               </div>
+            </motion.div>
+          </div>
+      )}
 
       {/* 8. FEATURE-SPECIFIC UNLOCK MODAL */}
       {showUnlockModal && (

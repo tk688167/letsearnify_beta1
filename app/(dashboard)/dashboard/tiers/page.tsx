@@ -58,6 +58,12 @@ export default async function TierPage() {
               where: { earnerId: user.id },
               _sum: { amount: true }
            })
+
+           // Fetch absolute direct signup count for consistent tier calculation
+           const dbTotalSignups = await prisma.user.count({
+              where: { referredByCode: user.referralCode }
+           });
+           (user as any).totalSignups = dbTotalSignups;
        }
   } catch (error) {
       console.error("⚠️ Tiers Page Offline Mode:", error);
@@ -90,7 +96,7 @@ export default async function TierPage() {
          
          <TierProgressView 
             user={{ tier: user.tier, arnBalance: user.arnBalance || 0, balance: user.balance || 0 }}
-            stats={{ teamSize: directTeamSize }}
+            stats={{ teamSize: referralTree.length, totalSignups: (user as any).totalSignups || 0 }}
             tierConfig={tierConfig}
             referralTree={referralTree}
          />

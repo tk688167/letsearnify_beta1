@@ -7,20 +7,26 @@ export default function CountdownTimer({ targetDate, onComplete }: { targetDate:
     const [timeLeft, setTimeLeft] = useState<{ hours: number, minutes: number, seconds: number } | null>(null)
 
     useEffect(() => {
-        const interval = setInterval(() => {
+        const calculateTime = () => {
             const now = new Date()
             const diff = targetDate.getTime() - now.getTime()
             
             if (diff <= 0) {
-                clearInterval(interval)
                 setTimeLeft(null)
                 if (onComplete) onComplete()
+                return false
             } else {
-                const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
+                const hours = Math.floor((diff / (1000 * 60 * 60)))
                 const minutes = Math.floor((diff / 1000 / 60) % 60)
                 const seconds = Math.floor((diff / 1000) % 60)
                 setTimeLeft({ hours, minutes, seconds })
+                return true
             }
+        }
+
+        calculateTime()
+        const interval = setInterval(() => {
+            if (!calculateTime()) clearInterval(interval)
         }, 1000)
         
         return () => clearInterval(interval)
@@ -29,11 +35,32 @@ export default function CountdownTimer({ targetDate, onComplete }: { targetDate:
     if (!timeLeft) return null
 
     return (
-        <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-full font-mono text-sm font-bold border border-gray-200 dark:border-gray-700 shadow-inner">
-            <ClockIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <span>
-                {String(timeLeft.hours).padStart(2, '0')}:{String(timeLeft.minutes).padStart(2, '0')}:{String(timeLeft.seconds).padStart(2, '0')}
-            </span>
+        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-3 rounded-2xl font-mono text-xl md:text-3xl font-black border-2 border-slate-200 dark:border-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.1)] transition-all hover:scale-105 group overflow-hidden relative">
+            {/* Animated Glow Line */}
+            <div className="absolute bottom-0 left-0 h-1 bg-indigo-500/30 w-full" />
+            
+            <ClockIcon className="w-5 h-5 md:w-7 md:h-7 text-indigo-500 animate-pulse shrink-0" />
+            
+            <div className="flex items-baseline gap-1">
+                <span className="text-slate-900 dark:text-white tabular-nums tracking-tighter">
+                    {String(timeLeft.hours).padStart(2, '0')}
+                </span>
+                <span className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-widest pb-1">h</span>
+                
+                <span className="text-slate-300 dark:text-slate-700 mx-1">:</span>
+                
+                <span className="text-slate-900 dark:text-white tabular-nums tracking-tighter">
+                    {String(timeLeft.minutes).padStart(2, '0')}
+                </span>
+                <span className="text-xs md:text-sm text-slate-400 font-bold uppercase tracking-widest pb-1">m</span>
+
+                <span className="text-slate-300 dark:text-slate-700 mx-1">:</span>
+                
+                <span className="text-slate-600 dark:text-slate-400 tabular-nums tracking-tighter opacity-80">
+                    {String(timeLeft.seconds).padStart(2, '0')}
+                </span>
+                <span className="text-[10px] md:text-xs text-slate-400/60 font-bold uppercase tracking-widest pb-1">s</span>
+            </div>
         </div>
     )
 }

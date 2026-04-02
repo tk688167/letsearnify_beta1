@@ -21,7 +21,7 @@ export default function SmartPoolsSection() {
             Core Income Allocations
           </h2>
           <div className="h-1 w-16 sm:w-20 bg-primary mx-auto rounded-full mb-4 sm:mb-6"></div>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
+          <p className="text-black dark:text-muted-foreground max-w-2xl mx-auto text-base sm:text-lg leading-relaxed px-2">
             Automated Mudaraba distribution channels. Transparent profit routing based on active participation.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function SmartPoolsSection() {
           >
             Start with $1 Today <span aria-hidden="true">&rarr;</span>
           </Link>
-          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">Secure & Transparent • Automated Distribution</p>
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-black dark:text-muted-foreground font-medium">Secure & Transparent • Automated Distribution</p>
         </div>
       </div>
     </section>
@@ -93,8 +93,8 @@ function PoolCard({ title, subtitle, desc, motivation, icon, gradient, delay }: 
         {icon}
       </div>
       <h3 className="text-lg sm:text-xl font-bold text-foreground mb-1 font-serif group-hover:text-primary transition-colors">{title}</h3>
-      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 sm:mb-4">{subtitle}</div>
-      <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-5 sm:mb-6 flex-1">
+      <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-black dark:text-muted-foreground mb-3 sm:mb-4">{subtitle}</div>
+      <p className="text-black dark:text-muted-foreground text-xs sm:text-sm leading-relaxed mb-5 sm:mb-6 flex-1">
         {desc}
       </p>
       <div className="pt-4 sm:pt-6 border-t border-border mt-auto">

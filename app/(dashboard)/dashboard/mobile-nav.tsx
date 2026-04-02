@@ -78,8 +78,10 @@ export default function MobileNav({ session }: { session: Session | null }) {
       `}</style>
       
       {/* Mobile Header - Refined */}
-      <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center md:hidden h-[64px] transition-colors duration-300">
-         <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center md:hidden h-[64px] transition-colors duration-300 relative">
+         
+         {/* Left Side: Menu Trigger */}
+         <div className="flex items-center z-10">
             {/* Modern Menu Trigger */}
             <button 
               onClick={toggleMenu}
@@ -87,57 +89,63 @@ export default function MobileNav({ session }: { session: Session | null }) {
             >
                <Bars3BottomLeftIcon className="w-5 h-5" />
             </button>
-             
-             <div className="flex items-center gap-3">
-               <Logo size="sm" />
-               <ThemeToggle />
-             </div>
          </div>
 
-         {/* Interactive Profile Icon */}
-         <div className="relative" ref={profileRef}>
-            <button 
-               onClick={toggleProfile}
-               className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 ring-2 ring-background active:scale-95 transition-transform"
-            >
-               {session?.user?.name?.[0] || "U"}
-            </button>
+         {/* Center: Logo (Absolutely positioned for perfect visual centering) */}
+         <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center z-10">
+            <Logo size="md" />
+         </div>
 
-            {/* Profile Dropdown */}
-            {isProfileOpen && (
-               <>
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-                     <div className="p-3 border-b border-border">
-                        <p className="font-bold text-foreground text-sm truncate">{session?.user?.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
+         {/* Right Side: Theme Toggle + Interactive Profile Icon */}
+         <div className="flex items-center gap-2 z-10">
+            <div className="scale-[0.8] origin-right">
+               <ThemeToggle />
+            </div>
+
+            <div className="relative" ref={profileRef}>
+               <button 
+                  onClick={toggleProfile}
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-md shadow-indigo-500/20 ring-2 ring-background active:scale-95 transition-transform shrink-0"
+               >
+                  {session?.user?.name?.[0] || "U"}
+               </button>
+
+               {/* Profile Dropdown */}
+               {isProfileOpen && (
+                  <>
+                     <div className="absolute right-0 top-full mt-2 w-56 bg-card rounded-xl shadow-xl border border-border z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                        <div className="p-3 border-b border-border">
+                           <p className="font-bold text-foreground text-sm truncate">{session?.user?.name}</p>
+                           <p className="text-xs text-muted-foreground truncate">{session?.user?.email}</p>
+                        </div>
+                        <div className="p-2 space-y-1">
+                           <Link 
+                              href="/dashboard/profile" 
+                              onClick={() => setIsProfileOpen(false)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
+                           >
+                              <UserIcon className="w-4 h-4"/> My Profile
+                           </Link>
+                           <Link 
+                              href="/dashboard/settings" 
+                              onClick={() => setIsProfileOpen(false)}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
+                           >
+                              <Cog6ToothIcon className="w-4 h-4"/> Settings
+                           </Link>
+                        </div>
+                        <div className="p-2 border-t border-border">
+                           <button 
+                              onClick={() => signOut({ callbackUrl: "/" })}
+                              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                           >
+                              <ArrowLeftStartOnRectangleIcon className="w-4 h-4"/> Sign Out
+                           </button>
+                        </div>
                      </div>
-                     <div className="p-2 space-y-1">
-                        <Link 
-                           href="/dashboard/profile" 
-                           onClick={() => setIsProfileOpen(false)}
-                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                        >
-                           <UserIcon className="w-4 h-4"/> My Profile
-                        </Link>
-                        <Link 
-                           href="/dashboard/settings" 
-                           onClick={() => setIsProfileOpen(false)}
-                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-foreground hover:bg-muted rounded-lg transition-colors"
-                        >
-                           <Cog6ToothIcon className="w-4 h-4"/> Settings
-                        </Link>
-                     </div>
-                     <div className="p-2 border-t border-border">
-                        <button 
-                           onClick={() => signOut({ callbackUrl: "/" })}
-                           className="flex items-center gap-2 w-full px-3 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                        >
-                           <ArrowLeftStartOnRectangleIcon className="w-4 h-4"/> Sign Out
-                        </button>
-                     </div>
-                  </div>
-               </>
-            )}
+                  </>
+               )}
+            </div>
          </div>
       </header>
 
@@ -155,12 +163,13 @@ export default function MobileNav({ session }: { session: Session | null }) {
              <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
                 <div className="px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Platform</div>
                 <MobileNavItem href="/dashboard/welcome" icon={<GlobeAltIcon className="w-5 h-5"/>} label="Explorer" pathname={pathname} close={closeMenu} color="blue" />
-                <MobileNavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Overview" pathname={pathname} close={closeMenu} color="gray" />
+                <MobileNavItem href="/dashboard" icon={<HomeIcon className="w-5 h-5"/>} label="Dashboard" pathname={pathname} close={closeMenu} color="gray" />
+                <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="My Wallet" pathname={pathname} close={closeMenu} color="emerald" />
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Growth</div>
                 <MobileNavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" pathname={pathname} close={closeMenu} color="indigo" />
                 <MobileNavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier System" pathname={pathname} close={closeMenu} color="yellow" />
-                <MobileNavItem href="/dashboard/referrals" icon={<UserIcon className="w-5 h-5"/>} label="Partners" pathname={pathname} close={closeMenu} color="purple" />
+                <MobileNavItem href="/dashboard/referrals" icon={<UserIcon className="w-5 h-5"/>} label="Partner Program" pathname={pathname} close={closeMenu} color="purple" />
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Finance</div>
                 <MobileNavItem href="/dashboard/pools/daily-earning" icon={<BoltIcon className="w-5 h-5"/>} label="Daily Earning Pool" pathname={pathname} close={closeMenu} color="teal" />
@@ -168,7 +177,6 @@ export default function MobileNav({ session }: { session: Session | null }) {
                 <MobileNavItem href="/dashboard/surveys" icon={<ClipboardDocumentCheckIcon className="w-5 h-5"/>} label="Surveys" pathname={pathname} close={closeMenu} color="purple" />
                 <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
                 <MobileNavItem href="/dashboard/mudarabah" icon={<ChartPieIcon className="w-5 h-5"/>} label="Mudarabah Pools" pathname={pathname} close={closeMenu} color="emerald" />
-                <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="My Wallet" pathname={pathname} close={closeMenu} color="emerald" />
                 
                  <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Settings</div>
                  <MobileNavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="Profile" pathname={pathname} close={closeMenu} color="gray" />

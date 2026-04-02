@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma"
 import { DailyPoolsAdminClient } from "./DailyPoolsAdminClient"
+import { SparklesIcon } from "@heroicons/react/24/outline"
 
 export const metadata = {
-  title: "Daily Earnings Pools | Admin Portal",
+  title: "Daily Earning Pools | Admin Portal",
 }
 
 export default async function DailyPoolsAdminPage() {
@@ -12,7 +13,8 @@ export default async function DailyPoolsAdminPage() {
                 select: {
                     name: true,
                     email: true,
-                    memberId: true
+                    memberId: true,
+                    image: true,
                 }
             }
         },
@@ -20,11 +22,18 @@ export default async function DailyPoolsAdminPage() {
     })
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-gray-900 dark:text-white">Daily Earnings Pool Management</h1>
-                    <p className="text-gray-500 dark:text-gray-400 font-medium">Monitor all user pools, earnings, and expiry dates.</p>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                        Daily Earning Pools
+                        <span className="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 text-xs font-bold px-2 py-1 rounded-md">
+                            Live System
+                        </span>
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium max-w-2xl text-sm">
+                        Monitor active investments, track 1% daily yield distributions, and manage user lock periods across the entire platform ecosystem.
+                    </p>
                 </div>
             </div>
 

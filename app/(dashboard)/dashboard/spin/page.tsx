@@ -11,6 +11,7 @@ import { ClockIcon } from "@heroicons/react/24/outline"
 
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
 import { cookies } from "next/headers"
+import { motion } from "framer-motion"
 
 export default async function SpinPage() {
   const session = await auth()
@@ -94,138 +95,153 @@ export default async function SpinPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-3 md:p-8 space-y-6 md:space-y-8 pb-20">
-       {/* Premium Header */}
-       <div className="relative py-4 sm:py-5 px-5 sm:px-7 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 rounded-2xl text-white shadow-xl overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
+    <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8 md:space-y-12 pb-32 select-none">
+       {/* ═══ PREMIUM HEADER ═══ */}
+       <div className="relative py-8 md:py-12 px-8 md:px-12 bg-slate-900 rounded-[3rem] text-white shadow-2xl overflow-hidden border border-white/5">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent animate-pulse" />
+          <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.1),transparent_70%)]" />
+          <div 
+            className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")` }}
           />
-          <div className="absolute -top-6 -right-6 w-28 h-28 bg-yellow-500/12 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-purple-500/12 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-[0.18em] border border-white/10 bg-white/8 text-yellow-300/80 mb-1.5">
-                <SparklesIcon className="w-2.5 h-2.5" />
-                Daily Rewards
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.25em] bg-white/10 border border-white/10 text-amber-400">
+                <SparklesIcon className="w-3.5 h-3.5 animate-pulse" />
+                Exclusive Portal
               </div>
-              <h1 className="text-sm sm:text-base font-bold tracking-tight leading-tight mb-0.5">
-                Spin &amp; Win
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic italic-bold">
+                DAILY <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-indigo-100">FORTUNE</span>
               </h1>
-              <p className="text-white/40 text-[10px] max-w-xs leading-relaxed">
-                Free every <span className="text-white/60 font-semibold">{spinSettings.freeSpinCooldownHours}h</span> · Premium spins <span className="text-yellow-300/80 font-semibold">daily</span>
+              <p className="text-slate-400 text-sm md:text-lg max-w-xl font-medium leading-relaxed">
+                Unlock potential rewards every <span className="text-white font-bold">{spinSettings.freeSpinCooldownHours}h</span>. Upgrade to <span className="text-amber-500 font-bold">Premium</span> for daily high-tier opportunities.
               </p>
             </div>
-            <div className="shrink-0 hidden sm:flex w-10 h-10 rounded-xl bg-white/8 border border-white/10 items-center justify-center">
-              <SparklesIcon className="w-4 h-4 text-yellow-300" />
+            
+            <div className="flex -space-x-4">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center rotate-12 group-hover:rotate-0 transition-transform">
+                        <StarIcon className={`w-8 h-8 ${i === 2 ? 'text-amber-500' : 'text-slate-600'}`} />
+                    </div>
+                ))}
             </div>
           </div>
        </div>
 
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-           {/* Main Wheel Area */}
-           <div className="lg:col-span-2 bg-card rounded-3xl shadow-xl border border-border overflow-hidden min-h-[600px] flex flex-col">
-               <Tabs defaultValue="free" className="w-full flex-1 flex flex-col">
-                   {/* Tabs Switcher */}
-                   <div className="bg-secondary/80 border-b border-border p-2 flex justify-center backdrop-blur-sm sticky top-0 z-10 text-sm md:text-base">
-                       <TabsList className="grid w-full max-w-md grid-cols-2 bg-card rounded-xl shadow-sm border border-border p-1 h-auto">
-                           <TabsTrigger value="free" className="py-2 md:py-3 rounded-lg data-[state=active]:bg-indigo-50 dark:data-[state=active]:bg-indigo-900/50 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-300 font-bold text-xs md:text-base transition-all text-muted-foreground">
-                               Free Spin ({spinSettings.freeSpinCooldownHours}h)
-                           </TabsTrigger>
-                           <TabsTrigger value="premium" className="py-2 md:py-3 rounded-lg data-[state=active]:bg-amber-50 dark:data-[state=active]:bg-amber-900/40 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-300 font-bold text-xs md:text-base flex items-center justify-center gap-2 transition-all text-muted-foreground">
-                               <StarIcon className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
-                               Premium Daily
-                           </TabsTrigger>
-                       </TabsList>
-                   </div>
-                   
-                   {/* Free Spin Tab */}
-                   <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-2 md:p-8 bg-gradient-to-b from-card to-secondary outline-none animate-in fade-in zoom-in-95 duration-300">
-                       <div className="mb-6 flex flex-col items-center gap-2">
-                            {freeCooldownDate ? (
-                                <div className="flex flex-col items-center gap-1">
-                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Next Free Spin</span>
-                                    <div className="animate-bounce">
-                                        <CountdownTimer targetDate={freeCooldownDate} />
+       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+           {/* ═══ MAIN WHEEL AREA ═══ */}
+           <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-[3.5rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 overflow-hidden flex flex-col relative transition-all hover:shadow-indigo-500/5">
+                <Tabs defaultValue="free" className="w-full flex-1 flex flex-col">
+                    {/* Premium Styled Tabs Switcher */}
+                    <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-4 md:p-6 backdrop-blur-xl sticky top-0 z-20">
+                        <TabsList className="grid w-full max-w-lg grid-cols-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-[2rem] p-1.5 h-auto">
+                            <TabsTrigger value="free" className="py-4 md:py-5 rounded-[1.5rem] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-lg font-black text-sm md:text-base tracking-tight transition-all text-slate-500 uppercase">
+                                Standard Wheel
+                            </TabsTrigger>
+                            <TabsTrigger value="premium" className="py-4 md:py-5 rounded-[1.5rem] data-[state=active]:bg-[#0c0c0c] dark:data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-500 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-lg font-black text-sm md:text-base tracking-tight flex items-center justify-center gap-2 transition-all text-slate-500 uppercase">
+                                <StarIcon className="w-5 h-5" />
+                                Premium Daily
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
+                    
+                    {/* Free Spin Tab Content */}
+                    <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-6 md:p-16 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[600px] md:min-h-[800px]">
+                        <div className="mb-10 text-center">
+                             {freeCooldownDate ? (
+                                 <div className="flex flex-col items-center gap-3">
+                                     <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Next Cycle Available In</span>
+                                     <CountdownTimer targetDate={freeCooldownDate} />
+                                 </div>
+                             ) : (
+                                 <div className="px-8 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-200/50 dark:border-emerald-500/20 shadow-sm animate-pulse">
+                                     Cycle Ready to Execute
+                                 </div>
+                             )}
+                        </div>
+                        
+                        <SpinWheel 
+                            rewards={freeRewards} 
+                            onSpin={executeSpin.bind(null, "FREE")} 
+                            isLocked={false}
+                            cooldown={freeCooldownDate ? 1 : 0} 
+                            type="FREE"
+                        />
+                    </TabsContent>
+
+                    {/* Premium Spin Tab Content */}
+                    <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-6 md:p-16 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[600px] md:min-h-[800px] relative bg-gradient-to-b from-amber-50/50 via-transparent to-transparent dark:from-amber-950/20">
+                        {/* High-End Locked Overlay */}
+                        {!user.isActiveMember && (
+                            <div className="absolute inset-0 z-40 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl flex flex-col items-center justify-center p-8">
+                                <motion.div 
+                                    initial={{ scale: 0.9, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    className="bg-white dark:bg-slate-900 p-10 md:p-16 rounded-[3.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.15)] max-w-md w-full border border-slate-100 dark:border-slate-800 text-center"
+                                >
+                                    <div className="w-24 h-24 bg-amber-500/10 dark:bg-amber-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-amber-500/20">
+                                        <LockClosedIcon className="w-12 h-12 text-amber-500" />
                                     </div>
-                                </div>
-                            ) : (
-                                <span className="px-4 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold uppercase tracking-wide border border-green-200 dark:border-green-800/50">
-                                    Ready to Spin
-                                </span>
-                            )}
-                       </div>
-                       
-                       <SpinWheel 
-                           rewards={freeRewards} 
-                           onSpin={executeSpin.bind(null, "FREE")} 
-                           cooldown={freeCooldownDate ? 1 : 0} 
-                           type="FREE"
-                       />
-                   </TabsContent>
+                                    <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter mb-4 italic uppercase">Premium Locked</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 mb-10 text-lg leading-relaxed">Secure your membership for <span className="text-slate-900 dark:text-white font-black">$1.00</span> to unlock elite status prizes.</p>
+                                    <a href="/dashboard/wallet" className="inline-flex items-center justify-center w-full px-10 py-5 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-3xl shadow-xl shadow-amber-500/20 transition-all active:scale-95 uppercase tracking-tighter">
+                                        Activate Elite Membership
+                                    </a>
+                                </motion.div>
+                            </div>
+                        )}
 
-                   {/* Premium Spin Tab */}
-                   <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-2 md:p-8 outline-none animate-in fade-in zoom-in-95 duration-300 relative bg-gradient-to-b from-amber-50 to-secondary dark:from-amber-950/30 dark:to-gray-950">
-                       {/* Premium Info Overlay if locked */}
-                       {!user.isActiveMember && (
-                           <div className="absolute inset-0 z-40 bg-background/80 backdrop-blur-md flex flex-col items-center justify-center text-center p-6">
-                               <div className="bg-card p-8 rounded-3xl shadow-xl max-w-sm border-2 border-yellow-200 dark:border-yellow-800/50">
-                               <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
-                                   <LockClosedIcon className="w-8 h-8 text-yellow-600 dark:text-yellow-400" />
-                               </div>
-                                   <h3 className="text-2xl font-black text-foreground mb-2">Premium Locked</h3>
-                                   <p className="text-muted-foreground mb-6">Deposit just <span className="text-foreground font-bold">$1.00</span> to unlock higher rewards and exclusive prizes!</p>
-                                   <a href="/dashboard/wallet" className="inline-block px-6 py-3 bg-yellow-500 text-gray-900 font-bold rounded-xl shadow-lg hover:bg-yellow-400 transition-colors cursor-pointer">
-                                       Unlock Now
-                                   </a>
-                               </div>
-                           </div>
-                       )}
+                        <div className="mb-10 text-center relative z-0">
+                             {premiumCooldownDate ? (
+                                 <div className="flex flex-col items-center gap-3">
+                                     <span className="text-[10px] font-black text-amber-500 dark:text-amber-500 uppercase tracking-[0.3em]">Premium Cooldown Active</span>
+                                     <CountdownTimer targetDate={premiumCooldownDate} />
+                                 </div>
+                             ) : (
+                                 <div className="px-8 py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border border-amber-500/20 shadow-sm">
+                                     <SparklesIcon className="w-4 h-4 animate-spin-slow" />
+                                     {user.premiumBonusSpins > 0 ? `${user.premiumBonusSpins} Bonus Cycles Ready` : "Elite Cycle Ready"}
+                                 </div>
+                             )}
+                        </div>
 
-                       <div className="mb-6 flex flex-col items-center gap-2 relative z-0">
-                            {premiumCooldownDate ? (
-                                <div className="flex flex-col items-center gap-1">
-                                    <span className="text-xs font-bold text-amber-500 dark:text-amber-400 uppercase tracking-widest">Next Daily Spin</span>
-                                    <CountdownTimer targetDate={premiumCooldownDate} />
-                                </div>
-                            ) : (
-                                <div className="px-4 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-2 border border-amber-200 dark:border-amber-700/50">
-                                    <StarIcon className="w-3 h-3" />
-                                    {user.premiumBonusSpins > 0 ? `${user.premiumBonusSpins} Bonus Spins` : "Daily Spin Ready"}
-                                </div>
-                            )}
-                       </div>
-
-                       <SpinWheel 
-                           rewards={premiumRewards} 
-                           onSpin={executeSpin.bind(null, "PREMIUM")}
-                           isLocked={!user.isActiveMember}
-                           cooldown={premiumCooldownDate && user.premiumBonusSpins <= 0 ? 1 : 0}
-                           type="PREMIUM"
-                       />
-                   </TabsContent>
-               </Tabs>
+                        <SpinWheel 
+                            rewards={premiumRewards} 
+                            onSpin={executeSpin.bind(null, "PREMIUM")}
+                            isLocked={!user.isActiveMember}
+                            cooldown={premiumCooldownDate && user.premiumBonusSpins <= 0 ? 1 : 0}
+                            type="PREMIUM"
+                        />
+                    </TabsContent>
+                </Tabs>
            </div>
 
-           {/* Sidebar: History & Stats */}
-           <div className="space-y-6">
-                <div className="bg-card rounded-3xl shadow-lg border border-border p-6">
-                    <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                        <ClockIcon className="w-5 h-5 text-muted-foreground" />
-                        Winning History
-                    </h3>
+           {/* ═══ SIDEBAR: HISTORY & STATS ═══ */}
+           <div className="lg:col-span-4 space-y-10">
+                <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 p-10 transition-all hover:shadow-indigo-500/5 group">
+                    <div className="flex items-center justify-between mb-8">
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase flex items-center gap-3">
+                            <ClockIcon className="w-7 h-7 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                            Fortunes
+                        </h3>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Recent</span>
+                    </div>
                     <SpinHistory userId={user.id} />
                 </div>
                 
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden">
-                    <div className="relative z-10">
-                        <h3 className="font-bold text-lg mb-2">Did you know?</h3>
-                        <p className="text-indigo-100 text-sm opacity-90">
-                            Premium members get 2x better odds on top-tier rewards. Unlock your potential today!
+                <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 rounded-[3rem] shadow-[0_30px_60px_rgba(79,70,229,0.2)] p-10 text-white relative overflow-hidden group">
+                    <div className="relative z-10 space-y-4">
+                        <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
+                            <SparklesIcon className="w-7 h-7 text-white" />
+                        </div>
+                        <h3 className="font-black text-3xl tracking-tighter uppercase leading-none">Elevate Your Strategy</h3>
+                        <p className="text-indigo-100/80 text-sm md:text-base leading-relaxed font-medium">
+                            Premium partners achieve up to <span className="text-white font-black underline decoration-amber-500 underline-offset-4">2x higher</span> win rates on Arnold Token rewards.
                         </p>
                     </div>
-                    <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
+                    <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white opacity-5 rounded-full blur-[60px] group-hover:opacity-10 transition-opacity"></div>
                 </div>
            </div>
        </div>

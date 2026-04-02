@@ -41,14 +41,14 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
 
-    // 3. Execute the payload: Re-inject Principal + Accumulated Profit
-    const totalPayout = investment.amount + investment.profitEarned
+    // 3. Execute the payload: Return Principal only (Profits were deposited daily)
+    const totalPayout = investment.amount
 
     await prisma.$transaction(async (tx) => {
-      // Return funds + profits to user wallet
+      // Return principal to user dailyEarningWallet
       await tx.user.update({
         where: { id: session.user.id },
-        data: { balance: { increment: totalPayout } }
+        data: { dailyEarningWallet: { increment: totalPayout } }
       })
 
       // Mark the investment record as Complete
@@ -62,9 +62,9 @@ export async function POST(req: Request) {
         data: {
           userId: session.user.id,
           amount: totalPayout,
-          type: "REWARD", // Or "WITHDRAWAL" but typically system returns are REWARD/INCOME
+          type: "REWARD", 
           status: "COMPLETED",
-          description: `Daily Earning Principal + Profit Payout (30 Days Complete)`
+          description: `Daily Earning Principal Payout (30 Days Complete)`
         }
       })
     })

@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
 import { TIER_COMMISSIONS, TIER_WITHDRAWAL_LIMITS, TIER_REWARDS } from "@/lib/mlm"
-import { cn } from "@/lib/utils"
+import { cn, calculateTierProgress, TIER_ORDER } from "@/lib/utils"
 
 const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string, accent: string }> = {
     NEWBIE: { badge: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300", border: "border-gray-200 dark:border-gray-700", text: "text-gray-900 dark:text-gray-100", icon: "🚀", bg: "bg-white dark:bg-gray-900", ring: "ring-gray-100 dark:ring-gray-800", accent: "bg-gray-400 dark:bg-gray-500" },
@@ -23,17 +23,18 @@ const TIER_STYLES: Record<string, { badge: string, border: string, text: string,
     EMERALD: { badge: "bg-emerald-50 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300", border: "border-emerald-200 dark:border-emerald-800/60", text: "text-emerald-900 dark:text-emerald-300", icon: "✳️", bg: "bg-white dark:bg-gray-900", ring: "ring-emerald-100 dark:ring-emerald-900/40", accent: "bg-emerald-500 dark:bg-emerald-400" },
 }
 
-const TIERS = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"]
+const TIERS = TIER_ORDER;
 
 type TierProgressViewProps = {
   user: { tier: string; arnBalance: number; balance: number }
-  stats: { teamSize: number }
+  stats: { teamSize: number; totalSignups: number }
   tierConfig: Record<string, { arn: number, directs: number }>
   referralTree: any[]
 }
 
 export default function TierProgressView({ user, stats, tierConfig, referralTree }: TierProgressViewProps) {
-  const currentTierIndex = TIERS.indexOf(user.tier)
+  const currentTierIndex = TIERS.indexOf((user.tier || "NEWBIE").toUpperCase().trim())
+  const currentTierIndexLocal = currentTierIndex === -1 ? 0 : currentTierIndex;
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
 
   const calcPercent = (current: number, min: number, max: number) => {
@@ -171,31 +172,51 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                 const levels = [commissions.L1, commissions.L2, commissions.L3]
                 const style = TIER_STYLES[tierName]
                 
-                const isCompleted = index < currentTierIndex
-                const isCurrent = index === currentTierIndex
-                const isLocked = index > currentTierIndex
+                const isCompleted = index < currentTierIndexLocal
+                const isCurrent = index === currentTierIndexLocal
+                const isLocked = index > currentTierIndexLocal
                 
+                const nextTierNameInner = TIERS[index + 1]
+                const nextConfigInner = nextTierNameInner ? tierConfig[nextTierNameInner] || { arn: 0, directs: 0 } : { arn: 0, directs: 0 }
+
                 const prevConfig = index > 0 ? tierConfig[TIERS[index - 1]] || { arn: 0, directs: 0 } : { arn: 0, directs: 0 }
                 const baselineArn = prevConfig.arn
                 const baselineDirects = prevConfig.directs
-                const targetArn = config.arn
-                const targetDirects = config.directs
-                const stepArn = Math.max(0, targetArn - baselineArn)
-                const stepDirects = Math.max(0, targetDirects - baselineDirects)
-                const currentArnInStep = Math.max(0, (user.arnBalance || (user.balance * 10)) - baselineArn)
-                const currentDirectsInStep = Math.max(0, stats.teamSize - baselineDirects)
 
-                // ═══ KEY FIX: Only current tier shows real progress ═══
-                // All locked tiers (including the very next one) show 0
-                const pointsProgress = isLocked ? 0 : calcPercent(currentArnInStep, 0, stepArn)
-                const membersProgress = isLocked ? 0 : calcPercent(currentDirectsInStep, 0, stepDirects)
-                const combinedProgress = Math.round(Math.min(pointsProgress, membersProgress))
+                // Calculate current progress using the same utility as Dashboard
+                const { progress: combinedProgress } = calculateTierProgress(
+                    user.tier,
+                    user.arnBalance || 0,
+                    stats.totalSignups || 0,
+                    tierConfig as any
+                )
+
+                // Individual Requirement bars use Step/Delta logic relative to this card's target
+                // For the NEWBIE card (index 0), the baseline is 0 and the target is BRONZE (400)
+                const currentArnInStep = Math.max(0, (user.arnBalance || 0) - baselineArn)
+                const currentDirectsInStep = Math.max(0, (stats.totalSignups || 0) - baselineDirects)
+
+                // Step distance for progress bar (Next - Current)
+                const stepArn = Math.max(1, nextConfigInner.arn - baselineArn)
+                const stepDirects = Math.max(1, nextConfigInner.directs - baselineDirects)
+
+                const pointsProgress = isCompleted ? 100 : isLocked ? 0 : Math.min((currentArnInStep / stepArn) * 100, 100)
+                const membersProgress = isCompleted ? 100 : isLocked ? 0 : Math.min((currentDirectsInStep / stepDirects) * 100, 100)
 
                 const isFinal = index === TIERS.length - 1
 
-                // Display values — locked tiers show 0
-                const displayArn = isLocked ? 0 : Math.round(user.arnBalance || (user.balance * 10))
-                const displayTeam = isLocked ? 0 : currentDirectsInStep
+                // Display values — Cap at target for a clean "Complete" state
+                const rawArn = Math.round(user.arnBalance || 0)
+                const rawTeam = Math.round(stats.totalSignups || 0)
+
+                const displayArn = isCompleted ? nextConfigInner.arn : isLocked ? 0 : Math.min(rawArn, nextConfigInner.arn)
+                const displayTeam = isCompleted ? nextConfigInner.directs : isLocked ? 0 : Math.min(rawTeam, nextConfigInner.directs)
+                
+                const displayTargetArn = nextConfigInner.arn
+                const displayTargetTeam = nextConfigInner.directs
+
+                const isArnComplete = isCompleted || (rawArn >= nextConfigInner.arn && nextConfigInner.arn > 0)
+                const isTeamComplete = isCompleted || (rawTeam >= nextConfigInner.directs && nextConfigInner.directs > 0)
 
                 return (
                    <motion.div 
@@ -284,9 +305,10 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                 <div>
                                     <div className="flex justify-between items-end mb-2">
                                         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Required ARN</span>
-                                        <span className={`text-xs font-bold ${isCurrent ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                        <span className={`text-xs font-bold ${isArnComplete ? 'text-emerald-600 dark:text-emerald-400' : isCurrent ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
                                             {displayArn.toLocaleString()}
-                                            <span className="text-gray-400 dark:text-gray-600 font-normal"> / {targetArn.toLocaleString()}</span>
+                                            <span className="text-gray-400 dark:text-gray-600 font-normal"> / {displayTargetArn.toLocaleString()}</span>
+                                            {isArnComplete && !isLocked && !isCompleted && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-md">Complete</span>}
                                         </span>
                                     </div>
                                     <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -297,9 +319,10 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                 <div>
                                     <div className="flex justify-between items-end mb-2">
                                         <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Required Team Size</span>
-                                        <span className={`text-xs font-bold ${isCurrent ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                                        <span className={`text-xs font-bold ${isTeamComplete ? 'text-emerald-600 dark:text-emerald-400' : isCurrent ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-400'}`}>
                                             {displayTeam.toLocaleString()}
-                                            <span className="text-gray-400 dark:text-gray-600 font-normal"> / {targetDirects.toLocaleString()}</span>
+                                            <span className="text-gray-400 dark:text-gray-600 font-normal"> / {displayTargetTeam.toLocaleString()}</span>
+                                            {isTeamComplete && !isLocked && !isCompleted && <span className="ml-1.5 text-[9px] px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-md">Complete</span>}
                                         </span>
                                     </div>
                                     <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">

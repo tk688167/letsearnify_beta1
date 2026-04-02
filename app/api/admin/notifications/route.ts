@@ -21,39 +21,39 @@ export async function GET() {
     } catch {}
 
     const since = new Date()
-    since.setDate(since.getDate() - 7) // last 7 days
+    since.setDate(since.getDate() - 30) // last 30 days
 
     // Fetch recent events in parallel
     const [pendingMerchantDeposits, pendingWithdrawals, recentSignups, recentUnlocks, pendingTaskApprovals] = await Promise.all([
       prisma.merchantTransaction.findMany({
-        where: { status: "PENDING", createdAt: { gte: since } },
+        where: { createdAt: { gte: since } }, // Get all in range for detailed panel
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
-        take: 20
+        take: 50
       }),
       prisma.transaction.findMany({
-        where: { type: "WITHDRAWAL", status: "PENDING", createdAt: { gte: since } },
+        where: { type: "WITHDRAWAL", createdAt: { gte: since } },
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
-        take: 10
+        take: 50
       }),
       prisma.user.findMany({
         where: { createdAt: { gte: since } },
         select: { id: true, name: true, email: true, createdAt: true },
         orderBy: { createdAt: "desc" },
-        take: 10
+        take: 50
       }),
       prisma.mLMLog.findMany({
         where: { type: "ACCOUNT_UNLOCK", createdAt: { gte: since } },
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
-        take: 10
+        take: 50
       }),
       prisma.taskCompletion.findMany({
-        where: { status: "PENDING", createdAt: { gte: since } },
+        where: { createdAt: { gte: since } },
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
-        take: 10
+        take: 50
       })
     ])
 
@@ -132,8 +132,8 @@ export async function GET() {
     // Sort by date (newest first)
     notifications.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
 
-    // Take top 30
-    const trimmed = notifications.slice(0, 30)
+    // Increase returned count for detailed view
+    const trimmed = notifications.slice(0, 100)
     const unreadCount = trimmed.filter(n => !n.read).length
 
     return NextResponse.json({ notifications: trimmed, unreadCount })
