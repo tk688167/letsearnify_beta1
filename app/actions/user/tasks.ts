@@ -130,7 +130,7 @@ export async function completeTask(taskId: string, proof: string) {
         }
         
         revalidatePath("/dashboard/tasks")
-        revalidatePath("/admin/tasks/approvals")
+        revalidatePath("/admin/tasks")
         return {
             success: true,
             message: `Task re-submitted! We will review your proof again.`,

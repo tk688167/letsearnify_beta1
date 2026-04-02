@@ -97,7 +97,7 @@ export default async function SpinPage() {
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8 md:space-y-12 pb-32 select-none">
        {/* ═══ PREMIUM HEADER ═══ */}
-       <div className="relative py-8 md:py-12 px-8 md:px-12 bg-slate-900 rounded-[3rem] text-white shadow-2xl overflow-hidden border border-white/5">
+       <div className="relative py-5 md:py-8 px-6 md:px-12 bg-slate-900 rounded-[2rem] text-white shadow-2xl overflow-hidden border border-white/5 mx-2 md:mx-0">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent animate-pulse" />
           <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.1),transparent_70%)]" />
@@ -106,24 +106,24 @@ export default async function SpinPage() {
             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")` }}
           />
 
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.25em] bg-white/10 border border-white/10 text-amber-400">
-                <SparklesIcon className="w-3.5 h-3.5 animate-pulse" />
-                Exclusive Portal
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-white/10 border border-white/10 text-amber-400">
+                <SparklesIcon className="w-3 h-3" />
+                Daily Portal
               </div>
-              <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic italic-bold">
+              <h1 className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic">
                 DAILY <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-indigo-100">FORTUNE</span>
               </h1>
-              <p className="text-slate-400 text-sm md:text-lg max-w-xl font-medium leading-relaxed">
-                Unlock potential rewards every <span className="text-white font-bold">{spinSettings.freeSpinCooldownHours}h</span>. Upgrade to <span className="text-amber-500 font-bold">Premium</span> for daily high-tier opportunities.
+              <p className="text-slate-400 text-[11px] md:text-sm max-w-lg font-medium leading-relaxed">
+                Win daily rewards every <span className="text-white font-bold">{spinSettings.freeSpinCooldownHours}h</span>.
               </p>
             </div>
             
-            <div className="flex -space-x-4">
+            <div className="flex -space-x-3 opacity-60 md:opacity-100">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center rotate-12 group-hover:rotate-0 transition-transform">
-                        <StarIcon className={`w-8 h-8 ${i === 2 ? 'text-amber-500' : 'text-slate-600'}`} />
+                    <div key={i} className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center rotate-12">
+                        <StarIcon className={`w-5 h-5 md:w-7 md:h-7 ${i === 2 ? 'text-amber-500' : 'text-slate-600'}`} />
                     </div>
                 ))}
             </div>
@@ -135,13 +135,13 @@ export default async function SpinPage() {
            <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-[3.5rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 overflow-hidden flex flex-col relative transition-all hover:shadow-indigo-500/5">
                 <Tabs defaultValue="free" className="w-full flex-1 flex flex-col">
                     {/* Premium Styled Tabs Switcher */}
-                    <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-4 md:p-6 backdrop-blur-xl sticky top-0 z-20">
-                        <TabsList className="grid w-full max-w-lg grid-cols-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-[2rem] p-1.5 h-auto">
-                            <TabsTrigger value="free" className="py-4 md:py-5 rounded-[1.5rem] data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-lg font-black text-sm md:text-base tracking-tight transition-all text-slate-500 uppercase">
+                    <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-3 md:p-6 backdrop-blur-xl sticky top-0 z-20">
+                        <TabsList className="grid w-full max-w-sm grid-cols-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl p-1 h-auto">
+                            <TabsTrigger value="free" className="py-3 md:py-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md font-black text-[11px] md:text-xs tracking-tight transition-all text-slate-500 uppercase">
                                 Standard Wheel
                             </TabsTrigger>
-                            <TabsTrigger value="premium" className="py-4 md:py-5 rounded-[1.5rem] data-[state=active]:bg-[#0c0c0c] dark:data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-500 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-lg font-black text-sm md:text-base tracking-tight flex items-center justify-center gap-2 transition-all text-slate-500 uppercase">
-                                <StarIcon className="w-5 h-5" />
+                            <TabsTrigger value="premium" className="py-3 md:py-4 rounded-xl data-[state=active]:bg-[#0c0c0c] dark:data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-500 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-md font-black text-[11px] md:text-xs tracking-tight flex items-center justify-center gap-1.5 transition-all text-slate-500 uppercase">
+                                <StarIcon className="w-4 h-4" />
                                 Premium Daily
                             </TabsTrigger>
                         </TabsList>

@@ -26,13 +26,19 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     const segmentAngle = 360 / rewards.length
     const isCoolingDown = (!!cooldown && cooldown > 0) || localCooldown
 
-    // Dynamic Font Size Calculation
-    const getFontSize = () => {
+    // Dynamic Font Size Calculation — Optimized for 10-segment readability
+    const getFontSize = (label: string) => {
         const count = rewards.length
-        if (count <= 6) return "4.2"
-        if (count <= 10) return "3.4"
-        if (count <= 14) return "2.8"
-        return "2.2"
+        let baseSize = 4.0
+        if (count <= 6) baseSize = 5.0
+        else if (count <= 10) baseSize = 4.0
+        else if (count <= 14) baseSize = 3.4
+        else baseSize = 3.0
+
+        // Balanced scaling for long strings (e.g. "SURPRISE BONUS")
+        if (label.length > 15) return (baseSize * 0.75).toString()
+        if (label.length > 10) return (baseSize * 0.85).toString()
+        return baseSize.toString()
     }
 
     const triggerCelebration = (reward: SpinReward) => {
@@ -90,9 +96,10 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
             }
 
             const wonReward = response.reward
-            const index = rewards.findIndex(r => r.label === wonReward.label)
-
-            const targetRotation = 360 * 6 + (360 - (index * segmentAngle) - (segmentAngle / 2))
+            const winIndex = rewards.findIndex(r => r.label === wonReward.label)
+            
+            // Center-Top Pointer Alignment (270 degrees)
+            const targetRotation = 360 * 6 + (360 - (winIndex * segmentAngle) - (segmentAngle / 2))
 
             await controls.start({
                 rotate: targetRotation,
@@ -116,13 +123,13 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     return (
         <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 relative select-none">
             {/* ═══ THE WHEEL ═══ */}
-            <div className="relative group">
-                {/* Pointer - Stylized */}
-                <div className="absolute -top-5 md:-top-7 left-1/2 -translate-x-1/2 z-30 drop-shadow-2xl">
-                    <div className={`w-8 h-10 md:w-10 md:h-12 relative flex flex-col items-center`}>
-                        <div className={`w-full h-full ${type === "PREMIUM" ? "bg-amber-500" : "bg-indigo-600"} clip-pointer shadow-xl`}
-                            style={{ clipPath: 'polygon(0% 0%, 100% 0%, 50% 100%)' }} />
-                        <div className="absolute -top-1 w-full h-2 bg-black/20 blur-sm rounded-full" />
+            <div className={`relative group transition-all duration-700 ${isLocked ? 'grayscale opacity-50' : 'grayscale-0 opacity-100'}`}>
+                {/* Pointer - Precisely Centered Top (Needle Tipped) */}
+                <div className="absolute -top-6 md:-top-9 left-1/2 -translate-x-1/2 z-30 drop-shadow-[0_8px_8px_rgba(0,0,0,0.3)]">
+                    <div className="w-5 h-9 md:w-7 md:h-12 relative flex flex-col items-center">
+                        <div className={`w-full h-full ${type === "PREMIUM" ? "bg-amber-500" : "bg-indigo-600"} shadow-xl shadow-black/20`}
+                            style={{ clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)' }} />
+                        <div className="absolute -top-0.5 w-full h-1.5 bg-black/10 blur-[1px] rounded-full" />
                     </div>
                 </div>
 
@@ -130,14 +137,19 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                 <div className={`absolute -inset-4 md:-inset-6 rounded-full blur-2xl opacity-20 transition-all duration-1000 ${isSpinning ? 'scale-110 opacity-40 animate-pulse' : 'scale-100'
                     } ${type === "PREMIUM" ? 'bg-amber-400' : 'bg-indigo-400'}`} />
 
-                {/* Main Wheel Container */}
+                {/* Main Wheel Container - Balanced & Symmetrical */}
                 <motion.div
                     ref={wheelRef}
                     animate={controls}
-                    className={`w-72 h-72 sm:w-88 sm:h-88 md:w-[28rem] md:h-[28rem] rounded-full border-8 md:border-[12px] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden relative ${type === "PREMIUM"
-                            ? "border-[#D97706] bg-[#0c0c0c] ring-4 ring-amber-500/30"
-                            : "border-indigo-600 bg-white dark:bg-slate-900 ring-4 ring-indigo-500/20"
-                        }`}
+                    className={`
+                        w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[420px] md:h-[420px] 
+                        rounded-full border-8 md:border-[12px] shadow-[0_0_100px_rgba(0,0,0,0.35)] overflow-hidden relative 
+                        transition-transform duration-1000 origin-center
+                        ${type === "PREMIUM"
+                            ? "border-[#D97706] bg-[#0c0c0c] ring-4 ring-amber-500/20"
+                            : "border-indigo-600 bg-white dark:bg-slate-900 ring-4 ring-indigo-500/10"
+                        }
+                    `}
                 >
                     <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90">
                         <defs>
@@ -185,15 +197,15 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                             x="88"
                                             y="50"
                                             fill={reward.textColor || "#fff"}
-                                            fontSize={getFontSize()}
-                                            fontWeight="800"
+                                            fontSize={getFontSize(reward.label)}
+                                            fontWeight="900"
                                             textAnchor="end"
                                             dominantBaseline="middle"
                                             style={{
                                                 pointerEvents: 'none',
                                                 userSelect: 'none',
-                                                letterSpacing: '0.05em',
-                                                filter: 'drop-shadow(0 0.5px 1.5px rgba(0,0,0,0.5))'
+                                                letterSpacing: '0.01em',
+                                                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))'
                                             }}
                                         >
                                             {reward.label.toUpperCase()}
@@ -205,18 +217,17 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                     </svg>
                 </motion.div>
 
-                {/* Center Cap - Super Premium */}
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-24 md:h-24 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center justify-center z-20 border-4 ${type === "PREMIUM"
-                        ? "bg-[#0f0f0f] border-amber-500/80"
-                        : "bg-white dark:bg-slate-900 border-indigo-500/80"
+                {/* Center Cap - Super Premium UI Refined */}
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-18 md:h-18 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.6)] flex items-center justify-center z-20 border-4 ${type === "PREMIUM"
+                        ? "bg-[#080808] border-amber-500 shadow-amber-500/5"
+                        : "bg-white dark:bg-slate-900 border-indigo-600 shadow-indigo-600/5"
                     }`}>
-                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-center text-center ${type === "PREMIUM" ? "text-amber-400" : "text-indigo-600 dark:text-indigo-400"
+                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-start pt-3 md:pt-5 text-center ${type === "PREMIUM" ? "text-amber-500" : "text-indigo-600 dark:text-indigo-400"
                         }`}>
-                        <span className="text-[10px] font-black tracking-[0.2em] opacity-60 uppercase mb-0.5">{type}</span>
-                        <span className="text-sm font-black tracking-tighter scale-y-110">WIN</span>
+                        <span className="text-[14px] md:text-[20px] font-black tracking-widest scale-y-125 leading-none shadow-black/20">WIN</span>
                     </div>
-                    {/* Inner cap ring */}
-                    <div className="absolute inset-2 rounded-full border border-current opacity-10" />
+                    {/* Decorative Ring */}
+                    <div className="absolute inset-1 rounded-full border border-current opacity-5" />
                 </div>
 
                 {/* LOCKED overlay */}

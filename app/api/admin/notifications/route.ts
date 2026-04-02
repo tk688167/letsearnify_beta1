@@ -122,7 +122,7 @@ export async function GET() {
         type: 'task_submission',
         title: "Task Pending Approval",
         description: `${tc.user?.name || 'User'} submitted a task for review`,
-        href: "/admin/tasks/approvals",
+        href: "/admin/tasks?tab=approvals",
         time: formatTimeAgo(tc.createdAt),
         read: new Date(tc.createdAt) < lastReadAt,
         sortDate: tc.createdAt
