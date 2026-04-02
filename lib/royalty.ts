@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma"
 
 export const ROYALTY_POOL_NAME = "ROYALTY";
 
@@ -79,7 +77,7 @@ export async function distributeRoyalty(percentage: number) {
     };
 
     let totalWeight = 0;
-    users.forEach(u => {
+    users.forEach((u: any) => {
         totalWeight += WEIGHTS[u.tier as keyof typeof WEIGHTS] || 0;
     });
 
