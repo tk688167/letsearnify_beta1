@@ -1,31 +1,57 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion, useAnimation, AnimatePresence } from "framer-motion"
 import { SpinReward } from "@/lib/spin-config"
-import { LockClosedIcon } from "@heroicons/react/24/solid"
+import { LockClosedIcon, SparklesIcon } from "@heroicons/react/24/solid"
 import confetti from "canvas-confetti"
+import CountdownTimer from "./CountdownTimer"
 
 interface SpinWheelProps {
     rewards: SpinReward[]
-    onSpin: () => Promise<{ success: boolean, reward?: SpinReward, message?: string }>
+    onSpin: () => Promise<{ success: boolean, reward?: SpinReward, message?: string, nextSpinTime?: number }>
     isLocked?: boolean
-    cooldown?: number
+    cooldownDate?: Date | null
     type: "FREE" | "PREMIUM"
 }
 
-export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }: SpinWheelProps) {
+export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, type }: SpinWheelProps) {
     const [isSpinning, setIsSpinning] = useState(false)
     const [result, setResult] = useState<SpinReward | null>(null)
     const [showCelebration, setShowCelebration] = useState(false)
-    const [localCooldown, setLocalCooldown] = useState(false)
+    const [localNextSpin, setLocalNextSpin] = useState<Date | null>(cooldownDate || null)
     const [error, setError] = useState<string | null>(null)
+    const ObjectWindow = typeof window !== 'undefined' ? window : null
+
     const controls = useAnimation()
     const wheelRef = useRef<HTMLDivElement>(null)
     const rotationRef = useRef(0)
 
     const segmentAngle = 360 / rewards.length
-    const isCoolingDown = (!!cooldown && cooldown > 0) || localCooldown
+
+    // SYNC Backend state with LocalStorage for flawless persistency across navigation
+    useEffect(() => {
+        if (!ObjectWindow) return;
+        const storedTime = localStorage.getItem(`spin_lock_${type}`);
+        
+        let targetTime: number | null = null;
+        if (storedTime) targetTime = parseInt(storedTime, 10);
+        if (cooldownDate && cooldownDate.getTime() > (targetTime || 0)) {
+            targetTime = cooldownDate.getTime();
+        }
+
+        if (targetTime && targetTime > Date.now()) {
+            setLocalNextSpin(new Date(targetTime));
+            localStorage.setItem(`spin_lock_${type}`, targetTime.toString());
+        } else if (targetTime && targetTime <= Date.now()) {
+            setLocalNextSpin(null);
+            localStorage.removeItem(`spin_lock_${type}`);
+        } else {
+            setLocalNextSpin(null);
+        }
+    }, [cooldownDate, type, ObjectWindow]);
+
+    const isCoolingDown = !!localNextSpin && localNextSpin.getTime() > Date.now()
 
     // Dynamic Font Size Calculation — Optimized for 10-segment readability
     const getFontSize = (label: string) => {
@@ -118,7 +144,12 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
             })
 
             setResult(wonReward)
-            setLocalCooldown(true)
+            if (response.nextSpinTime) {
+                setLocalNextSpin(new Date(response.nextSpinTime));
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem(`spin_lock_${type}`, response.nextSpinTime.toString());
+                }
+            }
             triggerCelebration(wonReward)
 
         } catch (e: any) {
@@ -132,7 +163,30 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     const isRealWin = result && result.type !== "TRY_AGAIN" && result.type !== "EMPTY"
 
     return (
-        <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 relative select-none">
+        <div className="flex flex-col items-center justify-center gap-6 sm:gap-10 relative select-none w-full">
+            {/* Embedded Responsive Persistent Header/Timer */}
+            <div className="text-center relative z-0 w-full mb-2">
+                {isCoolingDown && localNextSpin ? (
+                    <div className="flex flex-col items-center gap-3">
+                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${type === "PREMIUM" ? "text-amber-500" : "text-slate-400 dark:text-slate-500"}`}>
+                            {type === "PREMIUM" ? "Premium Cooldown Active" : "Next Cycle Available In"}
+                        </span>
+                        <CountdownTimer targetDate={localNextSpin} onComplete={() => {
+                            setLocalNextSpin(null);
+                            if (typeof window !== 'undefined') localStorage.removeItem(`spin_lock_${type}`);
+                        }} />
+                    </div>
+                ) : (
+                    <div className={`mx-auto max-w-max px-8 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-sm flex items-center justify-center gap-3 border ${type === "PREMIUM"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                            : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20 animate-pulse"
+                        }`}>
+                        {type === "PREMIUM" && <SparklesIcon className="w-4 h-4 animate-spin-slow" />}
+                        {type === "PREMIUM" ? "Elite Cycle Ready" : "Cycle Ready to Execute"}
+                    </div>
+                )}
+            </div>
+
             {/* ═══ THE WHEEL ═══ */}
             <div className={`relative group transition-all duration-700 ${isLocked ? 'grayscale opacity-50' : 'grayscale-0 opacity-100'}`}>
                 {/* Pointer - Precisely Centered Top (Needle Tipped) */}
@@ -153,9 +207,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                     ref={wheelRef}
                     animate={controls}
                     className={`
-                        w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[420px] md:h-[420px] 
-                        rounded-full border-8 md:border-[12px] shadow-[0_0_100px_rgba(0,0,0,0.35)] overflow-hidden relative 
-                        transition-transform duration-1000 origin-center
+                        w-[85vw] max-w-[280px] sm:max-w-[340px] md:max-w-[420px] aspect-square
+                        rounded-full border-[6px] sm:border-8 md:border-[12px] shadow-[0_0_80px_rgba(0,0,0,0.35)] overflow-hidden relative 
+                        transition-transform duration-1000 origin-center mx-auto
                         ${type === "PREMIUM"
                             ? "border-[#D97706] bg-[#0c0c0c] ring-4 ring-amber-500/20"
                             : "border-indigo-600 bg-white dark:bg-slate-900 ring-4 ring-indigo-500/10"
@@ -205,13 +259,14 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                     />
                                     <g transform={`rotate(${(i * segmentAngle) + (segmentAngle / 2)}, 50, 50)`}>
                                         <text
-                                            x="88"
+                                            x="90"
                                             y="50"
                                             fill={reward.textColor || "#fff"}
                                             fontSize={getFontSize(reward.label)}
                                             fontWeight="900"
                                             textAnchor="end"
-                                            dominantBaseline="middle"
+                                            dominantBaseline="central"
+                                            alignmentBaseline="central"
                                             style={{
                                                 pointerEvents: 'none',
                                                 userSelect: 'none',
@@ -229,16 +284,16 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                 </motion.div>
 
                 {/* Center Cap - Optimized UI Alignment */}
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.6)] flex items-center justify-center z-20 border-4 ${type === "PREMIUM"
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] aspect-square rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.6)] flex items-center justify-center z-20 border-[3px] sm:border-4 ${type === "PREMIUM"
                     ? "bg-[#080808] border-amber-500 shadow-amber-500/10"
                     : "bg-white dark:bg-slate-900 border-indigo-600 shadow-indigo-600/10"
                 }`}>
-                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-start pt-2 md:pt-3 text-center ${type === "PREMIUM" ? "text-amber-500" : "text-indigo-600 dark:text-indigo-400"
+                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-center text-center ${type === "PREMIUM" ? "text-amber-500" : "text-indigo-600 dark:text-indigo-400"
                     }`}>
-                        <span className="text-[18px] md:text-[24px] font-black tracking-tighter leading-none shadow-black/20">WIN</span>
+                        <span className="text-[clamp(14px,4vw,24px)] font-black tracking-tighter leading-none shadow-black/20">WIN</span>
                     </div>
                     {/* Decorative Inner Ring */}
-                    <div className="absolute inset-2 rounded-full border border-current opacity-10" />
+                    <div className="absolute inset-1.5 sm:inset-2 rounded-full border border-current opacity-10" />
                 </div>
 
                 {/* LOCKED overlay */}
@@ -248,13 +303,13 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-950/80 rounded-full backdrop-blur-md flex flex-col items-center justify-center text-white z-40 p-4 text-center"
+                            className="absolute inset-0 bg-slate-950/80 rounded-full backdrop-blur-md flex flex-col items-center justify-center text-white z-40 p-4 sm:p-6 text-center"
                         >
-                            <div className="p-4 bg-amber-500/20 rounded-full mb-4 border border-amber-500/30">
-                                <LockClosedIcon className="w-10 h-10 text-amber-400" />
+                            <div className="p-3 sm:p-4 bg-amber-500/20 rounded-full mb-2 sm:mb-4 border border-amber-500/30">
+                                <LockClosedIcon className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-amber-400" />
                             </div>
-                            <span className="font-black text-2xl tracking-[0.1em] text-amber-500 mb-1">PREMIUM LOCKED</span>
-                            <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400 max-w-[180px]">Upgrade to unlock exclusive rewards</p>
+                            <span className="font-black text-[clamp(14px,4vw,24px)] tracking-[0.1em] text-amber-500 mb-1 sm:mb-2 leading-tight">PREMIUM LOCKED</span>
+                            <p className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-slate-400 max-w-[140px] sm:max-w-[180px] leading-relaxed">Upgrade to unlock exclusive rewards</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -328,7 +383,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                     ? (type === 'PREMIUM' ? 'border-amber-500 bg-[#0a0a0a]' : 'border-indigo-500 bg-white dark:bg-slate-900')
                                     : 'border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900'
                                 }`}>
-                                <div className="p-10 md:p-14 text-center">
+                                <div className="p-8 sm:p-10 md:p-14 text-center">
                                     {/* Win Badge */}
                                     <motion.div
                                         initial={{ y: -50, opacity: 0 }}
@@ -350,7 +405,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                             initial={{ scale: 0.5, opacity: 0 }}
                                             animate={{ scale: 1, opacity: 1 }}
                                             transition={{ type: "spring", damping: 12, delay: 0.4 }}
-                                            className={`text-5xl md:text-7xl font-black tracking-tighter mb-4 ${isRealWin
+                                            className={`text-[clamp(2rem,6vw,4.5rem)] font-black tracking-tighter mb-3 leading-[1.1] break-words ${isRealWin
                                                     ? (type === 'PREMIUM' ? 'text-white' : 'text-slate-900 dark:text-white')
                                                     : 'text-slate-400'
                                                 }`}
@@ -377,7 +432,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                             transition={{ type: "spring", damping: 10, delay: 0.6 }}
                                             className="mb-12 flex justify-center"
                                         >
-                                            <div className={`w-28 h-28 rounded-[2rem] flex items-center justify-center text-5xl shadow-2xl ${type === 'PREMIUM' ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-600 shadow-indigo-600/20'
+                                            <div className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-4xl sm:text-5xl shadow-2xl ${type === 'PREMIUM' ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-600 shadow-indigo-600/20'
                                                 }`}>
                                                 {type === 'PREMIUM' ? "🏆" : "💰"}
                                             </div>
@@ -390,7 +445,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                                         animate={{ y: 0, opacity: 1 }}
                                         transition={{ delay: 0.8 }}
                                         onClick={dismissCelebration}
-                                        className={`w-full py-5 rounded-[1.5rem] font-bold text-lg tracking-tight transition-all active:scale-95 shadow-xl ${isRealWin
+                                        className={`w-full py-4 sm:py-5 rounded-[1.25rem] sm:rounded-[1.5rem] font-bold text-base sm:text-lg tracking-tight transition-all active:scale-95 shadow-xl ${isRealWin
                                                 ? (type === 'PREMIUM' ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20')
                                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                                             }`}

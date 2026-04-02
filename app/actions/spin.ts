@@ -172,7 +172,11 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                 cookieStore.set("admin_lastPremiumSpinTime", new Date().toISOString());
             }
             revalidatePath("/dashboard/spin")
-            return { success: true, reward: selectedReward, message: `[ADMIN SIM] You won ${selectedReward.label}!` }
+            
+            const cooldownHours = type === "FREE" ? spinSettings.freeSpinCooldownHours : spinSettings.premiumSpinCooldownHours
+            const nextSpinTime = now.getTime() + (cooldownHours * 60 * 60 * 1000)
+            
+            return { success: true, reward: selectedReward, message: `[ADMIN SIM] You won ${selectedReward.label}!`, nextSpinTime }
         }
 
         let logDescription = `Won ${selectedReward.label} in ${type} Spin`
@@ -269,7 +273,11 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         revalidatePath("/dashboard/spin")
         revalidatePath("/dashboard")
         revalidatePath("/dashboard/wallet")
-        return { success: true, reward: selectedReward, message: `You won ${selectedReward.label}!` }
+        
+        const cooldownHours = type === "FREE" ? spinSettings.freeSpinCooldownHours : spinSettings.premiumSpinCooldownHours
+        const nextSpinTime = now.getTime() + (cooldownHours * 60 * 60 * 1000)
+        
+        return { success: true, reward: selectedReward, message: `You won ${selectedReward.label}!`, nextSpinTime }
 
     } catch (e: any) {
         console.error("Spin Execution Error:", e)

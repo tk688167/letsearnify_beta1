@@ -128,7 +128,7 @@ export default async function SpinPage() {
     }
 
     return (
-      <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8 md:space-y-12 pb-32 select-none">
+      <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 pb-20 select-none">
          {/* ═══ PREMIUM HEADER ═══ */}
          <div className="relative py-5 md:py-8 px-6 md:px-12 bg-slate-900 rounded-[2rem] text-white shadow-2xl overflow-hidden border border-white/5 mx-2 md:mx-0">
             {/* Animated Background Elements */}
@@ -168,7 +168,7 @@ export default async function SpinPage() {
              <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-[3.5rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 overflow-hidden flex flex-col relative transition-all hover:shadow-indigo-500/5">
                   <Tabs defaultValue="free" className="w-full flex-1 flex flex-col">
                       {/* Premium Styled Tabs Switcher */}
-                      <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-3 md:p-6 backdrop-blur-xl sticky top-0 z-20">
+                      <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-3 md:p-4 backdrop-blur-xl sticky top-0 z-20">
                           <TabsList className="grid w-full max-w-sm grid-cols-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl p-1 h-auto">
                               <TabsTrigger value="free" className="py-3 md:py-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md font-black text-[11px] md:text-xs tracking-tight transition-all text-slate-500 uppercase">
                                   Standard Wheel
@@ -181,31 +181,18 @@ export default async function SpinPage() {
                       </div>
                       
                       {/* Free Spin Tab Content */}
-                      <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-6 md:p-16 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[600px] md:min-h-[800px]">
-                          <div className="mb-10 text-center">
-                               {freeCooldownDate ? (
-                                   <div className="flex flex-col items-center gap-3">
-                                       <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Next Cycle Available In</span>
-                                       <CountdownTimer targetDate={freeCooldownDate} />
-                                   </div>
-                               ) : (
-                                   <div className="px-8 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-200/50 dark:border-emerald-500/20 shadow-sm animate-pulse">
-                                       Cycle Ready to Execute
-                                   </div>
-                               )}
-                          </div>
-                          
+                      <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[450px] md:min-h-[550px]">
                           <SpinWheel 
                               rewards={freeRewards} 
                               onSpin={executeSpin.bind(null, "FREE")} 
                               isLocked={false}
-                              cooldown={freeCooldownDate ? 1 : 0} 
+                              cooldownDate={freeCooldownDate} 
                               type="FREE"
                           />
                       </TabsContent>
 
                       {/* Premium Spin Tab Content */}
-                      <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-6 md:p-16 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[600px] md:min-h-[800px] relative bg-gradient-to-b from-amber-50/50 via-transparent to-transparent dark:from-amber-950/20">
+                      <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[450px] md:min-h-[550px] relative bg-gradient-to-b from-amber-50/50 via-transparent to-transparent dark:from-amber-950/20">
                           {/* High-End Locked Overlay */}
                           {!currentUser.isActiveMember && (
                               <div className="absolute inset-0 z-40 bg-white/40 dark:bg-slate-950/40 backdrop-blur-xl flex flex-col items-center justify-center p-8">
@@ -222,25 +209,11 @@ export default async function SpinPage() {
                               </div>
                           )}
 
-                          <div className="mb-10 text-center relative z-0">
-                               {premiumCooldownDate ? (
-                                   <div className="flex flex-col items-center gap-3">
-                                       <span className="text-[10px] font-black text-amber-500 dark:text-amber-500 uppercase tracking-[0.3em]">Premium Cooldown Active</span>
-                                       <CountdownTimer targetDate={premiumCooldownDate} />
-                                   </div>
-                               ) : (
-                                   <div className="px-8 py-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border border-amber-500/20 shadow-sm">
-                                       <SparklesIcon className="w-4 h-4 animate-spin-slow" />
-                                       {currentUser.premiumBonusSpins > 0 ? `${currentUser.premiumBonusSpins} Bonus Cycles Ready` : "Elite Cycle Ready"}
-                                   </div>
-                               )}
-                          </div>
-
                           <SpinWheel 
                               rewards={premiumRewards} 
                               onSpin={executeSpin.bind(null, "PREMIUM")}
                               isLocked={!currentUser.isActiveMember}
-                              cooldown={premiumCooldownDate && currentUser.premiumBonusSpins <= 0 ? 1 : 0}
+                              cooldownDate={premiumCooldownDate && currentUser.premiumBonusSpins <= 0 ? premiumCooldownDate : null}
                               type="PREMIUM"
                           />
                       </TabsContent>
