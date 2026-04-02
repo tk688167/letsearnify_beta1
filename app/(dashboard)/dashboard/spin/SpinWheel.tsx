@@ -22,6 +22,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     const [error, setError] = useState<string | null>(null)
     const controls = useAnimation()
     const wheelRef = useRef<HTMLDivElement>(null)
+    const rotationRef = useRef(0)
 
     const segmentAngle = 360 / rewards.length
     const isCoolingDown = (!!cooldown && cooldown > 0) || localCooldown
@@ -29,13 +30,12 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
     // Dynamic Font Size Calculation — Optimized for 10-segment readability
     const getFontSize = (label: string) => {
         const count = rewards.length
-        let baseSize = 4.0
-        if (count <= 6) baseSize = 5.0
-        else if (count <= 10) baseSize = 4.0
-        else if (count <= 14) baseSize = 3.4
-        else baseSize = 3.0
+        let baseSize = 4.2
+        if (count <= 6) baseSize = 5.2
+        else if (count <= 10) baseSize = 4.2
+        else if (count <= 14) baseSize = 3.6
+        else baseSize = 3.2
 
-        // Balanced scaling for long strings (e.g. "SURPRISE BONUS")
         if (label.length > 15) return (baseSize * 0.75).toString()
         if (label.length > 10) return (baseSize * 0.85).toString()
         return baseSize.toString()
@@ -80,9 +80,10 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
         setShowCelebration(false)
         setIsSpinning(true)
 
+        // Constant slow spin while waiting for server response
         controls.start({
-            rotate: 360 * 10,
-            transition: { duration: 25, ease: "linear", repeat: Infinity }
+            rotate: rotationRef.current + 3600,
+            transition: { duration: 20, ease: "linear", repeat: Infinity }
         })
 
         try {
@@ -98,12 +99,22 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
             const wonReward = response.reward
             const winIndex = rewards.findIndex(r => r.label === wonReward.label)
             
-            // Center-Top Pointer Alignment (270 degrees)
-            const targetRotation = 360 * 6 + (360 - (winIndex * segmentAngle) - (segmentAngle / 2))
+            // Stop infinite loop and set current state
+            controls.stop()
+
+            // Calculate precise target rotation
+            // We want to bring winIndex to the top (270deg offset in SVG space, but SVG is -90deg rotated, so top is already 0 relative to component)
+            // Extra rotation: 360 - (index-based angle) - half-segment
+            const segmentCenter = (winIndex * segmentAngle) + (segmentAngle / 2)
+            const extraRotation = 360 - segmentCenter
+            
+            // Add 10 full turns (3600deg) + the target segment adjustment
+            const finalRotation = rotationRef.current + 3600 + extraRotation
+            rotationRef.current = finalRotation
 
             await controls.start({
-                rotate: targetRotation,
-                transition: { duration: 5, ease: [0.15, 0, 0.15, 1] }
+                rotate: finalRotation,
+                transition: { duration: 6, ease: [0.15, 0, 0.15, 1] }
             })
 
             setResult(wonReward)
@@ -217,17 +228,17 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldown, type }:
                     </svg>
                 </motion.div>
 
-                {/* Center Cap - Super Premium UI Refined */}
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 md:w-18 md:h-18 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.6)] flex items-center justify-center z-20 border-4 ${type === "PREMIUM"
-                        ? "bg-[#080808] border-amber-500 shadow-amber-500/5"
-                        : "bg-white dark:bg-slate-900 border-indigo-600 shadow-indigo-600/5"
+                {/* Center Cap - Optimized UI Alignment */}
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 md:w-20 md:h-20 rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.6)] flex items-center justify-center z-20 border-4 ${type === "PREMIUM"
+                    ? "bg-[#080808] border-amber-500 shadow-amber-500/10"
+                    : "bg-white dark:bg-slate-900 border-indigo-600 shadow-indigo-600/10"
+                }`}>
+                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-start pt-2 md:pt-3 text-center ${type === "PREMIUM" ? "text-amber-500" : "text-indigo-600 dark:text-indigo-400"
                     }`}>
-                    <div className={`w-full h-full rounded-full flex flex-col items-center justify-start pt-3 md:pt-5 text-center ${type === "PREMIUM" ? "text-amber-500" : "text-indigo-600 dark:text-indigo-400"
-                        }`}>
-                        <span className="text-[14px] md:text-[20px] font-black tracking-widest scale-y-125 leading-none shadow-black/20">WIN</span>
+                        <span className="text-[18px] md:text-[24px] font-black tracking-tighter leading-none shadow-black/20">WIN</span>
                     </div>
-                    {/* Decorative Ring */}
-                    <div className="absolute inset-1 rounded-full border border-current opacity-5" />
+                    {/* Decorative Inner Ring */}
+                    <div className="absolute inset-2 rounded-full border border-current opacity-10" />
                 </div>
 
                 {/* LOCKED overlay */}
