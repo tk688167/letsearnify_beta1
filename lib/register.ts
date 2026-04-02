@@ -89,10 +89,10 @@ export async function registerUser(formData: FormData) {
             if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
                 referrerTier = validReferrer.tier || "NEWBIE";
                 const SIGNUP_BONUS_RATES: Record<string, number> = {
-                    NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
-                    PLATINUM: 9, DIAMOND: 10, EMERALD: 15
+                    NEWBIE: 3, BRONZE: 4, SILVER: 5, GOLD: 7,
+                    PLATINUM: 8, DIAMOND: 10, EMERALD: 12
                 };
-                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 5;
+                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 3;
                 signupBonusUsd = signupBonusArn / 10;
             }
 
