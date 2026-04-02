@@ -607,6 +607,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <item.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", activeTab === item.id ? item.color : "text-muted-foreground")} />
                        </div>
                        <span className={cn("text-[10px] sm:text-xs font-bold uppercase tracking-widest truncate", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
+                       {item.id === 'withdraw' && !user.isActiveMember && <LockClosedIcon className="w-3 h-3 text-amber-500 shrink-0" />}
                    </button>
                ))}
            </div>
@@ -716,7 +717,16 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                  )}
 
                  {/* === WITHDRAW === */}
-                 {activeTab === "withdraw" && (
+                 {activeTab === "withdraw" && !user.isActiveMember && (
+                    <div className="p-8 text-center bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-900/30 animate-in fade-in">
+                        <LockClosedIcon className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                        <h4 className="font-bold text-amber-700 dark:text-amber-400 text-lg">Withdrawal Locked</h4>
+                        <p className="text-sm text-amber-600 dark:text-amber-300 max-w-sm mx-auto mt-2">
+                           You must unlock your account by meeting the $1 requirement to access withdrawals.
+                        </p>
+                    </div>
+                 )}
+                 {activeTab === "withdraw" && user.isActiveMember && (
                     <div className="space-y-8 animate-in fade-in">
                        <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5">
                            <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>

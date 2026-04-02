@@ -86,11 +86,16 @@ export async function submitMerchantWithdrawal(data: z.infer<typeof withdrawalSc
     // Check user balance
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { balance: true }
+      select: { balance: true, isActiveMember: true }
     })
 
     if (!user || user.balance < validated.amount) {
       return { success: false, error: "Insufficient balance" }
+    }
+
+    // Must be activated
+    if (!user.isActiveMember) {
+        return { success: false, error: "You must activate your account ($1 deposit) before withdrawing." }
     }
 
     // NEW: Fetch country to get rate

@@ -181,18 +181,25 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
 
         await prisma.$transaction(async (tx) => {
             if (selectedReward!.type === "ARN") {
-                 await tx.user.update({
-                     where: { id: userId },
-                     data: { arnBalance: { increment: selectedReward!.value } }
-                 })
                  earnedArn = selectedReward!.value
                  earnedAmount = selectedReward!.value / 10 
-            } else if (selectedReward!.type === "MONEY") {
                  await tx.user.update({
                      where: { id: userId },
-                     data: { balance: { increment: selectedReward!.value } }
+                     data: { 
+                         arnBalance: { increment: earnedArn },
+                         balance: { increment: earnedAmount }
+                     }
                  })
+            } else if (selectedReward!.type === "MONEY") {
                  earnedAmount = selectedReward!.value
+                 earnedArn = selectedReward!.value * 10
+                 await tx.user.update({
+                     where: { id: userId },
+                     data: { 
+                         balance: { increment: earnedAmount },
+                         arnBalance: { increment: earnedArn }
+                     }
+                 })
             } else if (selectedReward!.type === "BONUS_SPIN") {
                  await tx.user.update({
                      where: { id: userId },
@@ -202,12 +209,19 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                  const giftType = Math.random() > 0.5 ? "ARN" : "MONEY"
                  const giftValue = giftType === "ARN" ? 25 : 0.50
                  if (giftType === "ARN") {
-                     await tx.user.update({ where: { id: userId }, data: { arnBalance: { increment: giftValue } }})
                      earnedArn = giftValue
                      earnedAmount = giftValue / 10
+                     await tx.user.update({ where: { id: userId }, data: { 
+                         arnBalance: { increment: earnedArn },
+                         balance: { increment: earnedAmount }
+                     }})
                  } else {
-                     await tx.user.update({ where: { id: userId }, data: { balance: { increment: giftValue } }})
                      earnedAmount = giftValue
+                     earnedArn = giftValue * 10
+                     await tx.user.update({ where: { id: userId }, data: { 
+                         balance: { increment: earnedAmount },
+                         arnBalance: { increment: earnedArn }
+                     }})
                  }
                  logDescription = `Won SURPRISE GIFT (${giftType}: ${giftValue})`
                  await tx.user.update({ where: { id: userId }, data: { lastSurpriseDate: new Date() } })
