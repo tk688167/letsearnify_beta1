@@ -149,7 +149,7 @@ export default function TermsPageContent() {
                     <h2 className="text-lg sm:text-2xl font-bold text-foreground tracking-tight">3. Gamified Mechanics</h2>
                  </div>
                  <p className="text-[13px] sm:text-base text-muted-foreground leading-relaxed">
-                    Earnings generated through micro-tasks, surveys, tracking, or the <strong className="text-foreground">Spin Wheel</strong> are dynamic. 
+                    Earnings generated through micro-tasks, tracking, or the <strong className="text-foreground">Spin Wheel</strong> are dynamic. 
                  </p>
                  <p className="text-[13px] sm:text-base text-muted-foreground leading-relaxed mt-2">
                     Variables such as global advertising fill rates, merchant budgets, and daily platform traffic dictate the actual fiat value of the rewards. <strong>These values will fluctuate naturally.</strong>

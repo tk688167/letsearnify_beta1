@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import MobileNav from "./mobile-nav"
 import { Sidebar } from "./sidebar"
 import { BottomNav } from "./BottomNav"
@@ -19,6 +20,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
       } as any; 
   }
 
+  let user = null;
+  if (session?.user?.id) {
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { isActiveMember: true }
+      });
+    } catch (error) {
+      console.error("Layout Fetch User Failed:", error);
+    }
+  }
+
+  const isActiveMember = user?.isActiveMember || false;
+
   return (
     <div className="flex h-screen bg-background overflow-hidden transition-colors duration-300">
       {/* Sidebar */}
@@ -26,7 +41,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto bg-background pb-[80px] md:pb-0 relative transition-colors duration-300">
-        <MobileNav session={session} />
+        <MobileNav session={session} isActiveMember={isActiveMember} />
+
         
         {/* Mobile Swipe Container + Children */}
         {/* Responsive Container */}

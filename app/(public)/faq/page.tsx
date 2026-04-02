@@ -63,7 +63,7 @@ const faqCategories = [
               </div>
               <div>
                 <span className="font-bold text-foreground">2. Micro-Tasks</span>
-                <p className="text-sm mt-1 mb-2 text-muted-foreground">Perform simple digital actions (watching ads, testing apps, surveys) for immediate, active daily income.</p>
+                <p className="text-sm mt-1 mb-2 text-muted-foreground">Perform simple digital actions (watching ads, testing apps, clicking reels) for immediate, active daily income.</p>
               </div>
               <div>
                 <span className="font-bold text-foreground">3. Islamic Mudaraba Pools</span>
@@ -103,7 +103,6 @@ const faqCategories = [
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
               <li>Watching short promotional videos or reels.</li>
               <li>Testing and reviewing new mobile applications.</li>
-              <li>Answering market research surveys.</li>
               <li>Engaging with verified social media content.</li>
             </ul>
             <p className="mt-2 text-primary font-medium text-sm">You are paid instantly to your Wallet upon automated task verification.</p>

@@ -80,11 +80,7 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
   // ════════════════════════════════════════════════════════════════
   const isRestrictedFeature = 
     feature === 'marketplace' || 
-    feature === 'pools' || 
-    feature === 'mudarabah' || 
-    feature === 'partner' ||
-    title?.includes('Withdraw') || 
-    title?.includes('Transfer');
+    feature === 'mudarabah';
 
   if (!isUnlocked && isRestrictedFeature) {
       const lockTitle = FEATURE_TITLES[feature] || `🔒 ${title || 'Feature'} Locked`;

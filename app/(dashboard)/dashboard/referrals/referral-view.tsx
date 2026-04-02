@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
 import { 
   UserGroupIcon, 
   CurrencyDollarIcon, 
@@ -11,8 +12,14 @@ import {
   CalendarDaysIcon,
   LinkIcon,
   InformationCircleIcon,
-  TrophyIcon
+  TrophyIcon,
+  MagnifyingGlassIcon,
+  EnvelopeIcon,
+  IdentificationIcon,
+  ChevronRightIcon
 } from "@heroicons/react/24/outline"
+
+
 import { TIER_COMMISSIONS } from "@/lib/mlm"
 import { format, subDays, startOfDay, isAfter } from "date-fns"
 import { calculateTierProgress } from "@/lib/utils"
@@ -78,9 +85,19 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   const [showCustomPicker, setShowCustomPicker] = useState(false)
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
+  const [activeLevelTab, setActiveLevelTab] = useState<number>(1)
+  const [searchTerm, setSearchTerm] = useState('')
+
 
   const currentTier = (user.tier || "NEWBIE").toUpperCase().trim() 
-  const referralLink = typeof window !== "undefined" ? `${window.location.origin}/signup?ref=${user.referralCode}` : `https://letsearnify.com/signup?ref=${user.referralCode}`
+  const [referralLink, setReferralLink] = useState(`https://letsearnify.com/signup?ref=${user.referralCode}`)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setReferralLink(`${window.location.origin}/signup?ref=${user.referralCode}`)
+    }
+  }, [user.referralCode])
+
 
   const copyCode = () => {
     if (user.referralCode) {
@@ -331,7 +348,158 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
          </div>
       </div>
 
-      {/* ─── 4. CUSTOMIZABLE HISTORY ─── */}
+      {/* ─── 4. NETWORK DIRECTORY (HIERARCHY SYSTEM) ─── */}
+      <div className="bg-card rounded-[2.5rem] border border-border shadow-xl shadow-black/[0.03] dark:shadow-white/[0.02] overflow-hidden">
+        <div className="p-6 md:p-8 border-b border-border bg-muted/10">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                  <UserGroupIcon className="w-6 h-6 text-indigo-500" />
+                </div>
+                Network Directory
+              </h2>
+              <p className="text-sm text-muted-foreground font-medium mt-1">
+                Browse and manage your partners across all levels.
+              </p>
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative group max-w-sm w-full">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <MagnifyingGlassIcon className="w-4 h-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Level Tabs */}
+          <div className="flex bg-muted/50 p-1 rounded-2xl border border-border mt-8 w-fit">
+            {[1, 2, 3].map((level) => (
+              <button
+                key={level}
+                onClick={() => setActiveLevelTab(level)}
+                className={`px-6 py-2 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                  activeLevelTab === level
+                    ? "bg-foreground text-background shadow-lg"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Level {level} {level === 1 && "(Direct)"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 bg-card/50">
+          {/* Partner Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {referralTree
+              .filter(n => n.level === activeLevelTab)
+              .filter(n => 
+                !searchTerm || 
+                (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                 n.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+              )
+              .length > 0 ? (
+                referralTree
+                  .filter(n => n.level === activeLevelTab)
+                  .filter(n => 
+                    !searchTerm || 
+                    (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                     n.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                  )
+                  .map((partner) => (
+                    <div 
+                      key={partner.id}
+                      className="group relative bg-muted/30 border border-border hover:border-indigo-500/30 rounded-3xl p-5 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-1"
+                    >
+                      {/* Status indicator */}
+                      <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${partner.isActiveMember ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-400'}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${partner.isActiveMember ? 'text-emerald-500' : 'text-slate-400'}`}>
+                          {partner.isActiveMember ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-4 mb-6">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${TIER_COLORS[(partner.tier || "NEWBIE").toUpperCase()] || "from-slate-400 to-slate-500"} flex items-center justify-center text-white font-black text-xl shadow-lg shadow-black/5`}>
+                          {partner.name?.[0]?.toUpperCase() || "P"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-black text-foreground truncate text-base mb-0.5">
+                            {partner.name || "Anonymous Partner"}
+                          </h4>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <EnvelopeIcon className="w-3.5 h-3.5 shrink-0" />
+                            <p className="text-xs font-medium truncate">{partner.email || "No email"}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-background/50 rounded-2xl border border-border/50">
+                           <div className="flex items-center gap-2">
+                             <IdentificationIcon className="w-4 h-4 text-indigo-500" />
+                             <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tier</span>
+                           </div>
+                           <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border ${
+                             partner.tier === 'NEWBIE' ? 'bg-slate-50 border-slate-200 text-slate-500' :
+                             'bg-indigo-50 border-indigo-100 text-indigo-600'
+                           }`}>
+                             {partner.tier || "NEWBIE"}
+                           </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-background/50 rounded-2xl border border-border/50">
+                           <div className="flex items-center gap-2">
+                             <CalendarDaysIcon className="w-4 h-4 text-indigo-500" />
+                             <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Joined</span>
+                           </div>
+                           <span className="text-xs font-bold text-foreground">
+                             {format(new Date(partner.createdAt), "MMM d, yyyy")}
+                           </span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2">
+                           <div>
+                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-0.5">Earnings Contrib.</p>
+                             <p className="text-lg font-black text-foreground group-hover:text-emerald-500 transition-colors uppercase">
+                               ${(partner.withdrawnTotal || 0).toFixed(2)}
+                             </p>
+                           </div>
+                           <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                             <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+            ) : (
+              <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
+                <div className="w-20 h-20 bg-muted/50 rounded-[2rem] flex items-center justify-center mb-6 transform -rotate-6 border border-border">
+                  <UserGroupIcon className="w-10 h-10 text-muted-foreground/30" />
+                </div>
+                <h3 className="text-lg font-black text-foreground">No Partners Found</h3>
+                <p className="text-sm text-muted-foreground font-medium max-w-xs mx-auto mt-1 leading-relaxed">
+                  {searchTerm 
+                    ? `We couldn't find any partners matching "${searchTerm}" in Level ${activeLevelTab}.`
+                    : `Your network at Level ${activeLevelTab} is currently empty. Keep sharing your link to grow your community!`}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ─── 5. CUSTOMIZABLE HISTORY ─── */}
+
       <div className="bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden">
         
         {/* History Header & Filters */}

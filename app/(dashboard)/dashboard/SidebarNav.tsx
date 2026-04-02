@@ -14,7 +14,8 @@ import {
   ChartBarIcon,
   ChartPieIcon,
   LockClosedIcon,
-  BoltIcon
+  BoltIcon,
+  BanknotesIcon
 } from "@heroicons/react/24/outline"
 
 interface SidebarNavProps {
@@ -30,8 +31,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/referrals", icon: "partners", label: "Partner Program", color: "purple", locked: false, exact: false },
   { href: "/dashboard/tiers", icon: "tier", label: "Tier Progress", color: "yellow", locked: false, exact: false },
   { href: "/dashboard/tasks", icon: "briefcase", label: "Task Center", color: "emerald", locked: false, exact: false },
-  { href: "/dashboard/pools/daily-earning", icon: "bolt", label: "Daily Earning", color: "teal", locked: false, exact: false },
-  { href: "/dashboard/pools", icon: "pools", label: "Reward Pools", color: "blue", locked: true, exact: false },
+  { href: "/dashboard/pools/daily-earning", icon: "bolt", label: "Daily Earning Pool", color: "teal", locked: false, exact: false },
+  { href: "/dashboard/pools", icon: "pools", label: "Reward Pools", color: "blue", locked: false, exact: false },
   { href: "/dashboard/marketplace", icon: "shopping", label: "Marketplace", color: "orange", locked: true, exact: false },
   { href: "/dashboard/mudarabah", icon: "pie", label: "Mudarabah Pools", color: "emerald", locked: true, exact: false },
 ]
@@ -52,6 +53,7 @@ const ICONS: Record<string, React.ReactNode> = {
   bolt: <BoltIcon className="w-5 h-5" />,
   pools: <ChartBarIcon className="w-5 h-5" />,
   shopping: <ShoppingBagIcon className="w-5 h-5" />,
+  banknotes: <BanknotesIcon className="w-5 h-5" />,
   pie: <ChartPieIcon className="w-5 h-5" />,
   user: <UserIcon className="w-5 h-5" />,
   settings: <Cog6ToothIcon className="w-5 h-5" />,
@@ -111,7 +113,63 @@ export function SidebarNav({ isActiveMember, session }: SidebarNavProps) {
     <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-1.5">
       <div className="px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Platform</div>
       
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.slice(0, 3).map((item) => {
+        const active = isActive(item.href, item.exact)
+        const showLock = item.locked && !isActiveMember
+        const styles = COLOR_STYLES[item.color] || COLOR_STYLES.blue
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 text-[15px] font-medium group ${
+              active
+                ? `${styles.active} font-semibold`
+                : `text-muted-foreground hover:shadow-md hover:shadow-muted/50 dark:hover:shadow-none ${styles.hover}`
+            }`}
+          >
+            <span className={`transition-colors ${active ? "text-current" : "text-muted-foreground/70 group-hover:text-current"}`}>
+              {ICONS[item.icon]}
+            </span>
+            <span className="flex-1">{item.label}</span>
+            {showLock && (
+              <LockClosedIcon className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
+            )}
+          </Link>
+        )
+      })}
+
+      <div className="pt-8 px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Growth</div>
+
+      {NAV_ITEMS.slice(3, 7).map((item) => {
+        const active = isActive(item.href, item.exact)
+        const showLock = item.locked && !isActiveMember
+        const styles = COLOR_STYLES[item.color] || COLOR_STYLES.blue
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-200 text-[15px] font-medium group ${
+              active
+                ? `${styles.active} font-semibold`
+                : `text-muted-foreground hover:shadow-md hover:shadow-muted/50 dark:hover:shadow-none ${styles.hover}`
+            }`}
+          >
+            <span className={`transition-colors ${active ? "text-current" : "text-muted-foreground/70 group-hover:text-current"}`}>
+              {ICONS[item.icon]}
+            </span>
+            <span className="flex-1">{item.label}</span>
+            {showLock && (
+              <LockClosedIcon className="w-3.5 h-3.5 text-amber-500/60 shrink-0" />
+            )}
+          </Link>
+        )
+      })}
+
+      <div className="pt-8 px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Finance</div>
+
+      {NAV_ITEMS.slice(7).map((item) => {
         const active = isActive(item.href, item.exact)
         const showLock = item.locked && !isActiveMember
         const styles = COLOR_STYLES[item.color] || COLOR_STYLES.blue

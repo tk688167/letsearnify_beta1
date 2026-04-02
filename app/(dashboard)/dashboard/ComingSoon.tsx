@@ -12,7 +12,7 @@ const featureData: any = {
     tasks: {
         title: "Micro-Task Center",
         subtitle: "Earn Online Rewards",
-        description: "Turn your spare time into cash. Complete simple, verified tasks like watching videos or taking surveys and get paid instantly.",
+        description: "Turn your spare time into cash. Complete simple, verified digital tasks like watching videos or app testing and get paid instantly.",
         benefits: ["Instant Payouts", "No Experience Needed", "High Volume of Tasks"],
         icon: CheckBadgeIcon,
         color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/50",

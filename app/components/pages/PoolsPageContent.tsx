@@ -58,7 +58,6 @@ export default function PoolsPageContent({ isActiveMember = true }: { isActiveMe
           ]}
           colorTheme="blue"
           delay={0.1}
-          isLocked={isDashboard && !isActiveMember}
         />
 
         {/* Royalty Pool Card */}
@@ -75,7 +74,6 @@ export default function PoolsPageContent({ isActiveMember = true }: { isActiveMe
           ]}
           colorTheme="amber"
           delay={0.2}
-          isLocked={isDashboard && !isActiveMember}
         />
 
         {/* Achievement Pool Card */}

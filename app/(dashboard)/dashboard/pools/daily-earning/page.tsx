@@ -1,4 +1,4 @@
-import DailyEarningPoolContent from "./DailyEarningClient"
+import DailyEarningPageContent from "./DailyEarningPageContent"
 
 export const metadata = {
   title: "Daily Earning Pool | AntiGravity",
@@ -6,5 +6,5 @@ export const metadata = {
 }
 
 export default function DailyEarningPoolPage() {
-  return <DailyEarningPoolContent />
+  return <DailyEarningPageContent />
 }

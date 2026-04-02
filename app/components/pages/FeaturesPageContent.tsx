@@ -25,7 +25,7 @@ export default function FeaturesPageContent() {
     },
     {
       title: "Micro-Task Bounties",
-      description: "Complete quick digital tasks like watching videos, taking surveys, app testing, and social media engagements. Earn steady daily payouts with high volume availability.",
+      description: "Complete quick digital tasks like watching videos, app testing, and social media engagements. Earn steady daily payouts with high volume availability.",
       icon: CheckBadgeIcon,
       accentColor: "text-emerald-500",
       bgHover: "hover:border-emerald-500/30"

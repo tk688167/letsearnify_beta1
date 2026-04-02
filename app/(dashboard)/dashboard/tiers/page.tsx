@@ -99,7 +99,9 @@ export default async function TierPage() {
             stats={{ teamSize: referralTree.length, totalSignups: (user as any).totalSignups || 0 }}
             tierConfig={tierConfig}
             referralTree={referralTree}
+            commissions={user.referralsMade || []}
          />
+
 
       </div>
   )

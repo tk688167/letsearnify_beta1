@@ -20,13 +20,14 @@ import {
   ChartBarIcon,
   ChartPieIcon,
   ClipboardDocumentCheckIcon,
-  BoltIcon
+  BoltIcon,
+  SparklesIcon
 } from "@heroicons/react/24/outline"
 import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import Logo from "@/app/components/ui/Logo" 
 
-export default function MobileNav({ session }: { session: Session | null }) {
+export default function MobileNav({ session, isActiveMember }: { session: Session | null, isActiveMember: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const pathname = usePathname()
@@ -167,16 +168,16 @@ export default function MobileNav({ session }: { session: Session | null }) {
                 <MobileNavItem href="/dashboard/wallet" icon={<CreditCardIcon className="w-5 h-5"/>} label="My Wallet" pathname={pathname} close={closeMenu} color="emerald" />
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Growth</div>
+                <MobileNavItem href="/dashboard/spin" icon={<SparklesIcon className="w-5 h-5"/>} label="Spin Center" pathname={pathname} close={closeMenu} color="pink" />
                 <MobileNavItem href="/dashboard/tasks" icon={<BriefcaseIcon className="w-5 h-5"/>} label="Task Center" pathname={pathname} close={closeMenu} color="indigo" />
                 <MobileNavItem href="/dashboard/tiers" icon={<div className="w-5 h-5 flex items-center justify-center font-serif font-bold">T</div>} label="Tier System" pathname={pathname} close={closeMenu} color="yellow" />
                 <MobileNavItem href="/dashboard/referrals" icon={<UserIcon className="w-5 h-5"/>} label="Partner Program" pathname={pathname} close={closeMenu} color="purple" />
                 
                 <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Finance</div>
                 <MobileNavItem href="/dashboard/pools/daily-earning" icon={<BoltIcon className="w-5 h-5"/>} label="Daily Earning Pool" pathname={pathname} close={closeMenu} color="teal" />
-                <MobileNavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" pathname={pathname} close={closeMenu} color="blue" />
-                <MobileNavItem href="/dashboard/surveys" icon={<ClipboardDocumentCheckIcon className="w-5 h-5"/>} label="Surveys" pathname={pathname} close={closeMenu} color="purple" />
-                <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" />
-                <MobileNavItem href="/dashboard/mudarabah" icon={<ChartPieIcon className="w-5 h-5"/>} label="Mudarabah Pools" pathname={pathname} close={closeMenu} color="emerald" />
+                <MobileNavItem href="/dashboard/pools" icon={<ChartBarIcon className="w-5 h-5"/>} label="Reward Pools" pathname={pathname} close={closeMenu} color="blue" locked={false} isActiveMember={isActiveMember} />
+                <MobileNavItem href="/dashboard/marketplace" icon={<ShoppingBagIcon className="w-5 h-5"/>} label="Marketplace" pathname={pathname} close={closeMenu} color="orange" locked={true} isActiveMember={isActiveMember} />
+                <MobileNavItem href="/dashboard/mudarabah" icon={<ChartPieIcon className="w-5 h-5"/>} label="Mudarabah Pools" pathname={pathname} close={closeMenu} color="emerald" locked={true} isActiveMember={isActiveMember} />
                 
                  <div className="mt-6 px-4 pb-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Settings</div>
                  <MobileNavItem href="/dashboard/profile" icon={<UserIcon className="w-5 h-5"/>} label="Profile" pathname={pathname} close={closeMenu} color="gray" />
@@ -210,8 +211,9 @@ export default function MobileNav({ session }: { session: Session | null }) {
   )
 }
 
-function MobileNavItem({ href, icon, label, pathname, close, color }: { href: string, icon: React.ReactNode, label: string, pathname: string, close: () => void, color: string }) {
+function MobileNavItem({ href, icon, label, pathname, close, color, locked, isActiveMember }: { href: string, icon: React.ReactNode, label: string, pathname: string, close: () => void, color: string, locked?: boolean, isActiveMember?: boolean }) {
   const isActive = pathname === href
+  const showLock = locked && !isActiveMember
   
   const themeStyles: Record<string, { active: string, hover: string, text: string, border: string }> = {
     blue: { active: "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300", hover: "hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10", text: "text-blue-600 dark:text-blue-400", border: "border-blue-500" },
@@ -238,8 +240,11 @@ function MobileNavItem({ href, icon, label, pathname, close, color }: { href: st
       }`}
     >
       {isActive && <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full ${theme.active.split(' ')[0].replace('bg-', 'bg-').replace('/20', '')}`} />}
-      <span className={`${isActive ? theme.text : "text-muted-foreground group-hover:" + theme.text.replace("text-", "text-")} transition-colors`}>{icon}</span>
-      {label}
+      <span className={`${isActive ? theme.text : "text-muted-foreground group-hover:" + theme.text.replace("text-", "text-")} transition-colors shrink-0`}>{icon}</span>
+      <span className="flex-1">{label}</span>
+      {showLock && (
+        <span className="text-[10px] opacity-60">🔒</span>
+      )}
     </Link>
   )
 }

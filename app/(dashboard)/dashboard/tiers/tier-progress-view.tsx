@@ -8,10 +8,18 @@ import {
   StarIcon,
   UsersIcon,
   XMarkIcon,
+  CalendarDaysIcon,
+  FunnelIcon,
+  ArrowPathIcon,
+  MagnifyingGlassIcon,
+  CurrencyDollarIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
 import { TIER_COMMISSIONS, TIER_WITHDRAWAL_LIMITS, TIER_REWARDS } from "@/lib/mlm"
-import { cn, calculateTierProgress, TIER_ORDER } from "@/lib/utils"
+import { cn, calculateTierProgress, TIER_ORDER, formatCurrency } from "@/lib/utils"
+import { format, subDays, isAfter, startOfDay } from "date-fns"
+
 
 const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string, accent: string }> = {
     NEWBIE: { badge: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300", border: "border-gray-200 dark:border-gray-700", text: "text-gray-900 dark:text-gray-100", icon: "🚀", bg: "bg-white dark:bg-gray-900", ring: "ring-gray-100 dark:ring-gray-800", accent: "bg-gray-400 dark:bg-gray-500" },
@@ -30,12 +38,21 @@ type TierProgressViewProps = {
   stats: { teamSize: number; totalSignups: number }
   tierConfig: Record<string, { arn: number, directs: number }>
   referralTree: any[]
+  commissions: any[]
 }
 
-export default function TierProgressView({ user, stats, tierConfig, referralTree }: TierProgressViewProps) {
+
+export default function TierProgressView({ user, stats, tierConfig, referralTree, commissions }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf((user.tier || "NEWBIE").toUpperCase().trim())
   const currentTierIndexLocal = currentTierIndex === -1 ? 0 : currentTierIndex;
+  
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'EARNINGS'>('PARTNERS')
+  const [timeFilter, setTimeFilter] = useState<'7D' | '30D' | 'CUSTOM'>('30D')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+
 
   const calcPercent = (current: number, min: number, max: number) => {
       if (max <= min) return 100 
@@ -144,22 +161,28 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
         <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/8 to-transparent" />
       </div>
 
-      {/* Mobile: History button opens Network Members popup */}
-      <div className="md:hidden -mt-2">
+      {/* History button - accessible on all devices but optimized for mobile view */}
+      <div className="-mt-2">
         <button
           type="button"
           onClick={() => setIsHistoryOpen(true)}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold
+          className="w-full inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black
             bg-white/90 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100
-            shadow-sm active:scale-[0.99] transition"
+            shadow-xl shadow-black/[0.02] active:scale-[0.98] transition-all hover:border-indigo-500/30 group"
         >
-          <UsersIcon className="w-4 h-4 text-indigo-500" />
-          History
-          <span className="ml-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
-            {referralTree.length}
-          </span>
+          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
+            <UsersIcon className="w-4 h-4 text-indigo-500" />
+          </div>
+          <span className="flex-1 text-left ml-2">Activity History</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
+              {referralTree.length + commissions.length} Events
+            </span>
+            <ArrowRightIcon className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+          </div>
         </button>
       </div>
+
 
       {/* ═══ TIMELINE CONTAINER ═══ */}
       <div className="relative pl-6 md:pl-0">
@@ -372,37 +395,228 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
         {networkMembersTable}
       </div>
 
-      {/* Mobile popup */}
+      {/* Mobile/Full-screen History Overlay */}
       {isHistoryOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setIsHistoryOpen(false)}
-          />
-          <div className="absolute inset-x-0 bottom-0 max-h-[88vh] rounded-t-3xl bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shadow-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+        <motion.div 
+          initial={{ opacity: 0, y: "100%" }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: "100%" }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          className="fixed inset-0 z-50 bg-white dark:bg-gray-950 flex flex-col pt-safe"
+        >
+          {/* Sticky Header */}
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white/80 dark:bg-gray-950/80 backdrop-blur-md sticky top-0 z-20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50">
                 <UsersIcon className="w-5 h-5 text-indigo-500" />
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">Network Members</div>
-                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2 py-0.5 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
-                  {referralTree.length}
-                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsHistoryOpen(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-900 transition"
-                aria-label="Close"
-              >
-                <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-              </button>
+              <div>
+                <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 leading-none">Tier Provenance</h2>
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Activity History</p>
+              </div>
             </div>
-            <div className="overflow-y-auto max-h-[calc(88vh-52px)] p-4">
-              {networkMembersTable}
-            </div>
+            <button
+              onClick={() => setIsHistoryOpen(false)}
+              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </button>
           </div>
-        </div>
+
+          <div className="flex-1 overflow-y-auto pb-24">
+            {/* Tabs */}
+            <div className="px-5 py-4">
+              <div className="flex p-1 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200/50 dark:border-gray-800/50">
+                <button
+                  onClick={() => setHistoryTab('PARTNERS')}
+                  className={cn(
+                    "flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all",
+                    historyTab === 'PARTNERS' ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-400"
+                  )}
+                >
+                  Partners
+                </button>
+                <button
+                  onClick={() => setHistoryTab('EARNINGS')}
+                  className={cn(
+                    "flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all",
+                    historyTab === 'EARNINGS' ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-400"
+                  )}
+                >
+                  Earnings
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="px-5 pb-6 space-y-4">
+              {/* Search */}
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder={historyTab === 'PARTNERS' ? "Search partners..." : "Search source..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                />
+              </div>
+
+              {/* Time Filters */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                {(['7D', '30D', 'CUSTOM'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setTimeFilter(f)}
+                    className={cn(
+                      "px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap transition-all",
+                      timeFilter === f 
+                        ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
+                        : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-indigo-200 dark:hover:border-indigo-800 hover:text-indigo-500"
+                    )}
+                  >
+                    {f === 'CUSTOM' ? 'Custom Range' : f === '7D' ? 'Last 7 Days' : 'Last 30 Days'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Custom Date Inputs */}
+              {timeFilter === 'CUSTOM' && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="grid grid-cols-2 gap-3"
+                >
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">From</label>
+                    <input
+                      type="date"
+                      value={customFrom}
+                      onChange={(e) => setCustomFrom(e.target.value)}
+                      className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">To</label>
+                    <input
+                      type="date"
+                      value={customTo}
+                      onChange={(e) => setCustomTo(e.target.value)}
+                      className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Content Area */}
+            <div className="px-5 space-y-4">
+              {historyTab === 'PARTNERS' ? (
+                // --- PARTNERS LIST ---
+                <div className="space-y-3 pb-10">
+                  {referralTree
+                    .filter(m => {
+                      const date = startOfDay(new Date(m.createdAt));
+                      const now = startOfDay(new Date());
+                      if (timeFilter === '7D') return date >= subDays(now, 7);
+                      if (timeFilter === '30D') return date >= subDays(now, 30);
+                      if (timeFilter === 'CUSTOM' && customFrom && customTo) {
+                        return date >= startOfDay(new Date(customFrom)) && date <= startOfDay(new Date(customTo));
+                      }
+                      return true;
+                    })
+                    .filter(m => !searchTerm || m.name?.toLowerCase().includes(searchTerm.toLowerCase()) || m.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map((member) => (
+                      <div key={member.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-sm border",
+                            member.level === 1 ? "bg-blue-50 border-blue-100 text-blue-600 dark:bg-blue-950/40 dark:border-blue-900/50" : "bg-purple-50 border-purple-100 text-purple-600 dark:bg-purple-950/40 dark:border-purple-900/50"
+                          )}>
+                            {member.name?.[0]?.toUpperCase() || "U"}
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-gray-900 dark:text-gray-100">{member.name || "Partner Account"}</h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className={cn(
+                                "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
+                                member.level === 1 
+                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20" 
+                                  : "bg-purple-500/10 text-purple-500 border-purple-500/20"
+                              )}>
+                                {member.level === 1 ? 'Direct' : 'Level ' + member.level}
+                              </span>
+                              <span className="text-[10px] font-medium text-gray-400">{format(new Date(member.createdAt), "MMM d, yyyy")}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Rank</div>
+                          <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase">{member.tier}</div>
+                        </div>
+                      </div>
+                    ))}
+                  {referralTree.length === 0 && (
+                    <div className="py-20 text-center opacity-40">
+                      <UsersIcon className="w-12 h-12 mx-auto mb-3" />
+                      <p className="text-sm font-bold">No partners found</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // --- EARNINGS LIST ---
+                <div className="space-y-3 pb-10">
+                  {commissions
+                    .filter(c => {
+                      const date = startOfDay(new Date(c.createdAt));
+                      const now = startOfDay(new Date());
+                      if (timeFilter === '7D') return date >= subDays(now, 7);
+                      if (timeFilter === '30D') return date >= subDays(now, 30);
+                      if (timeFilter === 'CUSTOM' && customFrom && customTo) {
+                        return date >= startOfDay(new Date(customFrom)) && date <= startOfDay(new Date(customTo));
+                      }
+                      return true;
+                    })
+                    .filter(c => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (c as any).txDescription?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map((comm) => (
+                      <div key={comm.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600">
+                            <CurrencyDollarIcon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-black text-gray-900 dark:text-gray-100">
+                              +{formatCurrency(comm.amount || 0)} 
+                              <span className="ml-1.5 text-xs text-gray-400 font-medium lowercase">earnify tokens</span>
+                            </h4>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">From {comm.sourceUser?.name || "Direct Referral"}</span>
+                              <span className="text-[10px] font-medium text-gray-400">{format(new Date(comm.createdAt), "MMM d, yyyy")}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Level {comm.level}</div>
+                          <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase">{comm.percentage}% Comm.</div>
+                        </div>
+                      </div>
+                    ))}
+                  {commissions.length === 0 && (
+                    <div className="py-20 text-center opacity-40">
+                      <ArrowPathIcon className="w-12 h-12 mx-auto mb-3" />
+                      <p className="text-sm font-bold">No earnings history found</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </motion.div>
       )}
+
     </div>
   )
 }

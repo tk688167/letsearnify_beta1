@@ -422,7 +422,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               />
               <FeatureCard
                 title="Micro-Task Engine"
-                desc="Complete verified digital tasks — surveys, content reviews, social actions — and get paid instantly upon completion."
+                desc="Complete verified digital tasks — content reviews, social actions — and get paid instantly upon completion."
                 icon="⚡"
                 gradient="from-emerald-500 to-teal-600"
                 delay={0.05}

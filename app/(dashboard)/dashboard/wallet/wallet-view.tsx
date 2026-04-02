@@ -718,47 +718,36 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                  {/* === WITHDRAW === */}
                  {activeTab === "withdraw" && (
                     <div className="space-y-8 animate-in fade-in">
-                       {!user.isActiveMember ? (
-                           <div className="flex flex-col items-center justify-center py-10 px-4 text-center bg-muted/20 border border-border rounded-2xl">
-                               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4"><ShieldCheckIcon className="w-8 h-8" /></div>
-                               <h3 className="text-xl font-bold text-foreground mb-2">Withdrawals Locked</h3>
-                               <p className="text-muted-foreground max-w-sm mb-6 text-sm">You must unlock your account with $1 before you can withdraw funds.</p>
-                               <button onClick={() => setActiveTab("deposit")} className="px-6 py-2.5 bg-foreground text-background font-bold rounded-xl shadow-lg hover:bg-foreground/90 transition-all">Deposit Funds to Unlock</button>
-                           </div>
-                       ) : (
-                         <>
-                           <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5">
-                               <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
-                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "TRC20" ? "bg-purple-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-purple-500/10 group-hover:text-purple-500")}><QrCodeIcon className="w-5 h-5"/></div>
-                                   <div className="flex-1 min-w-0">
-                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "TRC20" ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>TRC-20 Crypto</span><span className="shrink-0 text-[8px] font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-purple-200 dark:border-purple-800">Global</span></div>
-                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Fast automated swap</span>
-                                   </div>
-                                    {withdrawalMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-purple-500 shrink-0 ml-1" />}
-                               </button>
+                       <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5">
+                           <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                               <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "TRC20" ? "bg-purple-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-purple-500/10 group-hover:text-purple-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                               <div className="flex-1 min-w-0">
+                                   <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "TRC20" ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>TRC-20 Crypto</span><span className="shrink-0 text-[8px] font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-purple-200 dark:border-purple-800">Global</span></div>
+                                   <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Fast automated swap</span>
+                               </div>
+                                {withdrawalMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-purple-500 shrink-0 ml-1" />}
+                           </button>
 
-                               <button onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "MERCHANT" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
-                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
-                                   <div className="flex-1 min-w-0">
-                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span><span className="shrink-0 text-[8px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">Popular</span></div>
-                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Withdraw to bank</span>
-                                   </div>
-                                    {withdrawalMethod === "MERCHANT" && <CheckCircleIcon className="w-4 h-4 text-emerald-500 shrink-0 ml-1" />}
-                               </button>
-                           </div>
-                           {withdrawalMethod === "TRC20" && (
-                                <div className="space-y-4">
-                                    <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                    <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
-                                        <div className="flex flex-col gap-1 mt-2 px-1">
-                                            <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
-                                            <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
-                                        </div>
+                           <button onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "MERCHANT" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                               <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
+                               <div className="flex-1 min-w-0">
+                                   <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span><span className="shrink-0 text-[8px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">Popular</span></div>
+                                   <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Withdraw to bank</span>
+                               </div>
+                                {withdrawalMethod === "MERCHANT" && <CheckCircleIcon className="w-4 h-4 text-emerald-500 shrink-0 ml-1" />}
+                           </button>
+                       </div>
+                       {withdrawalMethod === "TRC20" && (
+                            <div className="space-y-4">
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
+                                    <div className="flex flex-col gap-1 mt-2 px-1">
+                                        <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
+                                        <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
                                     </div>
-                                    <button onClick={handleAction} className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">Swap & Withdraw (USD)</button>
                                 </div>
-                           )}
-                         </>
+                                <button onClick={handleAction} className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">Swap & Withdraw (USD)</button>
+                            </div>
                        )}
                     </div>
                  )}
