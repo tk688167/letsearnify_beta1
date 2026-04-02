@@ -2,13 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 // Force production database connection
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  }
-});
+const prisma = new PrismaClient();
 
 const ADMIN_EMAIL = 'admin@letsearnify.com';
 const ADMIN_PASSWORD = 'Admin@123';

@@ -24,10 +24,12 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
   }
 
   // Fetch Target User with Deeply Nested Referrals (3 Levels)
-  // Casting partial Query to any to bypass stale TS types in IDE
-  const user = await (prisma.user as any).findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: params.id },
     include: {
+      referrer: {
+        select: { name: true, referralCode: true }
+      },
       referrals: { // Level 1
         include: {
           referrals: { // Level 2
@@ -110,14 +112,17 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
           </div>
        </div>
 
-       <ReferralView 
-          user={{
-             name: user.name,
-             tier: user.tier,
-             arnBalance: user.arnBalance,
-             referralCode: user.referralCode,
-             balance: user.balance
-          }}
+        <ReferralView 
+           user={{
+              name: user.name,
+              tier: user.tier,
+              arnBalance: user.arnBalance,
+              referralCode: user.referralCode,
+              balance: user.balance,
+              totalSignups: user.referrals?.length || 0,
+              referrerName: user.referrer?.name,
+              referrerCode: user.referrer?.referralCode
+           }}
           stats={{
              teamSize,
              totalEarnings,

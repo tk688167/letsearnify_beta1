@@ -156,7 +156,7 @@ export function AdminNotificationBell() {
                        : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
                    )}
                  >
-                   {f === 'today' ? 'Today' : f === '7D' ? '7 Days' : '30 Days'}
+                   {f === 'today' ? 'Today' : f === '7d' ? '7 Days' : '30 Days'}
                    {f === '7d' ? '7 Days' : ''}
                    {f === '30d' ? '30 Days' : ''}
                  </button>

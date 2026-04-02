@@ -39,7 +39,7 @@ async function testConnection(name, url) {
     console.log(`URL: ${url.replace(/:[^:@]+@/, ':****@')}`);
     
     const prisma = new PrismaClient({
-        datasources: { db: { url } },
+        datasourceUrl: url,
         log: ['error']
     });
 

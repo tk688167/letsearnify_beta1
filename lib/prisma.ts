@@ -18,14 +18,15 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL!
-  const pool = new Pool({ 
+  
+  // In Prisma 7, the adapter handles the pool internally if passed a connection string
+  // or we can still pass a Pool if we need custom configuration.
+  // However, the new standard pattern is to use the adapter directly.
+  const adapter = new PrismaNeon({
     connectionString,
-    connectionTimeoutMillis: 10000,  // 10s timeout instead of hanging forever
-    idleTimeoutMillis: 30000,        // Close idle connections after 30s
-    max: 10,                          // Max pool size
-  })
-  const adapter = new PrismaNeon(pool)
-  return new PrismaClient({ adapter } as any)
+  }) as any
+  
+  return new PrismaClient({ adapter })
 }
 
 export const prisma = globalForPrisma.prisma || createPrismaClient();

@@ -40,7 +40,7 @@ export async function updateAchievementPercentage(percentage: number) {
 /**
  * Updates the percentage allocation for the CBSP Pool.
  */
-export async function updateCbspPercentage(percentage: number) {
+export const updateCbspPercentage = async (percentage: number) => {
     try {
         if (!(await isAdmin())) {
             return { success: false, error: "Unauthorized" }

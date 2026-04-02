@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server"
 
 const rateLimitMap = new Map();
 
-export default async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { nextUrl } = req
 
   // ─────────────────────────────────────────────────────────────
