@@ -85,7 +85,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   const [showCustomPicker, setShowCustomPicker] = useState(false)
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
-  const [activeLevelTab, setActiveLevelTab] = useState<number>(1)
+  const [activeLevelTab, setActiveLevelTab] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
 
 
@@ -380,28 +380,29 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
           </div>
 
           {/* Level Tabs */}
-          <div className="flex bg-muted/50 p-1 rounded-2xl border border-border mt-8 w-fit">
-            {[1, 2, 3].map((level) => (
+          <div className="flex w-full sm:w-max bg-muted/50 p-1 rounded-xl sm:rounded-2xl border border-border mt-6">
+            {(['ALL', 1, 2, 3] as const).map((level) => (
               <button
                 key={level}
                 onClick={() => setActiveLevelTab(level)}
-                className={`px-6 py-2 rounded-xl text-xs sm:text-sm font-black transition-all ${
+                className={`flex-1 sm:flex-none px-2 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-black transition-all text-center ${
                   activeLevelTab === level
-                    ? "bg-foreground text-background shadow-lg"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-foreground text-background shadow-md"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card"
                 }`}
               >
-                Level {level} {level === 1 && "(Direct)"}
+                <span className="sm:hidden block tracking-widest">{level === 'ALL' ? "ALL" : `L${level}`}</span>
+                <span className="hidden sm:inline">{level === 'ALL' ? "All Levels" : `Level ${level} ${level === 1 ? "(Direct)" : ""}`}</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="p-6 md:p-8 bg-card/50">
-          {/* Partner Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="p-4 sm:p-6 md:p-8 bg-card/40">
+          {/* Partner List */}
+          <div className="flex flex-col gap-3 sm:gap-4">
             {referralTree
-              .filter(n => n.level === activeLevelTab)
+              .filter(n => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
               .filter(n => 
                 !searchTerm || 
                 (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -409,7 +410,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
               )
               .length > 0 ? (
                 referralTree
-                  .filter(n => n.level === activeLevelTab)
+                  .filter(n => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
                   .filter(n => 
                     !searchTerm || 
                     (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -418,79 +419,62 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                   .map((partner) => (
                     <div 
                       key={partner.id}
-                      className="group relative bg-muted/30 border border-border hover:border-indigo-500/30 rounded-3xl p-5 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-1"
+                      className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/50 border border-border hover:border-indigo-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-md hover:shadow-indigo-500/5"
                     >
-                      {/* Status indicator */}
-                      <div className="absolute top-4 right-4 flex items-center gap-1.5">
-                        <div className={`w-2 h-2 rounded-full ${partner.isActiveMember ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-400'}`} />
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${partner.isActiveMember ? 'text-emerald-500' : 'text-slate-400'}`}>
-                          {partner.isActiveMember ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-start gap-4 mb-6">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${TIER_COLORS[(partner.tier || "NEWBIE").toUpperCase()] || "from-slate-400 to-slate-500"} flex items-center justify-center text-white font-black text-xl shadow-lg shadow-black/5`}>
+                      {/* Left: Identity block */}
+                      <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
+                        <div className={`relative w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-xl bg-gradient-to-br ${TIER_COLORS[(partner.tier || "NEWBIE").toUpperCase()] || "from-slate-400 to-slate-500"} flex items-center justify-center text-white font-black text-lg shadow-sm border border-black/5`}>
                           {partner.name?.[0]?.toUpperCase() || "P"}
+                          <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-background ${partner.isActiveMember ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-black text-foreground truncate text-base mb-0.5">
-                            {partner.name || "Anonymous Partner"}
-                          </h4>
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <div className="flex items-center gap-2 mb-0.5 max-w-full">
+                              <h4 className="font-bold text-foreground text-sm sm:text-base truncate">
+                                {partner.name || "Anonymous Partner"}
+                              </h4>
+                              <span className={`shrink-0 text-[8px] sm:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+                                  partner.tier === 'NEWBIE' ? 'bg-muted border-border text-muted-foreground' :
+                                  'bg-indigo-500/10 border-indigo-500/20 text-indigo-500 dark:text-indigo-400'
+                              }`}>
+                                  {partner.tier || "NEWBIE"}
+                              </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground w-full">
                             <EnvelopeIcon className="w-3.5 h-3.5 shrink-0" />
-                            <p className="text-xs font-medium truncate">{partner.email || "No email"}</p>
+                            <p className="text-[11px] sm:text-xs font-medium truncate">{partner.email || "No email"}</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-background/50 rounded-2xl border border-border/50">
-                           <div className="flex items-center gap-2">
-                             <IdentificationIcon className="w-4 h-4 text-indigo-500" />
-                             <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Tier</span>
-                           </div>
-                           <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border ${
-                             partner.tier === 'NEWBIE' ? 'bg-slate-50 border-slate-200 text-slate-500' :
-                             'bg-indigo-50 border-indigo-100 text-indigo-600'
-                           }`}>
-                             {partner.tier || "NEWBIE"}
-                           </span>
-                        </div>
-
-                        <div className="flex items-center justify-between p-3 bg-background/50 rounded-2xl border border-border/50">
-                           <div className="flex items-center gap-2">
-                             <CalendarDaysIcon className="w-4 h-4 text-indigo-500" />
-                             <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Joined</span>
-                           </div>
-                           <span className="text-xs font-bold text-foreground">
-                             {format(new Date(partner.createdAt), "MMM d, yyyy")}
-                           </span>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2">
-                           <div>
-                             <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-0.5">Earnings Contrib.</p>
-                             <p className="text-lg font-black text-foreground group-hover:text-emerald-500 transition-colors uppercase">
-                               ${(partner.withdrawnTotal || 0).toFixed(2)}
+                      {/* Right: Data block */}
+                      <div className="flex flex-row items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-0 border-border">
+                        <div className="flex flex-col items-start sm:items-end">
+                             <div className="flex items-center gap-1.5 mb-1 sm:mb-0.5">
+                                 <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-muted text-muted-foreground border border-border">L{partner.level}</span>
+                                 <span className="w-1 h-1 rounded-full bg-border" />
+                                 <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Joined {format(new Date(partner.createdAt), "MMM d")}</p>
+                             </div>
+                             <p className="text-xs sm:text-sm font-black text-foreground">
+                               Contributed: <span className="text-emerald-500">+${(partner.withdrawnTotal || 0).toFixed(2)}</span>
                              </p>
-                           </div>
-                           <div className="w-8 h-8 rounded-full border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                             <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
-                           </div>
+                        </div>
+                        
+                        <div className="w-8 h-8 rounded-full bg-muted/50 border border-border flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+                          <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
                     </div>
                   ))
             ) : (
-              <div className="col-span-full py-20 flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 bg-muted/50 rounded-[2rem] flex items-center justify-center mb-6 transform -rotate-6 border border-border">
-                  <UserGroupIcon className="w-10 h-10 text-muted-foreground/30" />
+              <div className="py-16 sm:py-20 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-muted/50 rounded-[2rem] flex items-center justify-center mb-6 transform -rotate-6 border border-border">
+                  <UserGroupIcon className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground/30" />
                 </div>
-                <h3 className="text-lg font-black text-foreground">No Partners Found</h3>
-                <p className="text-sm text-muted-foreground font-medium max-w-xs mx-auto mt-1 leading-relaxed">
+                <h3 className="text-base sm:text-lg font-black text-foreground">No Partners Found</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground font-medium max-w-xs mx-auto mt-1 leading-relaxed">
                   {searchTerm 
-                    ? `We couldn't find any partners matching "${searchTerm}" in Level ${activeLevelTab}.`
-                    : `Your network at Level ${activeLevelTab} is currently empty. Keep sharing your link to grow your community!`}
+                    ? `We couldn't find any partners matching "${searchTerm}" in ${activeLevelTab === 'ALL' ? 'any level' : `Level ${activeLevelTab}`}.`
+                    : `Your network at ${activeLevelTab === 'ALL' ? 'all levels' : `Level ${activeLevelTab}`} is currently empty. Keep sharing your link to grow your community!`}
                 </p>
               </div>
             )}
@@ -514,13 +498,13 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                  </div>
 
                  {/* Time Filters */}
-                 <div className="flex bg-muted p-1 rounded-xl border border-border overflow-x-auto scrollbar-hide shrink-0">
+                 <div className="flex w-full sm:w-auto bg-muted p-1 rounded-xl sm:rounded-2xl border border-border shrink-0">
                     {([
-                      { key: 'TODAY', label: 'Today' },
-                      { key: '7D',    label: '7 Days' },
-                      { key: '1M',    label: '30 Days' },
-                      { key: 'CUSTOM',label: 'Custom' },
-                    ] as { key: TimeFilter; label: string }[]).map(({ key, label }) => (
+                      { key: 'TODAY', mobile: 'Today',  desktop: 'Today' },
+                      { key: '7D',    mobile: '7D',     desktop: '7 Days' },
+                      { key: '1M',    mobile: '30D',    desktop: '30 Days' },
+                      { key: 'CUSTOM',mobile: 'Custom', desktop: 'Custom' },
+                    ] as { key: TimeFilter; mobile: string; desktop: string }[]).map(({ key, mobile, desktop }) => (
                       <button
                         key={key}
                         onClick={() => {
@@ -528,13 +512,14 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                           if (key === 'CUSTOM') setShowCustomPicker(true)
                           else setShowCustomPicker(false)
                         }}
-                        className={`flex-1 px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${
+                        className={`flex-1 sm:flex-none px-1.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center ${
                           timeFilter === key
                             ? "bg-foreground text-background shadow-sm"
                             : "text-muted-foreground hover:text-foreground hover:bg-card"
                         }`}
                       >
-                        {label}
+                         <span className="sm:hidden block tracking-wider">{mobile}</span>
+                         <span className="hidden sm:inline">{desktop}</span>
                       </button>
                     ))}
                  </div>
