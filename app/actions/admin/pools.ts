@@ -36,3 +36,25 @@ export async function updateAchievementPercentage(percentage: number) {
         return { success: false, error: error.message || "Failed to update percentage" }
     }
 }
+
+/**
+ * Updates the percentage allocation for the CBSP Pool.
+ */
+export async function updateCbspPercentage(percentage: number) {
+    try {
+        if (!(await isAdmin())) {
+            return { success: false, error: "Unauthorized" }
+        }
+
+        await prisma.pool.update({
+            where: { name: "CBSP" },
+            data: { percentage }
+        })
+
+        revalidatePath("/admin/pools/cbspool")
+        return { success: true }
+    } catch (error: any) {
+        console.error("Update CBSP Percentage Error:", error)
+        return { success: false, error: error.message || "Failed to update percentage" }
+    }
+}
