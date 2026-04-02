@@ -108,23 +108,34 @@ export type SpinSettings = {
 }
 
 export async function getSpinSettings(): Promise<SpinSettings> {
-    const config = await prisma.systemConfig.findUnique({
-        where: { key: "SPIN_CONFIG" }
-    })
-    
-    // Default fallback if missing (or return defaults)
-    if (!config || !config.value) {
-        return {
-            freeSpinCooldownHours: 24,
-            premiumSpinCooldownHours: 24,
-            premiumUnlockAmount: 1.0,
-            welcomeBonusDays: 3,
-            surpriseGiftIntervalDays: 30
-        }
+    const defaultSettings: SpinSettings = {
+        freeSpinCooldownHours: 24,
+        premiumSpinCooldownHours: 24,
+        premiumUnlockAmount: 1.0,
+        welcomeBonusDays: 3,
+        surpriseGiftIntervalDays: 30
     }
-    
-    return config.value as SpinSettings
+
+    try {
+        const config = await prisma.systemConfig.findUnique({
+            where: { key: "SPIN_CONFIG" }
+        })
+        
+        if (!config || !config.value) {
+            return defaultSettings
+        }
+        
+        const settings = config.value as Partial<SpinSettings>
+        return {
+            ...defaultSettings,
+            ...settings
+        }
+    } catch (error) {
+        console.error("Failed to fetch spin settings:", error)
+        return defaultSettings
+    }
 }
+
 
 export async function updateSpinSettings(settings: SpinSettings) {
     const session = await auth()
