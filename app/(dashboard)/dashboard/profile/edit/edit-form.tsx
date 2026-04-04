@@ -27,19 +27,10 @@ interface EditFormProps {
 export default function EditForm({ user }: EditFormProps) {
   const [isPending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ type: "success" | "error", text: string } | null>(null)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  
   const [preview, setPreview] = useState<string | null>(null)
   const [isRemoved, setIsRemoved] = useState(false)
-
-  const passwordMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword
-  const passwordMatch = confirmPassword.length > 0 && newPassword === confirmPassword
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -68,20 +59,10 @@ export default function EditForm({ user }: EditFormProps) {
   async function handleSubmit(formData: FormData) {
     setMessage(null)
 
-    // Validate password match on client side
-    const np = formData.get("newPassword") as string
-    const cp = formData.get("confirmNewPassword") as string
-    if (np && np !== cp) {
-      setMessage({ type: "error", text: "New passwords do not match." })
-      return
-    }
-
     startTransition(async () => {
       try {
         await updateProfile(formData)
         setMessage({ type: "success", text: "Settings saved successfully!" })
-        setNewPassword("")
-        setConfirmPassword("")
         router.refresh()
       } catch (error: any) {
         setMessage({ type: "error", text: error.message || "Something went wrong." })
@@ -203,106 +184,6 @@ export default function EditForm({ user }: EditFormProps) {
 
         <div className="h-px w-full bg-border/50" />
 
-        {/* Section 3: Localization & Preferences */}
-        <section>
-          <h2 className="text-xl font-bold font-serif text-foreground mb-6">Global Preferences</h2>
-          <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-              <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 pl-1">
-                      <GlobeAltIcon className="w-4 h-4 text-primary" /> Language
-                  </label>
-                  <div className="relative">
-                      <select name="language" defaultValue={user?.language || "en"} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
-                          <option value="en">English (United States)</option>
-                          <option value="es">Español</option>
-                          <option value="fr">Français</option>
-                          <option value="ur">Urdu</option>
-                          <option value="hi">Hindi</option>
-                          <option value="ar">العربية</option>
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                      </div>
-                  </div>
-              </div>
-              <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 pl-1">
-                      <SwatchIcon className="w-4 h-4 text-primary" /> Currency
-                  </label>
-                  <div className="relative">
-                      <select name="currency" defaultValue={user?.currency || "USD"} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
-                          <option value="USD">USD ($)</option>
-                          <option value="EUR">EUR (€)</option>
-                          <option value="GBP">GBP (£)</option>
-                          <option value="PKR">PKR (₨)</option>
-                          <option value="INR">INR (₹)</option>
-                          <option value="AED">AED (د.إ)</option>
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                      </div>
-                  </div>
-              </div>
-          </div>
-        </section>
-
-        <div className="h-px w-full bg-border/50" />
-
-        {/* Section 4: Change Password */}
-        <section>
-           <h2 className="text-xl font-bold font-serif text-foreground mb-2">Change Password</h2>
-           <p className="text-sm text-muted-foreground mb-6">Leave blank if you don't want to change your password.</p>
-           <div className="space-y-5 sm:space-y-6">
-              {/* Current Password */}
-              <div className="space-y-2">
-                 <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Current Password</label>
-                 <div className="relative">
-                   <input name="currentPassword" type={showCurrentPassword ? "text" : "password"}
-                     className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
-                     placeholder="Enter your current password" />
-                   <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
-                     {showCurrentPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                   </button>
-                 </div>
-              </div>
-
-              {/* New Password */}
-              <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
-                <div className="space-y-2">
-                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">New Password</label>
-                   <div className="relative">
-                     <input name="newPassword" type={showNewPassword ? "text" : "password"}
-                       value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-                       className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
-                       placeholder="Min. 8 characters" />
-                     <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
-                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
-                       {showNewPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                     </button>
-                   </div>
-                </div>
-
-                {/* Confirm New Password */}
-                <div className="space-y-2">
-                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Confirm New Password</label>
-                   <div className="relative">
-                     <input name="confirmNewPassword" type={showConfirmPassword ? "text" : "password"}
-                       value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                       className={"w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40 " + (passwordMismatch ? "border-red-500" : passwordMatch ? "border-emerald-500" : "border-border")}
-                       placeholder="Re-enter new password" />
-                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                       className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none p-1 transition-colors">
-                       {showConfirmPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                     </button>
-                   </div>
-                   {passwordMismatch && <p className="text-xs text-red-500 font-medium pl-1">Passwords don't match</p>}
-                   {passwordMatch && <p className="text-xs text-emerald-500 font-medium pl-1">Passwords match</p>}
-                </div>
-              </div>
-           </div>
-        </section>
-
         {/* Sticky Action Bar */}
         <div className="sticky bottom-20 md:bottom-6 z-50 pt-2 md:pt-4 flex justify-end">
            <div className="flex flex-row items-center gap-3 bg-card/90 backdrop-blur-xl border border-border p-3 rounded-2xl shadow-xl shadow-black/10 w-full md:w-auto">
@@ -310,7 +191,7 @@ export default function EditForm({ user }: EditFormProps) {
                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm bg-secondary text-foreground font-semibold rounded-xl border border-border hover:bg-muted transition-colors opacity-90 hover:opacity-100">
                Discard
              </button>
-             <button type="submit" disabled={isPending || passwordMismatch}
+             <button type="submit" disabled={isPending}
                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white shadow-md shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5">
                {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckCircleIcon className="w-4 h-4" />}
                Save All Changes

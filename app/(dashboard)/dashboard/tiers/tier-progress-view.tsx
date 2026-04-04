@@ -17,7 +17,8 @@ import {
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
 import { TIER_COMMISSIONS, TIER_WITHDRAWAL_LIMITS, TIER_REWARDS } from "@/lib/mlm"
-import { cn, calculateTierProgress, TIER_ORDER, formatCurrency } from "@/lib/utils"
+import { cn, calculateTierProgress, TIER_ORDER } from "@/lib/utils"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 import { format, subDays, isAfter, startOfDay } from "date-fns"
 
 
@@ -45,6 +46,8 @@ type TierProgressViewProps = {
 export default function TierProgressView({ user, stats, tierConfig, referralTree, commissions }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf((user.tier || "NEWBIE").toUpperCase().trim())
   const currentTierIndexLocal = currentTierIndex === -1 ? 0 : currentTierIndex;
+  
+  const { formatCurrency } = useCurrency();
   
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'EARNINGS'>('PARTNERS')

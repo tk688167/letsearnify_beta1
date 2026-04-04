@@ -124,11 +124,10 @@ export async function updateProfile(formData: FormData) {
   const securityQuestion = formData.get("securityQuestion") as string
   const securityAnswer = formData.get("securityAnswer") as string
 
-  const data: any = { 
-      name, 
-      email, 
-      phoneNumber 
-  }
+  const data: any = {}
+  if (formData.has("name")) data.name = formData.get("name") as string;
+  if (formData.has("email")) data.email = formData.get("email") as string;
+  if (formData.has("phoneNumber")) data.phoneNumber = formData.get("phoneNumber") as string;
   
   // Handle Profile Picture
   const image = formData.get("image") as string

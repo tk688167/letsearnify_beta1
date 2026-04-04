@@ -22,6 +22,7 @@ import {
   CheckCircleIcon
 } from "@heroicons/react/24/outline"
 import { createDailyPool } from "@/app/actions/user/daily-pools"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -31,6 +32,7 @@ function cn(...classes: string[]) {
 
 export default function DailyEarningPageContent() {
   const { data, mutate } = useSWR("/api/user/daily-earning", fetcher)
+  const { formatCurrency, userCurrency } = useCurrency();
   
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false)
   const [investAmount, setInvestAmount] = useState("")
@@ -154,7 +156,7 @@ export default function DailyEarningPageContent() {
         <div className="flex bg-card border border-border p-2 rounded-2xl shadow-sm overflow-hidden">
            <div className="px-5 py-2 border-r border-border text-center">
              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Total Invested</p>
-             <p className="font-serif font-black text-foreground text-lg">${totalPrincipalLocked.toFixed(2)}</p>
+             <p className="font-serif font-black text-foreground text-lg">{formatCurrency(totalPrincipalLocked)}</p>
            </div>
            <div className="px-5 py-2 border-r border-border text-center">
              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Active Pools</p>
@@ -162,7 +164,7 @@ export default function DailyEarningPageContent() {
            </div>
            <div className="px-5 py-2 text-center">
              <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Total Earnings</p>
-             <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-lg">+${totalAccumulatedProfit.toFixed(2)}</p>
+             <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-lg">+{formatCurrency(totalAccumulatedProfit)}</p>
            </div>
         </div>
       </section>
@@ -177,9 +179,8 @@ export default function DailyEarningPageContent() {
          <div className="relative z-10 w-full md:w-auto text-center md:text-left text-foreground">
             <p className="text-[10px] sm:text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2">Daily Earning Wallet Balance</p>
             <div className="flex items-baseline justify-center md:justify-start gap-2 mb-2">
-               <span className="text-xl sm:text-2xl font-serif text-muted-foreground">$</span>
                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-serif tracking-tighter">
-                  {dailyEarningWallet.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatCurrency(dailyEarningWallet)}
                </h2>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">Ready to allocate to new pools.</p>
@@ -255,7 +256,7 @@ export default function DailyEarningPageContent() {
 
                   <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Main Wallet</span>
-                     <span className="text-lg font-black text-foreground font-serif">${walletBalance.toFixed(2)}</span>
+                     <span className="text-lg font-black text-foreground font-serif">{formatCurrency(walletBalance)}</span>
                   </div>
 
                   <form onSubmit={handleTransfer}>
@@ -292,7 +293,7 @@ export default function DailyEarningPageContent() {
 
                   <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Available Allocation</span>
-                     <span className="text-lg font-black text-foreground font-serif">${dailyEarningWallet.toFixed(2)}</span>
+                     <span className="text-lg font-black text-foreground font-serif">{formatCurrency(dailyEarningWallet)}</span>
                   </div>
 
                   <form onSubmit={handleInvest}>
@@ -328,11 +329,11 @@ export default function DailyEarningPageContent() {
                         <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-2xl bg-muted/40 border border-border shadow-inner">
                            <div className="text-center border-r border-border">
                               <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Daily Profit</p>
-                              <p className="text-base font-black text-foreground font-serif">+${(parseFloat(investAmount) * 0.01).toFixed(2)}</p>
+                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(parseFloat(investAmount) * 0.01)}</p>
                            </div>
                            <div className="text-center">
                               <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1">Total Expected Return</p>
-                              <p className="text-base font-black text-foreground font-serif">+${(parseFloat(investAmount) * 0.30).toFixed(2)}</p>
+                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(parseFloat(investAmount) * 0.30)}</p>
                            </div>
                         </div>
                      )}
@@ -355,6 +356,7 @@ export default function DailyEarningPageContent() {
 }
 
 function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: any) {
+  const { formatCurrency } = useCurrency();
   const now = new Date()
   const startDate = new Date(inv.createdAt)
   const expiryDate = new Date(inv.expiresAt)
@@ -396,10 +398,10 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: an
        <div className="mb-5 sm:mb-6 pr-0 sm:pr-24">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Invested Amount</p>
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-3">
-             <h4 className="text-3xl sm:text-4xl font-black text-foreground leading-none font-serif tracking-tighter">${inv.amount.toFixed(2)}</h4>
+             <h4 className="text-3xl sm:text-4xl font-black text-foreground leading-none font-serif tracking-tighter">{formatCurrency(inv.amount)}</h4>
              <div className="inline-flex w-fit items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
                 <PlusIcon className="w-3 h-3" />
-                ${(inv.amount * 0.01).toFixed(2)}/day
+                {formatCurrency(inv.amount * 0.01)}/day
              </div>
           </div>
        </div>
@@ -407,7 +409,7 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: an
        {/* Mid Row: Profit So Far */}
        <div className="mb-5 sm:mb-6 p-4 rounded-xl bg-muted/30 border border-border block w-full sm:inline-block sm:w-auto sm:min-w-[50%]">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Accumulated Profit</p>
-          <h4 className="text-2xl font-black text-emerald-600 dark:text-emerald-500 font-serif leading-none tracking-tighter">+${inv.profitEarned.toFixed(2)}</h4>
+          <h4 className="text-2xl font-black text-emerald-600 dark:text-emerald-500 font-serif leading-none tracking-tighter">+{formatCurrency(inv.profitEarned)}</h4>
        </div>
 
        {/* Bottom Row / Actions */}

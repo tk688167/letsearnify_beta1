@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { UserGroupIcon, TrophyIcon, ShieldCheckIcon } from "@heroicons/react/24/outline"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
 type StatsData = {
   totalUsers: string
@@ -31,9 +32,11 @@ export default function DashboardStatsCards() {
       return isNaN(num) ? val : num.toLocaleString()
   }
 
-  const formatCurrency = (val: string) => {
+  const { formatCurrency } = useCurrency();
+  
+  const getMappedCurrency = (val: string) => {
       const num = Number(val.replace(/[^0-9.-]+/g,""))
-      return isNaN(num) ? val : "$" + num.toLocaleString()
+      return isNaN(num) ? val : formatCurrency(num)
   }
 
   return (
@@ -61,7 +64,7 @@ export default function DashboardStatsCards() {
        <div className="flex items-center gap-2">
           <TrophyIcon className="w-4 h-4 text-amber-500 dark:text-amber-400" />
           <span className="text-xs font-medium text-muted-foreground">
-             <span className="font-bold text-foreground">{formatCurrency(stats.totalRewards)}</span> Distributed
+             <span className="font-bold text-foreground">{getMappedCurrency(stats.totalRewards)}</span> Distributed
           </span>
        </div>
 

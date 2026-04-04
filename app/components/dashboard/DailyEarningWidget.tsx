@@ -15,6 +15,7 @@ import {
   SparklesIcon
 } from "@heroicons/react/24/outline"
 import { createDailyPool } from "@/app/actions/user/daily-pools"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
@@ -24,6 +25,7 @@ function cn(...classes: string[]) {
 
 export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean }) {
   const { data, error, mutate } = useSWR("/api/user/daily-earning", fetcher)
+  const { formatCurrency, userCurrency } = useCurrency();
   
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferAmount, setTransferAmount] = useState("")
@@ -212,26 +214,25 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
            )}
         </div>
 
-        {/* --- STATS GRID --- */}
         <div className={cn("grid gap-4", isCompact ? "grid-cols-2 mb-8" : "grid-cols-2 lg:grid-cols-5 mb-12")}>
             <StatBox 
-              label="Earnings Wallet" 
-              value={`$${dailyEarningWallet.toFixed(2)}`} 
+              label={`Earnings Wallet (${userCurrency})`} 
+              value={formatCurrency(dailyEarningWallet)} 
               icon={CurrencyDollarIcon} 
               color="indigo" 
               isCompact={isCompact}
             />
             <StatBox 
-              label="Active Pool" 
-              value={`$${totalPrincipalLocked.toFixed(2)}`} 
+              label={`Active Pool (${userCurrency})`} 
+              value={formatCurrency(totalPrincipalLocked)} 
               icon={LockClosedIcon} 
               color="amber" 
               isCompact={isCompact}
             />
             <div className={cn(isCompact ? "col-span-2" : "hidden lg:block")}>
                <StatBox 
-                 label="Accumulated Profit" 
-                 value={`$${totalAccumulatedProfit.toFixed(2)}`} 
+                 label={`Accumulated Profit (${userCurrency})`} 
+                 value={formatCurrency(totalAccumulatedProfit)} 
                  icon={ChartBarIcon} 
                  color="emerald" 
                  isCompact={isCompact}
@@ -246,8 +247,8 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                   color="blue" 
                 />
                 <StatBox 
-                  label="Main Balance" 
-                  value={`$${walletBalance.toFixed(2)}`} 
+                  label={`Main Balance (${userCurrency})`} 
+                  value={formatCurrency(walletBalance)} 
                   icon={WalletIcon} 
                   color="gray" 
                 />
@@ -285,10 +286,10 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                              Principal Ready to be Collected
                           </p>
                           <div className="flex items-baseline gap-3">
-                             <p className="text-3xl font-serif font-black text-foreground">${inv.amount.toFixed(2)}</p>
+                             <p className="text-3xl font-serif font-black text-foreground">{formatCurrency(inv.amount)}</p>
                              <div className="flex items-center gap-1 text-emerald-500 font-bold text-sm bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
                                 <PlusIcon className="w-3 h-3" />
-                                ${inv.profitEarned.toFixed(2)}
+                                {formatCurrency(inv.profitEarned)}
                              </div>
                           </div>
                        </div>
@@ -373,9 +374,9 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                                <div>
                                   <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Locked Principal</p>
                                   <div className="flex items-baseline gap-2">
-                                     <p className={cn("font-serif font-black text-foreground tracking-tighter", isCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>${inv.amount.toFixed(2)}</p>
+                                     <p className={cn("font-serif font-black text-foreground tracking-tighter", isCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>{formatCurrency(inv.amount)}</p>
                                      <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
-                                        +${(inv.amount * 0.01).toFixed(2)}/day
+                                        +{formatCurrency(inv.amount * 0.01)}/day
                                      </div>
                                   </div>
                                </div>
@@ -386,7 +387,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                                   <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1">
                                     <SparklesIcon className="w-3 h-3" /> Profit
                                   </p>
-                                  <p className={cn("font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter", isCompact ? "text-lg" : "text-xl")}>+${inv.profitEarned.toFixed(2)}</p>
+                                  <p className={cn("font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter", isCompact ? "text-lg" : "text-xl")}>+{formatCurrency(inv.profitEarned)}</p>
                                </div>
                                <div className="bg-orange-500/5 p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px]">
                                   <p className="text-[9px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1">
@@ -480,7 +481,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                        {transferDirection === "MAIN_TO_DAILY" ? "Main Wallet Balance" : "Daily Earning Base"}
                      </span>
                      <span className="text-foreground font-serif font-black text-lg">
-                       ${transferDirection === "MAIN_TO_DAILY" ? walletBalance.toFixed(2) : dailyEarningWallet.toFixed(2)}
+                       {formatCurrency(transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet)}
                      </span>
                   </div>
 
@@ -534,7 +535,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                   
                   <div className="bg-muted/40 rounded-2xl p-4 mb-6 border border-border flex justify-between items-center">
                      <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Available Allocation</span>
-                     <span className="text-foreground font-serif font-black text-lg">${dailyEarningWallet.toFixed(2)}</span>
+                     <span className="text-foreground font-serif font-black text-lg">{formatCurrency(dailyEarningWallet)}</span>
                   </div>
 
                   <form onSubmit={handleInvest}>
@@ -560,11 +561,11 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                         <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
                            <div className="text-center border-r border-indigo-500/10">
                               <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">Expected Daily</p>
-                              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 font-serif">+${(parseFloat(investAmount) * 0.01).toFixed(2)}</p>
+                              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 font-serif">+{formatCurrency(parseFloat(investAmount) * 0.01)}</p>
                            </div>
                            <div className="text-center">
                               <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Return (30d)</p>
-                              <p className="text-base font-black text-emerald-600 dark:text-emerald-400 font-serif">+${(parseFloat(investAmount) * 0.30).toFixed(2)}</p>
+                              <p className="text-base font-black text-emerald-600 dark:text-emerald-400 font-serif">+{formatCurrency(parseFloat(investAmount) * 0.30)}</p>
                            </div>
                         </div>
                      )}

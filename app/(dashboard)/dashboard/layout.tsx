@@ -6,6 +6,8 @@ import MobileNav from "./mobile-nav"
 import { Sidebar } from "./sidebar"
 import { BottomNav } from "./BottomNav"
 import { SwipeContainer } from "./SwipeContainer"
+import { getExchangeRates } from "@/lib/currency"
+import { CurrencyProvider } from "@/app/components/providers/CurrencyProvider"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   let session;
@@ -25,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     try {
       user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { isActiveMember: true }
+        select: { isActiveMember: true, currency: true }
       });
     } catch (error) {
       console.error("Layout Fetch User Failed:", error);
@@ -33,6 +35,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   const isActiveMember = user?.isActiveMember || false;
+  const rates = await getExchangeRates();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden transition-colors duration-300">
@@ -46,9 +49,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         
         {/* Mobile Swipe Container + Children */}
         {/* Responsive Container */}
-        <SwipeContainer>
-            {children}
-        </SwipeContainer>
+        <CurrencyProvider rates={rates} userCurrency={user?.currency || 'USD'}>
+          <SwipeContainer>
+              {children}
+          </SwipeContainer>
+        </CurrencyProvider>
 
         <BottomNav />
       </main>

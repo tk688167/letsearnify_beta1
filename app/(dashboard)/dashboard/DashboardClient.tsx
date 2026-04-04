@@ -23,7 +23,8 @@ import {
   ClockIcon,
   TrophyIcon
 } from "@heroicons/react/24/outline"
-import { formatCurrency, formatUserId, cn, calculateTierProgress } from "@/lib/utils"
+import { formatUserId, cn, calculateTierProgress } from "@/lib/utils"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 import { CompanyPools } from "./CompanyPools"
 import { DailyEarningWidget } from "@/app/components/dashboard/DailyEarningWidget"
 
@@ -70,6 +71,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   const [isUnlocked, setIsUnlocked] = useState(() => user.isActiveMember || false);
   const [balance, setBalance] = useState(() => user.balance || 0);
   const router = useRouter();
+  const { formatCurrency, userCurrency } = useCurrency();
 
   // Unlock Modal State
   const [showUnlockModal, setShowUnlockModal] = useState(false);
@@ -219,7 +221,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
 
       {/* 2. STATS OVERVIEW GRID (Desktop) */}
       <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub="Available USD" icon={WalletIcon} color="emerald" delay={0.1} />
+          <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub={`Available ${userCurrency}`} icon={WalletIcon} color="emerald" delay={0.1} />
           <StatCard title="Total ARN" value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} icon={StarIcon} color="blue" delay={0.2} />
           <StatCard title="Task Earnings" value={formatCurrency(user.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
           <StatCard title="Referral Earnings" value={formatCurrency(user.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
@@ -246,7 +248,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                           {((user.balance || 0) * 10).toFixed(2)} <span className="text-sm text-blue-200 font-sans">ARN</span>
                       </div>
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm">
-                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user.balance || 0)} USD</span>
+                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user.balance || 0)}</span>
                       </div>
                   </div>
                   <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
@@ -420,7 +422,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                      Unlock Your Full <br className="hidden sm:block" />Earnings Potential
                   </h3>
                   <p className="text-blue-100/80 mb-6 sm:mb-8 leading-relaxed text-sm md:text-lg max-w-lg">
-                     Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even $1 can be withdrawn anytime.
+                     Activate your account by depositing just <span className="text-white font-bold">{formatCurrency(1.00)}</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even initial deposits can be withdrawn anytime.
                   </p>
                   <div className="flex flex-wrap gap-4">
                      <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
@@ -449,7 +451,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                       <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                           {modalInfo 
                               ? modalInfo.description 
-                              : <>Activating your account costs <span className="font-bold text-gray-900 dark:text-white">$1.00</span> from your wallet balance.</>
+                              : <>Activating your account costs <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(1.00)}</span> from your wallet balance.</>
                           }
                       </p>
                   </div>
@@ -480,7 +482,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                           onClick={() => setShowUnlockModal(false)}
                           className="w-full py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm rounded-xl hover:bg-black dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
                       >
-                          Activate for $1.00 <span className="text-lg">→</span>
+                          Activate for {formatCurrency(1.00)} <span className="text-lg">→</span>
                       </Link>
                       <button 
                           onClick={() => setShowUnlockModal(false)}

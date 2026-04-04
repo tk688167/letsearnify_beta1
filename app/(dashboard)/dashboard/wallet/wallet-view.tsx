@@ -3,10 +3,12 @@
 import { useState, useTransition, useEffect, Suspense, useMemo } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { formatCurrency, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { deposit, transferFunds } from "@/lib/actions"
 import { submitWithdrawal } from "@/app/actions/wallet"
+
 import { submitMerchantDeposit, submitMerchantWithdrawal } from "@/app/actions/user/merchant-transaction"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 import { 
   BanknotesIcon, 
   ArrowDownTrayIcon, 
@@ -95,6 +97,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab")
+  
+  const { formatCurrency, userCurrency, convertFromUSD } = useCurrency()
   
   const [balance, setBalance] = useState(user.balance)
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
@@ -536,7 +540,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                          {((user.balance || 0) * 10).toFixed(2)} <span className="text-xl sm:text-2xl text-blue-200">ARN</span>
                      </div>
                      <div className="flex items-center gap-2.5 mt-2">
-                         <span className="text-blue-100/90 font-medium text-sm">≈ {formatCurrency(user.balance || 0)} USD</span>
+                         <span className="text-blue-100/90 font-medium text-sm">≈ {formatCurrency(user.balance || 0)}</span>
                          <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30")}>
                              {user.isActiveMember ? "Active" : "Locked"}
                          </span>
@@ -551,7 +555,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <div className="p-1.5 bg-emerald-500/10 rounded-md shrink-0"><ChartPieIcon className="w-4 h-4 text-emerald-500" /></div>
                            <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Mudarabah Pool</span>
                        </div>
-                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">${(user.mudarabahBalance || 0).toFixed(2)}</span>
+                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.mudarabahBalance || 0)}</span>
                    </div>
 
                    <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
@@ -559,7 +563,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <div className="p-1.5 bg-blue-500/10 rounded-md shrink-0"><BanknotesIcon className="w-4 h-4 text-blue-500" /></div>
                            <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Daily Earning Pool</span>
                        </div>
-                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">${(user.dailyEarningWallet || 0).toFixed(2)}</span>
+                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.dailyEarningWallet || 0)}</span>
                    </div>
 
                    {user.lockedArnBalance > 0 && !user.isActiveMember && (
@@ -581,12 +585,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                              <LockClosedIcon className="w-5 h-5" /> Account Locked
                          </h3>
                          <p className="text-muted-foreground text-xs md:text-sm font-medium leading-relaxed max-w-xl">
-                             You are missing out! Use <strong className="text-foreground">$1.00 USD</strong> from your wallet to unlock all platform features instantly.
+                             You are missing out! Use <strong className="text-foreground">{formatCurrency(1.00)}</strong> from your wallet to unlock all platform features instantly.
                          </p>
                      </div>
                      <div className="flex flex-col gap-2 shrink-0 sm:w-auto w-full">
                          <button onClick={handleUnlockAccount} disabled={isUnlocking} className="w-full sm:w-auto relative overflow-hidden bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-amber-950 font-black px-6 py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed text-sm">
-                            <span className="flex items-center justify-center gap-2">{isUnlocking ? "Unlocking..." : "Use $1 to Unlock"}{!isUnlocking && <ChevronRightIcon className="w-4 h-4" />}</span>
+                            <span className="flex items-center justify-center gap-2">{isUnlocking ? "Unlocking..." : `Use ${formatCurrency(1)} to Unlock`}{!isUnlocking && <ChevronRightIcon className="w-4 h-4" />}</span>
                          </button>
                      </div>
                  </div>
@@ -762,12 +766,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     </div>
                  )}
 
-                {/* === TRANSFER === */}
+        {/* === TRANSFER === */}
                 {activeTab === "transfer" && (
                     <div className="space-y-4 animate-in fade-in">
                              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">${(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0)).toFixed(2)}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                              </div>
                              <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
                              <button onClick={handleAction} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Transfer Funds</button>

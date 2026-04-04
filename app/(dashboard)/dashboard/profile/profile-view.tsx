@@ -18,9 +18,10 @@ import {
 } from "@heroicons/react/24/outline"
 import { User } from "@prisma/client"
 import { CopyableText } from "@/app/(dashboard)/dashboard/copyable-text"
-import { formatCurrency, formatUserId } from "@/lib/utils"
+import { formatUserId } from "@/lib/utils"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
 interface ProfileViewProps {
     user: User & {
@@ -33,13 +34,11 @@ interface ProfileViewProps {
 
 export default function ProfileView({ user, teamSize }: ProfileViewProps) {
 
-    const [activeTab, setActiveTab] = useState("overview")
-
     const tabs = [
-        { id: "overview", label: "Overview", icon: UserCircleIcon },
-        { id: "security", label: "Security", icon: ShieldCheckIcon },
-        { id: "settings", label: "Settings", icon: Cog6ToothIcon },
+        { id: "overview", label: "Overview", icon: UserCircleIcon }
     ]
+
+    const { formatCurrency, userCurrency } = useCurrency();
 
     return (
         <div className="max-w-5xl mx-auto pb-12">
@@ -105,30 +104,7 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                 </div>
             </div>
 
-            {/* 2. NAVIGATION TABS */}
-            <div className="px-4 md:px-0 mb-8 mt-8">
-                <div className="flex p-1 bg-muted/50 rounded-2xl w-full md:w-fit gap-1 backdrop-blur-sm border border-border mx-auto md:mx-0">
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon
-                        const isActive = activeTab === tab.id
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={cn(
-                                    "flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300",
-                                    isActive 
-                                        ? "bg-card text-foreground shadow-md ring-1 ring-black/5 dark:ring-white/10" 
-                                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
-                                )}
-                            >
-                                <Icon className="w-4 h-4" />
-                                {tab.label}
-                            </button>
-                        )
-                    })}
-                </div>
-            </div>
+            {/* 2. NAVIGATION REMOVED - Unified View */}
 
             {/* 3. CONTENT AREA */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4 md:px-0">
@@ -136,17 +112,23 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                 <div className="lg:col-span-2 space-y-6">
                     
                     <div className="grid grid-cols-2 gap-4">
-                        <StatCard title="Total Wallet (USD)" value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
+                        <StatCard title={`Total Wallet (${userCurrency})`} value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
                         <StatCard title="Community" value={teamSize.toString()} suffix=" Members" icon={UsersIcon} color="blue" delay={0.2} />
                         <StatCard title="Loyalty Tier" value={user.tier} icon={StarIcon} color="amber" delay={0.3} />
                         <StatCard title="Total ARN" value={((user.balance || 0) * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} suffix=" ARN" icon={CheckBadgeIcon} color="purple" delay={0.4} />
                     </div>
 
                     <div className="bg-card rounded-[2rem] border border-border shadow-sm p-8 min-h-[400px]">
-                        {activeTab === "overview" && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                                 <div>
-                                    <h3 className="text-lg font-bold text-foreground font-serif mb-6">Personal Details</h3>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <h3 className="text-lg font-bold text-foreground font-serif">Personal Details</h3>
+                                        <Link href="/dashboard/profile/edit">
+                                            <button className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 px-3 py-1.5 rounded-lg border border-blue-500/20 transition-colors">
+                                                Edit Info
+                                            </button>
+                                        </Link>
+                                    </div>
                                     <div className="grid md:grid-cols-2 gap-y-6 gap-x-12">
                                         <DetailRow label="Full Name" value={user.name!} />
                                         <DetailRow label="Email Address" value={user.email!} />
@@ -178,49 +160,6 @@ export default function ProfileView({ user, teamSize }: ProfileViewProps) {
                                     </div>
                                 </div>
                             </motion.div>
-                        )}
-
-                        {activeTab === "security" && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                <h3 className="text-lg font-bold text-foreground font-serif mb-4">Security Settings</h3>
-                                
-                                <Link href="/dashboard/profile/edit">
-                                    <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group">
-                                        <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                            <KeyIcon className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-foreground">Change Password</h4>
-                                            <p className="text-xs text-muted-foreground">Update your password regularly for security</p>
-                                        </div>
-                                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">Update</span>
-                                    </div>
-                                </Link>
-
-                                <Link href="/dashboard/profile/edit">
-                                    <div className="p-5 border border-border rounded-2xl flex items-center gap-4 hover:bg-muted/30 transition-colors cursor-pointer group mt-4">
-                                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                                            <CameraIcon className="w-5 h-5" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h4 className="font-bold text-foreground">Update Profile Photo</h4>
-                                            <p className="text-xs text-muted-foreground">Upload or change your profile picture</p>
-                                        </div>
-                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Edit</span>
-                                    </div>
-                                </Link>
-                            </motion.div>
-                        )}
-
-                        {activeTab === "settings" && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                <h3 className="text-lg font-bold text-foreground font-serif mb-4">Preferences</h3>
-                                <p className="text-muted-foreground text-sm">Manage your notification and display settings.</p>
-                                <div className="h-48 bg-muted/30 rounded-xl border border-dashed border-border flex items-center justify-center text-muted-foreground text-sm font-medium">
-                                    Notification Settings Coming Soon
-                                </div>
-                            </motion.div>
-                        )}
                     </div>
                 </div>
 
