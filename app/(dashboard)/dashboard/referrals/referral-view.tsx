@@ -123,9 +123,10 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
 
   // Analytics for the structure
   const activeNetwork = referralTree.filter(n => !!n.isActiveMember || !!n.lastUnlockAt)
-  const countL1 = activeNetwork.filter(n => n.level === 1).length
-  const countL2 = activeNetwork.filter(n => n.level === 2).length
-  const countL3 = activeNetwork.filter(n => n.level === 3).length
+  const earnedL1 = commissions.filter(c => c.level === 1).reduce((sum, c) => sum + c.amount, 0)
+  const earnedL2 = commissions.filter(c => c.level === 2).reduce((sum, c) => sum + c.amount, 0)
+  const earnedL3 = commissions.filter(c => c.level === 3).reduce((sum, c) => sum + c.amount, 0)
+  const totalEarnedFromNetwork = earnedL1 + earnedL2 + earnedL3
 
   // Filter commissions based on time
   const filteredCommissions = commissions.filter(comm => {
@@ -315,15 +316,15 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-bold flex items-center gap-2"><UserGroupIcon className="w-4 h-4 text-purple-500" /> Active Network</h3>
               <div className="px-2 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black rounded-lg border border-purple-100 dark:border-purple-500/20">
-                 {activeNetwork.length} Total
+                 ${totalEarnedFromNetwork.toFixed(2)} Total
               </div>
             </div>
             
             <div className="flex-1 flex flex-col justify-center gap-3">
                {[
-                 { label: "Level 1 (Direct)", count: countL1, rate: levelRate(1), bg: "bg-blue-500", border: "border-blue-500/30", text: "text-blue-500" },
-                 { label: "Level 2 (Indirect)", count: countL2, rate: levelRate(2), bg: "bg-indigo-500", border: "border-indigo-500/30", text: "text-indigo-500" },
-                 { label: "Level 3 (Indirect)", count: countL3, rate: levelRate(3), bg: "bg-pink-500", border: "border-pink-500/30", text: "text-pink-500" }
+                 { label: "Level 1 (Direct)", earned: earnedL1, rate: levelRate(1), bg: "bg-blue-500", border: "border-blue-500/30", text: "text-blue-500" },
+                 { label: "Level 2 (Indirect)", earned: earnedL2, rate: levelRate(2), bg: "bg-indigo-500", border: "border-indigo-500/30", text: "text-indigo-500" },
+                 { label: "Level 3 (Indirect)", earned: earnedL3, rate: levelRate(3), bg: "bg-pink-500", border: "border-pink-500/30", text: "text-pink-500" }
                ].map((lvl, idx) => (
                  <div key={idx} className="flex items-center gap-3">
                     <div className={`flex-1 bg-muted/40 border border-border hover:${lvl.border} transition-colors rounded-xl p-3 flex justify-between items-center`}>
@@ -331,7 +332,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                          <div className={`w-2 h-2 rounded-full ${lvl.bg} shadow-[0_0_8px_rgba(0,0,0,0.2)]`} />
                          <div>
                             <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{lvl.label}</p>
-                            <p className={`text-sm font-black ${lvl.text}`}>{lvl.count} Partners</p>
+                            <p className={`text-sm font-black ${lvl.text}`}>${lvl.earned.toFixed(2)} Earned</p>
                          </div>
                        </div>
                        <div className="text-right pl-3 border-l border-border/60">
@@ -343,7 +344,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                ))}
             </div>
             <p className="text-[9px] text-center text-muted-foreground font-medium mt-4 flex items-center justify-center gap-1">
-               <InformationCircleIcon className="w-3 h-3" /> Unlocked, active partners
+               <InformationCircleIcon className="w-3 h-3" /> Lifetime commission earnings by level
             </p>
          </div>
       </div>
