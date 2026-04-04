@@ -416,8 +416,10 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/10 text-blue-200">
                      <LockClosedIcon className="w-3.5 h-3.5"/> Account Limited
                   </div>
-                  <h3 className="text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight">Unlock Your <br/>Full Earnings Potential</h3>
-                  <p className="text-blue-100/80 mb-8 leading-relaxed text-lg max-w-lg">
+                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight break-words">
+                     Unlock Your Full <br className="hidden sm:block" />Earnings Potential
+                  </h3>
+                  <p className="text-blue-100/80 mb-6 sm:mb-8 leading-relaxed text-sm md:text-lg max-w-lg">
                      Activate your account by depositing just <span className="text-white font-bold">$1.00</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even $1 can be withdrawn anytime.
                   </p>
                   <div className="flex flex-wrap gap-4">

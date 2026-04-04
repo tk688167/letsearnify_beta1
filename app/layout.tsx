@@ -105,6 +105,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('unhandledrejection', function(event) {
+                if (event.reason && event.reason.message && event.reason.message.includes('MetaMask')) {
+                  event.preventDefault();
+                }
+              });
+              window.addEventListener('error', function(event) {
+                if (event.message && typeof event.message === 'string' && event.message.includes('MetaMask')) {
+                  event.preventDefault();
+                }
+              });
+            `
+          }}
+        />
+      </head>
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
       >
