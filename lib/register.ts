@@ -109,10 +109,10 @@ export async function registerUser(formData: FormData) {
                 referrerTier = (validReferrer.tier as string) || "NEWBIE";
                 // Must stay in sync with SIGNUP_BONUS_RATES in lib/mlm.ts
                 const SIGNUP_BONUS_RATES: Record<string, number> = {
-                    NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
-                    PLATINUM: 9, DIAMOND: 10, EMERALD: 15
+                    NEWBIE: 3, BRONZE: 4, SILVER: 5, GOLD: 6,
+                    PLATINUM: 7, DIAMOND: 8, EMERALD: 10
                 };
-                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 5;
+                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 3;
                 signupBonusUsd = signupBonusArn / 10;
                 console.log(`[Register] Signup bonus for ${email}: ${signupBonusArn} ARN (referrer ${referrerTier})`);
             }
