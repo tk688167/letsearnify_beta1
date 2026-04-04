@@ -675,20 +675,22 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
            </div>
 
            {/* ACTION GRID */}
-           <div className="flex gap-2 sm:gap-3 animate-in fade-in slide-in-from-top-2 overflow-x-auto pb-1 hide-scrollbar">
+           <div className="flex gap-2 sm:gap-3 animate-in fade-in slide-in-from-top-2">
                {[
                    { id: 'deposit', label: 'Deposit', icon: ArrowDownTrayIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
                    { id: 'withdraw', label: 'Withdraw', icon: ArrowUpTrayIcon, color: 'text-purple-500', bg: 'bg-purple-500/10' },
                    { id: 'transfer', label: 'Transfer', icon: ArrowPathIcon, color: 'text-orange-500', bg: 'bg-orange-500/10' },
                ].map((item) => (
                    <button key={item.id} onClick={() => { setActiveTab(item.id); setMessage(null); }}
-                       className={cn("flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border transition-all flex-1 min-w-0 justify-center group",
+                       className={cn("flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 p-2 sm:px-4 sm:py-3 rounded-xl border transition-all flex-1 justify-center group",
                            activeTab === item.id ? `bg-card border-${item.color.split('-')[1]}-500 shadow-sm` : "bg-card border-border hover:bg-muted/50")}>
-                       <div className={cn("p-1 sm:p-1.5 rounded-lg shrink-0 transition-colors", activeTab === item.id ? item.bg : "bg-muted group-hover:bg-muted-foreground/10")}>
-                           <item.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", activeTab === item.id ? item.color : "text-muted-foreground")} />
+                       <div className={cn("p-1.5 sm:p-1.5 rounded-lg shrink-0 transition-colors", activeTab === item.id ? item.bg : "bg-muted group-hover:bg-muted-foreground/10")}>
+                           <item.icon className={cn("w-5 h-5 sm:w-5 sm:h-5", activeTab === item.id ? item.color : "text-muted-foreground")} />
                        </div>
-                       <span className={cn("text-[10px] sm:text-xs font-bold uppercase tracking-widest truncate", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
-                       {item.id === 'withdraw' && !user.isActiveMember && <LockClosedIcon className="w-3 h-3 text-amber-500 shrink-0" />}
+                       <div className="flex items-center gap-1">
+                          <span className={cn("text-[9px] min-[360px]:text-[10px] sm:text-xs font-bold uppercase tracking-wider sm:tracking-widest whitespace-nowrap", activeTab === item.id ? "text-foreground" : "text-muted-foreground")}>{item.label}</span>
+                          {item.id === 'withdraw' && !user.isActiveMember && <LockClosedIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-500 shrink-0" />}
+                       </div>
                    </button>
                ))}
            </div>
@@ -696,11 +698,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
            {/* 2. ACTION FORM PANEL */}
            <div className="bg-card rounded-[1.5rem] border border-border shadow-md p-4 sm:p-6 md:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-                  <h3 className="text-xl sm:text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-2 sm:gap-3">
-                      {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
-                      {activeTab === 'withdraw' && <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"><ArrowUpTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
-                      {activeTab === 'transfer' && <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400"><ArrowPathIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
-                      <span className="truncate">{activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}</span>
+                  <h3 className="text-xl sm:text-2xl font-bold font-serif text-foreground capitalize flex items-center gap-2 sm:gap-3 flex-wrap">
+                      {activeTab === 'deposit' && <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 shrink-0"><ArrowDownTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'withdraw' && <div className="p-1.5 sm:p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 shrink-0"><ArrowUpTrayIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      {activeTab === 'transfer' && <div className="p-1.5 sm:p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-orange-600 dark:text-orange-400 shrink-0"><ArrowPathIcon className="w-5 h-5 sm:w-6 sm:h-6"/></div>}
+                      <span className="whitespace-normal leading-tight">{activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}</span>
                   </h3>
                   {(activeTab === 'deposit') && (
                      <div className="hidden sm:flex px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100 dark:border-green-800">
@@ -732,7 +734,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "TRC20" ? "bg-blue-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-blue-500/10 group-hover:text-blue-500")}><QrCodeIcon className="w-5 h-5"/></div>
                                    <div className="flex-1 min-w-0">
                                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "TRC20" ? "text-blue-600 dark:text-blue-400" : "text-foreground")}>TRC-20 Crypto</span>
+                                           <span className={cn("font-bold text-sm whitespace-nowrap leading-none", depositMethod === "TRC20" ? "text-blue-600 dark:text-blue-400" : "text-foreground")}>TRC-20 Crypto</span>
                                            <span className="shrink-0 text-[8px] font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-blue-200 dark:border-blue-800">Fast</span>
                                        </div>
                                        <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Automated & global</span>
@@ -745,7 +747,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
                                    <div className="flex-1 min-w-0">
                                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span>
+                                           <span className={cn("font-bold text-sm whitespace-nowrap leading-none", depositMethod === "MERCHANT" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground")}>Local Agent</span>
                                            <span className="shrink-0 text-[8px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">Popular</span>
                                        </div>
                                        <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Bank details & wallets</span>
@@ -758,7 +760,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "CARD" ? "bg-gray-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-gray-500/10 group-hover:text-gray-500")}><CreditCardIcon className="w-5 h-5"/></div>
                                    <div className="flex-1 min-w-0">
                                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                                           <span className={cn("font-bold text-sm truncate leading-none", depositMethod === "CARD" ? "text-gray-600 dark:text-gray-400" : "text-foreground")}>Credit Card</span>
+                                           <span className={cn("font-bold text-sm whitespace-nowrap leading-none", depositMethod === "CARD" ? "text-gray-600 dark:text-gray-400" : "text-foreground")}>Credit Card</span>
                                            <span className="shrink-0 text-[8px] font-bold bg-muted/60 text-muted-foreground px-1.5 py-0.5 rounded uppercase tracking-widest border border-border">Offline</span>
                                        </div>
                                        <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Under maintenance</span>
