@@ -82,12 +82,8 @@ type ReferralViewProps = {
 type TimeFilter = 'TODAY' | '7D' | '1M' | 'CUSTOM'
 
 export default function ReferralView({ user, stats, referralTree, commissions, tierConfig }: ReferralViewProps) {
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('TODAY')
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
-  const [showCustomPicker, setShowCustomPicker] = useState(false)
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
   const [activeLevelTab, setActiveLevelTab] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPartner, setSelectedPartner] = useState<ReferralNode | null>(null)
@@ -132,32 +128,12 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   const earnedL3 = commissions.filter(c => c.level === 3).reduce((sum, c) => sum + c.amount, 0)
   const totalEarnedFromNetwork = earnedL1 + earnedL2 + earnedL3
 
-  // Filter commissions based on time
-  const filteredCommissions = commissions.filter(comm => {
-    const date = new Date(comm.createdAt);
-    const today = startOfDay(new Date());
-
-    if (timeFilter === 'TODAY') return isAfter(date, today);
-    if (timeFilter === '7D') return isAfter(date, subDays(today, 7));
-    if (timeFilter === '1M') return isAfter(date, subDays(today, 30));
-    if (timeFilter === 'CUSTOM') {
-      const from = customFrom ? new Date(customFrom) : null;
-      const to = customTo ? new Date(new Date(customTo).setHours(23, 59, 59, 999)) : null;
-      if (from && isAfter(from, date)) return false;
-      if (to && isAfter(date, to)) return false;
-      return true;
-    }
-    return true;
-  })
-
   const { progress, nextTier } = calculateTierProgress(
     currentTier,
     user.arnBalance,
     user.totalSignups || 0,
     tierConfig as any
   )
-
-  const displayCommissions = filteredCommissions.filter(c => !!c.sourceUser?.isActiveMember || !!c.sourceUser?.lastUnlockAt)
 
   const TIER_COLORS: Record<string, string> = {
     NEWBIE: "from-slate-400 to-slate-500",
@@ -458,15 +434,23 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              <div className="flex items-center gap-1.5 mb-1 sm:mb-0.5">
                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-muted text-muted-foreground border border-border">L{partner.level}</span>
                                  <span className="w-1 h-1 rounded-full bg-border" />
-                                 <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Joined {format(new Date(partner.createdAt), "MMM d")}</p>
+                                 <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${(partner.isActiveMember || partner.lastUnlockAt) ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-500 border border-slate-500/20'}`}>
+                                    {(partner.isActiveMember || partner.lastUnlockAt) ? 'Unlocked' : 'Locked'}
+                                 </span>
                              </div>
-                             <p className="text-xs sm:text-sm font-black text-foreground">
-                               Contributed: <span className="text-emerald-500">+${(partner.withdrawnTotal || 0).toFixed(2)}</span>
-                             </p>
+                             {(partner.isActiveMember || partner.lastUnlockAt) ? (
+                                <p className="text-xs sm:text-sm font-black text-foreground mt-1">
+                                  Earned: <span className="text-emerald-500">+${commissions.filter(c => c.sourceUser?.id === partner.id).reduce((sum, c) => sum + c.amount, 0).toFixed(2)}</span>
+                                </p>
+                             ) : (
+                                <p className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">
+                                  No earnings yet
+                                </p>
+                             )}
                         </div>
                         
-                        <div className="w-8 h-8 rounded-full bg-muted/50 border border-border flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-                          <ChevronRightIcon className="w-4 h-4 text-muted-foreground" />
+                        <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0" title="View Full Referral Chain">
+                          <InformationCircleIcon className="w-4 h-4 text-indigo-500" />
                         </div>
                       </div>
                     </div>
@@ -488,137 +472,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
         </div>
       </div>
 
-      {/* ─── 5. CUSTOMIZABLE HISTORY ─── */}
-
-      <div className="bg-card rounded-2xl border border-border shadow-sm flex flex-col overflow-hidden">
-        
-        {/* History Header & Filters */}
-        <div className="border-b border-border bg-muted/20">
-           <div className="p-4 sm:p-5 flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center border border-orange-100 dark:border-orange-500/20">
-                       <CalendarDaysIcon className="w-4 h-4 text-orange-500" />
-                    </div>
-                    <h3 className="text-base font-bold text-foreground">Earnings History</h3>
-                 </div>
-
-                 {/* Time Filters */}
-                 <div className="flex w-full sm:w-auto bg-muted p-1 rounded-xl sm:rounded-2xl border border-border shrink-0">
-                    {([
-                      { key: 'TODAY', mobile: 'Today',  desktop: 'Today' },
-                      { key: '7D',    mobile: '7D',     desktop: '7 Days' },
-                      { key: '1M',    mobile: '30D',    desktop: '30 Days' },
-                      { key: 'CUSTOM',mobile: 'Custom', desktop: 'Custom' },
-                    ] as { key: TimeFilter; mobile: string; desktop: string }[]).map(({ key, mobile, desktop }) => (
-                      <button
-                        key={key}
-                        onClick={() => {
-                          setTimeFilter(key)
-                          if (key === 'CUSTOM') setShowCustomPicker(true)
-                          else setShowCustomPicker(false)
-                        }}
-                        className={`flex-1 sm:flex-none px-1.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center ${
-                          timeFilter === key
-                            ? "bg-foreground text-background shadow-sm"
-                            : "text-muted-foreground hover:text-foreground hover:bg-card"
-                        }`}
-                      >
-                         <span className="sm:hidden block tracking-wider">{mobile}</span>
-                         <span className="hidden sm:inline">{desktop}</span>
-                      </button>
-                    ))}
-                 </div>
-              </div>
-
-              {/* Custom Date Range Picker */}
-              {showCustomPicker && timeFilter === 'CUSTOM' && (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 bg-card border border-border rounded-xl animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="flex-1 flex flex-col gap-1 min-w-0">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">From</label>
-                    <input
-                      type="datetime-local"
-                      value={customFrom}
-                      onChange={e => setCustomFrom(e.target.value)}
-                      className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all"
-                    />
-                  </div>
-                  <div className="flex items-center justify-center shrink-0">
-                    <span className="text-muted-foreground text-xs font-bold px-1 hidden sm:block">→</span>
-                    <span className="text-muted-foreground text-xs font-bold sm:hidden">to</span>
-                  </div>
-                  <div className="flex-1 flex flex-col gap-1 min-w-0">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">To</label>
-                    <input
-                      type="datetime-local"
-                      value={customTo}
-                      onChange={e => setCustomTo(e.target.value)}
-                      className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-xs font-medium text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all"
-                    />
-                  </div>
-                  {(customFrom || customTo) && (
-                    <button
-                      onClick={() => { setCustomFrom(''); setCustomTo('') }}
-                      className="self-end sm:self-auto text-[10px] font-bold text-muted-foreground hover:text-destructive transition-colors whitespace-nowrap pb-2 sm:pb-0"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              )}
-           </div>
-        </div>
-
-        {/* History Feed */}
-        <div className="max-h-[500px] overflow-y-auto p-3 sm:p-5 space-y-3">
-           {displayCommissions.length > 0 ? (
-             displayCommissions.map(comm => (
-               <div key={comm.id} className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl border border-border hover:border-emerald-500/30 bg-card hover:bg-emerald-50/30 dark:hover:bg-emerald-500/5 transition-all">
-                  
-                  <div className="flex items-start md:items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-100 dark:border-emerald-500/20">
-                       <BanknotesIcon className="w-5 h-5 text-emerald-500" />
-                    </div>
-                    <div className="min-w-0">
-                       <div className="flex items-center gap-2">
-                         <span className="text-sm font-bold text-foreground truncate">
-                           {comm.sourceUser?.name || comm.sourceUser?.email || "Partner"}
-                         </span>
-                         <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-muted text-muted-foreground ring-1 ring-border">L{comm.level}</span>
-                       </div>
-                       <p className="text-[11px] text-muted-foreground font-medium mt-0.5 truncate">
-                         {comm.txDescription || `Commission payout (${comm.percentage || levelRate(comm.level as 1 | 2 | 3)}%)`}
-                       </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-end justify-between md:justify-end gap-6 w-full md:w-auto pt-3 md:pt-0 border-t md:border-0 border-border">
-                     <div className="text-left md:text-right">
-                        <p className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Amount</p>
-                        <p className="text-lg font-black text-emerald-500">+${comm.amount.toFixed(2)}</p>
-                     </div>
-                     <div className="text-right">
-                        <p className="text-[10px] md:text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-0.5">Date</p>
-                        <p className="text-xs font-bold text-foreground">{format(new Date(comm.txCreatedAt || comm.createdAt), "MMM dd, yyyy")}</p>
-                        <p className="text-[9px] text-muted-foreground font-medium mt-0.5">{format(new Date(comm.txCreatedAt || comm.createdAt), "h:mm a")}</p>
-                     </div>
-                  </div>
-
-               </div>
-             ))
-           ) : (
-             <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                 <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mb-4 transform -rotate-6">
-                    <CalendarDaysIcon className="w-8 h-8 text-muted-foreground/50" />
-                 </div>
-                 <h3 className="text-base font-bold text-foreground">No earnings found</h3>
-                 <p className="text-xs text-muted-foreground font-medium mt-1 max-w-xs mx-auto">
-                    You haven't generated any commission history during this time period.
-                 </p>
-             </div>
-           )}
-        </div>
-      </div>
+      {/* Earnings History has been merged into Network Directory above */}
 
       {/* ─── 6. INTERACTIVE REFERRAL TREE MODAL ─── */}
       {selectedPartner && (
