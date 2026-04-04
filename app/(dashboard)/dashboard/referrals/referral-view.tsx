@@ -37,6 +37,9 @@ type ReferralNode = {
   level: 1 | 2 | 3
   withdrawnTotal?: number
   depositTotal?: number 
+  advisorId?: string | null
+  supervisorId?: string | null
+  managerId?: string | null
 }
 
 type Commission = {
@@ -87,6 +90,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   const [customTo, setCustomTo] = useState('')
   const [activeLevelTab, setActiveLevelTab] = useState<number | 'ALL'>('ALL')
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedPartner, setSelectedPartner] = useState<ReferralNode | null>(null)
 
 
   const currentTier = (user.tier || "NEWBIE").toUpperCase().trim() 
@@ -420,7 +424,8 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                   .map((partner) => (
                     <div 
                       key={partner.id}
-                      className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/50 border border-border hover:border-indigo-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-md hover:shadow-indigo-500/5"
+                      onClick={() => setSelectedPartner(partner)}
+                      className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-background/50 border border-border hover:border-indigo-500/30 rounded-2xl p-4 transition-all duration-300 hover:shadow-md hover:shadow-indigo-500/5 cursor-pointer"
                     >
                       {/* Left: Identity block */}
                       <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
@@ -614,6 +619,77 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
            )}
         </div>
       </div>
+
+      {/* ─── 6. INTERACTIVE REFERRAL TREE MODAL ─── */}
+      {selectedPartner && (
+         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-card w-full max-w-md rounded-3xl shadow-2xl border border-border overflow-hidden">
+               <div className="flex items-center justify-between p-5 border-b border-border bg-muted/30">
+                  <h3 className="text-lg font-black text-foreground flex items-center gap-2">
+                     <UserGroupIcon className="w-5 h-5 text-indigo-500" />
+                     Network Structure
+                  </h3>
+                  <button onClick={() => setSelectedPartner(null)} className="text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-muted transition-colors">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+               </div>
+               <div className="p-6">
+                  {/* Tree Visualizer */}
+                  <div className="flex flex-col items-center">
+                     {/* YOU Node */}
+                     <div className="w-full bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 flex flex-col items-center">
+                         <span className="text-[10px] font-black uppercase text-indigo-500 tracking-widest mb-1">Your Account</span>
+                         <span className="text-sm font-bold text-foreground">You</span>
+                     </div>
+
+                     {/* Lines and Nodes depending on level */}
+                     {/* If level >= 2, we show L1 referrer */}
+                     {selectedPartner.level >= 2 && (selectedPartner.level === 3 ? selectedPartner.supervisorId : selectedPartner.advisorId) && (
+                         <>
+                             <div className="w-0.5 h-6 bg-border" />
+                             <div className="w-full max-w-[90%] bg-muted border border-border rounded-xl p-3 flex flex-col items-center">
+                                 <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Level 1 (Direct)</span>
+                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find(n => n.id === (selectedPartner.level === 3 ? selectedPartner.supervisorId : selectedPartner.advisorId))?.name || "Anonymous Partner"}</span>
+                             </div>
+                         </>
+                     )}
+
+                     {/* If level === 3, we show L2 referrer */}
+                     {selectedPartner.level === 3 && selectedPartner.advisorId && (
+                         <>
+                             <div className="w-0.5 h-6 bg-border" />
+                             <div className="w-full max-w-[80%] bg-muted border border-border rounded-xl p-3 flex flex-col items-center">
+                                 <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Level 2 (Indirect)</span>
+                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find(n => n.id === selectedPartner.advisorId)?.name || "Anonymous Partner"}</span>
+                             </div>
+                         </>
+                     )}
+
+                     <div className="w-0.5 h-6 bg-indigo-500/50" />
+                     
+                     {/* Clicked Partner Node */}
+                     <div className="w-full bg-background border-2 border-indigo-500 rounded-xl p-4 flex flex-col items-center shadow-md shadow-indigo-500/10 relative mt-1">
+                         <div className="absolute -top-3 px-2 py-0.5 bg-indigo-500 text-[10px] font-black text-white rounded-full uppercase tracking-widest">Partner Data</div>
+                         <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mt-1 mb-1">Level {selectedPartner.level}</span>
+                         <span className="text-base font-black text-foreground max-w-full truncate">{selectedPartner.name || "Anonymous Partner"}</span>
+                         <div className="mt-3 flex items-center gap-4 text-xs font-medium text-muted-foreground bg-muted p-2 rounded-lg w-full justify-center">
+                             <div className="flex flex-col items-center">
+                                 <span className="text-[9px] uppercase tracking-wider">Commission</span>
+                                 <span className="font-bold text-foreground">{levelRate(selectedPartner.level)}%</span>
+                             </div>
+                             <div className="w-px h-6 bg-border" />
+                             <div className="flex flex-col items-center">
+                                 <span className="text-[9px] uppercase tracking-wider">Earned</span>
+                                 <span className="font-bold text-emerald-500">${commissions.filter(c => c.sourceUser?.id === selectedPartner.id).reduce((sum, c) => sum + c.amount, 0).toFixed(2)}</span>
+                             </div>
+                         </div>
+                     </div>
+
+                  </div>
+               </div>
+            </div>
+         </div>
+      )}
 
     </div>
   )

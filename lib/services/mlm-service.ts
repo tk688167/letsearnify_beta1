@@ -125,6 +125,9 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
                 lastUnlockAt: u.lastUnlockAt,
                 createdAt: u.createdAt,
                 level,
+                advisorId: row.advisorId,
+                supervisorId: row.supervisorId,
+                managerId: row.managerId
             };
         });
 
@@ -140,7 +143,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             isActiveMember: boolean;
             lastUnlockAt: Date | null;
             createdAt: Date;
-        }, level: 1 | 2 | 3) => ({
+        }, level: 1 | 2 | 3, advisorId?: string | null, supervisorId?: string | null, managerId?: string | null) => ({
             id: n.id,
             name: n.name,
             email: n.email,
@@ -150,25 +153,31 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             lastUnlockAt: n.lastUnlockAt,
             createdAt: n.createdAt,
             level,
+            advisorId: advisorId || null,
+            supervisorId: supervisorId || null,
+            managerId: managerId || null
         });
 
         const fromNested: typeof fromTree = [];
         const pushIfNew = (
             raw: Parameters<typeof nodeFields>[0],
-            level: 1 | 2 | 3
+            level: 1 | 2 | 3,
+            adv?: string | null,
+            sup?: string | null,
+            mgr?: string | null
         ) => {
             if (seenIds.has(raw.id)) return;
             seenIds.add(raw.id);
-            fromNested.push(nodeFields(raw, level));
+            fromNested.push(nodeFields(raw, level, adv, sup, mgr));
         };
 
         if (withNested?.referrals) {
             for (const l1 of withNested.referrals) {
-                pushIfNew(l1, 1);
+                pushIfNew(l1, 1, userId, null, null);
                 for (const l2 of l1.referrals ?? []) {
-                    pushIfNew(l2, 2);
+                    pushIfNew(l2, 2, l1.id, userId, null);
                     for (const l3 of l2.referrals ?? []) {
-                        pushIfNew(l3, 3);
+                        pushIfNew(l3, 3, l2.id, l1.id, userId);
                     }
                 }
             }

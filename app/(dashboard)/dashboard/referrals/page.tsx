@@ -60,7 +60,10 @@ export default async function ReferralsPage() {
                lastUnlockAt: n.lastUnlockAt,
                createdAt: n.createdAt,
                level: n.level,
-               withdrawnTotal: n.withdrawnTotal || 0
+               withdrawnTotal: n.withdrawnTotal || 0,
+               advisorId: n.advisorId || null,
+               supervisorId: n.supervisorId || null,
+               managerId: n.managerId || null
             }))}
             commissions={displayUser.referralsMade?.map((c: any) => ({
                id: c.id,
