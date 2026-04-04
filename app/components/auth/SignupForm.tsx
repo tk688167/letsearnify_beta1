@@ -42,6 +42,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [refCode, setRefCode] = useState((referralCode || "").toUpperCase())
   const router = useRouter()
 
   const { theme, resolvedTheme } = useTheme()
@@ -228,10 +229,16 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
           <label htmlFor="referralCode" className={labelClass}>
             Referral Code <span className={cn("normal-case font-bold tracking-normal", isDark ? "text-slate-500" : "text-black")}>(optional)</span>
           </label>
-          <input id="referralCode" name="referralCode" type="text" defaultValue={referralCode}
+          <input
+            id="referralCode"
+            name="referralCode"
+            type="text"
+            value={refCode}
+            onChange={e => setRefCode(e.target.value.toUpperCase().trim())}
             placeholder="Enter code"
-            style={{ ...inputStyle, textTransform: "uppercase" }}
-            onFocus={focusOn} onBlur={focusOff}
+            style={{ ...inputStyle, letterSpacing: "0.08em", fontWeight: 700 }}
+            onFocus={focusOn}
+            onBlur={focusOff}
           />
         </div>
 

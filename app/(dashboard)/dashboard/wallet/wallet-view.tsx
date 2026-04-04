@@ -110,6 +110,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<any>(null)
   const [screenshot, setScreenshot] = useState<string | null>(null)
+  const [isUploadingScreenshot, setIsUploadingScreenshot] = useState(false)
   const [accountNumber, setAccountNumber] = useState("")
   const [accountName, setAccountName] = useState("")
 
@@ -172,7 +173,67 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) { const reader = new FileReader(); reader.onloadend = () => { setScreenshot(reader.result as string) }; reader.readAsDataURL(file) }
+    if (!file) return
+
+    // ── Validate file type ──────────────────────────────────────────
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({ type: 'error', text: "Invalid file type. Please upload a JPG, PNG, WEBP or GIF image." })
+      e.target.value = ""
+      return
+    }
+
+    // ── Validate file size (max 15 MB before compression) ───────────
+    const MAX_RAW_SIZE_MB = 15
+    if (file.size > MAX_RAW_SIZE_MB * 1024 * 1024) {
+      setMessage({ type: 'error', text: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_RAW_SIZE_MB} MB.` })
+      e.target.value = ""
+      return
+    }
+
+    setMessage(null)
+    setIsUploadingScreenshot(true)
+
+    // ── Compress to JPEG via canvas (max 1200px, quality 0.75) ───────
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const MAX_DIM = 1200
+          let { width, height } = img
+          if (width > MAX_DIM || height > MAX_DIM) {
+            if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM }
+            else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM }
+          }
+          const canvas = document.createElement("canvas")
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext("2d")
+          if (!ctx) throw new Error("Canvas not supported")
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressed = canvas.toDataURL("image/jpeg", 0.75)
+          setScreenshot(compressed)
+        } catch {
+          // Fallback: use original as-is (already validated type & size)
+          setScreenshot(reader.result as string)
+        } finally {
+          setIsUploadingScreenshot(false)
+        }
+      }
+      img.onerror = () => {
+        setMessage({ type: 'error', text: "Could not read the image file. Please try a different image." })
+        e.target.value = ""
+        setIsUploadingScreenshot(false)
+      }
+      img.src = reader.result as string
+    }
+    reader.onerror = () => {
+      setMessage({ type: 'error', text: "Failed to read the file. Please try again." })
+      e.target.value = ""
+      setIsUploadingScreenshot(false)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleUnlockAccount = async () => {
@@ -437,15 +498,31 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Payment Proof</label>
               <div className="relative group">
-                <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"/>
-                <div className={cn("w-full rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center p-2 text-center overflow-hidden", screenshot ? "border-green-500 bg-green-50 dark:bg-green-900/10 shadow-sm" : "border-dashed border-border min-h-[140px] bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40")}>
-                  {screenshot ? (
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  onChange={handleFileUpload}
+                  disabled={isUploadingScreenshot}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 disabled:cursor-not-allowed"
+                />
+                <div className={cn(
+                  "w-full rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center p-2 text-center overflow-hidden",
+                  isUploadingScreenshot ? "border-border min-h-[140px] bg-muted/30 animate-pulse" :
+                  screenshot ? "border-green-500 bg-green-50 dark:bg-green-900/10 shadow-sm" :
+                  "border-dashed border-border min-h-[140px] bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"
+                )}>
+                  {isUploadingScreenshot ? (
+                    <div className="space-y-2 py-6">
+                      <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"/>
+                      <p className="text-muted-foreground text-sm font-medium">Processing image...</p>
+                    </div>
+                  ) : screenshot ? (
                     <div className="w-full flex items-center gap-3 bg-card p-2 rounded-xl">
                       <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border bg-black/5">
                         <img src={screenshot} alt="Proof" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded</p>
+                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded ✓</p>
                         <p className="text-muted-foreground text-[10px] uppercase tracking-widest mt-0.5">Tap to replace image</p>
                       </div>
                       <CheckCircleIcon className="w-6 h-6 text-green-500 shrink-0 mx-2" />
@@ -454,16 +531,16 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     <div className="space-y-1.5 py-6">
                        <ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground mx-auto"/>
                        <p className="font-bold text-foreground text-sm">Upload Screenshot Image</p>
-                       <p className="text-muted-foreground text-xs">JPG, PNG or PDF formats</p>
+                       <p className="text-muted-foreground text-xs">JPG, PNG or WEBP formats (max 15 MB)</p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
 
-            <button onClick={handleAction} disabled={!amount || !screenshot || isPending}
+            <button onClick={handleAction} disabled={!amount || !screenshot || isPending || isUploadingScreenshot}
               className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.98]">
-              {isPending ? "Submitting..." : "Confirm & Submit Deposit"}
+              {isPending ? "Submitting..." : isUploadingScreenshot ? "Processing image..." : "Confirm & Submit Deposit"}
             </button>
           </div>
         ) : (

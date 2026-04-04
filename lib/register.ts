@@ -31,17 +31,35 @@ export async function registerUser(formData: FormData) {
       }
     }
 
-    // Validate referral code
+    // Validate referral code — always normalize to UPPERCASE since that's how they're stored.
+    // CSS `text-transform: uppercase` only changes visual display, not the actual submitted value.
     let validReferrer = null
     let validReferredByCode = null
     
     if (referralCodeInput) {
-      const referrer = await prisma.user.findUnique({
-        where: { referralCode: referralCodeInput }
-      })
-      if (referrer) {
-        validReferrer = referrer
-        validReferredByCode = referralCodeInput
+      const normalizedCode = referralCodeInput.trim().toUpperCase()
+      if (normalizedCode) {
+        // 1. Try direct referral code lookup (primary path)
+        const referrer = await prisma.user.findUnique({
+          where: { referralCode: normalizedCode }
+        })
+        if (referrer) {
+          validReferrer = referrer
+          validReferredByCode = normalizedCode
+          console.log(`[Register] Referrer found by code: ${normalizedCode} → ${referrer.email}`)
+        } else {
+          // 2. Fallback: check if the input is actually an email address of a user
+          const referrerByEmail = await prisma.user.findUnique({
+            where: { email: normalizedCode.toLowerCase() }
+          })
+          if (referrerByEmail?.referralCode) {
+            validReferrer = referrerByEmail
+            validReferredByCode = referrerByEmail.referralCode
+            console.log(`[Register] Referrer found by email: ${normalizedCode} → ${referrerByEmail.referralCode}`)
+          } else {
+            console.warn(`[Register] Referral code '${normalizedCode}' not found — falling back to COMPANY`)
+          }
+        }
       }
     }
 
@@ -81,19 +99,22 @@ export async function registerUser(formData: FormData) {
         const newMemberId = generateMemberId()
         
         try {
-            // Grant signup bonus immediately at signup based on referrer's tier
+            // Grant signup bonus immediately at signup based on referrer's tier.
+            // NEWBIE referrers still grant a base bonus to incentivize referrals.
             let signupBonusArn = 0;
             let signupBonusUsd = 0;
-            let referrerTier = "NEWBIE";
+            let referrerTier = "NONE";
             
             if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
-                referrerTier = validReferrer.tier || "NEWBIE";
+                referrerTier = (validReferrer.tier as string) || "NEWBIE";
+                // Must stay in sync with SIGNUP_BONUS_RATES in lib/mlm.ts
                 const SIGNUP_BONUS_RATES: Record<string, number> = {
-                    NEWBIE: 3, BRONZE: 4, SILVER: 5, GOLD: 7,
-                    PLATINUM: 8, DIAMOND: 10, EMERALD: 12
+                    NEWBIE: 5, BRONZE: 6, SILVER: 7, GOLD: 8,
+                    PLATINUM: 9, DIAMOND: 10, EMERALD: 15
                 };
-                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] || 3;
+                signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 5;
                 signupBonusUsd = signupBonusArn / 10;
+                console.log(`[Register] Signup bonus for ${email}: ${signupBonusArn} ARN (referrer ${referrerTier})`);
             }
 
             const newUser = await prisma.user.create({
