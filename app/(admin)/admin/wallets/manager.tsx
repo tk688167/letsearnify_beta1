@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { updatePlatformWallet } from "@/lib/actions"
+import { uploadQRCode } from "@/app/actions/admin/upload"
 import { QrCodeIcon } from "@heroicons/react/24/outline"
 
 export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
@@ -11,6 +12,11 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
   // Local state for form management
   const [trcAddress, setTrcAddress] = useState(wallets.find(w => w.network === "TRC20")?.address || "")
   const [trcQr, setTrcQr] = useState(wallets.find(w => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
+
+  useEffect(() => {
+     setTrcAddress(wallets.find(w => w.network === "TRC20")?.address || "")
+     setTrcQr(wallets.find(w => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
+  }, [wallets])
 
   const handleSave = async (network: string) => {
       setLoading(true)
@@ -73,8 +79,6 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
                                     formData.append("file", file)
                                     
                                     try {
-                                        // Dynamic Import to avoid server action issues if any
-                                        const { uploadQRCode } = await import("@/app/actions/admin/upload")
                                         const res = await uploadQRCode(formData)
                                         if (res.success && res.path) {
                                             setTrcQr(res.path)
