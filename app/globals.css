@@ -249,3 +249,8 @@ body {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); } 
 }
+
+@keyframes shimmer {
+  0% { transform: skew-x(-20deg) translateX(-100%); }
+  100% { transform: skew-x(-20deg) translateX(200%); }
+}

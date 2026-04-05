@@ -161,7 +161,7 @@ export default function CbspHistorySection() {
                                 placeholder="Search user..."
                                 className="pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full md:w-64"
                                 value={search}
-                                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                                onChange={(e: any) => { setSearch(e.target.value); setPage(1); }}
                             />
                         </div>
                         <button onClick={fetchData} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors w-full sm:w-auto flex justify-center items-center">

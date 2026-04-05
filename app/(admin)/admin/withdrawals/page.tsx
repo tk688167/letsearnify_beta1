@@ -14,7 +14,7 @@ export default async function WithdrawalPage() {
     const requests = await getWithdrawalRequests()
     const cooldownUsers = await getUsersWithActiveCooldown()
 
-    const totalPending = requests.reduce((acc, r) => acc + r.amount, 0)
+    const totalPending = requests.reduce((acc: number, r: any) => acc + r.amount, 0)
 
     return (
         <div className="p-4 md:p-8 space-y-6 md:space-y-8">
@@ -37,7 +37,7 @@ export default async function WithdrawalPage() {
                     { label: "Pending", value: requests.length, color: "text-gray-900 dark:text-white" },
                     { label: "Total Pending", value: `$${totalPending.toFixed(2)}`, color: "text-gray-900 dark:text-white" },
                     { label: "Cooldowns", value: cooldownUsers.length, color: "text-orange-600 dark:text-orange-400" },
-                ].map(s => (
+                ].map((s: any) => (
                     <div key={s.label} className="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm">
                         <div className="text-[10px] md:text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">{s.label}</div>
                         <div className={`text-xl md:text-3xl font-serif font-bold mt-1.5 ${s.color}`}>{s.value}</div>

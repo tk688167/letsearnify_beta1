@@ -37,14 +37,14 @@ export default async function AdminDailyEarningPoolPage() {
   })
 
   // 2. Perform Server-Side Analytics
-  const activeInvestments = allInvestments.filter(i => i.status === "ACTIVE")
-  const completedInvestments = allInvestments.filter(i => i.status === "COMPLETED")
+  const activeInvestments = allInvestments.filter((i: any) => i.status === "ACTIVE")
+  const completedInvestments = allInvestments.filter((i: any) => i.status === "COMPLETED")
   
-  const totalPrincipalLocked = activeInvestments.reduce((sum, i) => sum + i.amount, 0)
-  const totalPendingProfit = activeInvestments.reduce((sum, i) => sum + i.profitEarned, 0)
+  const totalPrincipalLocked = activeInvestments.reduce((sum: number, i: any) => sum + i.amount, 0)
+  const totalPendingProfit = activeInvestments.reduce((sum: number, i: any) => sum + i.profitEarned, 0)
   
-  const historicalPrincipalPaid = completedInvestments.reduce((sum, i) => sum + i.amount, 0)
-  const historicalProfitPaid = completedInvestments.reduce((sum, i) => sum + i.profitEarned, 0)
+  const historicalPrincipalPaid = completedInvestments.reduce((sum: number, i: any) => sum + i.amount, 0)
+  const historicalProfitPaid = completedInvestments.reduce((sum: number, i: any) => sum + i.profitEarned, 0)
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 bg-gray-50/50 dark:bg-slate-900/50 min-h-screen">
@@ -134,7 +134,7 @@ export default async function AdminDailyEarningPoolPage() {
                     </td>
                   </tr>
                 ) : (
-                  allInvestments.map((inv) => {
+                  allInvestments.map((inv: any) => {
                      const now = new Date()
                      const isComplete = inv.status === "COMPLETED" || now >= inv.expiresAt
                      const daysLeft = isComplete ? 0 : differenceInDays(inv.expiresAt, now)

@@ -96,7 +96,7 @@ export async function POST(req: Request) {
         }
 
         // 5. Weighted random selection
-        const totalProbability = dbRewards.reduce((sum, r) => sum + r.probability, 0)
+        const totalProbability = dbRewards.reduce((sum: number, r: any) => sum + r.probability, 0)
         let random = Math.random() * totalProbability
         let selectedReward = dbRewards[dbRewards.length - 1] // fallback to last
 
@@ -142,7 +142,7 @@ export async function POST(req: Request) {
         }
 
         // 7. Execute transaction
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // Update spin tracking
             const spinUpdate: any = {}
             if (spinType === "FREE") {

@@ -71,12 +71,12 @@ export function AdminNotificationBell() {
   const markAllRead = async () => {
     try {
       await fetch("/api/admin/notifications", { method: "POST", body: JSON.stringify({ action: "mark_all_read" }) })
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      setNotifications(prev => prev.map((n: any) => ({ ...n, read: true })))
       setUnreadCount(0)
     } catch {}
   }
 
-  const filteredNotifications = notifications.filter(n => {
+  const filteredNotifications = notifications.filter((n: any) => {
     const matchesSearch = n.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          n.description.toLowerCase().includes(searchTerm.toLowerCase())
     if (!matchesSearch) return false
@@ -139,7 +139,7 @@ export function AdminNotificationBell() {
                  type="text" 
                  placeholder="Search by user, email, or event type..."
                  value={searchTerm}
-                 onChange={(e) => setSearchTerm(e.target.value)}
+                 onChange={(e: any) => setSearchTerm(e.target.value)}
                  className="w-full pl-12 pr-4 h-14 bg-white dark:bg-slate-950 border-2 border-gray-100 dark:border-slate-800 rounded-[22px] text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 outline-none transition-all placeholder:text-gray-400 placeholder:font-medium dark:text-white"
                />
             </div>
@@ -169,7 +169,7 @@ export function AdminNotificationBell() {
                  <input 
                    type="date" 
                    value={customDate}
-                   onChange={(e) => { setCustomDate(e.target.value); setDateFilter('custom'); }}
+                   onChange={(e: any) => { setCustomDate(e.target.value); setDateFilter('custom'); }}
                    className="absolute inset-0 opacity-0 cursor-pointer"
                  />
                  <span className="text-[11px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest">
@@ -208,7 +208,7 @@ export function AdminNotificationBell() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredNotifications.map(n => {
+              {filteredNotifications.map((n: any) => {
                 const style = TYPE_STYLES[n.type] || TYPE_STYLES.deposit
                 return (
                   <Link

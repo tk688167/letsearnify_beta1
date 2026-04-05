@@ -104,7 +104,7 @@ export default async function AdminUnlocksPage({ searchParams }: { searchParams:
       orderBy: { createdAt: "desc" },
     });
     
-    displayRecords = unlockActivations.map(act => ({
+    displayRecords = unlockActivations.map((act: any) => ({
         ...act,
         isActiveMember: true,
         isLocked: false
@@ -112,12 +112,12 @@ export default async function AdminUnlocksPage({ searchParams }: { searchParams:
   }
 
   // Calculate Aggregates (Only for the viewed records)
-  totalFees = displayRecords.reduce((acc, curr) => acc + (curr.amount || 0), 0)
-  totalAchievement = displayRecords.reduce((acc, curr) => acc + (curr.achievementPool || 0), 0)
-  totalReferral = displayRecords.reduce((acc, curr) => acc + (curr.referrals || 0), 0)
-  totalCbsp = displayRecords.reduce((acc, curr) => acc + (curr.cbsp || 0), 0)
-  totalRoyalty = displayRecords.reduce((acc, curr) => acc + (curr.royalty || 0), 0)
-  totalCompany = displayRecords.reduce((acc, curr) => acc + (curr.company || 0), 0)
+  totalFees = displayRecords.reduce((acc: any, curr: any) => acc + (curr.amount || 0), 0)
+  totalAchievement = displayRecords.reduce((acc: any, curr: any) => acc + (curr.achievementPool || 0), 0)
+  totalReferral = displayRecords.reduce((acc: any, curr: any) => acc + (curr.referrals || 0), 0)
+  totalCbsp = displayRecords.reduce((acc: any, curr: any) => acc + (curr.cbsp || 0), 0)
+  totalRoyalty = displayRecords.reduce((acc: any, curr: any) => acc + (curr.royalty || 0), 0)
+  totalCompany = displayRecords.reduce((acc: any, curr: any) => acc + (curr.company || 0), 0)
 
   return (
     <div className="p-6 md:p-10 space-y-8 animate-in fade-in duration-500 max-w-7xl mx-auto">

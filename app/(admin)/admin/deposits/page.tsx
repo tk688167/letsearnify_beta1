@@ -22,7 +22,7 @@ export default async function AdminDepositsPage() {
         ORDER BY t."createdAt" DESC
     `;
 
-    const deposits = rawDeposits.map(d => ({
+    const deposits = rawDeposits.map((d: any) => ({
         id: d.id,
         amount: d.amount,
         txId: d.txId,
@@ -33,8 +33,8 @@ export default async function AdminDepositsPage() {
         user: { name: d.userName, email: d.userEmail }
     }));
 
-    const pending = deposits.filter(d => d.status === "PENDING");
-    const history = deposits.filter(d => d.status !== "PENDING");
+    const pending = deposits.filter((d: any) => d.status === "PENDING");
+    const history = deposits.filter((d: any) => d.status !== "PENDING");
 
     const statusClass = (s: string) =>
         s === "COMPLETED" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400";
@@ -102,7 +102,7 @@ export default async function AdminDepositsPage() {
                         <table className="w-full text-sm text-left">
                             <thead className="bg-amber-50/50 dark:bg-amber-500/5 border-b border-gray-100 dark:border-slate-800 text-gray-500 dark:text-slate-400 uppercase text-xs font-bold">
                                 <tr>
-                                    {["User","Amount","Network","TXID","Submitted","Actions"].map(h => (
+                                    {["User","Amount","Network","TXID","Submitted","Actions"].map((h: any) => (
                                         <th key={h} className={`px-6 py-3 ${h === "Actions" ? "text-right" : ""}`}>{h}</th>
                                     ))}
                                 </tr>

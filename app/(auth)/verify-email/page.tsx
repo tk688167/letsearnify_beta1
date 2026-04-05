@@ -235,8 +235,8 @@ function VerifyEmailContent() {
                 inputMode="numeric"
                 maxLength={1}
                 value={digit}
-                onChange={(e) => handleChange(i, e.target.value)}
-                onKeyDown={(e) => handleKeyDown(i, e)}
+                onChange={(e: any) => handleChange(i, e.target.value)}
+                onKeyDown={(e: any) => handleKeyDown(i, e)}
                 onPaste={i === 0 ? handlePaste : undefined}
                 disabled={loading}
                 className={"w-11 h-12 text-center text-lg font-bold rounded-xl outline-none transition-all disabled:opacity-50 text-gray-900 dark:text-white bg-gray-50 dark:bg-white/[0.04] border " + (digit ? "border-blue-400 dark:border-blue-500/50" : "border-gray-200 dark:border-white/[0.09]") + " focus:border-blue-500 dark:focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/10"}

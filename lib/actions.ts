@@ -540,7 +540,7 @@ export async function updateUserAsAdmin(formData: FormData) {
       updates.arnBalance = arnBalance; // Update the value to be saved
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     // 1. Update User
     await tx.user.update({
       where: { id: userId },

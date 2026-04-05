@@ -21,7 +21,7 @@ export default async function AdminVisitsPage() {
 
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3">
-            {visits.map(visit => (
+            {visits.map((visit: any) => (
                 <div key={visit.id} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-3">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2.5">
@@ -68,7 +68,7 @@ export default async function AdminVisitsPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 dark:divide-slate-800">
-                        {visits.map(visit => (
+                        {visits.map((visit: any) => (
                             <VisitRow key={visit.id} visit={visit} />
                         ))}
                     </tbody>

@@ -133,7 +133,7 @@ verifyAndCreateAdmin()
     console.log('\n✅ Script completed successfully');
     process.exit(0);
   })
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('\n❌ Script failed:', error);
     process.exit(1);
   });

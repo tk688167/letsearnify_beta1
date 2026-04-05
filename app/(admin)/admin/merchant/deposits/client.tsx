@@ -31,7 +31,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [processingId, setProcessingId] = useState<string | null>(null)
 
-  const filtered = transactions.filter(tx => {
+  const filtered = transactions.filter((tx: any) => {
     if (filter !== 'ALL' && tx.status !== filter) return false
     if (typeFilter !== 'ALL' && tx.type !== typeFilter) return false
     if (search) {
@@ -41,7 +41,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
     return true
   })
 
-  const pendingCount = transactions.filter(tx => tx.status === 'PENDING').length
+  const pendingCount = transactions.filter((tx: any) => tx.status === 'PENDING').length
 
   const handleApprove = (id: string) => {
     if (!confirm("Approve this transaction? This will credit the user's balance.")) return
@@ -91,7 +91,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
             className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"/>
         </div>
         <div className="flex gap-1 p-1 bg-muted/50 rounded-xl border border-border">
-          {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(s => (
+          {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map((s: any) => (
             <button key={s} onClick={() => setFilter(s)}
               className={cn("px-3 py-1.5 text-xs font-bold rounded-lg transition-all capitalize",
                 filter === s ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground")}>
@@ -100,7 +100,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
           ))}
         </div>
         <div className="flex gap-1 p-1 bg-muted/50 rounded-xl border border-border">
-          {(['ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map(t => (
+          {(['ALL', 'DEPOSIT', 'WITHDRAWAL'] as const).map((t: any) => (
             <button key={t} onClick={() => setTypeFilter(t)}
               className={cn("px-3 py-1.5 text-xs font-bold rounded-lg transition-all capitalize",
                 typeFilter === t ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground")}>
@@ -119,7 +119,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map(tx => {
+          {filtered.map((tx: any) => {
             const isDeposit = tx.type === 'DEPOSIT'
             const isPendingTx = tx.status === 'PENDING'
             const isProcessing = processingId === tx.id

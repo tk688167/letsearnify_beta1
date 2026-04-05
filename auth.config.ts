@@ -51,5 +51,5 @@ export const authConfig = {
 
 function isRouteRestricted(path: string) {
     const restricted = ['/dashboard/tasks', '/dashboard/marketplace', '/dashboard/wallet/withdraw']
-    return restricted.some(r => path.startsWith(r))
+    return restricted.some((r: any) => path.startsWith(r))
 }

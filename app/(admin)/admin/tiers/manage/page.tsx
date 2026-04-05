@@ -7,12 +7,12 @@ export default async function TierPage() {
    const dbTiers = await prisma.tierConfiguration.findMany();
    
    // Create map for easy lookup
-   const tierMap = new Map(dbTiers.map(t => [t.tier, t]));
+   const tierMap = new Map(dbTiers.map((t: any) => [t.tier, t]));
 
    const tierOrder = ['NEWBIE', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'EMERALD'];
    
-   const tiers = tierOrder.map(tier => {
-       const config = tierMap.get(tier);
+   const tiers = tierOrder.map((tier: any) => {
+       const config: any = tierMap.get(tier) || {};
        // If config exists, use its ID and values. 
        // If not, use static default values but we can't provide a DB ID yet (unless we create them on the fly, but for now we fallback)
        // The update action now handles "Name" based updates if ID fails, so we can pass the Name as ID if config is missing.

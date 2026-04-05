@@ -295,7 +295,7 @@ export default function UserActions({ user, onUpdated }: UserActionsProps) {
                     <div>
                       <label className={labelCls}>Tier</label>
                       <select value={form.tier} onChange={e => setForm(f => ({ ...f, tier: e.target.value }))} className={inputCls}>
-                        {TIERS.map(t => <option key={t} value={t}>{t}</option>)}
+                        {TIERS.map((t: any) => <option key={t} value={t}>{t}</option>)}
                       </select>
                     </div>
                   </div>
@@ -374,7 +374,7 @@ export default function UserActions({ user, onUpdated }: UserActionsProps) {
                       { k: "USD", v: `$${parseFloat(form.balance || "0").toFixed(2)}` },
                       { k: "ARN", v: `${parseFloat(form.arnBalance || "0").toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${user.lockedArnBalance ? ` (+${user.lockedArnBalance}L)` : ''}` },
                       { k: "Members", v: form.activeMembers },
-                    ].map(r => (
+                    ].map((r: any) => (
                       <span key={r.k} className="text-[10px] text-gray-400 dark:text-gray-500">
                         {r.k}: <span className="font-bold text-gray-700 dark:text-gray-200 font-mono">{r.v}</span>
                       </span>

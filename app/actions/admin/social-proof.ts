@@ -97,14 +97,14 @@ export async function getAnalyticsHistory() {
         }
 
         // Fill Data
-        users.forEach(u => {
+        users.forEach((u: any) => {
             const date = formatDate(u.createdAt)
             if (historyMap.has(date)) {
                 historyMap.get(date)!.users += 1
             }
         })
 
-        transactions.forEach(t => {
+        transactions.forEach((t: any) => {
             const date = formatDate(t.createdAt)
             if (historyMap.has(date)) {
                 const entry = historyMap.get(date)!
@@ -116,7 +116,7 @@ export async function getAnalyticsHistory() {
         // Convert to Array and Sort by Date Ascending
         const history = Array.from(historyMap.entries())
             .map(([date, data]) => ({ date, ...data }))
-            .sort((a, b) => a.date.localeCompare(b.date))
+            .sort((a: any, b: any) => a.date.localeCompare(b.date))
 
         return history
     } catch (error) {
@@ -148,21 +148,21 @@ export async function getRecentActivity() {
 
         // Combine and format
         const activity = [
-            ...users.map(u => ({
+            ...users.map((u: any) => ({
                 id: `join-${u.id}`,
                 type: 'USER_JOIN',
                 description: `New user joined: ${u.name} (${u.email})`,
                 date: u.createdAt,
                 amount: null
             })),
-            ...transactions.map(t => ({
+            ...transactions.map((t: any) => ({
                 id: `tx-${t.id}`,
                 type: t.type, // DEPOSIT or WITHDRAWAL
                 description: `${t.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'} approved for ${t.user.name}`,
                 date: t.createdAt,
                 amount: t.amount
             }))
-        ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 10)
+        ].sort((a: any, b: any) => b.date.getTime() - a.date.getTime()).slice(0, 10)
 
         return activity
     } catch (error) {

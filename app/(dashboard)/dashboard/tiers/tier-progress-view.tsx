@@ -462,7 +462,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                   type="text"
                   placeholder={historyTab === 'PARTNERS' ? "Search partners..." : "Search source..."}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e: any) => setSearchTerm(e.target.value)}
                   className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                 />
               </div>
@@ -497,7 +497,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                     <input
                       type="date"
                       value={customFrom}
-                      onChange={(e) => setCustomFrom(e.target.value)}
+                      onChange={(e: any) => setCustomFrom(e.target.value)}
                       className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
@@ -506,7 +506,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                     <input
                       type="date"
                       value={customTo}
-                      onChange={(e) => setCustomTo(e.target.value)}
+                      onChange={(e: any) => setCustomTo(e.target.value)}
                       className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
                     />
                   </div>
@@ -520,7 +520,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                 // --- PARTNERS LIST ---
                 <div className="space-y-3 pb-10">
                   {referralTree
-                    .filter(m => {
+                    .filter((m: any) => {
                       const date = startOfDay(new Date(m.createdAt));
                       const now = startOfDay(new Date());
                       if (timeFilter === '7D') return date >= subDays(now, 7);
@@ -530,7 +530,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                       }
                       return true;
                     })
-                    .filter(m => !searchTerm || m.name?.toLowerCase().includes(searchTerm.toLowerCase()) || m.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .filter((m: any) => !searchTerm || m.name?.toLowerCase().includes(searchTerm.toLowerCase()) || m.email?.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((member) => (
                       <div key={member.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="flex items-center gap-4">
@@ -572,7 +572,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                 // --- EARNINGS LIST ---
                 <div className="space-y-3 pb-10">
                   {commissions
-                    .filter(c => {
+                    .filter((c: any) => {
                       const date = startOfDay(new Date(c.createdAt));
                       const now = startOfDay(new Date());
                       if (timeFilter === '7D') return date >= subDays(now, 7);
@@ -582,7 +582,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                       }
                       return true;
                     })
-                    .filter(c => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (c as any).txDescription?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .filter((c: any) => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (c as any).txDescription?.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((comm) => (
                       <div key={comm.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="flex items-center gap-4">

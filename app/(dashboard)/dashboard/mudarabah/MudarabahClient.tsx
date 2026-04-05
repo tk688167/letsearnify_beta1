@@ -190,8 +190,8 @@ export default function MudarabahClient() {
     );
   }
 
-  const livePools = pools.filter(p => p.status === "OPEN" || p.status === "ACTIVE");
-  const previousPools = pools.filter(p => p.status === "COMPLETED");
+  const livePools = pools.filter((p: any) => p.status === "OPEN" || p.status === "ACTIVE");
+  const previousPools = pools.filter((p: any) => p.status === "COMPLETED");
   const investments = wallet?.investments || [];
 
   const tabs: { id: Tab; label: string; icon: React.ElementType; count?: number }[] = [
@@ -226,7 +226,7 @@ export default function MudarabahClient() {
           {[
             { label: "Available Balance", value: `$${wallet.balance.toFixed(2)}`, sub: "Ready to invest", icon: BanknotesIcon, color: "emerald" },
             { label: "Total Invested", value: `$${wallet.totalInvested.toFixed(2)}`, sub: "Active in pools", icon: ChartPieIcon, color: "blue" },
-            { label: "Active Investment", value: `${investments.filter(i => i.status === "ACTIVE").length}`, sub: "Running positions", icon: ArrowTrendingUpIcon, color: "violet" },
+            { label: "Active Investment", value: `${investments.filter((i: any) => i.status === "ACTIVE").length}`, sub: "Running positions", icon: ArrowTrendingUpIcon, color: "violet" },
             { label: "Total Profit Earned", value: `$${wallet.totalProfit.toFixed(2)}`, sub: "All-time returns", icon: ArrowTrendingUpIcon, color: "green" },
           ].map((stat) => (
             <div key={stat.label} className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:shadow-md transition-shadow">
@@ -243,7 +243,7 @@ export default function MudarabahClient() {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-gray-100 dark:bg-slate-800 rounded-2xl w-full">
-        {tabs.map(tab => (
+        {tabs.map((tab: any) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -382,7 +382,7 @@ export default function MudarabahClient() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Investment Amount ($)</label>
                     <div className="relative">
                       <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"><span className="text-gray-400">$</span></div>
-                      <input type="number" min={selectedPool.minDeposit} max={Math.min(selectedPool.maxDeposit, wallet?.balance || 0)} step="0.01" required value={investAmount} onChange={(e) => setInvestAmount(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-slate-700 pl-7 py-3 text-sm font-medium focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:bg-slate-800 dark:text-white outline-none" placeholder="0.00" />
+                      <input type="number" min={selectedPool.minDeposit} max={Math.min(selectedPool.maxDeposit, wallet?.balance || 0)} step="0.01" required value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-slate-700 pl-7 py-3 text-sm font-medium focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:bg-slate-800 dark:text-white outline-none" placeholder="0.00" />
                     </div>
                   </div>
 

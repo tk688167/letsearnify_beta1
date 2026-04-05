@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     const tierMap: Record<string, number> = {}
     let totalMembers = 0
 
-    tierCounts.forEach(t => {
+    tierCounts.forEach((t: any) => {
        // @ts-ignore
        const count = t._count?._all || 0
        tierMap[t.tier] = count

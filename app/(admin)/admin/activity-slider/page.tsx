@@ -21,7 +21,7 @@ export default function ActivitySliderManager() {
             .then(data => {
                 if (!data.error) setMessages(data)
             })
-            .catch(err => console.error(err))
+            .catch((err: any) => console.error(err))
             .finally(() => setLoading(false))
     }, [])
 
@@ -90,7 +90,7 @@ export default function ActivitySliderManager() {
                                 <input 
                                     type="text" 
                                     value={msg.icon || "🔔"}
-                                    onChange={(e) => handleChange(idx, "icon", e.target.value)}
+                                    onChange={(e: any) => handleChange(idx, "icon", e.target.value)}
                                     className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-center"
                                 />
                             </div>
@@ -101,7 +101,7 @@ export default function ActivitySliderManager() {
                                 <input 
                                     type="text" 
                                     value={msg.text}
-                                    onChange={(e) => handleChange(idx, "text", e.target.value)}
+                                    onChange={(e: any) => handleChange(idx, "text", e.target.value)}
                                     className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 />
                             </div>
@@ -112,7 +112,7 @@ export default function ActivitySliderManager() {
                                     <input 
                                         type="checkbox" 
                                         checked={msg.active}
-                                        onChange={(e) => handleChange(idx, "active", e.target.checked)}
+                                        onChange={(e: any) => handleChange(idx, "active", e.target.checked)}
                                         className="form-checkbox w-5 h-5 text-blue-600 rounded"
                                     />
                                     <span className="text-sm font-medium text-gray-700">Active</span>

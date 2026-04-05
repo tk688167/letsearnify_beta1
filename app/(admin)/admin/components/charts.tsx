@@ -84,7 +84,7 @@ export function DistributionChart({ data, title }: { data: any[], title: string 
       </ResponsiveContainer>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
         <div className="text-2xl font-bold text-gray-900 dark:text-white">
-          {data.reduce((a, b) => a + b.value, 0)}
+          {data.reduce((a: any, b: any) => a + b.value, 0)}
         </div>
         <div className="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wider">Total</div>
       </div>
@@ -97,7 +97,7 @@ export function BarListChart({ data }: { data: any[] }) {
     <div className="h-[180px] flex items-center justify-center text-gray-400 dark:text-slate-600 text-sm">No data</div>
   )
 
-  const maxVal = Math.max(...data.map(d => d.value))
+  const maxVal = Math.max(...data.map((d: any) => d.value))
 
   return (
     <div className="space-y-3.5 pt-2">

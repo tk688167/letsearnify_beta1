@@ -5,7 +5,7 @@ import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { authConfig } from "@/auth.config"
-import { generateReferralCode, generateMemberId } from "@/lib/mlm"
+import { generateReferralCode, generateMemberId, SIGNUP_BONUS_RATES } from "@/lib/mlm"
 import { ADMIN_CREDENTIALS, ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
 function CustomPrismaAdapter(p: typeof prisma) {
@@ -105,14 +105,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   events: {
     async createUser({ user }) {
         try {
-            let validReferredByCode = 'COMPANY'
+            let validReferredByCode = 'COMPANY';
+            let validReferrer: any = null;
             try {
                 const { cookies } = await import("next/headers")
                 const cookieStore = await cookies()
-                const referralCodeInput = cookieStore.get("referral_code")?.value
+                const referralCodeInput = cookieStore.get("referral_code")?.value?.toUpperCase()
                 if (referralCodeInput) {
                     const referrer = await prisma.user.findUnique({ where: { referralCode: referralCodeInput } })
-                    if (referrer) validReferredByCode = referralCodeInput
+                    if (referrer) {
+                        validReferredByCode = referralCodeInput;
+                        validReferrer = referrer;
+                    }
                 }
             } catch { /* cookie read may fail in some flows */ }
 
@@ -122,7 +126,16 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 const newReferralCode = generateReferralCode()
                 const newMemberId = generateMemberId()
 
-                // NO signup bonus at registration — granted at unlock
+                let signupBonusArn = 0;
+                let signupBonusUsd = 0;
+                let referrerTier = "NONE";
+                
+                if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
+                    signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 3;
+                    signupBonusUsd = signupBonusArn / 10;
+                    console.log(`[Google Auth] Signup bonus for ${user.email}: ${signupBonusArn} ARN (referrer ${referrerTier})`);
+                }
+
                 await prisma.user.update({
                     where: { id: user.id },
                     data: {
@@ -131,8 +144,8 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         referredByCode: validReferredByCode,
                         tier: "NEWBIE" as any,
                         tierStatus: "CURRENT" as any,
-                        arnBalance: 0,
-                        balance: 0,
+                        arnBalance: signupBonusArn,
+                        balance: signupBonusUsd,
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
@@ -140,11 +153,30 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     }
                 })
 
+                if (signupBonusArn > 0) {
+                   await prisma.transaction.create({
+                     data: {
+                        userId: user.id!,
+                        amount: signupBonusUsd,
+                        arnMinted: signupBonusArn,
+                        type: "SIGNUP_BONUS",
+                        status: "COMPLETED",
+                        method: "SYSTEM",
+                        description: `Signup bonus: ${signupBonusArn} ARN (referrer tier: ${referrerTier})`
+                     }
+                   })
+                   await prisma.mLMLog.create({
+                     data: {
+                        userId: user.id!,
+                        type: "SIGNUP_BONUS",
+                        amount: signupBonusArn,
+                        description: `Received ${signupBonusArn} ARN signup bonus (referrer: ${referrerTier} tier)`
+                     }
+                   })
+                }
+
                 // Create referral tree
-                const referrer = await prisma.user.findUnique({
-                    where: { referralCode: validReferredByCode },
-                    select: { id: true, referralCode: true }
-                })
+                const referrer = validReferrer;
 
                 let advisorId = null, supervisorId = null, managerId = null
                 if (referrer) {
@@ -169,7 +201,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                     } catch { /* non-critical */ }
                 }
                 
-                console.log(`✅ Google Signup: ${user.email} | Ref: ${validReferredByCode} | No bonus until unlock`)
+                console.log(`✅ Google Signup: ${user.email} | Ref: ${validReferredByCode} | Bonus applied`)
             } else {
                 // Existing user — ensure memberId
                 if (!currentUser?.memberId || currentUser.memberId === currentUser.id) {

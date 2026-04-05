@@ -47,7 +47,7 @@ export async function getAnalytics(range: '7d' | '30d' | '90d' = '7d', custom?: 
          chartMap.set(key, 0)
       }
       
-      visits.forEach(v => {
+      visits.forEach((v: any) => {
          const key = format(v.createdAt, 'MMM dd')
          if (chartMap.has(key)) {
             chartMap.set(key, (chartMap.get(key) || 0) + 1)
@@ -104,11 +104,11 @@ export async function getAnalytics(range: '7d' | '30d' | '90d' = '7d', custom?: 
         },
         trafficData,
         deployment: {
-           devices: deviceStats.map(s => ({ name: s.device || "Unknown", value: s._count.device })),
-           browsers: browserStats.map(s => ({ name: s.browser || "Unknown", value: s._count.browser })),
-           countries: countryStats.map(s => ({ name: s.country || "Unknown", value: s._count.country }))
+           devices: deviceStats.map((s: any) => ({ name: s.device || "Unknown", value: s._count.device })),
+           browsers: browserStats.map((s: any) => ({ name: s.browser || "Unknown", value: s._count.browser })),
+           countries: countryStats.map((s: any) => ({ name: s.country || "Unknown", value: s._count.country }))
         },
-        recentActivity: recentActivity.map(a => ({
+        recentActivity: recentActivity.map((a: any) => ({
             ...a,
             time: format(a.createdAt, 'HH:mm:ss')
         }))

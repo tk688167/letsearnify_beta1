@@ -101,7 +101,7 @@ export function verifySignature(params: any, signature: string) {
     
     // Sort keys alphabetically
     const sortedKeys = Object.keys(params).sort();
-    const sortedString = sortedKeys.map(key => params[key]).join(''); // Values sorted by key
+    const sortedString = sortedKeys.map((key: any) => params[key]).join(''); // Values sorted by key
 
     const hmac = createHmac('sha512', NOWPAYMENTS_IPN_SECRET);
     hmac.update(JSON.stringify(params, Object.keys(params).sort())); 

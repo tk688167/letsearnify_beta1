@@ -48,7 +48,7 @@ export default function TaskAdminClient({ tasks: initialTasks, companies, pendin
         if (!confirm("Permanently delete this task?")) return
         
         // Optimistic update: remove immediately from UI
-        setLocalTasks(prev => prev.filter(t => t.id !== id))
+        setLocalTasks(prev => prev.filter((t: any) => t.id !== id))
         
         startTransition(async () => {
             const res = await deleteTask(id)
@@ -67,10 +67,10 @@ export default function TaskAdminClient({ tasks: initialTasks, companies, pendin
         
         // Immediate UI Update
         setLocalTasks(prev => {
-            const exists = prev.find(t => t.id === updatedTask.id)
+            const exists = prev.find((t: any) => t.id === updatedTask.id)
             if (exists) {
                 // Update existing
-                return prev.map(t => t.id === updatedTask.id ? updatedTask : t)
+                return prev.map((t: any) => t.id === updatedTask.id ? updatedTask : t)
             } else {
                 // Prepend new
                 return [updatedTask, ...prev]
@@ -88,8 +88,8 @@ export default function TaskAdminClient({ tasks: initialTasks, companies, pendin
     }
 
     // Categorization Logic
-    const basicTasks = localTasks.filter(t => t.type === 'BASIC' || !['PREMIUM'].includes(t.type))
-    const premiumTasks = localTasks.filter(t => t.type === 'PREMIUM')
+    const basicTasks = localTasks.filter((t: any) => t.type === 'BASIC' || !['PREMIUM'].includes(t.type))
+    const premiumTasks = localTasks.filter((t: any) => t.type === 'PREMIUM')
 
     const tabs = [
         { id: 'BASIC', label: 'Basic Tasks', icon: ClipboardDocumentListIcon, count: basicTasks.length },

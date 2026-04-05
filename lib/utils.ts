@@ -55,12 +55,12 @@ export function calculateTierProgress(
     EMERALD:  { arn: 15000,  directs: 250 }
   };
 
-  Object.keys(DEFAULTS).forEach(tier => {
+  Object.keys(DEFAULTS).forEach((tier: any) => {
     normalizedRules[tier] = DEFAULTS[tier];
   });
 
   // Overlay provided rules with property-agnostic mapping
-  Object.keys(tierRules || {}).forEach(k => {
+  Object.keys(tierRules || {}).forEach((k: any) => {
     const rawRule = tierRules[k];
     if (rawRule && typeof rawRule === 'object') {
       normalizedRules[k.toUpperCase().trim()] = {

@@ -55,7 +55,7 @@ export async function POST(req: Request) {
         };
 
         let totalWeight = 0;
-        users.forEach(u => {
+        users.forEach((u: any) => {
             totalWeight += (tierWeights[u.tier] || 1);
         });
 
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
         let count = 0;
 
         // We'll use a transaction for safety
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // Deduct from Pool
             await tx.pool.update({
                 where: { id: cbspPool.id },

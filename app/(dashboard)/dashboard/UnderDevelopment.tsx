@@ -108,7 +108,7 @@ export function UnderDevelopmentPage({ title, description, icon, userEmail }: Un
                   <input
                     type="email"
                     value={notifyEmail}
-                    onChange={(e) => setNotifyEmail(e.target.value)}
+                    onChange={(e: any) => setNotifyEmail(e.target.value)}
                     placeholder="your@email.com"
                     className="flex-1 px-4 py-3 rounded-xl border border-border bg-card text-foreground text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                   />

@@ -85,7 +85,7 @@ export default function ManualDepositPage() {
                         <input
                             type="text"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e: any) => setSearchQuery(e.target.value)}
                             placeholder="Search user by Email or ID..."
                             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm placeholder:text-gray-400 dark:placeholder:text-slate-600"
                         />
@@ -103,7 +103,7 @@ export default function ManualDepositPage() {
                      <div className="mt-5 border-t border-gray-100 dark:border-slate-800 pt-5">
                         <h3 className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest mb-3">Results</h3>
                         <div className="grid gap-2">
-                            {searchResults.map(user => (
+                            {searchResults.map((user: any) => (
                                 <div
                                     key={user.id}
                                     onClick={() => setSelectedUser(user)}

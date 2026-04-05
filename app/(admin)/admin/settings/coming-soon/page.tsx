@@ -65,7 +65,7 @@ export default function ComingSoonSettingsPage() {
         { label: "Night Shade", from: "from-slate-900", to: "to-slate-950" },
     ]
 
-    const CurrentIcon = icons.find(i => i.id === (currentConfig.iconType || "rocket"))?.icon || RocketLaunchIcon
+    const CurrentIcon = icons.find((i: any) => i.id === (currentConfig.iconType || "rocket"))?.icon || RocketLaunchIcon
 
     const tabs = [
         { id: 'default', label: 'Default' },
@@ -112,7 +112,7 @@ export default function ComingSoonSettingsPage() {
                 {/* General Settings */}
                 <div className="space-y-4">
                     <h3 className="text-lg font-bold text-gray-900 pb-2 border-b border-gray-100 flex items-center justify-between">
-                        <span>Content for: <span className="text-blue-600">{tabs.find(t => t.id === activeTab)?.label}</span></span>
+                        <span>Content for: <span className="text-blue-600">{tabs.find((t: any) => t.id === activeTab)?.label}</span></span>
                     </h3>
                     
                     <div>
@@ -212,7 +212,7 @@ export default function ComingSoonSettingsPage() {
 
                     {/* Live Preview */}
                     <div className="mt-8 p-6 border border-gray-100 rounded-3xl bg-gray-50 relative">
-                        <label className="absolute -top-3 left-4 px-2 bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">Preview: {tabs.find(t => t.id === activeTab)?.label}</label>
+                        <label className="absolute -top-3 left-4 px-2 bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">Preview: {tabs.find((t: any) => t.id === activeTab)?.label}</label>
                         
                         {/* Mock Preview Card (Using Dark Theme logic) */}
                         <div className={cn("max-w-md mx-auto rounded-3xl overflow-hidden shadow-2xl relative p-8 text-center border border-white/5", currentConfig.gradientFrom, currentConfig.gradientTo)}>

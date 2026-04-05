@@ -8,7 +8,7 @@ export function AdminDailyEarningClient({ allInvestments }: { allInvestments: an
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
 
-  const filteredInvestments = allInvestments.filter(inv => {
+  const filteredInvestments = allInvestments.filter((inv: any) => {
     // 1. Search Filter
     const searchString = searchTerm.toLowerCase()
     const nameMatch = inv.user?.name?.toLowerCase().includes(searchString) || false
@@ -37,7 +37,7 @@ export function AdminDailyEarningClient({ allInvestments }: { allInvestments: an
                type="text"
                placeholder="Search by name or email..."
                value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
+               onChange={(e: any) => setSearchTerm(e.target.value)}
                className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-indigo-500"
              />
           </div>
@@ -45,7 +45,7 @@ export function AdminDailyEarningClient({ allInvestments }: { allInvestments: an
           <div className="w-full sm:w-auto">
              <select
                value={statusFilter}
-               onChange={(e) => setStatusFilter(e.target.value)}
+               onChange={(e: any) => setStatusFilter(e.target.value)}
                className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
              >
                 <option value="ALL">All Statuses</option>

@@ -93,7 +93,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                   type="text" 
                   placeholder="Search by Name, Email, or User ID..."
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e: any) => setQuery(e.target.value)}
                   className="w-full pl-11 pr-4 py-2.5 md:py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-500/30 outline-none transition-all font-medium text-gray-800 dark:text-gray-100 text-sm md:text-base placeholder-gray-400 dark:placeholder-gray-500"
                 />
                 <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 dark:text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -193,7 +193,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                            totalDeposit: user.totalDeposit,
                            isActiveMember: user.isActiveMember
                        }} onUpdated={(updatedUser) => {
-                           setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
+                           setUsers(prev => prev.map((u: any) => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
                        }} />
                    </div>
                 </div>
@@ -269,7 +269,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                            </td>
                        </tr>
                    ) : (
-                       users.map(user => (
+                       users.map((user: any) => (
                           <tr key={user.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-700/30 transition-all duration-200 group">
                              <td className="px-6 py-5">
                                 <div className="flex items-center gap-4">
@@ -341,7 +341,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
                                         totalDeposit: user.totalDeposit,
                                         isActiveMember: user.isActiveMember
                                     }} onUpdated={(updatedUser) => {
-                                        setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
+                                        setUsers(prev => prev.map((u: any) => u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
                                     }} />
                                  </div>
                               </td>

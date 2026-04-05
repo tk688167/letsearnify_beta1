@@ -57,7 +57,7 @@ export default async function TasksPage() {
   }
 
   // Filter platform tasks
-  const platformTasks = (platformTasksRaw as unknown as PlatformTask[]).filter(t => !t.company || t.company.status === "ACTIVE")
+  const platformTasks = (platformTasksRaw as unknown as PlatformTask[]).filter((t: any) => !t.company || t.company.status === "ACTIVE")
 
   // ------------------------------------------------------------------
   // EXTERNAL NETWORK INTEGRATION (CPX Research)
@@ -76,7 +76,7 @@ export default async function TasksPage() {
           const offers = await cpxAdapter.fetchOffers({ userId: displayUser.id })
           
           // Map 'Offer' -> 'PlatformTask'
-          externalTasks = offers.map(offer => ({
+          externalTasks = offers.map((offer: any) => ({
               id: `ext-${offer.id}`,
               title: offer.title,
               description: offer.description,

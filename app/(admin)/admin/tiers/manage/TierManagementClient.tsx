@@ -33,7 +33,7 @@ export default function TierManagementPage({ tiers }: { tiers: TierConfig[] }) {
      if (!editingId || !formData) return
 
      // Find the tier object to get the name
-     const targetTier = tiers.find(t => t.id === editingId)
+     const targetTier = tiers.find((t: any) => t.id === editingId)
      if (!targetTier) return
 
      try {

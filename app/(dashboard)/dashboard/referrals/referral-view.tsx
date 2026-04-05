@@ -122,10 +122,10 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   }
 
   // Analytics for the structure
-  const activeNetwork = referralTree.filter(n => !!n.isActiveMember || !!n.lastUnlockAt)
-  const earnedL1 = commissions.filter(c => c.level === 1).reduce((sum, c) => sum + c.amount, 0)
-  const earnedL2 = commissions.filter(c => c.level === 2).reduce((sum, c) => sum + c.amount, 0)
-  const earnedL3 = commissions.filter(c => c.level === 3).reduce((sum, c) => sum + c.amount, 0)
+  const activeNetwork = referralTree.filter((n: any) => !!n.isActiveMember || !!n.lastUnlockAt)
+  const earnedL1 = commissions.filter((c: any) => c.level === 1).reduce((sum: number, c: any) => sum + c.amount, 0)
+  const earnedL2 = commissions.filter((c: any) => c.level === 2).reduce((sum: number, c: any) => sum + c.amount, 0)
+  const earnedL3 = commissions.filter((c: any) => c.level === 3).reduce((sum: number, c: any) => sum + c.amount, 0)
   const totalEarnedFromNetwork = earnedL1 + earnedL2 + earnedL3
 
   const { progress, nextTier } = calculateTierProgress(
@@ -354,7 +354,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e: any) => setSearchTerm(e.target.value)}
                 className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all"
               />
             </div>
@@ -383,16 +383,16 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
           {/* Partner List */}
           <div className="flex flex-col gap-3 sm:gap-4">
             {referralTree
-              .filter(n => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
-              .filter(n => 
+              .filter((n: any) => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
+              .filter((n: any) => 
                 !searchTerm || 
                 (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                  n.email?.toLowerCase().includes(searchTerm.toLowerCase()))
               )
               .length > 0 ? (
                 referralTree
-                  .filter(n => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
-                  .filter(n => 
+                  .filter((n: any) => activeLevelTab === 'ALL' ? true : n.level === activeLevelTab)
+                  .filter((n: any) => 
                     !searchTerm || 
                     (n.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                      n.email?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -440,7 +440,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              </div>
                              {(partner.isActiveMember || partner.lastUnlockAt) ? (
                                 <p className="text-xs sm:text-sm font-black text-foreground mt-1">
-                                  Earned: <span className="text-emerald-500">+${commissions.filter(c => c.sourceUser?.id === partner.id).reduce((sum, c) => sum + c.amount, 0).toFixed(2)}</span>
+                                  Earned: <span className="text-emerald-500">+${commissions.filter((c: any) => c.sourceUser?.id === partner.id).reduce((sum: number, c: any) => sum + c.amount, 0).toFixed(2)}</span>
                                 </p>
                              ) : (
                                 <p className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">
@@ -503,7 +503,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              <div className="w-0.5 h-6 bg-border" />
                              <div className="w-full max-w-[90%] bg-muted border border-border rounded-xl p-3 flex flex-col items-center">
                                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Level 1 (Direct)</span>
-                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find(n => n.id === (selectedPartner.level === 3 ? selectedPartner.supervisorId : selectedPartner.advisorId))?.name || "Anonymous Partner"}</span>
+                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find((n: any) => n.id === (selectedPartner.level === 3 ? selectedPartner.supervisorId : selectedPartner.advisorId))?.name || "Anonymous Partner"}</span>
                              </div>
                          </>
                      )}
@@ -514,7 +514,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              <div className="w-0.5 h-6 bg-border" />
                              <div className="w-full max-w-[80%] bg-muted border border-border rounded-xl p-3 flex flex-col items-center">
                                  <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest mb-1">Level 2 (Indirect)</span>
-                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find(n => n.id === selectedPartner.advisorId)?.name || "Anonymous Partner"}</span>
+                                 <span className="text-sm font-bold text-foreground truncate w-full text-center">{referralTree.find((n: any) => n.id === selectedPartner.advisorId)?.name || "Anonymous Partner"}</span>
                              </div>
                          </>
                      )}
@@ -534,7 +534,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              <div className="w-px h-6 bg-border" />
                              <div className="flex flex-col items-center">
                                  <span className="text-[9px] uppercase tracking-wider">Earned</span>
-                                 <span className="font-bold text-emerald-500">${commissions.filter(c => c.sourceUser?.id === selectedPartner.id).reduce((sum, c) => sum + c.amount, 0).toFixed(2)}</span>
+                                 <span className="font-bold text-emerald-500">${commissions.filter((c: any) => c.sourceUser?.id === selectedPartner.id).reduce((sum: number, c: any) => sum + c.amount, 0).toFixed(2)}</span>
                              </div>
                          </div>
                      </div>

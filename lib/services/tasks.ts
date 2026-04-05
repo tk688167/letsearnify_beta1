@@ -30,7 +30,7 @@ export async function getTaskData(userId: string): Promise<TaskDataResult> {
         if (!user) {
             if (userId === "super-admin-id") {
                 return {
-                    platformTasks: rawTasks.map(task => ({
+                    platformTasks: rawTasks.map((task: any) => ({
                         ...task,
                         completionStatus: task.completions[0]?.status || null,
                         completionRemarks: task.completions[0]?.remarks || null
@@ -50,7 +50,7 @@ export async function getTaskData(userId: string): Promise<TaskDataResult> {
             return { platformTasks: [], user: null, isOffline: false };
         }
 
-        const platformTasks = rawTasks.map(task => ({
+        const platformTasks = rawTasks.map((task: any) => ({
             ...task,
             completionStatus: task.completions[0]?.status || null,
             completionRemarks: task.completions[0]?.remarks || null

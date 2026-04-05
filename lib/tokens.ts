@@ -61,7 +61,7 @@ export async function mintArnForDeposit(userId: string, depositAmount: number, t
 
         } else {
             // New transaction
-            await prisma.$transaction(async (prismaTx) => {
+            await prisma.$transaction(async (prismaTx: any) => {
                 await prismaTx.user.update({
                     where: { id: userId },
                     data: {

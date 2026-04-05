@@ -17,7 +17,7 @@ export async function processManualDeposit(userId: string, amount: number, note:
     }
 
     try {
-        await prisma.$transaction(async (prismaTx) => {
+        await prisma.$transaction(async (prismaTx: any) => {
             // 1. Create COMPLETED Transaction Record
             const tx = await prismaTx.transaction.create({
                 data: {

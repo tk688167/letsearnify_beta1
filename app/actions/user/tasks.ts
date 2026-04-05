@@ -34,7 +34,7 @@ export async function getUserTasks() {
       }
     })
 
-    return tasks.map(task => ({
+    return tasks.map((task: any) => ({
       ...task,
       isCompleted: task.completions.length > 0,
       completionStatus: task.completions[0]?.status || null,

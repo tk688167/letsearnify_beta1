@@ -50,7 +50,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
             setFilteredCountries(allCountries)
         } else {
             const lowerQuery = query.toLowerCase()
-            const filtered = allCountries.filter(c => 
+            const filtered = allCountries.filter((c: any) => 
                 c.name.toLowerCase().includes(lowerQuery) || 
                 c.code.toLowerCase().includes(lowerQuery)
             )
@@ -65,7 +65,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
                     className="w-full p-4 pr-10 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 cursor-pointer"
                     placeholder={isLoading ? "Loading countries..." : "Select a country to auto-fill..."}
                     value={query}
-                    onChange={(e) => {
+                    onChange={(e: any) => {
                         setQuery(e.target.value)
                         setIsOpen(true)
                     }}
@@ -162,7 +162,7 @@ export default function AdminMerchantPage() {
       setFilteredCountries(countries)
     } else {
       const lower = searchQuery.toLowerCase()
-      setFilteredCountries(countries.filter(c => 
+      setFilteredCountries(countries.filter((c: any) => 
         c.name.toLowerCase().includes(lower) || 
         c.code.toLowerCase().includes(lower)
       ))
@@ -256,7 +256,7 @@ export default function AdminMerchantPage() {
             placeholder="Search countries..."
             className="flex-1 outline-none bg-transparent text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-600 font-medium text-sm"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e: any) => setSearchQuery(e.target.value)}
           />
        </div>
 
@@ -389,7 +389,7 @@ export default function AdminMerchantPage() {
                         placeholder="e.g. Pakistan"
                         className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 bg-gray-50 focus:bg-white transition-all font-medium"
                         value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        onChange={(e: any) => setFormData({...formData, name: e.target.value})}
                      />
                   </div>
 
@@ -401,7 +401,7 @@ export default function AdminMerchantPage() {
                            placeholder="PK"
                            className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 uppercase font-mono bg-gray-50 focus:bg-white transition-all text-center font-bold"
                            value={formData.code}
-                           onChange={(e) => setFormData({...formData, code: e.target.value})}
+                           onChange={(e: any) => setFormData({...formData, code: e.target.value})}
                            maxLength={2}
                         />
                      </div>
@@ -412,7 +412,7 @@ export default function AdminMerchantPage() {
                             placeholder="PKR"
                             className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 uppercase font-mono bg-gray-50 focus:bg-white transition-all text-center font-bold"
                             value={formData.currency}
-                            onChange={(e) => setFormData({...formData, currency: e.target.value})}
+                            onChange={(e: any) => setFormData({...formData, currency: e.target.value})}
                             maxLength={3}
                          />
                      </div>
@@ -427,7 +427,7 @@ export default function AdminMerchantPage() {
                                 placeholder="280.0"
                                 className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
                                 value={isNaN(formData.exchangeRate) ? "" : formData.exchangeRate}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                    const val = parseFloat(e.target.value)
                                    setFormData({...formData, exchangeRate: isNaN(val) ? 0 : val})
                                 }}
@@ -444,7 +444,7 @@ export default function AdminMerchantPage() {
                                 placeholder="20"
                                 className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
                                 value={isNaN(formData.serviceFee) ? "" : formData.serviceFee}
-                                onChange={(e) => {
+                                onChange={(e: any) => {
                                    const val = parseFloat(e.target.value)
                                    setFormData({...formData, serviceFee: isNaN(val) ? 0 : val})
                                 }}

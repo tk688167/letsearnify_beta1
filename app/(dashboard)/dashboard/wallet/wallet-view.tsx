@@ -130,7 +130,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setCountrySearch("")
   }
   
-  const currentWallet = platformWallets.find(w => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
+  const currentWallet = platformWallets.find((w: any) => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
 
   const [method, setMethod] = useState("TRC20") 
   const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE">("TRC20") 
@@ -149,11 +149,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
   const filteredTransactions = useMemo(() => {
      let filtered = transactions;
-     if (filterRange === '7d') { const d = new Date(); d.setDate(d.getDate() - 7); filtered = filtered.filter(tx => new Date(tx.createdAt) >= d) }
-     else if (filterRange === '30d') { const d = new Date(); d.setDate(d.getDate() - 30); filtered = filtered.filter(tx => new Date(tx.createdAt) >= d) }
+     if (filterRange === '7d') { const d = new Date(); d.setDate(d.getDate() - 7); filtered = filtered.filter((tx: any) => new Date(tx.createdAt) >= d) }
+     else if (filterRange === '30d') { const d = new Date(); d.setDate(d.getDate() - 30); filtered = filtered.filter((tx: any) => new Date(tx.createdAt) >= d) }
      else if (filterRange === 'custom') {
-        if (customStart) filtered = filtered.filter(tx => new Date(tx.createdAt) >= new Date(customStart))
-        if (customEnd) { const e = new Date(customEnd); e.setHours(23, 59, 59, 999); filtered = filtered.filter(tx => new Date(tx.createdAt) <= e) }
+        if (customStart) filtered = filtered.filter((tx: any) => new Date(tx.createdAt) >= new Date(customStart))
+        if (customEnd) { const e = new Date(customEnd); e.setHours(23, 59, 59, 999); filtered = filtered.filter((tx: any) => new Date(tx.createdAt) <= e) }
      }
      return filtered;
   }, [transactions, filterRange, customStart, customEnd])
@@ -310,7 +310,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
     // ── STEP 1: Country Selection ──
     if (!selectedCountry) {
-      const filteredCountries = merchantSettings.filter(c => 
+      const filteredCountries = merchantSettings.filter((c: any) => 
         !countrySearch || c.name.toLowerCase().includes(countrySearch.toLowerCase()) || c.code.toLowerCase().includes(countrySearch.toLowerCase())
       )
       return (
@@ -327,7 +327,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             <input
               type="text"
               value={countrySearch}
-              onChange={(e) => setCountrySearch(e.target.value)}
+              onChange={(e: any) => setCountrySearch(e.target.value)}
               placeholder="Search countries..."
               className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-muted/30 focus:bg-card focus:border-green-500 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 transition-all"
             />
@@ -344,7 +344,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {filteredCountries.map(country => {
+              {filteredCountries.map((country: any) => {
                 const isComingSoon = country.status === "COMING_SOON"
                 const flag = COUNTRY_FLAGS[country.code?.toUpperCase()] || "🏳️"
                 return (
@@ -471,7 +471,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">$</span>
-                <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+                <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)}
                   className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl transition-all bg-muted/30 focus:bg-card text-foreground placeholder:text-muted-foreground/40" placeholder="0.00"/>
               </div>
             </div>
@@ -551,20 +551,20 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             </div>
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Number</label>
-              <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)}
+              <input type="text" value={accountNumber} onChange={(e: any) => setAccountNumber(e.target.value)}
                 className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground text-sm"
                 placeholder={`Enter your ${selectedPaymentMethod.name} number`}/>
             </div>
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
-              <input type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)}
+              <input type="text" value={accountName} onChange={(e: any) => setAccountName(e.target.value)}
                 className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground text-sm" placeholder="Name on account"/>
             </div>
             <div>
               <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
+                <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)}
                   className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl bg-muted/30 focus:bg-card transition-all text-foreground" placeholder="0.00"/>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: {((user.balance || 0) * 10).toFixed(2)} ARN</p>
@@ -785,8 +785,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                  </div>
                               </div>
                                <div className="space-y-3">
-                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Amount (USD)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-base text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-1 px-1 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
+                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Amount (USD)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-base text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-1 px-1 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
                                   <button onClick={handleAction} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Submit Deposit</button>
                                </div>
                            </div>
@@ -832,8 +832,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        </div>
                        {withdrawalMethod === "TRC20" && (
                             <div className="space-y-4">
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e: any) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
                                     <div className="flex flex-col gap-1 mt-2 px-1">
                                         <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
                                         <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
@@ -849,10 +849,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                 {activeTab === "transfer" && (
                     <div className="space-y-4 animate-in fade-in">
                              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e: any) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e: any) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                              </div>
-                             <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
+                             <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
                              <button onClick={handleAction} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Transfer Funds</button>
                     </div>
                 )}
@@ -867,13 +867,13 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                   <div><h3 className="text-lg sm:text-xl font-bold font-serif text-foreground flex items-center gap-2.5"><div className="p-1.5 sm:p-2 bg-muted rounded-xl text-muted-foreground shrink-0"><CalendarDaysIcon className="w-5 h-5"/></div>Transaction History</h3><p className="text-xs sm:text-sm text-muted-foreground mt-1 pl-0.5">Your deposits, withdrawals, and pool transfers.</p></div>
                   <div className="flex flex-col gap-2">
                       <div className="flex items-center gap-1 p-1 bg-muted/50 rounded-xl border border-border">
-                          {(['7d', '30d', 'custom'] as const).map(r => (
+                          {(['7d', '30d', 'custom'] as const).map((r: any) => (
                             <button key={r} onClick={() => setFilterRange(r)} className={cn("flex-1 px-2 sm:px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all text-center flex items-center justify-center gap-1", filterRange === r ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted")}>
                                {r === 'custom' && <FunnelIcon className="w-3 h-3"/>}{r === '7d' ? 'Last 7 Days' : r === '30d' ? 'Last 30 Days' : 'Custom'}
                             </button>
                           ))}
                       </div>
-                      {filterRange === 'custom' && (<div className="flex items-center gap-2 animate-in fade-in"><input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/><span className="text-muted-foreground text-xs font-bold shrink-0">to</span><input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/></div>)}
+                      {filterRange === 'custom' && (<div className="flex items-center gap-2 animate-in fade-in"><input type="date" value={customStart} onChange={(e: any) => setCustomStart(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/><span className="text-muted-foreground text-xs font-bold shrink-0">to</span><input type="date" value={customEnd} onChange={(e: any) => setCustomEnd(e.target.value)} className="flex-1 px-2 sm:px-3 py-2 bg-card border border-border rounded-lg text-xs font-medium text-foreground outline-none focus:border-blue-500"/></div>)}
                   </div>
               </div>
 
@@ -922,7 +922,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <div className="flex items-center justify-between p-5 border-b border-border shrink-0 bg-card">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
-                    {[1, 2, 3].map(step => { const cs = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3; return (<div key={step} className={cn("rounded-full transition-all duration-300", step === cs ? "w-6 h-2 bg-green-500" : step < cs ? "w-2 h-2 bg-green-500/50" : "w-2 h-2 bg-muted-foreground/20")}/>) })}
+                    {[1, 2, 3].map((step: any) => { const cs = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3; return (<div key={step} className={cn("rounded-full transition-all duration-300", step === cs ? "w-6 h-2 bg-green-500" : step < cs ? "w-2 h-2 bg-green-500/50" : "w-2 h-2 bg-muted-foreground/20")}/>) })}
                   </div>
                   <div>
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{merchantModalType === 'DEPOSIT' ? 'Merchant Deposit' : 'Merchant Withdrawal'}</p>

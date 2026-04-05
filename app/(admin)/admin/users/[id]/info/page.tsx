@@ -81,7 +81,7 @@ export default async function AdminUserInfoPage({ params }: { params: Promise<{ 
   ])
 
   // Extract Gig setup for team members efficiently
-  const teamIds = teamMembers.map(tm => tm.id)
+  const teamIds = teamMembers.map((tm: any) => tm.id)
   const teamGigs = await prisma.gig.groupBy({
     by: ['sellerId'],
     where: { sellerId: { in: teamIds } },
@@ -89,7 +89,7 @@ export default async function AdminUserInfoPage({ params }: { params: Promise<{ 
   })
   
   // Create a map for quick Gig lookups
-  const gigMap = new Map(teamGigs.map(g => [g.sellerId, g._count.id]))
+  const teamGigsMap = new Map(teamGigs.map((g: any) => [g.sellerId, g._count.id]))
 
   // 3. Transform & Calculate the UI variables
   const totalWithdrawn = totalWithdrawalsAgg._sum.amount || 0
@@ -102,7 +102,7 @@ export default async function AdminUserInfoPage({ params }: { params: Promise<{ 
   
   const totalLifetimeEarnings = earningsFromTasks + earningsFromReferrals + earningsFromMudarabah
 
-  const activeTeamCount = teamMembers.filter(tm => tm.isActiveMember).length
+  const activeTeamCount = teamMembers.filter((tm: any) => tm.isActiveMember).length
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-20">
@@ -282,9 +282,9 @@ export default async function AdminUserInfoPage({ params }: { params: Promise<{ 
                     </td>
                   </tr>
                 ) : (
-                  teamMembers.map((tm) => {
+                  teamMembers.map((tm: any) => {
                      const isMudarabahActive = tm.mudarabahInvestments && tm.mudarabahInvestments.length > 0
-                     const hasGigs = gigMap.has(tm.id)
+                     const hasGigs = teamGigsMap.has(tm.id)
                      
                      return (
                         <tr key={tm.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">

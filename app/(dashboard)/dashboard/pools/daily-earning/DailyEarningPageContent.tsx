@@ -51,10 +51,10 @@ export default function DailyEarningPageContent() {
 
   // Derive Stats
   const now = new Date()
-  const activeLocks = activeInvestments.filter(inv => inv.status === "ACTIVE" && new Date(inv.expiresAt) > now)
-  const expiredLocks = activeInvestments.filter(inv => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
-  const totalPrincipalLocked = activeLocks.reduce((sum, inv) => sum + inv.amount, 0)
-  const totalAccumulatedProfit = activeLocks.reduce((sum, inv) => sum + inv.profitEarned, 0)
+  const activeLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) > now)
+  const expiredLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
+  const totalPrincipalLocked = activeLocks.reduce((sum: any, inv: any) => sum + inv.amount, 0)
+  const totalAccumulatedProfit = activeLocks.reduce((sum: any, inv: any) => sum + inv.profitEarned, 0)
   
   const [actionLoader, setActionLoader] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -218,7 +218,7 @@ export default function DailyEarningPageContent() {
          {/* Expired Pools (Completed Status) */}
          {expiredLocks.length > 0 && (
             <div className="space-y-6 mb-10">
-               {expiredLocks.map(inv => (
+               {expiredLocks.map((inv: any) => (
                  <PoolCard key={inv.id} inv={inv} isCompleted={true} actionLoader={actionLoader} handleCompletionAction={handleCompletionAction} />
                ))}
                {actionError && <p className="text-xs text-rose-500 font-bold text-center mt-2">{actionError}</p>}
@@ -236,7 +236,7 @@ export default function DailyEarningPageContent() {
                  <p className="text-sm font-medium text-muted-foreground mt-1">Start a new pool to begin generating daily returns.</p>
               </div>
             ) : (
-              activeLocks.map(inv => <PoolCard key={inv.id} inv={inv} isCompleted={false} />)
+              activeLocks.map((inv: any) => <PoolCard key={inv.id} inv={inv} isCompleted={false} />)
             )}
          </div>
       </section>
@@ -264,7 +264,7 @@ export default function DailyEarningPageContent() {
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                           <span className="text-muted-foreground/50 font-black font-serif text-xl">$</span>
                         </div>
-                        <input type="number" step="0.01" min="1" max={walletBalance} value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
+                        <input type="number" step="0.01" min="1" max={walletBalance} value={transferAmount} onChange={(e: any) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
                      </div>
 
                      {transferError && <p className="text-rose-500 text-[10px] font-black mb-6 uppercase tracking-widest text-center">{transferError}</p>}
@@ -301,7 +301,7 @@ export default function DailyEarningPageContent() {
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                           <span className="text-muted-foreground/50 font-black font-serif text-xl">$</span>
                         </div>
-                        <input type="number" step="0.01" min="1" max={dailyEarningWallet} value={investAmount} onChange={(e) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
+                        <input type="number" step="0.01" min="1" max={dailyEarningWallet} value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
                      </div>
 
                      {/* ERROR STATE: Insufficient Assets */}

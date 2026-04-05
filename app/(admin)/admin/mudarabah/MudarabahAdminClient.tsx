@@ -141,7 +141,7 @@ export default function MudarabahAdminClient() {
       });
       if (!res.ok) throw new Error("Failed to update pool");
       
-      setPools(pools.map(p => p.id === poolId ? { ...p, isLive: !currentStatus } : p));
+      setPools(pools.map((p: any) => p.id === poolId ? { ...p, isLive: !currentStatus } : p));
       toast.success("Pool visibility updated");
     } catch (error) {
       toast.error("Error updating pool");
@@ -220,7 +220,7 @@ export default function MudarabahAdminClient() {
               <div>
                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Funds Deposited</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${pools.reduce((sum, p) => sum + p.totalDeposited, 0).toLocaleString()}
+                  ${pools.reduce((sum: number, p: any) => sum + p.totalDeposited, 0).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -349,7 +349,7 @@ export default function MudarabahAdminClient() {
                       required
                       type="text"
                       value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      onChange={(e: any) => setFormData({ ...formData, title: e.target.value })}
                       className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
                   </div>
@@ -360,7 +360,7 @@ export default function MudarabahAdminClient() {
                     </label>
                     <textarea
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={(e: any) => setFormData({ ...formData, description: e.target.value })}
                       rows={2}
                       className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
@@ -377,7 +377,7 @@ export default function MudarabahAdminClient() {
                         min="1"
                         step="0.01"
                         value={formData.targetAmount}
-                        onChange={(e) => setFormData({ ...formData, targetAmount: e.target.value })}
+                        onChange={(e: any) => setFormData({ ...formData, targetAmount: e.target.value })}
                         className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       />
                     </div>
@@ -390,7 +390,7 @@ export default function MudarabahAdminClient() {
                         type="number"
                         min="1"
                         value={formData.durationMonths}
-                        onChange={(e) => setFormData({ ...formData, durationMonths: e.target.value })}
+                        onChange={(e: any) => setFormData({ ...formData, durationMonths: e.target.value })}
                         className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       />
                     </div>
@@ -419,7 +419,7 @@ export default function MudarabahAdminClient() {
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                           <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Click to Change</span>
                         </div>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, imageUrl: "" })); }} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
+                        <button type="button" onClick={(e: any) => { e.stopPropagation(); setFormData(prev => ({ ...prev, imageUrl: "" })); }} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
                           <XMarkIcon className="w-3 h-3" />
                         </button>
                       </div>
@@ -457,7 +457,7 @@ export default function MudarabahAdminClient() {
                         min="1"
                         step="0.01"
                         value={formData.minDeposit}
-                        onChange={(e) => setFormData({ ...formData, minDeposit: e.target.value })}
+                        onChange={(e: any) => setFormData({ ...formData, minDeposit: e.target.value })}
                         className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       />
                     </div>
@@ -471,7 +471,7 @@ export default function MudarabahAdminClient() {
                         min="1"
                         step="0.01"
                         value={formData.maxDeposit}
-                        onChange={(e) => setFormData({ ...formData, maxDeposit: e.target.value })}
+                        onChange={(e: any) => setFormData({ ...formData, maxDeposit: e.target.value })}
                         className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                       />
                     </div>

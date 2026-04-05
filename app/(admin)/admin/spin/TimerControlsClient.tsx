@@ -104,8 +104,8 @@ export default function TimerControlsClient() {
                         <input
                             type="text"
                             value={userId}
-                            onChange={(e) => setUserId(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                            onChange={(e: any) => setUserId(e.target.value)}
+                            onKeyDown={(e: any) => e.key === "Enter" && handleSearch()}
                             placeholder="Search by User ID, Email, or Full Name..."
                             className="w-full pl-12 pr-4 h-14 bg-slate-50/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-[1.25rem] text-sm outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-600"
                         />

@@ -37,7 +37,7 @@ async function cleanupPakistanMethods() {
   })
 
   console.log('\n✅ Pakistan now has only:')
-  updated?.methods.forEach(m => {
+  updated?.methods.forEach((m: any) => {
     console.log(`   ✓ ${m.name}`)
   })
   
@@ -46,7 +46,7 @@ async function cleanupPakistanMethods() {
 
 cleanupPakistanMethods()
   .then(() => prisma.$disconnect())
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('Error:', error)
     prisma.$disconnect()
     process.exit(1)

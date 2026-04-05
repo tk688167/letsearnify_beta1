@@ -53,7 +53,7 @@ export function DepositNowPaymentsForm({
                     <input 
                         type="number" 
                         value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        onChange={(e: any) => setAmount(e.target.value)}
                         min="1"
                         step="0.01"
                         className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-xl text-gray-900"

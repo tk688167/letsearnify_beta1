@@ -39,14 +39,14 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                     arnBalance: true,
                     balance: true
                 }
-            }).catch(e => {
+            }).catch((e: any) => {
                 console.error("User fetch error in executeSpin:", e)
                 return null
             }),
             prisma.spinReward.findMany({
                 where: { spinType: type, isEnabled: true },
                 orderBy: { order: "asc" }
-            }).catch(e => {
+            }).catch((e: any) => {
                 console.error("Rewards fetch error in executeSpin:", e)
                 return [] as any[]
             }),
@@ -113,7 +113,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
 
         // 2. Load rewards (DB overrides defaults)
-        let rewards: SpinReward[] = dbRewards.length > 0 ? dbRewards.map(r => ({
+        let rewards: SpinReward[] = dbRewards.length > 0 ? dbRewards.map((r: any) => ({
             ...r,
             type: r.type as any,
             textColor: r.textColor || undefined
@@ -129,7 +129,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
             
             if (daysSinceCreation <= spinSettings.welcomeBonusDays) {
-                rewards = rewards.filter(r => r.type !== "EMPTY" && r.type !== "TRY_AGAIN")
+                rewards = rewards.filter((r: any) => r.type !== "EMPTY" && r.type !== "TRY_AGAIN")
             }
         }
 
@@ -143,13 +143,13 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         }
 
         if (forceSurprise) {
-            selectedReward = rewards.find(r => r.type === "SURPRISE")
+            selectedReward = rewards.find((r: any) => r.type === "SURPRISE")
         }
 
         if (!selectedReward) {
             const rand = Math.random()
             let cumulative = 0
-            const totalProb = rewards.reduce((sum, r) => sum + r.probability, 0)
+            const totalProb = rewards.reduce((sum: number, r: any) => sum + r.probability, 0)
             const normalize = totalProb > 0 ? 1 / totalProb : 1
 
             for (const reward of rewards) {
@@ -183,7 +183,7 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         let earnedAmount = 0
         let earnedArn = 0
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             if (selectedReward!.type === "ARN") {
                  earnedArn = selectedReward!.value
                  earnedAmount = selectedReward!.value / 10 
@@ -283,4 +283,4 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         console.error("Spin Execution Error:", e)
         return { success: false, message: e.message || "Database connection interrupted. Your spin was not recorded, please try again." }
     }
-}
+}

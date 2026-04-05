@@ -194,7 +194,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
             {pwd.length > 0 && (
               <div className="mt-1.5">
                 <div className="flex gap-0.5">
-                  {[1,2,3,4].map(l => (
+                  {[1,2,3,4].map((l: any) => (
                     <div key={l} className="h-0.5 flex-1 rounded-full transition-all duration-300"
                       style={{ background: strength >= l ? strengthMeta[strength].color : "rgba(255,255,255,0.08)" }} />
                   ))}

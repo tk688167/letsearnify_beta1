@@ -19,7 +19,7 @@ export function DepositCryptoForm({
     const [copied, setCopied] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const activeWallet = wallets.find(w => w.network === network) || wallets[0];
+    const activeWallet = wallets.find((w: any) => w.network === network) || wallets[0];
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -67,7 +67,7 @@ export function DepositCryptoForm({
                             <input 
                                 type="number" 
                                 value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
+                                onChange={(e: any) => setAmount(e.target.value)}
                                 min="1"
                                 step="0.01"
                                 className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-900"
@@ -122,7 +122,7 @@ export function DepositCryptoForm({
                                 <input 
                                     type="text" 
                                     value={txId}
-                                    onChange={(e) => setTxId(e.target.value)}
+                                    onChange={(e: any) => setTxId(e.target.value)}
                                     placeholder="Paste transaction hash here..."
                                     className="w-full p-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
                                     required

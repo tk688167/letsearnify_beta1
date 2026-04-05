@@ -79,7 +79,7 @@ export async function GET(req: Request) {
        // Custom Ranking: Exact > Starts With > Contains
        const lowerQ = query.toLowerCase()
        
-       const sorted = allMatches.sort((a, b) => {
+       const sorted = allMatches.sort((a: any, b: any) => {
           const aName = a.name?.toLowerCase() || ""
           const bName = b.name?.toLowerCase() || ""
           const aEmail = a.email?.toLowerCase() || ""

@@ -19,7 +19,7 @@ export async function DELETE(
 
     // Delete all related records that don't have onDelete: Cascade
     // Do this in a transaction to ensure atomicity
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Delete referral commissions (both as earner and source)
       await tx.referralCommission.deleteMany({ where: { earnerId: id } })
       await tx.referralCommission.deleteMany({ where: { sourceUserId: id } })

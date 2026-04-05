@@ -45,11 +45,11 @@ export default async function SpinPage() {
                 lastPremiumSpinTime: true,
                 premiumBonusSpins: true
             }
-        }).catch(e => { throw new Error(`User Fetch Failed: ${e.message}`) }),
+        }).catch((e: any) => { throw new Error(`User Fetch Failed: ${e.message}`) }),
         prisma.spinReward.findMany({ 
             where: { spinType: "FREE", isEnabled: true }, 
             orderBy: { order: "asc" } 
-        }).catch(() => [] as any[]),
+        }).catch((e: any) => { throw new Error(`Free Rewards Fetch Failed: ${e.message}`) }),
         prisma.spinReward.findMany({ 
             where: { spinType: "PREMIUM", isEnabled: true }, 
             orderBy: { order: "asc" } 
@@ -57,13 +57,13 @@ export default async function SpinPage() {
         getSpinSettings()
     ])
     
-    const freeRewards = freeRewardsDB.length > 0 ? freeRewardsDB.map((r) => ({
+    const freeRewards = freeRewardsDB.length > 0 ? freeRewardsDB.map((r: any) => ({
         ...r, 
         type: r.type as any, 
         textColor: r.textColor || undefined
     })) : FREE_REWARDS
 
-    const premiumRewards = premiumRewardsDB.length > 0 ? premiumRewardsDB.map((r) => ({
+    const premiumRewards = premiumRewardsDB.length > 0 ? premiumRewardsDB.map((r: any) => ({
         ...r, 
         type: r.type as any, 
         textColor: r.textColor || undefined

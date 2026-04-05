@@ -67,7 +67,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
 
           // Combine and sort by date
           transactions = [...systemTxFiltered, ...mappedMerchantTx]
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       }
 
       if (user) {

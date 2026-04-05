@@ -35,7 +35,7 @@ export default function ApprovalsPanel({ completions }: ApprovalsPanelProps) {
         })
     }
 
-    const filteredCompletions = completions.filter(comp => 
+    const filteredCompletions = completions.filter((comp: any) => 
         (comp.user.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (comp.user.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         (comp.task.title || "").toLowerCase().includes(searchTerm.toLowerCase())
@@ -65,7 +65,7 @@ export default function ApprovalsPanel({ completions }: ApprovalsPanelProps) {
                         type="text"
                         placeholder="Search users by name, email or task..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e: any) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-6 py-3 bg-slate-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700/50 rounded-xl text-xs font-bold text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 outline-none transition-all"
                     />
                 </div>
@@ -119,7 +119,7 @@ export default function ApprovalsPanel({ completions }: ApprovalsPanelProps) {
                                                     type="text" 
                                                     placeholder="Audit remarks..." 
                                                     className="w-full bg-slate-50 dark:bg-slate-800/50 border border-gray-100 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-                                                    onChange={(e) => setRemarks(p => ({ ...p, [comp.id]: e.target.value }))}
+                                                    onChange={(e: any) => setRemarks(p => ({ ...p, [comp.id]: e.target.value }))}
                                                 />
                                             </div>
                                         </td>
@@ -176,7 +176,7 @@ export default function ApprovalsPanel({ completions }: ApprovalsPanelProps) {
                                         placeholder="Audit remarks..." 
                                         className="w-full py-2.5 px-4 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-xs text-gray-900 dark:text-white focus:border-indigo-500 outline-none resize-none"
                                         rows={2}
-                                        onChange={(e) => setRemarks(p => ({ ...p, [comp.id]: e.target.value }))}
+                                        onChange={(e: any) => setRemarks(p => ({ ...p, [comp.id]: e.target.value }))}
                                     />
                                     <div className="flex gap-2">
                                         <button 
@@ -204,7 +204,7 @@ export default function ApprovalsPanel({ completions }: ApprovalsPanelProps) {
             {/* Image Preview Modal */}
             {previewImage && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setPreviewImage(null)}>
-                    <div className="relative max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-2 border border-slate-700/30 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl p-2 border border-slate-700/30 animate-in zoom-in-95 duration-200" onClick={(e: any) => e.stopPropagation()}>
                         <button onClick={() => setPreviewImage(null)} className="absolute -top-4 -right-4 w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-all shadow-xl active:scale-90 z-20 font-bold border-4 border-white dark:border-slate-900">✕</button>
                         <div className="overflow-auto rounded-2xl max-h-[85vh]">
                             <img src={previewImage} alt="User Proof" className="max-w-full h-auto object-contain" />

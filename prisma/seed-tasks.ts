@@ -70,7 +70,7 @@ async function seedTasks() {
 }
 
 seedTasks()
-  .catch((e) => {
+  .catch((e: any) => {
     console.error('❌ Error seeding tasks:', e)
     process.exit(1)
   })

@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     expiresAt.setDate(now.getDate() + 30) // Exactly 30 days from now
 
     // Execute atomically to prevent race conditions during checkout
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Deduct from Daily Earning Wallet
       await tx.user.update({
         where: { id: session.user.id },

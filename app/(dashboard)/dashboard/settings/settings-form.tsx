@@ -219,7 +219,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">New Password</label>
                    <div className="relative">
                      <input name="newPassword" type={showNewPassword ? "text" : "password"}
-                       value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                       value={newPassword} onChange={(e: any) => setNewPassword(e.target.value)}
                        className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40" 
                        placeholder="Min. 8 characters" />
                      <button type="button" onClick={() => setShowNewPassword(!showNewPassword)}
@@ -234,7 +234,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Confirm New Password</label>
                    <div className="relative">
                      <input name="confirmNewPassword" type={showConfirmPassword ? "text" : "password"}
-                       value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                       value={confirmPassword} onChange={(e: any) => setConfirmPassword(e.target.value)}
                        className={"w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground pr-12 hover:border-primary/40 placeholder:text-muted-foreground/40 " + (passwordMismatch ? "border-red-500" : passwordMatch ? "border-emerald-500" : "border-border")}
                        placeholder="Re-enter new password" />
                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}

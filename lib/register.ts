@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
-import { generateReferralCode, generateMemberId } from "@/lib/mlm"
+import { generateReferralCode, generateMemberId, SIGNUP_BONUS_RATES } from "@/lib/mlm"
 import { generateOTP, sendVerificationEmail } from "@/lib/email"
 
 export async function registerUser(formData: FormData) {
@@ -108,10 +108,6 @@ export async function registerUser(formData: FormData) {
             if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
                 referrerTier = (validReferrer.tier as string) || "NEWBIE";
                 // Must stay in sync with SIGNUP_BONUS_RATES in lib/mlm.ts
-                const SIGNUP_BONUS_RATES: Record<string, number> = {
-                    NEWBIE: 3, BRONZE: 4, SILVER: 5, GOLD: 6,
-                    PLATINUM: 7, DIAMOND: 8, EMERALD: 10
-                };
                 signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 3;
                 signupBonusUsd = signupBonusArn / 10;
                 console.log(`[Register] Signup bonus for ${email}: ${signupBonusArn} ARN (referrer ${referrerTier})`);

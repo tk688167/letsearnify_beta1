@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const userId = session.user.id
 
     // Transaction to ensure atomicity
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1. Fetch User with locking (simulated by checking balance immediately)
       const user = await tx.user.findUnique({
         where: { id: userId },

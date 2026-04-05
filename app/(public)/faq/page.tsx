@@ -190,7 +190,7 @@ export default function FAQPage() {
   const [activeCategory, setActiveCategory] = useState("general")
   const [openFaq, setOpenFaq] = useState<string | null>(null)
 
-  const activeCategoryData = faqCategories.find(c => c.id === activeCategory)
+  const activeCategoryData = faqCategories.find((c: any) => c.id === activeCategory)
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary pb-20 relative overflow-x-hidden">

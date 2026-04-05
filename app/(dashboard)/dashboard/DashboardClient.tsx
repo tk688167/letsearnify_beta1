@@ -393,7 +393,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                  
                  <div className="mt-4 flex items-center justify-between">
                     <div className="flex -space-x-2">
-                        {[1,2,3].map(i => (
+                        {[1,2,3].map((i: any) => (
                             <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground">
                                 L{i}
                             </div>

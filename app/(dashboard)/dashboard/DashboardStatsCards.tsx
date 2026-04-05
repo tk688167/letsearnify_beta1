@@ -22,7 +22,7 @@ export default function DashboardStatsCards() {
       .then(data => {
          if (!data.error) setStats(data)
       })
-      .catch(err => console.error("Failed to load stats", err))
+      .catch((err: any) => console.error("Failed to load stats", err))
   }, [])
 
   if (!stats) return null

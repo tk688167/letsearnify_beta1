@@ -23,7 +23,7 @@ export async function createDailyPool(amount: number) {
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.user.update({
                 where: { id: session.user.id },
                 data: { dailyEarningWallet: { decrement: amount } }
@@ -76,7 +76,7 @@ export async function transferToMainWallet(amount: number) {
             return { error: "Insufficient balance in Daily Earnings Wallet" }
         }
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.user.update({
                 where: { id: session.user.id },
                 data: {
@@ -139,7 +139,7 @@ export async function transferToDailyWallet(amount: number) {
             return { error: "Insufficient balance in Main Wallet" }
         }
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.user.update({
                 where: { id: session.user.id },
                 data: {

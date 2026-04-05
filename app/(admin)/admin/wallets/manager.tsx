@@ -10,12 +10,12 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
   const [message, setMessage] = useState("")
 
   // Local state for form management
-  const [trcAddress, setTrcAddress] = useState(wallets.find(w => w.network === "TRC20")?.address || "")
-  const [trcQr, setTrcQr] = useState(wallets.find(w => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
+  const [trcAddress, setTrcAddress] = useState(wallets.find((w: any) => w.network === "TRC20")?.address || "")
+  const [trcQr, setTrcQr] = useState(wallets.find((w: any) => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
 
   useEffect(() => {
-     setTrcAddress(wallets.find(w => w.network === "TRC20")?.address || "")
-     setTrcQr(wallets.find(w => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
+     setTrcAddress(wallets.find((w: any) => w.network === "TRC20")?.address || "")
+     setTrcQr(wallets.find((w: any) => w.network === "TRC20")?.qrCodePath || "/qr-trc20.png")
   }, [wallets])
 
   const handleSave = async (network: string) => {
@@ -54,7 +54,7 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
                       <input 
                           type="text" 
                           value={trcAddress}
-                          onChange={(e) => setTrcAddress(e.target.value)}
+                          onChange={(e: any) => setTrcAddress(e.target.value)}
                           className="w-full p-3 border rounded-xl font-mono text-sm bg-gray-50"
                       />
                   </div>
@@ -68,7 +68,7 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
                              <input 
                                 type="file" 
                                 accept="image/*"
-                                onChange={async (e) => {
+                                onChange={async (e: any) => {
                                     const file = e.target.files?.[0]
                                     if (!file) return
                                     

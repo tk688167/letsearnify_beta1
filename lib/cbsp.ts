@@ -101,7 +101,7 @@ export function calculateProjectedShare(totalPool: number, tierPercentage: numbe
 export async function executeWeeklyCbspDistribution() {
     console.log("[CBSP Distribution] Starting weekly distribution...");
 
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
         // 1. Get Pool Balance
         const pool = await tx.pool.findUnique({ where: { name: "CBSP" } });
         if (!pool || pool.balance <= 0) {
@@ -131,7 +131,7 @@ export async function executeWeeklyCbspDistribution() {
         });
 
         const countMap: Record<string, number> = {};
-        userCounts.forEach(g => {
+        userCounts.forEach((g: any) => {
             if (g.tier) countMap[g.tier] = g._count.id;
         });
 
@@ -226,7 +226,7 @@ export async function executeWeeklyCbspDistribution() {
                     poolName: "CBSP",
                     amount: totalDistributedActual,
                     percentage: (totalDistributedActual / pool.balance) * 100, // Effective %
-                    recipients: Object.values(countMap).reduce((a, b) => a + b, 0),
+                    recipients: Object.values(countMap).reduce((a: any, b: any) => a + b, 0),
                     tierRates: JSON.stringify(distributionLog)
                 }
             });

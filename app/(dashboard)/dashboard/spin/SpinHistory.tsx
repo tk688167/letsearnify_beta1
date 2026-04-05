@@ -29,7 +29,7 @@ export default async function SpinHistory({ userId }: { userId: string }) {
 
     return (
         <div className="space-y-4">
-            {logs.map((log, index) => (
+            {logs.map((log: any, index: number) => (
                 <div 
                     key={log.id} 
                     className="group flex items-center gap-4 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none animate-in fade-in slide-in-from-right-5 duration-300"

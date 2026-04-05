@@ -49,7 +49,7 @@ lockCountries()
     console.log('\n🎉 Done!')
     prisma.$disconnect()
   })
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('❌ Error:', error)
     prisma.$disconnect()
     process.exit(1)

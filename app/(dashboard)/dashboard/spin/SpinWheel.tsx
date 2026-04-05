@@ -123,7 +123,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
             }
 
             const wonReward = response.reward
-            const winIndex = rewards.findIndex(r => r.label === wonReward.label)
+            const winIndex = rewards.findIndex((r: any) => r.label === wonReward.label)
             
             // Stop infinite loop and set current state
             controls.stop()
@@ -377,7 +377,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.9, opacity: 0, y: 50 }}
                             className="relative max-w-lg w-full"
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e: any) => e.stopPropagation()}
                         >
                             <div className={`relative rounded-[3rem] overflow-hidden border-4 shadow-[0_0_80px_rgba(0,0,0,0.8)] ${isRealWin
                                     ? (type === 'PREMIUM' ? 'border-amber-500 bg-[#0a0a0a]' : 'border-indigo-500 bg-white dark:bg-slate-900')

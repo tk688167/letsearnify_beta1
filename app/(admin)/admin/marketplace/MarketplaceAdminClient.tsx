@@ -176,7 +176,7 @@ function FreelancersTab() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
           <input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e: any) => setSearch(e.target.value)}
             placeholder="Search by name, title, or email…"
             className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/60 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
@@ -247,7 +247,7 @@ function FreelancersTab() {
               <div className="relative flex-shrink-0">
                 <select
                   value={f.status}
-                  onChange={(e) => setStatus(f.id, e.target.value as FreelancerProfile["status"])}
+                  onChange={(e: any) => setStatus(f.id, e.target.value as FreelancerProfile["status"])}
                   className={`text-xs font-semibold pl-2 pr-6 py-1 rounded-lg border cursor-pointer focus:outline-none appearance-none ${STATUS_COLORS[f.status]}`}
                   style={{ background: "transparent" }}
                 >
@@ -378,7 +378,7 @@ function FreelancersTab() {
                     <div className="relative">
                       <select
                         value={f.status}
-                        onChange={(e) => setStatus(f.id, e.target.value as FreelancerProfile["status"])}
+                        onChange={(e: any) => setStatus(f.id, e.target.value as FreelancerProfile["status"])}
                         className={`text-xs font-semibold pl-2 pr-6 py-1 rounded-lg border cursor-pointer focus:outline-none appearance-none ${STATUS_COLORS[f.status]}`}
                         style={{ background: "transparent" }}
                       >
@@ -451,7 +451,7 @@ function CategoriesTab() {
       const swapIdx = idx + dir
       if (swapIdx < 0 || swapIdx >= next.length) return prev
       ;[next[idx].order, next[swapIdx].order] = [next[swapIdx].order, next[idx].order]
-      return [...next].sort((a, b) => a.order - b.order)
+      return [...next].sort((a: any, b: any) => a.order - b.order)
     })
   }
 
@@ -496,13 +496,13 @@ function CategoriesTab() {
             <div className="flex gap-2">
               <input
                 value={newCatIcon}
-                onChange={(e) => setNewCatIcon(e.target.value)}
+                onChange={(e: any) => setNewCatIcon(e.target.value)}
                 className="w-12 text-center py-2 rounded-lg border border-blue-200 dark:border-blue-500/30 bg-white dark:bg-slate-900 text-gray-900 dark:text-white text-lg focus:outline-none flex-shrink-0"
                 maxLength={2}
               />
               <input
                 value={newCatName}
-                onChange={(e) => setNewCatName(e.target.value)}
+                onChange={(e: any) => setNewCatName(e.target.value)}
                 placeholder="Category name…"
                 className="flex-1 min-w-0 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-500/30 bg-white dark:bg-slate-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
               />
@@ -688,7 +688,7 @@ function SettingsTab() {
         <input
           type={type}
           value={settings[field] as string}
-          onChange={(e) => setSettings((prev) => ({ ...prev, [field]: e.target.value }))}
+          onChange={(e: any) => setSettings((prev) => ({ ...prev, [field]: e.target.value }))}
           className={`flex-1 min-w-0 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 ${
             prefix ? "" : "rounded-l-lg"
           } ${suffix ? "" : "rounded-r-lg"}`}
@@ -779,7 +779,7 @@ function SettingsTab() {
         <textarea
           rows={3}
           value={settings.ctaBannerText}
-          onChange={(e) => setSettings((p) => ({ ...p, ctaBannerText: e.target.value }))}
+          onChange={(e: any) => setSettings((p) => ({ ...p, ctaBannerText: e.target.value }))}
           className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-800/60 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
         />
       </div>

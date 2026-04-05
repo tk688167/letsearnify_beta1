@@ -38,7 +38,7 @@ export async function POST() {
         }
 
         // Perform the Unlock in an isolated Transaction with extended timeout
-        await prisma.$transaction(async (prismaTx) => {
+        await prisma.$transaction(async (prismaTx: any) => {
             // Deduct from Balance
             await prismaTx.user.update({
                 where: { id: userId },

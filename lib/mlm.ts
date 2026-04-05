@@ -14,7 +14,7 @@ export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: numb
 };
 
 // Signup bonus given to NEW USER immediately at signup based on their referrers tier
-const SIGNUP_BONUS_RATES: Record<string, number> = {
+export const SIGNUP_BONUS_RATES: Record<string, number> = {
     NEWBIE: 3, BRONZE: 4, SILVER: 5, GOLD: 6,
     PLATINUM: 7, DIAMOND: 8, EMERALD: 10
 };

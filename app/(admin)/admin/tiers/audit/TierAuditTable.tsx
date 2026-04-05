@@ -56,7 +56,7 @@ export default function TierAuditTable({ users }: { users: AuditUser[] }) {
         <div className="space-y-4">
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
-                {users.map(user => (
+                {users.map((user: any) => (
                     <div key={user.id} className={`p-5 rounded-2xl border shadow-sm space-y-4 ${
                         user.isMismatch ? "bg-red-50/50 border-red-100" : "bg-white border-gray-100"
                     }`}>
@@ -128,7 +128,7 @@ export default function TierAuditTable({ users }: { users: AuditUser[] }) {
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-gray-100">
-                        {users.map(user => (
+                        {users.map((user: any) => (
                               <tr key={user.id} className={user.isMismatch ? "bg-red-50/50" : "hover:bg-gray-50/30 transition-colors"}>
                                  <td className="p-4">
                                     <div className="font-bold text-gray-900">{user.name}</div>

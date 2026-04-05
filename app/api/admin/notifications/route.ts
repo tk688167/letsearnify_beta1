@@ -130,11 +130,11 @@ export async function GET() {
     }
 
     // Sort by date (newest first)
-    notifications.sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
+    notifications.sort((a: any, b: any) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime())
 
     // Increase returned count for detailed view
     const trimmed = notifications.slice(0, 100)
-    const unreadCount = trimmed.filter(n => !n.read).length
+    const unreadCount = trimmed.filter((n: any) => !n.read).length
 
     return NextResponse.json({ notifications: trimmed, unreadCount })
   } catch (error) {

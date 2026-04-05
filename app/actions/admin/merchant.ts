@@ -132,7 +132,7 @@ export async function approveMerchantTransaction(transactionId: string) {
     // 1. Pre-load imports outside transaction
     const { checkTierUpgrade, TIER_COMMISSIONS } = await import("@/lib/mlm")
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         // 2. Update merchant transaction status
         await tx.merchantTransaction.update({
             where: { id: transactionId },
@@ -309,7 +309,7 @@ export async function rejectMerchantTransaction(transactionId: string) {
         return { success: false, error: "Unauthorized" }
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
         await tx.merchantTransaction.update({
             where: { id: transactionId },
             data: { status: 'REJECTED' }

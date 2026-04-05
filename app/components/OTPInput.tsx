@@ -65,8 +65,8 @@ export default function OTPInput({ length = 6, onChange }: OTPInputProps) {
           type="text"
           maxLength={1}
           value={digit}
-          onChange={(e) => handleChange(idx, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(idx, e)}
+          onChange={(e: any) => handleChange(idx, e.target.value)}
+          onKeyDown={(e: any) => handleKeyDown(idx, e)}
           ref={(el) => { inputRefs.current[idx] = el; }}
           className="w-12 h-12 text-center border border-gray-300 rounded-lg text-lg font-bold focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-all shadow-sm"
           inputMode="numeric"

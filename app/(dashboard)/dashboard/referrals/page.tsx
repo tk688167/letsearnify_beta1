@@ -50,7 +50,7 @@ export default async function ReferralsPage() {
                todayEarnings: stats.todayEarnings
             }}
             tierConfig={tierConfig}
-            referralTree={referralTree.map(n => ({
+            referralTree={referralTree.map((n: any) => ({
                id: n.id,
                name: n.name,
                email: n.email,

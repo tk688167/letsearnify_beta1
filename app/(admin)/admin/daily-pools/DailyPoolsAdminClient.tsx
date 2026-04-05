@@ -13,19 +13,19 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
     const [search, setSearch] = useState("")
     
     // Derived states
-    const filteredPools = pools.filter(p => {
+    const filteredPools = pools.filter((p: any) => {
         const query = search.toLowerCase()
         return p.user?.email?.toLowerCase().includes(query) ||
                p.user?.name?.toLowerCase().includes(query) ||
                p.user?.memberId?.toLowerCase().includes(query)
     })
 
-    const activePools = pools.filter(p => p.status === "ACTIVE")
-    const totalAllocated = activePools.reduce((sum, p) => sum + p.amount, 0)
+    const activePools = pools.filter((p: any) => p.status === "ACTIVE")
+    const totalAllocated = activePools.reduce((sum: number, p: any) => sum + p.amount, 0)
     
     // Count unique users who have ever interacted with the pool, or active users.
-    const uniqueActiveUsers = new Set(activePools.map(p => p.userId)).size
-    const totalDistributedProfit = pools.reduce((sum, p) => sum + p.profitEarned, 0)
+    const uniqueActiveUsers = new Set(activePools.map((p: any) => p.userId)).size
+    const totalDistributedProfit = pools.reduce((sum: number, p: any) => sum + p.profitEarned, 0)
 
     return (
         <div className="space-y-6">
@@ -103,7 +103,7 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
                             placeholder="Find user by email, name, or Member ID..."
                             className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl leading-5 bg-white dark:bg-slate-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all"
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e: any) => setSearch(e.target.value)}
                         />
                     </div>
                 </div>
@@ -128,7 +128,7 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredPools.map(pool => (
+                                filteredPools.map((pool: any) => (
                                     <tr key={pool.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                         
                                         {/* User Column */}

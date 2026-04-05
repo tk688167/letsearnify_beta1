@@ -45,10 +45,10 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
   // Derive Stats
   const now = new Date()
-  const activeLocks = activeInvestments.filter(inv => inv.status === "ACTIVE" && new Date(inv.expiresAt) > now)
-  const expiredLocks = activeInvestments.filter(inv => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
-  const totalPrincipalLocked = activeLocks.reduce((sum, inv) => sum + inv.amount, 0)
-  const totalAccumulatedProfit = activeLocks.reduce((sum, inv) => sum + inv.profitEarned, 0)
+  const activeLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) > now)
+  const expiredLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
+  const totalPrincipalLocked = activeLocks.reduce((sum: any, inv: any) => sum + inv.amount, 0)
+  const totalAccumulatedProfit = activeLocks.reduce((sum: any, inv: any) => sum + inv.profitEarned, 0)
   const [actionLoader, setActionLoader] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -496,7 +496,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                           min="1"
                           max={transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet}
                           value={transferAmount}
-                          onChange={(e) => setTransferAmount(e.target.value)}
+                          onChange={(e: any) => setTransferAmount(e.target.value)}
                           placeholder="0.00"
                           className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl outline-none shadow-sm transition-all"
                           required
@@ -549,7 +549,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                           min="1"
                           max={dailyEarningWallet}
                           value={investAmount}
-                          onChange={(e) => setInvestAmount(e.target.value)}
+                          onChange={(e: any) => setInvestAmount(e.target.value)}
                           placeholder="0.00"
                           className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl outline-none shadow-inner transition-colors"
                           required

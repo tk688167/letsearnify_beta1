@@ -138,7 +138,7 @@ seedMerchantCountries()
     console.log('\n🎉 Done!')
     prisma.$disconnect()
   })
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('❌ Error seeding merchant countries:', error)
     prisma.$disconnect()
     process.exit(1)

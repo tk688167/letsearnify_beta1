@@ -35,7 +35,7 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
 
         const reward = completion.task.reward
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             // 1. Update completion status
             await tx.taskCompletion.update({
                 where: { id: completionId },

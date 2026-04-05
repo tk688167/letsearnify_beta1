@@ -21,7 +21,7 @@ export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
     const getPoolData = (key: string) => {
-        const pool = pools.find(p => p.name === key);
+        const pool = pools.find((p: any) => p.name === key);
         return {
             balance: pool ? pool.balance : 0,
             formatted: pool ? formatMoney(pool.balance) : "$0.00"

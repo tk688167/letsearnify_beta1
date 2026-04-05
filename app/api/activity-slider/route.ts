@@ -27,7 +27,7 @@ export async function GET(req: Request) {
     }
 
     // Filter active messages
-    const activeMessages = (config.value as SliderMessage[]).filter(m => m.active)
+    const activeMessages = (config.value as SliderMessage[]).filter((m: any) => m.active)
 
     return NextResponse.json(activeMessages)
   } catch (error) {

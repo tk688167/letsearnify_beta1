@@ -38,7 +38,7 @@ export default function DashboardMarketplaceClient() {
   const [showPostJob, setShowPostJob] = useState(false)
 
   const openMessage = (fl: Freelancer) => {
-    setThreads(prev => prev.find(t => t.id === fl.id) ? prev : [...prev, { id: fl.id, freelancerId: fl.id, messages: [] }])
+    setThreads(prev => prev.find((t: any) => t.id === fl.id) ? prev : [...prev, { id: fl.id, freelancerId: fl.id, messages: [] }])
     setInboxActive(fl.id)
     setShowInbox(true)
   }
@@ -47,7 +47,7 @@ export default function DashboardMarketplaceClient() {
     const isReply = id.endsWith("__them")
     const realId = id.replace("__them", "")
     const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    setThreads(prev => prev.map(t =>
+    setThreads(prev => prev.map((t: any) =>
       t.id === realId ? { ...t, messages: [...t.messages, { id: Date.now().toString(), from: isReply ? "them" : "me", text, time: now }] } : t
     ))
   }
@@ -60,21 +60,21 @@ export default function DashboardMarketplaceClient() {
   }
 
   const filtered = useMemo(() => {
-    let r = FREELANCERS.filter(f => f.verified)
-    if (activeCategory !== "All") r = r.filter(f => f.category === activeCategory)
+    let r = FREELANCERS.filter((f: any) => f.verified)
+    if (activeCategory !== "All") r = r.filter((f: any) => f.category === activeCategory)
     if (search.trim()) {
       const q = search.toLowerCase()
-      r = r.filter(f =>
+      r = r.filter((f: any) =>
         f.name.toLowerCase().includes(q) ||
         f.title.toLowerCase().includes(q) ||
         f.category.toLowerCase().includes(q) ||
-        f.skills.some(s => s.toLowerCase().includes(q))
+        f.skills.some((s: any) => s.toLowerCase().includes(q))
       )
     }
-    if (sortBy === "top") r = [...r].sort((a, b) => b.rating - a.rating)
-    if (sortBy === "price_asc") r = [...r].sort((a, b) => a.hourlyRate - b.hourlyRate)
-    if (sortBy === "price_desc") r = [...r].sort((a, b) => b.hourlyRate - a.hourlyRate)
-    if (sortBy === "jobs") r = [...r].sort((a, b) => b.completedJobs - a.completedJobs)
+    if (sortBy === "top") r = [...r].sort((a: any, b: any) => b.rating - a.rating)
+    if (sortBy === "price_asc") r = [...r].sort((a: any, b: any) => a.hourlyRate - b.hourlyRate)
+    if (sortBy === "price_desc") r = [...r].sort((a: any, b: any) => b.hourlyRate - a.hourlyRate)
+    if (sortBy === "jobs") r = [...r].sort((a: any, b: any) => b.completedJobs - a.completedJobs)
     return r
   }, [search, activeCategory, sortBy])
 
@@ -107,14 +107,14 @@ export default function DashboardMarketplaceClient() {
             {/* CTAs */}
             <div className="flex items-center gap-2.5 flex-wrap">
               <button onClick={() => { setShowInbox(true); setInboxActive(null) }}
-                className="relative flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/15 px-3 py-2 rounded-xl transition-colors">
+                className="relative flex items-center gap-1.5 text-xs font-semibold text-white/80 bg-white/10 hover:bg-white/15 border border-white/15 px-3 py-2 rounded-xl transition-all hover:scale-105 active:scale-95">
                 <ChatBubbleLeftRightIcon className="w-4 h-4" />
                 Inbox
-                {threads.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-400 absolute -top-0.5 -right-0.5 border border-slate-900" />}
+                {threads.length > 0 && <span className="w-2 h-2 rounded-full bg-blue-400 absolute -top-0.5 -right-0.5 border border-slate-900 animate-pulse" />}
               </button>
               <button onClick={() => setShowPostJob(true)}
-                className="flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl transition-colors shadow-lg shadow-blue-500/25 border border-blue-500/50">
-                <PlusIcon className="w-3.5 h-3.5" />
+                className="group flex items-center gap-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-blue-600/30 border border-blue-500/50 hover:scale-105 active:scale-95">
+                <PlusIcon className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                 Post a Job
               </button>
             </div>
@@ -127,7 +127,7 @@ export default function DashboardMarketplaceClient() {
               { icon: <StarIcon className="w-3.5 h-3.5" />, text: "4.8★ Avg. Rating" },
               { icon: <ClockIcon className="w-3.5 h-3.5" />, text: "< 2hrs Response" },
               { icon: <GlobeAltIcon className="w-3.5 h-3.5" />, text: "75+ Countries" },
-            ].map(s => (
+            ].map((s: any) => (
               <span key={s.text} className="flex items-center gap-1.5 text-[11px] text-white/40 whitespace-nowrap flex-shrink-0">
                 <span className="text-blue-400">{s.icon}</span>{s.text}
               </span>
@@ -141,7 +141,7 @@ export default function DashboardMarketplaceClient() {
             {([
               { id: "freelancers", label: "🔍 Find Freelancers" },
               { id: "posts", label: "📋 Job Posts" },
-            ] as const).map(t => (
+            ] as const).map((t: any) => (
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`flex-1 sm:flex-initial px-5 py-2 text-xs font-bold rounded-lg capitalize transition-all ${tab === t.id ? "bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"}`}>
                 {t.label}
@@ -169,7 +169,7 @@ export default function DashboardMarketplaceClient() {
               <ArrowsUpDownIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <select value={sortBy} onChange={e => setSortBy(e.target.value)}
                 className="pl-9 pr-4 py-3 text-sm bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700/60 rounded-2xl text-gray-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm appearance-none cursor-pointer w-full sm:w-auto">
-                {SORT_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                {SORT_OPTIONS.map((o: any) => <option key={o.id} value={o.id}>{o.label}</option>)}
               </select>
             </div>
           </div>
@@ -177,7 +177,7 @@ export default function DashboardMarketplaceClient() {
           {/* Category pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             <FunnelIcon className="w-4 h-4 text-gray-400 dark:text-slate-500 flex-shrink-0" />
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat: any) => (
               <button key={cat} onClick={() => setActiveCategory(cat)}
                 className={`text-xs font-medium px-3.5 py-1.5 rounded-xl border whitespace-nowrap flex-shrink-0 transition-all flex items-center gap-1.5 ${
                   activeCategory === cat
@@ -210,7 +210,7 @@ export default function DashboardMarketplaceClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <AnimatePresence mode="popLayout">
-                {filtered.map(f => <FreelancerCard key={f.id} f={f} onViewProfile={setSelectedProfile} />)}
+                {filtered.map((f: any) => <FreelancerCard key={f.id} f={f} onViewProfile={setSelectedProfile} />)}
               </AnimatePresence>
             </div>
           )}
@@ -253,7 +253,7 @@ export default function DashboardMarketplaceClient() {
 
           {/* Job post list */}
           <div className="space-y-4">
-            {JOB_POSTS.map(post => (
+            {JOB_POSTS.map((post: any) => (
               <JobPostCard
                 key={post.id}
                 post={post}

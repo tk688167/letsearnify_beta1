@@ -66,7 +66,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
             setFilteredCountries(allCountries)
         } else {
             const lowerQuery = query.toLowerCase()
-            const filtered = allCountries.filter(c => 
+            const filtered = allCountries.filter((c: any) => 
                 c.name.toLowerCase().includes(lowerQuery) || 
                 c.code.toLowerCase().includes(lowerQuery)
             )
@@ -81,7 +81,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
                     className="w-full p-3 pr-10 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 cursor-pointer"
                     placeholder={isLoading ? "Loading countries..." : "Select a country..."}
                     value={query}
-                    onChange={(e) => {
+                    onChange={(e: any) => {
                         setQuery(e.target.value)
                         setIsOpen(true)
                     }}
@@ -216,8 +216,8 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
     }
 
     // Computed Stats
-    const activeCountries = countries.filter(c => c.status === "ACTIVE").length
-    const totalMethods = countries.reduce((acc, c) => acc + c.methods.length, 0)
+    const activeCountries = countries.filter((c: any) => c.status === "ACTIVE").length
+    const totalMethods = countries.reduce((acc: number, c: any) => acc + c.methods.length, 0)
 
     return (
         <div className="space-y-8 pb-12">
@@ -567,7 +567,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
 
             {/* EDIT DETAIL MODAL */}
             {expandedCountryId && (() => {
-                const country = countries.find(c => c.id === expandedCountryId)
+                const country = countries.find((c: any) => c.id === expandedCountryId)
                 if(!country) return null
                 return (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
@@ -593,7 +593,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                             <input 
                                                 className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                                 defaultValue={country.currency || "USD"}
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { currency: e.target.value }) })}
+                                                onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { currency: e.target.value }) })}
                                             />
                                         </div>
                                         <div>
@@ -603,7 +603,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                                 step="0.01"
                                                 className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                                 defaultValue={country.exchangeRate || 1.0}
-                                                onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { exchangeRate: parseFloat(e.target.value) }) })}
+                                                onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { exchangeRate: parseFloat(e.target.value) }) })}
                                             />
                                         </div>
                                     </div>
@@ -619,7 +619,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                             className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                                             defaultValue={country.description || ""}
                                             placeholder="Standard deposit description..."
-                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { description: e.target.value }) })}
+                                            onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { description: e.target.value }) })}
                                         />
                                     </div>
                                     <div>
@@ -628,7 +628,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                             className="w-full p-3 text-sm border border-orange-100 bg-orange-50/30 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-orange-900 placeholder:text-orange-300 min-h-[80px]"
                                             defaultValue={country.instruction || ""}
                                             placeholder="Warning message for users..."
-                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { instruction: e.target.value }) })}
+                                            onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { instruction: e.target.value }) })}
                                         />
                                     </div>
                                 </section>
@@ -642,7 +642,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                             className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
                                             defaultValue={country.withdrawalDescription || ""}
                                             placeholder="Standard withdrawal description..."
-                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalDescription: e.target.value }) })}
+                                            onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalDescription: e.target.value }) })}
                                         />
                                     </div>
                                     <div>
@@ -651,7 +651,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                             className="w-full p-3 text-sm border border-red-100 bg-red-50/30 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-red-900 placeholder:text-red-300 min-h-[80px]"
                                             defaultValue={country.withdrawalInstruction || ""}
                                             placeholder="Warning message for withdrawals..."
-                                            onBlur={(e) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalInstruction: e.target.value }) })}
+                                            onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalInstruction: e.target.value }) })}
                                         />
                                     </div>
                                 </section>

@@ -50,7 +50,7 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
         }
 
         if (action === "REJECT") {
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: any) => {
                  await tx.transaction.update({
                     where: { id: transactionId },
                     data: { status: "REJECTED" }
@@ -67,7 +67,7 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
 
         if (action === "APPROVE") {
             // Transactional update: Deduct balance AND update status
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: any) => {
                 // Funds already locked, just verify solvency check if needed (though already deducted)
                 // Actually they are deducted, so we don't check balance here.
                 

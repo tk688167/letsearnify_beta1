@@ -88,7 +88,7 @@ export function DashboardFilterBar({ initialRange, initialFrom, initialTo }: {
               type="date"
               max={to || today}
               value={from}
-              onChange={(e) => setFrom(e.target.value)}
+              onChange={(e: any) => setFrom(e.target.value)}
               className="border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-indigo-500 font-mono"
             />
           </div>
@@ -99,7 +99,7 @@ export function DashboardFilterBar({ initialRange, initialFrom, initialTo }: {
               min={from}
               max={today}
               value={to}
-              onChange={(e) => setTo(e.target.value)}
+              onChange={(e: any) => setTo(e.target.value)}
               className="border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg px-2 py-1 text-xs outline-none focus:border-indigo-500 font-mono"
             />
           </div>

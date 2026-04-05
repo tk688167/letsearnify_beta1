@@ -468,10 +468,10 @@ export default function MarketplaceClient() {
       )
     }
 
-    if (sortBy === "top") result = [...result].sort((a, b) => b.rating - a.rating)
-    if (sortBy === "newest") result = [...result].sort((a, b) => Number(a.id) - Number(b.id))
-    if (sortBy === "price_asc") result = [...result].sort((a, b) => a.hourlyRate - b.hourlyRate)
-    if (sortBy === "price_desc") result = [...result].sort((a, b) => b.hourlyRate - a.hourlyRate)
+    if (sortBy === "top") result = [...result].sort((a: any, b: any) => b.rating - a.rating)
+    if (sortBy === "newest") result = [...result].sort((a: any, b: any) => Number(a.id) - Number(b.id))
+    if (sortBy === "price_asc") result = [...result].sort((a: any, b: any) => a.hourlyRate - b.hourlyRate)
+    if (sortBy === "price_desc") result = [...result].sort((a: any, b: any) => b.hourlyRate - a.hourlyRate)
 
     return result
   }, [selectedCategory, searchQuery, sortBy])
@@ -500,7 +500,7 @@ export default function MarketplaceClient() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: any) => setSearchQuery(e.target.value)}
                 placeholder="Search skills, categories, or freelancer names…"
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800/70 border border-gray-200 dark:border-slate-700/60 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/60 transition-all"
               />
@@ -528,17 +528,24 @@ export default function MarketplaceClient() {
       </header>
 
       {/* ── Under Development Banner ── */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 text-white py-3 px-4">
-        <div className="max-w-screen-2xl mx-auto flex items-center justify-center gap-3 text-sm flex-wrap text-center">
-          <span className="font-bold bg-white/20 px-2 py-0.5 rounded-full text-xs tracking-wider uppercase">
-            🚧 Under Development
-          </span>
-          <span className="text-white/90">
-            The LetsEarnify Freelance Marketplace is in active development. Explore what&apos;s coming — join early to secure your profile.
+      <div className="relative bg-gradient-to-r from-blue-700 via-indigo-700 to-violet-800 text-white py-3.5 px-4 overflow-hidden">
+        {/* Subtle animated light streak */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-[-20deg] translate-x-[-100%] animate-[shimmer_3s_infinite]" />
+        
+        <div className="max-w-screen-2xl mx-auto flex items-center justify-center gap-4 text-sm flex-wrap text-center relative z-10">
+          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase border border-white/20">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+            </span>
+            Beta Development
+          </div>
+          <span className="text-white/90 font-medium">
+            The LetsEarnify Freelance Marketplace is currently in active beta. Explore the future of verified work.
           </span>
           <Link
             href="/login"
-            className="text-xs font-bold underline underline-offset-2 hover:text-yellow-300 transition-colors whitespace-nowrap"
+            className="text-xs font-bold px-4 py-1.5 bg-white text-blue-700 rounded-lg hover:bg-blue-50 transition-all shadow-sm hover:scale-105"
           >
             Join the Waitlist →
           </Link>
@@ -649,7 +656,7 @@ export default function MarketplaceClient() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e: any) => setSearchQuery(e.target.value)}
                 placeholder="Search freelancers…"
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800/60 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 transition-all"
               />
@@ -671,7 +678,7 @@ export default function MarketplaceClient() {
             <div className="flex items-center gap-2">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e: any) => setSortBy(e.target.value)}
                 className="text-xs font-medium bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800/60 text-gray-700 dark:text-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
               >
                 {SORT_OPTIONS.map((opt) => (

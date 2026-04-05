@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     // 3. Execute the payload: Return Principal only (Profits were deposited daily)
     const totalPayout = investment.amount
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Return principal to user dailyEarningWallet
       await tx.user.update({
         where: { id: session.user.id },

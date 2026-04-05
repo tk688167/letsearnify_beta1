@@ -41,7 +41,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
 
     const [taskStates, setTaskStates] = useState<Record<string, { status: string, remarks?: string | null }>>(() => {
         const initialStates: Record<string, { status: string, remarks?: string | null }> = {}
-        platformTasks.forEach(task => {
+        platformTasks.forEach((task: any) => {
             if (task.completionStatus) {
                 initialStates[task.id] = { 
                     status: task.completionStatus,
@@ -148,13 +148,13 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                 <div className="flex gap-2 shrink-0">
                   <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
                     <div className="text-base sm:text-lg font-black text-emerald-400 leading-none mb-0.5">
-                      {Math.floor(Object.values(taskStates).filter(s => s.status === 'APPROVED').length)}
+                      {Math.floor(Object.values(taskStates).filter((s: any) => s.status === 'APPROVED').length)}
                     </div>
                     <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">Done</div>
                   </div>
                   <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
                     <div className="text-base sm:text-lg font-black text-amber-400 leading-none mb-0.5">
-                      {(platformTasks.reduce((sum, t) => sum + t.reward, 0)).toFixed(0)}
+                      {(platformTasks.reduce((sum: number, t: any) => sum + t.reward, 0)).toFixed(0)}
                     </div>
                     <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">ARN</div>
                   </div>
@@ -191,7 +191,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                        {platformTasks.filter(t => t.type !== 'SOCIAL').map((task, index) => {
+                        {platformTasks.filter((t: any) => t.type !== 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
                             const isPendingTask = state?.status === 'PENDING'
@@ -302,7 +302,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                        {platformTasks.filter(t => t.type === 'SOCIAL').map((task, index) => {
+                        {platformTasks.filter((t: any) => t.type === 'SOCIAL').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
                             const isPendingTask = state?.status === 'PENDING'

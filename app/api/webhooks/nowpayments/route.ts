@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
             // Update Transaction & User Balance
             // Update Transaction & User Balance & Trigger MLM Logic
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: any) => {
                 await tx.transaction.update({
                     where: { id: transaction.id },
                     data: {

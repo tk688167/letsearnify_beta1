@@ -123,7 +123,7 @@ async function emergencyAdminFix() {
 // Execute
 emergencyAdminFix()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch((error: any) => {
     console.error('Script failed:', error);
     process.exit(1);
   });

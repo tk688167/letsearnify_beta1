@@ -54,7 +54,7 @@ export async function approveDeposit(txId: string) {
 
         const depositAmount = Number(tx.amount); // Ensure number
 
-        await prisma.$transaction(async (prismaTx) => {
+        await prisma.$transaction(async (prismaTx: any) => {
             console.log(`[ApproveDeposit] Starting DB Transaction for User ${tx.userId}`);
 
             // 1. Update Transaction
@@ -122,7 +122,7 @@ export async function rejectDeposit(txId: string, reason: string) {
             return { error: "Transaction not found" };
         }
 
-        await prisma.$transaction(async (prismaTx) => {
+        await prisma.$transaction(async (prismaTx: any) => {
              // Safe update securely by ID (standard field)
              await prismaTx.transaction.update({
                 where: { id: tx.id }, 

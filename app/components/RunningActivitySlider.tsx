@@ -18,7 +18,7 @@ export default function RunningActivitySlider() {
         .then(data => {
             if (Array.isArray(data)) setMessages(data)
         })
-        .catch(err => console.error(err))
+        .catch((err: any) => console.error(err))
   }, [])
 
   if (messages.length === 0) return null

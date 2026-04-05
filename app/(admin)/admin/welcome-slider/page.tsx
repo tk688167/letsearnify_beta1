@@ -21,7 +21,7 @@ export default function WelcomeSliderManager() {
             .then(data => {
                 if (!data.error) setMessages(data)
             })
-            .catch(err => console.error(err))
+            .catch((err: any) => console.error(err))
             .finally(() => setLoading(false))
     }, [])
 
@@ -95,7 +95,7 @@ export default function WelcomeSliderManager() {
                                             <input 
                                                 type="text" 
                                                 value={msg.icon || "🔔"}
-                                                onChange={(e) => handleChange(idx, "icon", e.target.value)}
+                                                onChange={(e: any) => handleChange(idx, "icon", e.target.value)}
                                                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-center focus:ring-2 focus:ring-gray-900 outline-none text-base"
                                             />
                                         </div>
@@ -106,7 +106,7 @@ export default function WelcomeSliderManager() {
                                                 <input 
                                                     type="checkbox" 
                                                     checked={msg.active}
-                                                    onChange={(e) => handleChange(idx, "active", e.target.checked)}
+                                                    onChange={(e: any) => handleChange(idx, "active", e.target.checked)}
                                                     className="form-checkbox w-5 h-5 text-gray-900 rounded focus:ring-gray-900"
                                                 />
                                                 <span className="text-xs font-bold text-gray-700 uppercase">Active</span>
@@ -120,7 +120,7 @@ export default function WelcomeSliderManager() {
                                         <input 
                                             type="text" 
                                             value={msg.text}
-                                            onChange={(e) => handleChange(idx, "text", e.target.value)}
+                                            onChange={(e: any) => handleChange(idx, "text", e.target.value)}
                                             className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none text-base"
                                         />
                                     </div>
@@ -131,7 +131,7 @@ export default function WelcomeSliderManager() {
                                             <input 
                                                 type="checkbox" 
                                                 checked={msg.active}
-                                                onChange={(e) => handleChange(idx, "active", e.target.checked)}
+                                                onChange={(e: any) => handleChange(idx, "active", e.target.checked)}
                                                 className="form-checkbox w-5 h-5 text-gray-900 rounded focus:ring-gray-900"
                                             />
                                             <span className="text-sm font-medium text-gray-700">Active</span>
@@ -175,7 +175,7 @@ export default function WelcomeSliderManager() {
                         
                         <div className="bg-black rounded-xl p-4 overflow-hidden border border-white/10 relative">
                              <div className="flex gap-4 opacity-75 whitespace-nowrap text-sm font-medium overflow-x-auto no-scrollbar">
-                                 {messages.filter(m => m.active).slice(0, 3).map((m, i) => (
+                                 {messages.filter((m: any) => m.active).slice(0, 3).map((m, i) => (
                                      <span key={i} className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full border border-white/5">
                                         <span>{m.icon}</span>
                                         <span>{m.text}</span>
