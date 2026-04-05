@@ -8,6 +8,7 @@ interface CurrencyContextProps {
   rates: ExchangeRates;
   formatCurrency: (usdAmount: number) => string;
   convertFromUSD: (usdAmount: number) => number;
+  convertToUSD: (userAmount: number) => number;
 }
 
 const CurrencyContext = createContext<CurrencyContextProps | undefined>(undefined);
@@ -30,6 +31,12 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({
   const convertFromUSD = (usdAmount: number): number => {
     const rate = rates[activeCurrency] || 1;
     return usdAmount * rate;
+  };
+  
+  const convertToUSD = (userAmount: number): number => {
+    const rate = rates[activeCurrency] || 1;
+    // userAmount in PKR / rate PKR per USD = USD amount
+    return userAmount / rate;
   };
 
   const getLocales = (currency: string) => {
@@ -57,7 +64,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({
     userCurrency: activeCurrency,
     rates,
     formatCurrency,
-    convertFromUSD
+    convertFromUSD,
+    convertToUSD
   }), [activeCurrency, rates]);
 
   return (

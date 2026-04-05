@@ -32,7 +32,7 @@ function cn(...classes: string[]) {
 
 export default function DailyEarningPageContent() {
   const { data, mutate } = useSWR("/api/user/daily-earning", fetcher)
-  const { formatCurrency, userCurrency } = useCurrency();
+  const { formatCurrency, userCurrency, convertFromUSD, convertToUSD } = useCurrency();
   
   const [isInvestModalOpen, setIsInvestModalOpen] = useState(false)
   const [investAmount, setInvestAmount] = useState("")
@@ -79,19 +79,24 @@ export default function DailyEarningPageContent() {
   }
 
   const handleTransfer = async (e: React.FormEvent) => {
-    e.preventDefault()
     setTransferError("")
-    const amount = parseFloat(transferAmount)
+    const amountInUserCurrency = parseFloat(transferAmount)
     
-    if (isNaN(amount) || amount <= 0) return setTransferError("Enter a valid amount.")
-    if (amount > walletBalance) return setTransferError("Insufficient Main Wallet Balance.")
+    if (isNaN(amountInUserCurrency) || amountInUserCurrency <= 0) return setTransferError("Enter a valid amount.")
+    
+    // Convert current wallet balance to user currency for comparison
+    const walletBalanceInUserCurrency = convertFromUSD(walletBalance)
+    if (amountInUserCurrency > walletBalanceInUserCurrency) return setTransferError("Insufficient Main Wallet Balance.")
+
+    // Convert input to USD for backend processing
+    const amountInUSD = convertToUSD(amountInUserCurrency)
 
     setTransferLoader(true)
     try {
       const res = await fetch("/api/user/daily-earning/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, direction: "MAIN_TO_DAILY" })
+        body: JSON.stringify({ amount: amountInUSD, direction: "MAIN_TO_DAILY" })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || "Transfer failed")
@@ -110,21 +115,28 @@ export default function DailyEarningPageContent() {
     e.preventDefault()
     setInvestError("")
     setInvestSuccess("")
-    const amount = parseFloat(investAmount)
+    const amountInUserCurrency = parseFloat(investAmount)
 
-    if (isNaN(amount) || amount < 1) {
-      setInvestError("Minimum amount is $1.00")
+    // Validation: We check against the equivalent of $1 USD
+    const minAmountInUserCurrency = convertFromUSD(1)
+    if (isNaN(amountInUserCurrency) || amountInUserCurrency < minAmountInUserCurrency) {
+      setInvestError(`Minimum amount is ${formatCurrency(1)}`)
       return
     }
     
-    if (amount > dailyEarningWallet) {
+    // Check against current daily wallet balance in user currency
+    const dailyWalletInUserCurrency = convertFromUSD(dailyEarningWallet)
+    if (amountInUserCurrency > dailyWalletInUserCurrency) {
       setInvestError("INSUFFICIENT")
       return
     }
 
+    // Convert input to USD for backend processing
+    const amountInUSD = convertToUSD(amountInUserCurrency)
+
     setInvestLoader(true)
     try {
-      const result = await createDailyPool(amount)
+      const result = await createDailyPool(amountInUSD)
       if (result.error) throw new Error(result.error)
 
       setInvestSuccess(result.message || `Protocol activated successfully.`)
@@ -148,7 +160,7 @@ export default function DailyEarningPageContent() {
              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Daily Earning Pool</span>
           </h1>
           <p className="text-sm sm:text-base md:text-lg font-medium text-muted-foreground/90 max-w-2xl leading-relaxed mx-auto md:mx-0">
-             Create your pool from $1 and earn 1% daily. Funds are locked for 30 days before withdrawal.
+             Create your pool from {formatCurrency(1)} and earn 1% daily. Funds are locked for 30 days before withdrawal.
           </p>
         </div>
         
@@ -262,9 +274,9 @@ export default function DailyEarningPageContent() {
                   <form onSubmit={handleTransfer}>
                      <div className="mb-6 relative">
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground/50 font-black font-serif text-xl">$</span>
+                          <span className="text-muted-foreground/50 font-black font-mono text-xs uppercase">{userCurrency}</span>
                         </div>
-                        <input type="number" step="0.01" min="1" max={walletBalance} value={transferAmount} onChange={(e: any) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
+                        <input type="number" step="0.01" value={transferAmount} onChange={(e: any) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-14 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
                      </div>
 
                      {transferError && <p className="text-rose-500 text-[10px] font-black mb-6 uppercase tracking-widest text-center">{transferError}</p>}
@@ -299,9 +311,9 @@ export default function DailyEarningPageContent() {
                   <form onSubmit={handleInvest}>
                      <div className="mb-6 relative">
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground/50 font-black font-serif text-xl">$</span>
+                          <span className="text-muted-foreground/50 font-black font-mono text-xs uppercase">{userCurrency}</span>
                         </div>
-                        <input type="number" step="0.01" min="1" max={dailyEarningWallet} value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
+                        <input type="number" step="0.01" value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-background border border-border rounded-2xl py-5 pl-14 pr-5 text-foreground font-serif text-2xl focus:outline-none focus:border-indigo-500 shadow-sm transition-all" required />
                      </div>
 
                      {/* ERROR STATE: Insufficient Assets */}
@@ -325,15 +337,15 @@ export default function DailyEarningPageContent() {
                      {investSuccess && <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black mb-6 uppercase tracking-[0.2em] font-mono text-center">✓ {investSuccess}</p>}
                      
                      {/* Preview Box */}
-                     {investAmount && !isNaN(parseFloat(investAmount)) && parseFloat(investAmount) >= 1 && !investError && (
+                     {investAmount && !isNaN(parseFloat(investAmount)) && parseFloat(investAmount) >= convertFromUSD(1) && !investError && (
                         <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-2xl bg-muted/40 border border-border shadow-inner">
                            <div className="text-center border-r border-border">
                               <p className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">Daily Profit</p>
-                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(parseFloat(investAmount) * 0.01)}</p>
+                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}</p>
                            </div>
                            <div className="text-center">
                               <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1">Total Expected Return</p>
-                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(parseFloat(investAmount) * 0.30)}</p>
+                              <p className="text-base font-black text-foreground font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}</p>
                            </div>
                         </div>
                      )}

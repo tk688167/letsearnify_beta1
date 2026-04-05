@@ -8,9 +8,13 @@ import {
   UsersIcon,
   MagnifyingGlassIcon,
   PlayIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  ArrowPathIcon
 } from "@heroicons/react/24/outline"
-import { triggerDailyPoolDistribution } from "@/app/actions/admin/daily-pools"
+import { 
+  triggerDailyPoolDistribution, 
+  triggerDailyPoolBackfill 
+} from "@/app/actions/admin/daily-pools"
 import { toast } from "react-hot-toast"
 
 export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
@@ -18,7 +22,9 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
     const [isProcessing, setIsProcessing] = useState(false)
     
     // Derived states
-    const handleDistribute = async () => {
+    const [isBackfilling, setIsBackfilling] = useState(false)
+
+  const handleDistribute = async () => {
         if (!confirm("Are you sure you want to execute the profit distribution for all active pools? This will grant 1% daily yield to all eligible users.")) return;
         
         setIsProcessing(true)
@@ -29,6 +35,24 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
             toast.success(res.message, { duration: 5000 })
         } else {
             toast.error(res.message)
+        }
+    }
+
+    const handleBackfill = async () => {
+        if (!confirm("SYSTEM SYNC: Are you sure you want to run a system-wide profit synchronization? This will backfill all missing daily profits (1% per day) from the creation date of every active pool. This is an idempotent operation.")) return
+        
+        setIsBackfilling(true)
+        try {
+            const result = await triggerDailyPoolBackfill()
+            if (result.success) {
+                toast.success(result.message, { duration: 6000 })
+            } else {
+                toast.error(result.message)
+            }
+        } catch (error) {
+            toast.error("Failed to execute system synchronization.")
+        } finally {
+            setIsBackfilling(false)
         }
     }
     const filteredPools = pools.filter((p: any) => {
@@ -49,16 +73,34 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
         <div className="space-y-6">
             
             {/* Action Bar */}
-            <div className="flex justify-end">
+            <div className="flex flex-wrap justify-end gap-4 mb-2">
+                <button 
+                   onClick={handleBackfill}
+                   disabled={isBackfilling || isProcessing}
+                   className="flex items-center gap-2 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-2xl shadow-xl shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                    {isBackfilling ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Syncing System...
+                        </>
+                    ) : (
+                        <>
+                            <ArrowPathIcon className="w-5 h-5" />
+                            Sync & Backfill Profits
+                        </>
+                    )}
+                </button>
+
                 <button 
                    onClick={handleDistribute}
-                   disabled={isProcessing}
-                   className="flex items-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                   disabled={isProcessing || isBackfilling}
+                   className="flex items-center gap-2 px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-2xl shadow-xl shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 >
                     {isProcessing ? (
                         <>
-                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                            Processing Systems...
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Processing...
                         </>
                     ) : (
                         <>

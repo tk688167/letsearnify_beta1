@@ -2,36 +2,41 @@ import { prisma } from "@/lib/prisma"
 
 /**
  * Core logic to distribute daily 1% yields for all active pools.
- * Includes catch-up logic to skip accidental downtime.
+ * Includes catch-up logic for missed days and a force-mode for manual backfills.
+ * @param {object} options - Configuration for distribution
+ * @param {boolean} options.force - If true, ignores the 24h cooldown and calculates all pending profits.
  * @returns Summary results of processed pools
  */
-export async function executeDailyPoolDistribution() {
+export async function executeDailyPoolDistribution(options: { force?: boolean } = {}) {
+    const { force = false } = options;
     const now = new Date();
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()}`);
+    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()} (Force: ${force})`);
 
     // 1. Calculate Daily Earnings (1%) with Catch-up logic
     const activePools = await prisma.dailyEarningInvestment.findMany({
         where: {
             status: "ACTIVE",
-            lastCalculatedDate: { lte: twentyFourHoursAgo }
+            // If NOT force, only process pools that haven't been touched in 24h
+            ...(force ? {} : { lastCalculatedDate: { lte: twentyFourHoursAgo } })
         }
     });
 
-    let processedProfit = 0;
+    let processedProfitCount = 0;
     let totalProfitDistributed = 0;
 
     for (const pool of activePools) {
         const timeSinceLast = now.getTime() - pool.lastCalculatedDate.getTime();
         const daysToProcess = Math.floor(timeSinceLast / (24 * 60 * 60 * 1000));
         
+        // Skip if less than 24h has passed since last calculation
         if (daysToProcess < 1) continue;
 
         const dailyProfitPerDay = pool.amount * 0.01;
         const totalProfitToGrant = dailyProfitPerDay * daysToProcess;
         
-        // Advance the lastCalculatedDate by exact 24h increments
+        // Advance the lastCalculatedDate by exact 24h increments to keep it consistent
         const finalCalculatedDate = new Date(pool.lastCalculatedDate.getTime() + (daysToProcess * 24 * 60 * 60 * 1000));
 
         await prisma.$transaction([
@@ -52,7 +57,7 @@ export async function executeDailyPoolDistribution() {
                     amount: totalProfitToGrant,
                     type: "REWARD",
                     status: "COMPLETED",
-                    description: `Daily 1% earning from $${pool.amount.toFixed(2)} pool for ${daysToProcess} day(s).`
+                    description: `Daily 1% earning from pool $${pool.amount.toFixed(2)} (${daysToProcess} days catchup).`
                 }
             }),
             prisma.mLMLog.create({
@@ -60,16 +65,17 @@ export async function executeDailyPoolDistribution() {
                     userId: pool.userId,
                     type: "POOL_EARNING",
                     amount: totalProfitToGrant,
-                    description: `Multi-day catchup (${daysToProcess} days) at 1% daily for pool ${pool.id}`
+                    description: `Daily Catchup: Received 1% daily profit for ${daysToProcess} missed day(s).`
                 }
             })
         ]);
         
-        processedProfit++;
+        processedProfitCount++;
         totalProfitDistributed += totalProfitToGrant;
     }
 
     // 2. Handle Expiry (30 Days) -> Return Principal
+    // We only process expiry when force=false to prevent accidental early returns
     const expiredPools = await prisma.dailyEarningInvestment.findMany({
         where: {
             status: "ACTIVE",
@@ -103,11 +109,11 @@ export async function executeDailyPoolDistribution() {
         processedExpiry++;
     }
 
-    console.log(`[Daily Pool] Distribution Finished. Profits: ${processedProfit}, Expiries: ${processedExpiry}, Total Distributed: $${totalProfitDistributed.toFixed(2)}`);
+    console.log(`[Daily Pool] Finished. Profits Updated: ${processedProfitCount}, Expiries: ${processedExpiry}, Total: $${totalProfitDistributed.toFixed(2)}`);
 
     return { 
         success: true, 
-        calculatedCount: processedProfit, 
+        calculatedCount: processedProfitCount, 
         expiredCount: processedExpiry,
         totalProfitDistributed
     };
