@@ -59,7 +59,7 @@ export async function POST(req: Request) {
           status: "ACTIVE",
           profitEarned: 0,
           expiresAt: expiresAt,
-          lastCalculatedDate: now // Stop cron from jumping the gun on day 0
+          lastCalculatedDate: new Date(new Date().setHours(0, 0, 0, 0)) // Start of day to catch first reset
         }
       })
 

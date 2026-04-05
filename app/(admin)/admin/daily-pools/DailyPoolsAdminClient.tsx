@@ -6,13 +6,31 @@ import {
   CurrencyDollarIcon, 
   ChartBarIcon, 
   UsersIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  PlayIcon,
+  CheckBadgeIcon
 } from "@heroicons/react/24/outline"
+import { triggerDailyPoolDistribution } from "@/app/actions/admin/daily-pools"
+import { toast } from "react-hot-toast"
 
 export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
     const [search, setSearch] = useState("")
+    const [isProcessing, setIsProcessing] = useState(false)
     
     // Derived states
+    const handleDistribute = async () => {
+        if (!confirm("Are you sure you want to execute the profit distribution for all active pools? This will grant 1% daily yield to all eligible users.")) return;
+        
+        setIsProcessing(true)
+        const res = await triggerDailyPoolDistribution()
+        setIsProcessing(false)
+        
+        if (res.success) {
+            toast.success(res.message, { duration: 5000 })
+        } else {
+            toast.error(res.message)
+        }
+    }
     const filteredPools = pools.filter((p: any) => {
         const query = search.toLowerCase()
         return p.user?.email?.toLowerCase().includes(query) ||
@@ -30,6 +48,27 @@ export function DailyPoolsAdminClient({ pools }: { pools: any[] }) {
     return (
         <div className="space-y-6">
             
+            {/* Action Bar */}
+            <div className="flex justify-end">
+                <button 
+                   onClick={handleDistribute}
+                   disabled={isProcessing}
+                   className="flex items-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                >
+                    {isProcessing ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            Processing Systems...
+                        </>
+                    ) : (
+                        <>
+                            <PlayIcon className="w-5 h-5" />
+                            Run Profit Distribution
+                        </>
+                    )}
+                </button>
+            </div>
+
             {/* Top Premium Summaries */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
