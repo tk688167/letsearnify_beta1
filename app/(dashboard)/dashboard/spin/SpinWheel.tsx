@@ -13,9 +13,10 @@ interface SpinWheelProps {
     isLocked?: boolean
     cooldownDate?: Date | null
     type: "FREE" | "PREMIUM"
+    userId: string
 }
 
-export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, type }: SpinWheelProps) {
+export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, type, userId }: SpinWheelProps) {
     const [isSpinning, setIsSpinning] = useState(false)
     const [result, setResult] = useState<SpinReward | null>(null)
     const [showCelebration, setShowCelebration] = useState(false)
@@ -31,8 +32,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
 
     // SYNC Backend state with LocalStorage for flawless persistency across navigation
     useEffect(() => {
-        if (!ObjectWindow) return;
-        const storedTime = localStorage.getItem(`spin_lock_${type}`);
+        if (!ObjectWindow || !userId) return;
+        const storageKey = `spin_lock_${userId}_${type}`;
+        const storedTime = localStorage.getItem(storageKey);
         
         let targetTime: number | null = null;
         if (storedTime) targetTime = parseInt(storedTime, 10);
@@ -42,14 +44,14 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
 
         if (targetTime && targetTime > Date.now()) {
             setLocalNextSpin(new Date(targetTime));
-            localStorage.setItem(`spin_lock_${type}`, targetTime.toString());
+            localStorage.setItem(storageKey, targetTime.toString());
         } else if (targetTime && targetTime <= Date.now()) {
             setLocalNextSpin(null);
-            localStorage.removeItem(`spin_lock_${type}`);
+            localStorage.removeItem(storageKey);
         } else {
             setLocalNextSpin(null);
         }
-    }, [cooldownDate, type, ObjectWindow]);
+    }, [cooldownDate, type, userId, ObjectWindow]);
 
     const isCoolingDown = !!localNextSpin && localNextSpin.getTime() > Date.now()
 
@@ -146,8 +148,8 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
             setResult(wonReward)
             if (response.nextSpinTime) {
                 setLocalNextSpin(new Date(response.nextSpinTime));
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem(`spin_lock_${type}`, response.nextSpinTime.toString());
+                if (typeof window !== 'undefined' && userId) {
+                    localStorage.setItem(`spin_lock_${userId}_${type}`, response.nextSpinTime.toString());
                 }
             }
             triggerCelebration(wonReward)
@@ -173,7 +175,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                         </span>
                         <CountdownTimer targetDate={localNextSpin} onComplete={() => {
                             setLocalNextSpin(null);
-                            if (typeof window !== 'undefined') localStorage.removeItem(`spin_lock_${type}`);
+                            if (typeof window !== 'undefined' && userId) {
+                                localStorage.removeItem(`spin_lock_${userId}_${type}`);
+                            }
                         }} />
                     </div>
                 ) : (

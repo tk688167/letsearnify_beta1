@@ -188,6 +188,7 @@ export default async function SpinPage() {
                               isLocked={false}
                               cooldownDate={freeCooldownDate} 
                               type="FREE"
+                              userId={currentUser.id}
                           />
                       </TabsContent>
 
@@ -215,6 +216,7 @@ export default async function SpinPage() {
                               isLocked={!currentUser.isActiveMember}
                               cooldownDate={premiumCooldownDate && currentUser.premiumBonusSpins <= 0 ? premiumCooldownDate : null}
                               type="PREMIUM"
+                              userId={currentUser.id}
                           />
                       </TabsContent>
                   </Tabs>
