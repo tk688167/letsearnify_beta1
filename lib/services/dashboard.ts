@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { getTierRequirements, DEFAULT_TIER_REQUIREMENTS, checkAccountLock } from "@/lib/mlm"
+import { getTierRequirements, DEFAULT_TIER_REQUIREMENTS, checkAccountLock, calculateQualifiedTierArn } from "@/lib/mlm"
 
 export interface DashboardDataResult {
     user: any;
@@ -26,7 +26,8 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
           referralEarningsAgg,
           taskEarningsAgg,
           systemConfigMarketplace,
-          systemConfigMudarabah
+          systemConfigMudarabah,
+          qualifiedArn
         ] = await Promise.all([
           prisma.user.findUnique({
             where: { id: userId },
@@ -57,7 +58,8 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
           prisma.referralCommission.aggregate({ where: { earnerId: userId }, _sum: { amount: true } }),
           prisma.transaction.aggregate({ where: { userId, type: "TASK_REWARD", status: "COMPLETED" }, _sum: { amount: true } }),
           prisma.systemConfig.findUnique({ where: { key: "MARKETPLACE_MODE" } }),
-          prisma.systemConfig.findUnique({ where: { key: "MUDARABAH_CONFIG" } })
+          prisma.systemConfig.findUnique({ where: { key: "MUDARABAH_CONFIG" } }),
+          calculateQualifiedTierArn(userId, prisma)
         ]);
 
         if (!user) {
@@ -79,6 +81,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
             ...user,
             tierRules,
             totalSignups,
+            qualifiedArn,
             pendingDeposit,
             pendingWithdrawal,
             totalWithdrawal,
@@ -112,6 +115,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
             totalDeposit: 0,
             activeMembers: 0,
             totalSignups: 0,
+            qualifiedArn: 0,
             tierRules: DEFAULT_TIER_REQUIREMENTS
         };
 

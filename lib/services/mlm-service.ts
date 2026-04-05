@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { startOfDay } from "date-fns"
+import { calculateQualifiedTierArn } from "@/lib/mlm"
 
 export interface MlmDataResult {
     user: any;
@@ -276,18 +277,20 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         }));
 
         // Stats
-        const totalEarningsAgg = await prisma.referralCommission.aggregate({
-            where: { earnerId: userId },
-            _sum: { amount: true }
-        });
-
-        const todayEarningsAgg = await prisma.referralCommission.aggregate({
-            where: { 
-                earnerId: userId,
-                createdAt: { gte: startOfDay(new Date()) }
-            },
-            _sum: { amount: true }
-        });
+        const [totalEarningsAgg, todayEarningsAgg, qualifiedArn] = await Promise.all([
+            prisma.referralCommission.aggregate({
+                where: { earnerId: userId },
+                _sum: { amount: true }
+            }),
+            prisma.referralCommission.aggregate({
+                where: { 
+                    earnerId: userId,
+                    createdAt: { gte: startOfDay(new Date()) }
+                },
+                _sum: { amount: true }
+            }),
+            calculateQualifiedTierArn(userId, prisma)
+        ]);
 
         // Count direct signups (L1 only)
         const totalSignups = await prisma.user.count({
@@ -296,7 +299,7 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
 
         // teamSize = total signups across all 3 levels (not just active)
         return { 
-            user: { ...user, totalSignups }, 
+            user: { ...user, totalSignups, qualifiedArn }, 
             referralTree: referralTreeWithWithdrawals, 
             stats: {
                 teamSize: referralTreeWithWithdrawals.length,

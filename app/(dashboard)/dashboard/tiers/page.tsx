@@ -1,12 +1,10 @@
-export const dynamic = "force-dynamic";
-
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import TierProgressView from "./tier-progress-view"
 import { FeatureGuard } from "../FeatureGuard";
 
-import { getTierRules } from "@/lib/mlm"
+import { getTierRules, calculateQualifiedTierArn } from "@/lib/mlm"
 
 export default async function TierPage() {
   const session = await auth()
@@ -14,33 +12,60 @@ export default async function TierPage() {
 
   let user, tierConfig, totalEarnings = 0;
   let referralTree: any[] = [];
+  let qualifiedTransactions: any[] = [];
+  let qualifiedArn = 0;
 
   try {
       tierConfig = await getTierRules();
       
-      user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-          referrals: { // Level 1
-            include: {
-              referrals: { // Level 2
-                include: {
-                  referrals: true // Level 3
+      const userId = session.user.id;
+
+      // Parallel execution for performance
+      const [dbUser, qArn, qTransactions] = await Promise.all([
+        prisma.user.findUnique({
+          where: { id: userId },
+          include: {
+            referrals: { // Level 1
+              include: {
+                referrals: { // Level 2
+                  include: {
+                    referrals: true // Level 3
+                  }
                 }
               }
+            },
+            referralsMade: { // Commissions
+               orderBy: { createdAt: 'desc' },
+               take: 50,
+               include: {
+                  sourceUser: {
+                     select: { name: true, email: true }
+                  }
+               }
             }
-          },
-          referralsMade: { // Commissions
-             orderBy: { createdAt: 'desc' },
-             take: 50,
-             include: {
-                sourceUser: {
-                   select: { name: true, email: true }
-                }
-             }
           }
-        }
-      })
+        }),
+        calculateQualifiedTierArn(userId, prisma),
+        prisma.transaction.findMany({
+            where: {
+                userId,
+                status: "COMPLETED",
+                OR: [
+                    { type: "SIGNUP_BONUS" },
+                    { type: "REFERRAL_COMMISSION" },
+                    { type: "TASK_REWARD" },
+                    { type: "DEPOSIT" },
+                    { type: "REWARD", method: "SPIN" }
+                ]
+            },
+            orderBy: { createdAt: "desc" },
+            take: 100
+        })
+      ]);
+      
+      user = dbUser;
+      qualifiedArn = qArn;
+      qualifiedTransactions = qTransactions;
       
       if (user) {
           // Flatten the Tree
@@ -69,12 +94,12 @@ export default async function TierPage() {
       console.error("⚠️ Tiers Page Offline Mode:", error);
       tierConfig = { 
           NEWBIE: { arn: 0, directs: 0 }, 
-          BRONZE: { arn: 100, directs: 2 }, 
-          SILVER: { arn: 500, directs: 5 }, 
-          GOLD: { arn: 2000, directs: 10 }, 
-          PLATINUM: { arn: 10000, directs: 20 }, 
-          DIAMOND: { arn: 50000, directs: 50 }, 
-          EMERALD: { arn: 100000, directs: 100 } 
+          BRONZE: { arn: 400, directs: 40 }, 
+          SILVER: { arn: 1000, directs: 100 }, 
+          GOLD: { arn: 1800, directs: 250 }, 
+          PLATINUM: { arn: 2700, directs: 500 }, 
+          DIAMOND: { arn: 7000, directs: 1200 }, 
+          EMERALD: { arn: 15000, directs: 2500 } 
       };
       user = {
           tier: "NEWBIE",
@@ -84,24 +109,24 @@ export default async function TierPage() {
       } as any;
   }
 
-
-
   if (!user) redirect("/login")
   
-  // Tier requirements are based on DIRECT referrals only (Level 1).
-  const directTeamSize = Array.isArray((user as any)?.referrals) ? (user as any).referrals.length : 0
-
   return (
     <div className="p-4 sm:p-6 md:p-10 min-h-screen bg-gray-50/50 dark:bg-gray-950 space-y-6 transition-colors duration-300">
          
          <TierProgressView 
-            user={{ tier: user.tier, arnBalance: user.arnBalance || 0, balance: user.balance || 0 }}
+            user={{ 
+              tier: user.tier, 
+              arnBalance: user.arnBalance || 0, // Keep original for reference
+              qualifiedArn: qualifiedArn, // Use this for progress
+              balance: user.balance || 0 
+            }}
             stats={{ teamSize: referralTree.length, totalSignups: (user as any).totalSignups || 0 }}
             tierConfig={tierConfig}
             referralTree={referralTree}
             commissions={user.referralsMade || []}
+            qualifiedTransactions={qualifiedTransactions}
          />
-
 
       </div>
   )

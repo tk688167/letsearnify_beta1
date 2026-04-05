@@ -208,9 +208,12 @@ export async function approveMerchantTransaction(transactionId: string) {
                         })
                         if (!referrer) continue
 
-                        const validTier = TIER_COMMISSIONS[referrer.tier] ? referrer.tier : "NEWBIE"
+                        const currentTier = (referrer.tier || "NEWBIE").toUpperCase();
+                        const validTier = TIER_COMMISSIONS[currentTier] ? currentTier : "NEWBIE"
                         const rates = TIER_COMMISSIONS[validTier]
                         const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3
+
+                        console.log(`[Merchant] Distributing commission: Earner=${uplineId}, Tier=${validTier}, Level=${level}, Rate=${rate}%`);
 
                         if (rate > 0) {
                             const commissionUSD = amount * (rate / 100)

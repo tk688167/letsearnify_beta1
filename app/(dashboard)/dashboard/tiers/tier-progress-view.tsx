@@ -8,19 +8,17 @@ import {
   StarIcon,
   UsersIcon,
   XMarkIcon,
-  CalendarDaysIcon,
-  FunnelIcon,
   ArrowPathIcon,
   MagnifyingGlassIcon,
   CurrencyDollarIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
-import { TIER_COMMISSIONS, TIER_WITHDRAWAL_LIMITS, TIER_REWARDS } from "@/lib/mlm"
-import { cn, calculateTierProgress, TIER_ORDER } from "@/lib/utils"
+import { TIER_COMMISSIONS, TIER_ORDER } from "@/lib/mlm"
+import { cn, calculateTierProgress } from "@/lib/utils"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
-import { format, subDays, isAfter, startOfDay } from "date-fns"
-
+import { format, subDays, startOfDay } from "date-fns"
+import { ArnHistory } from "./ArnHistory"
 
 const TIER_STYLES: Record<string, { badge: string, border: string, text: string, icon: string, bg: string, ring: string, accent: string }> = {
     NEWBIE: { badge: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300", border: "border-gray-200 dark:border-gray-700", text: "text-gray-900 dark:text-gray-100", icon: "🚀", bg: "bg-white dark:bg-gray-900", ring: "ring-gray-100 dark:ring-gray-800", accent: "bg-gray-400 dark:bg-gray-500" },
@@ -35,34 +33,24 @@ const TIER_STYLES: Record<string, { badge: string, border: string, text: string,
 const TIERS = TIER_ORDER;
 
 type TierProgressViewProps = {
-  user: { tier: string; arnBalance: number; balance: number }
+  user: { tier: string; arnBalance: number; balance: number; qualifiedArn: number }
   stats: { teamSize: number; totalSignups: number }
   tierConfig: Record<string, { arn: number, directs: number }>
   referralTree: any[]
   commissions: any[]
+  qualifiedTransactions: any[]
 }
 
-
-export default function TierProgressView({ user, stats, tierConfig, referralTree, commissions }: TierProgressViewProps) {
+export default function TierProgressView({ user, stats, tierConfig, referralTree, commissions, qualifiedTransactions }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf((user.tier || "NEWBIE").toUpperCase().trim())
   const currentTierIndexLocal = currentTierIndex === -1 ? 0 : currentTierIndex;
   
   const { formatCurrency } = useCurrency();
   
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
-  const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'EARNINGS'>('PARTNERS')
+  const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'EARNINGS' | 'ARN_LOG'>('PARTNERS')
   const [timeFilter, setTimeFilter] = useState<'7D' | '30D' | 'CUSTOM'>('30D')
-  const [customFrom, setCustomFrom] = useState('')
-  const [customTo, setCustomTo] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-
-
-  const calcPercent = (current: number, min: number, max: number) => {
-      if (max <= min) return 100 
-      const gained = Math.max(0, current - min)
-      const needed = max - min
-      return Math.min((gained / needed) * 100, 100)
-  }
 
   const networkMembersTable = useMemo(() => {
     return (
@@ -103,9 +91,9 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                   <td className="px-6 py-4 text-center">
                     <span className={cn(
                       "px-2 py-0.5 rounded text-[10px] font-bold border",
-                      member.level === 1 ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50" :
-                      member.level === 2 ? "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800/50" :
-                      "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/50"
+                      member.level === 1 ? "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/50" :
+                      member.level === 2 ? "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/50" :
+                      "bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900/50"
                     )}>
                       LVL {member.level}
                     </span>
@@ -164,7 +152,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
         <div className="absolute bottom-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white/8 to-transparent" />
       </div>
 
-      {/* History button - accessible on all devices but optimized for mobile view */}
+      {/* History button */}
       <div className="-mt-2">
         <button
           type="button"
@@ -174,12 +162,12 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
             shadow-xl shadow-black/[0.02] active:scale-[0.98] transition-all hover:border-indigo-500/30 group"
         >
           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
-            <UsersIcon className="w-4 h-4 text-indigo-500" />
+            <StarIcon className="w-4 h-4 text-indigo-500" />
           </div>
-          <span className="flex-1 text-left ml-2">Activity History</span>
+          <span className="flex-1 text-left ml-2">Growth & Earning Log</span>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-black text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 px-2.5 py-1 rounded-full uppercase tracking-wider border border-indigo-100 dark:border-indigo-800/50">
-              {referralTree.length + commissions.length} Events
+                View History
             </span>
             <ArrowRightIcon className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
           </div>
@@ -192,10 +180,10 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
           <div className="absolute left-[5px] md:left-8 top-4 bottom-4 w-px bg-gray-200 dark:bg-gray-700 transition-colors duration-300" />
 
           <div className="space-y-6 sm:space-y-8">
-             {TIERS.map((tierName, index) => {
+             {TIERS.map((tierName: string, index: number) => {
                 const config = tierConfig[tierName] || { arn: 0, directs: 0 }
-                const commissions = TIER_COMMISSIONS[tierName] || { L1: 0, L2: 0, L3: 0 }
-                const levels = [commissions.L1, commissions.L2, commissions.L3]
+                const comms = TIER_COMMISSIONS[tierName] || { L1: 0, L2: 0, L3: 0 }
+                const levels = [comms.L1, comms.L2, comms.L3]
                 const style = TIER_STYLES[tierName]
                 
                 const isCompleted = index < currentTierIndexLocal
@@ -209,20 +197,16 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                 const baselineArn = prevConfig.arn
                 const baselineDirects = prevConfig.directs
 
-                // Calculate current progress using the same utility as Dashboard
                 const { progress: combinedProgress } = calculateTierProgress(
                     user.tier,
-                    user.arnBalance || 0,
+                    user.qualifiedArn || 0,
                     stats.totalSignups || 0,
                     tierConfig as any
                 )
 
-                // Individual Requirement bars use Step/Delta logic relative to this card's target
-                // For the NEWBIE card (index 0), the baseline is 0 and the target is BRONZE (400)
-                const currentArnInStep = Math.max(0, (user.arnBalance || 0) - baselineArn)
+                const currentArnInStep = Math.max(0, (user.qualifiedArn || 0) - baselineArn)
                 const currentDirectsInStep = Math.max(0, (stats.totalSignups || 0) - baselineDirects)
 
-                // Step distance for progress bar (Next - Current)
                 const stepArn = Math.max(1, nextConfigInner.arn - baselineArn)
                 const stepDirects = Math.max(1, nextConfigInner.directs - baselineDirects)
 
@@ -231,8 +215,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
 
                 const isFinal = index === TIERS.length - 1
 
-                // Display values — Cap at target for a clean "Complete" state
-                const rawArn = Math.round(user.arnBalance || 0)
+                const rawArn = Math.round(user.qualifiedArn || 0)
                 const rawTeam = Math.round(stats.totalSignups || 0)
 
                 const displayArn = isCompleted ? nextConfigInner.arn : isLocked ? 0 : Math.min(rawArn, nextConfigInner.arn)
@@ -253,7 +236,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                      transition={{ duration: 0.4, delay: index * 0.05 }}
                      className="relative isolate md:pl-24"
                    >
-                      {/* Timeline Dot */}
                       <div className={`absolute left-[-19px] md:left-4 top-6 sm:top-8 w-3.5 h-3.5 rounded-full border-2 z-10 transition-all duration-500 ${
                           isCompleted
                             ? "border-emerald-500 bg-emerald-500 dark:border-emerald-400 dark:bg-emerald-400"
@@ -262,7 +244,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                               : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
                       }`} />
 
-                      {/* ═══ TIER CARD ═══ */}
                       <div className={`group rounded-2xl border transition-all duration-300 overflow-hidden ${
                           isCurrent 
                             ? "bg-white dark:bg-gray-900 border-indigo-200 dark:border-indigo-700/60 shadow-xl shadow-indigo-100/40 dark:shadow-indigo-900/20 ring-1 ring-indigo-50 dark:ring-indigo-900/40" 
@@ -271,7 +252,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                 : "bg-gray-50/60 dark:bg-gray-900/40 border-gray-200/70 dark:border-gray-700/40"
                       }`}>
                           
-                          {/* Card Header */}
                           <div className={`px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 sm:items-center border-b ${
                             isCurrent ? "border-indigo-100/60 dark:border-indigo-800/40" : "border-gray-100/60 dark:border-gray-700/40"
                           }`}>
@@ -325,7 +305,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                )}
                           </div>
 
-                          {/* Card Body — Requirements (only for current and locked, not completed, not final) */}
                           {!isCompleted && !isFinal && (
                             <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 grid sm:grid-cols-2 gap-4 sm:gap-6">
                                 <div>
@@ -393,9 +372,10 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
           </div>
       </div>
       
-      {/* ═══ NETWORK MEMBERS TABLE ═══ */}
-      <div className="hidden md:block">
+      {/* ═══ DESKTOP TABLES ═══ */}
+      <div className="hidden md:block space-y-8">
         {networkMembersTable}
+        <ArnHistory transactions={qualifiedTransactions} />
       </div>
 
       {/* Mobile/Full-screen History Overlay */}
@@ -407,20 +387,20 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
           className="fixed inset-0 z-50 bg-white dark:bg-gray-950 flex flex-col pt-safe"
         >
-          {/* Sticky Header */}
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white/80 dark:bg-gray-950/80 backdrop-blur-md sticky top-0 z-20">
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-950 sticky top-0 z-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/40 flex items-center justify-center border border-indigo-100 dark:border-indigo-800/50">
                 <UsersIcon className="w-5 h-5 text-indigo-500" />
               </div>
               <div>
-                <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 leading-none">Tier Provenance</h2>
-                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Activity History</p>
+                <h2 className="text-lg font-black text-gray-900 dark:text-gray-100 leading-none">History Log</h2>
+                <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">Growth & Earnings</p>
               </div>
             </div>
             <button
               onClick={() => setIsHistoryOpen(false)}
-              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
             >
               <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
             </button>
@@ -446,93 +426,44 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                     historyTab === 'EARNINGS' ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-400"
                   )}
                 >
-                  Earnings
+                    Commissions
+                </button>
+                <button
+                  onClick={() => setHistoryTab('ARN_LOG')}
+                  className={cn(
+                    "flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all",
+                    historyTab === 'ARN_LOG' ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-400"
+                  )}
+                >
+                  ARN Log
                 </button>
               </div>
             </div>
 
             {/* Filter Bar */}
             <div className="px-5 pb-6 space-y-4">
-              {/* Search */}
               <div className="relative group">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                   <MagnifyingGlassIcon className="w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <input
                   type="text"
-                  placeholder={historyTab === 'PARTNERS' ? "Search partners..." : "Search source..."}
+                  placeholder="Search..."
                   value={searchTerm}
-                  onChange={(e: any) => setSearchTerm(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium outline-none transition-all"
                 />
               </div>
-
-              {/* Time Filters */}
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                {(['7D', '30D', 'CUSTOM'] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setTimeFilter(f)}
-                    className={cn(
-                      "px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap transition-all",
-                      timeFilter === f 
-                        ? "bg-indigo-500 border-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
-                        : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-indigo-200 dark:hover:border-indigo-800 hover:text-indigo-500"
-                    )}
-                  >
-                    {f === 'CUSTOM' ? 'Custom Range' : f === '7D' ? 'Last 7 Days' : 'Last 30 Days'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom Date Inputs */}
-              {timeFilter === 'CUSTOM' && (
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  className="grid grid-cols-2 gap-3"
-                >
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">From</label>
-                    <input
-                      type="date"
-                      value={customFrom}
-                      onChange={(e: any) => setCustomFrom(e.target.value)}
-                      className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">To</label>
-                    <input
-                      type="date"
-                      value={customTo}
-                      onChange={(e: any) => setCustomTo(e.target.value)}
-                      className="w-full bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl px-3 py-2.5 text-xs font-bold outline-none focus:border-indigo-500 transition-colors"
-                    />
-                  </div>
-                </motion.div>
-              )}
             </div>
 
             {/* Content Area */}
             <div className="px-5 space-y-4">
               {historyTab === 'PARTNERS' ? (
-                // --- PARTNERS LIST ---
                 <div className="space-y-3 pb-10">
                   {referralTree
-                    .filter((m: any) => {
-                      const date = startOfDay(new Date(m.createdAt));
-                      const now = startOfDay(new Date());
-                      if (timeFilter === '7D') return date >= subDays(now, 7);
-                      if (timeFilter === '30D') return date >= subDays(now, 30);
-                      if (timeFilter === 'CUSTOM' && customFrom && customTo) {
-                        return date >= startOfDay(new Date(customFrom)) && date <= startOfDay(new Date(customTo));
-                      }
-                      return true;
-                    })
                     .filter((m: any) => !searchTerm || m.name?.toLowerCase().includes(searchTerm.toLowerCase()) || m.email?.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((member) => (
-                      <div key={member.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div key={member.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group">
                         <div className="flex items-center gap-4">
                           <div className={cn(
                             "w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-sm border",
@@ -545,9 +476,7 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className={cn(
                                 "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border",
-                                member.level === 1 
-                                  ? "bg-blue-500/10 text-blue-500 border-blue-500/20" 
-                                  : "bg-purple-500/10 text-purple-500 border-purple-500/20"
+                                member.level === 1 ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-purple-500/10 text-purple-500 border-purple-500/20"
                               )}>
                                 {member.level === 1 ? 'Direct' : 'Level ' + member.level}
                               </span>
@@ -555,67 +484,39 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Rank</div>
-                          <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase">{member.tier}</div>
-                        </div>
                       </div>
                     ))}
-                  {referralTree.length === 0 && (
-                    <div className="py-20 text-center opacity-40">
-                      <UsersIcon className="w-12 h-12 mx-auto mb-3" />
-                      <p className="text-sm font-bold">No partners found</p>
-                    </div>
-                  )}
                 </div>
-              ) : (
-                // --- EARNINGS LIST ---
+              ) : historyTab === 'EARNINGS' ? (
                 <div className="space-y-3 pb-10">
                   {commissions
-                    .filter((c: any) => {
-                      const date = startOfDay(new Date(c.createdAt));
-                      const now = startOfDay(new Date());
-                      if (timeFilter === '7D') return date >= subDays(now, 7);
-                      if (timeFilter === '30D') return date >= subDays(now, 30);
-                      if (timeFilter === 'CUSTOM' && customFrom && customTo) {
-                        return date >= startOfDay(new Date(customFrom)) && date <= startOfDay(new Date(customTo));
-                      }
-                      return true;
-                    })
-                    .filter((c: any) => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || (c as any).txDescription?.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .filter((c: any) => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
                     .map((comm) => (
-                      <div key={comm.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <div key={comm.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600">
                             <CurrencyDollarIcon className="w-6 h-6" />
                           </div>
                           <div>
                             <h4 className="text-sm font-black text-gray-900 dark:text-gray-100">
-                              +{formatCurrency(comm.amount || 0)} 
-                              <span className="ml-1.5 text-xs text-gray-400 font-medium lowercase">earnify tokens</span>
+                                +{formatCurrency(comm.amount || 0)}
+                                <span className="ml-1.5 text-xs text-gray-400 font-medium">commission</span>
                             </h4>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">From {comm.sourceUser?.name || "Direct Referral"}</span>
-                              <span className="text-[10px] font-medium text-gray-400">{format(new Date(comm.createdAt), "MMM d, yyyy")}</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">From {comm.sourceUser?.name || "Direct Referral"}</span>
+                                <span className="text-[10px] font-medium text-gray-400">{format(new Date(comm.createdAt), "MMM d, yyyy")}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Level {comm.level}</div>
-                          <div className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase">{comm.percentage}% Comm.</div>
-                        </div>
                       </div>
                     ))}
-                  {commissions.length === 0 && (
-                    <div className="py-20 text-center opacity-40">
-                      <ArrowPathIcon className="w-12 h-12 mx-auto mb-3" />
-                      <p className="text-sm font-bold">No earnings history found</p>
-                    </div>
-                  )}
+                </div>
+              ) : (
+                <div className="pb-10">
+                    <ArnHistory transactions={qualifiedTransactions} />
                 </div>
               )}
             </div>
-
           </div>
         </motion.div>
       )}

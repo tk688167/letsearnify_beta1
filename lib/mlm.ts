@@ -4,13 +4,13 @@ import { mintArnForDeposit } from "@/lib/tokens";
 // --- CONFIGURATION ---
 
 export const TIER_COMMISSIONS: Record<string, { L1: number, L2: number, L3: number }> = {
-    NEWBIE:   { L1: 5,  L2: 3,  L3: 2 },
-    BRONZE:   { L1: 9,  L2: 4,  L3: 2 },
-    SILVER:   { L1: 12, L2: 5,  L3: 3 },
-    GOLD:     { L1: 15, L2: 7,  L3: 3 },
-    PLATINUM: { L1: 18, L2: 8,  L3: 4 },
-    DIAMOND:  { L1: 22, L2: 9,  L3: 4 },
-    EMERALD:  { L1: 25, L2: 10, L3: 5 }
+    NEWBIE:   { L1: 5,  L2: 3,  L3: 2 }, // Combined 10%
+    BRONZE:   { L1: 9,  L2: 4,  L3: 2 }, // Combined 15%
+    SILVER:   { L1: 12, L2: 5,  L3: 3 }, // Combined 20%
+    GOLD:     { L1: 15, L2: 7,  L3: 3 }, // Combined 25%
+    PLATINUM: { L1: 18, L2: 8,  L3: 4 }, // Combined 30%
+    DIAMOND:  { L1: 22, L2: 9,  L3: 4 }, // Combined 35%
+    EMERALD:  { L1: 25, L2: 10, L3: 5 }  // Combined 40%
 };
 
 // Signup bonus given to NEW USER immediately at signup based on their referrers tier
@@ -24,9 +24,9 @@ export const DEFAULT_TIER_REQUIREMENTS: Record<string, { arn: number, directs: n
     BRONZE:   { arn: 400,    directs: 40 },
     SILVER:   { arn: 1000,   directs: 100 },
     GOLD:     { arn: 1800,   directs: 250 },
-    PLATINUM: { arn: 1500,   directs: 500 },
+    PLATINUM: { arn: 2700,   directs: 500 },
     DIAMOND:  { arn: 7000,   directs: 1200 },
-    EMERALD:  { arn: 15000,  directs: 250 }
+    EMERALD:  { arn: 15000,  directs: 2500 }
 };
 
 export const TIER_WITHDRAWAL_LIMITS: Record<string, number> = {
@@ -44,17 +44,12 @@ export const TIER_REWARDS: Record<string, { balance: number, arn: number, descri
 };
 
 export async function getTierRequirements(tx?: any) {
-    const db = tx || prisma;
-    try {
-        const configs = await db.tierConfiguration.findMany();
-        if (configs.length === 0) return DEFAULT_TIER_REQUIREMENTS;
-        const rules: Record<string, { arn: number, directs: number }> = {};
-        configs.forEach((c: any) => { rules[c.tier] = { arn: c.requiredArn, directs: c.members }; });
-        return rules;
-    } catch { return DEFAULT_TIER_REQUIREMENTS; }
+    // Requirements are now PERMANENTLY LOCKED and hardcoded. 
+    // We ignore database configuration to ensure consistency.
+    return DEFAULT_TIER_REQUIREMENTS;
 }
 
-const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
+export const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "EMERALD"];
 
 // ─────────────────────────────────────────────────────────────
 // UNLOCK USER ACCOUNT ($1 activation)
@@ -219,9 +214,12 @@ export async function distributeCommissions(sourceUserId: string, amount: number
         });
         if (!referrer) continue;
 
-        const validTier = TIER_COMMISSIONS[referrer.tier] ? referrer.tier : "NEWBIE";
+        const currentTier = (referrer.tier || "NEWBIE").toUpperCase();
+        const validTier = TIER_COMMISSIONS[currentTier] ? currentTier : "NEWBIE";
         const rates = TIER_COMMISSIONS[validTier];
         const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3;
+
+        console.log(`[MLM] Distributing commission: Earner=${uplineId}, Tier=${validTier}, Level=${level}, Rate=${rate}%`);
 
         if (rate > 0) {
             const commissionUSD = amount * (rate / 100);
@@ -264,37 +262,40 @@ export async function distributeCommissions(sourceUserId: string, amount: number
 
 /**
  * Tier upgrade check.
- * Per PDF:
- * - arnBalance has ALL earned ARN (signup bonus, tasks, spins, referral commissions, deposits)
- * - Signup count = ALL users who joined with your referral code (not just active)
+ * Per PDF & User Final Logic:
+ * - Qualified Tier ARN = Sum of (Signup Bonus, Spins, Referral earnings L1, L2, L3, Deposits, Task Rewards)
+ * - Tier rewards (milestone gifts) are EXCLUDED.
+ * - Team size requirement uses DIRECT L1 referrals only.
  */
 export async function checkTierUpgrade(userId: string, tx?: any) {
     const db = tx || prisma;
     const user = await db.user.findUnique({
         where: { id: userId },
-        select: { id: true, tier: true, arnBalance: true, referralCode: true }
+        select: { id: true, tier: true, referralCode: true }
     });
     if (!user) return;
 
     const currentTierIndex = TIER_ORDER.indexOf(user.tier) >= 0 ? TIER_ORDER.indexOf(user.tier) : 0;
     
-    // Count ALL signups (everyone who used this referral code)
-    let totalSignups = 0;
+    // 1. Calculate Qualified ARN from Transaction History
+    const qualifiedArn = await calculateQualifiedTierArn(userId, db);
+
+    // 2. Count Direct L1 Referrals only
+    let totalDirects = 0;
     if (user.referralCode) {
-        totalSignups = await db.user.count({
+        totalDirects = await db.user.count({
             where: { referredByCode: user.referralCode }
         });
     }
 
-    const currentArn = user.arnBalance || 0;
-    const tierRules = await getTierRequirements(db);
+    const tierRules = DEFAULT_TIER_REQUIREMENTS;
 
     for (let i = currentTierIndex + 1; i < TIER_ORDER.length; i++) {
         const nextTier = TIER_ORDER[i];
-        const threshold = tierRules[nextTier] || DEFAULT_TIER_REQUIREMENTS[nextTier];
+        const threshold = tierRules[nextTier];
 
-        if (currentArn >= threshold.arn && totalSignups >= threshold.directs) {
-            console.log(`[MLM] UPGRADE: ${userId} → ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${totalSignups}/${threshold.directs})`);
+        if (qualifiedArn >= threshold.arn && totalDirects >= threshold.directs) {
+            console.log(`[MLM] UPGRADE: ${userId} → ${nextTier} (Qualified ARN: ${qualifiedArn}/${threshold.arn}, Directs: ${totalDirects}/${threshold.directs})`);
             
             await db.user.update({ where: { id: userId }, data: { tier: nextTier } });
             await grantTierRewards(userId, nextTier, db);
@@ -302,11 +303,36 @@ export async function checkTierUpgrade(userId: string, tx?: any) {
             await db.mLMLog.create({
                 data: {
                     userId: userId, type: "TIER_UPGRADE", amount: 0,
-                    description: `Upgraded to ${nextTier} (ARN: ${currentArn}/${threshold.arn}, Signups: ${totalSignups}/${threshold.directs})`
+                    description: `Upgraded to ${nextTier} (Qualified ARN: ${qualifiedArn}/${threshold.arn}, Directs: ${totalDirects}/${threshold.directs})`
                 }
             });
         } else { break; }
     }
+}
+
+/**
+ * Calculates ARN accumulated from qualified sources only.
+ * Tier Milestone Rewards are NOT included.
+ */
+export async function calculateQualifiedTierArn(userId: string, tx?: any): Promise<number> {
+    const db = tx || prisma;
+    
+    const qualifiedResult = await db.transaction.aggregate({
+        where: {
+            userId: userId,
+            status: "COMPLETED",
+            OR: [
+                { type: "SIGNUP_BONUS" },
+                { type: "REFERRAL_COMMISSION" },
+                { type: "TASK_REWARD" },
+                { type: "DEPOSIT" },
+                { type: "REWARD", method: "SPIN" }
+            ]
+        },
+        _sum: { arnMinted: true }
+    });
+
+    return qualifiedResult._sum.arnMinted || 0;
 }
 
 export async function refreshUserMlmStats(userId: string, tx?: any) {

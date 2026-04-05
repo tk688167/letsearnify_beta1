@@ -38,6 +38,7 @@ export default async function ReferralsPage() {
                name: displayUser.name,
                tier: displayUser.tier,
                arnBalance: displayUser.arnBalance || 0,
+               qualifiedArn: (displayUser as any).qualifiedArn || 0,
                referralCode: displayUser.referralCode,
                balance: displayUser.balance,
                totalSignups: (displayUser as any).totalSignups || 0,

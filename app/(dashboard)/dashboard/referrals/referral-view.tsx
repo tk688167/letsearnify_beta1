@@ -63,6 +63,7 @@ type ReferralViewProps = {
     name: string | null
     tier: string
     arnBalance: number
+    qualifiedArn: number
     referralCode: string | null
     balance: number
     totalSignups: number
@@ -122,7 +123,19 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
   }
 
   // Analytics for the structure
-  const activeNetwork = referralTree.filter((n: any) => !!n.isActiveMember || !!n.lastUnlockAt)
+  const activeLevel1 = referralTree.filter((n: any) => n.level === 1 && (!!n.isActiveMember || !!n.lastUnlockAt)).length
+  const activeLevel2 = referralTree.filter((n: any) => n.level === 2 && (!!n.isActiveMember || !!n.lastUnlockAt)).length
+  const activeLevel3 = referralTree.filter((n: any) => n.level === 3 && (!!n.isActiveMember || !!n.lastUnlockAt)).length
+
+  // Calculate potential total commission for 1 transaction ($1 base)
+  // PDF Logic: Newbie L1=5%, L2=3%, L3=2%
+  const totalCommissionRate = 
+     (activeLevel1 > 0 ? levelRate(1) : 0) + 
+     (activeLevel2 > 0 ? levelRate(2) : 0) + 
+     (activeLevel3 > 0 ? levelRate(3) : 0);
+  
+  const totalCommissionAmount = (totalCommissionRate / 100) * 1.0;
+
   const earnedL1 = commissions.filter((c: any) => c.level === 1).reduce((sum: number, c: any) => sum + c.amount, 0)
   const earnedL2 = commissions.filter((c: any) => c.level === 2).reduce((sum: number, c: any) => sum + c.amount, 0)
   const earnedL3 = commissions.filter((c: any) => c.level === 3).reduce((sum: number, c: any) => sum + c.amount, 0)
@@ -130,7 +143,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
 
   const { progress, nextTier } = calculateTierProgress(
     currentTier,
-    user.arnBalance,
+    user.qualifiedArn || 0,
     user.totalSignups || 0,
     tierConfig as any
   )
@@ -296,7 +309,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-bold flex items-center gap-2"><UserGroupIcon className="w-4 h-4 text-purple-500" /> Active Network</h3>
               <div className="px-2 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black rounded-lg border border-purple-100 dark:border-purple-500/20">
-                 ${totalEarnedFromNetwork.toFixed(2)} Total
+                 ${totalCommissionAmount.toFixed(2)} Total
               </div>
             </div>
             
