@@ -107,7 +107,7 @@ export async function GET(req: Request) {
        // const paginatedUsers = sorted.slice(skip, skip + limit) 
 
        return NextResponse.json({
-         users: sorted, // Return all sorted users
+         users: sorted.map((u: any) => ({ ...u, qualifiedArn: u.arnBalance || 0, totalSignups: u.activeMembers || 0 })), // Return all sorted users
          total,
          page: 1,
          totalPages: 1
@@ -139,8 +139,14 @@ export async function GET(req: Request) {
         prisma.user.count()
       ])
 
+      const usersWithProgress = users.map(u => ({
+        ...u,
+        qualifiedArn: u.arnBalance || 0,
+        totalSignups: u.activeMembers || 0
+      }))
+
       return NextResponse.json({
-        users,
+        users: usersWithProgress,
         total,
         page,
         totalPages: Math.ceil(total / limit)

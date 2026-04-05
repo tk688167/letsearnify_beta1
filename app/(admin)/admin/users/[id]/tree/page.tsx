@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect, notFound } from "next/navigation"
 import ReferralView from "@/app/(dashboard)/dashboard/referrals/referral-view"
-import { getTierRules } from "@/lib/mlm"
+import { getTierRules, calculateQualifiedTierArn } from "@/lib/mlm"
 import { startOfDay } from "date-fns"
 
 export default async function AdminUserTreePage(props: { params: Promise<{ id: string }> }) {
@@ -100,6 +100,8 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
 
   const tierRules = await getTierRules()
 
+  const qArn = await calculateQualifiedTierArn(user.id, prisma)
+
   return (
     <div className="p-6 md:p-10 min-h-screen bg-gray-50/50">
        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -117,6 +119,7 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
               name: user.name,
               tier: user.tier,
               arnBalance: user.arnBalance,
+              qualifiedArn: qArn,
               referralCode: user.referralCode,
               balance: user.balance,
               totalSignups: user.referrals?.length || 0,

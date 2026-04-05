@@ -24,13 +24,19 @@ export async function getAdminUsers(limit = 2000): Promise<AdminUserListResult> 
                     arnBalance: true,
                     activeMembers: true,
                     memberId: true,
-                    isActiveMember: true 
+                    isActiveMember: true
                 }
             }),
             prisma.user.count()
         ]);
 
-        return { users, total, isOffline: false };
+        const usersWithProgress = users.map(u => ({
+          ...u,
+          qualifiedArn: u.arnBalance || 0, // Fallback for list view
+          totalSignups: u.activeMembers || 0 // Initial hint
+        }));
+
+        return { users: usersWithProgress, total, isOffline: false };
 
     } catch (error) {
         console.error("❌ Service Error [getAdminUsers]:", error);

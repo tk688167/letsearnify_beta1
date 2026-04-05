@@ -127,7 +127,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
 
   const { progress, nextTier } = calculateTierProgress(
     user.tier,
-    user.arnBalance || 0,
+    user.qualifiedArn || 0,
     user.totalSignups || 0,
     user.tierRules || {}
   );
