@@ -124,18 +124,14 @@ export default async function TasksPage() {
      )
   }
 
-  const { FeatureGuard } = await import("@/app/(dashboard)/dashboard/FeatureGuard")
-
   return (
-      <FeatureGuard feature="tasks" previewMode={true} title="Task Marketplace">
-        <div className="w-full max-w-5xl mx-auto py-6">
-           <TaskPageClient 
-              user={user} 
-              platformTasks={allTasks} 
-              cfxUrl={cfxUrl} 
-              isUnlocked={isUnlocked}
-           />
-        </div>
-      </FeatureGuard>
+      <div className="w-full max-w-5xl mx-auto py-6">
+         <TaskPageClient 
+            user={user} 
+            platformTasks={allTasks} 
+            cfxUrl={cfxUrl} 
+            isUnlocked={isUnlocked}
+         />
+      </div>
   )
 }

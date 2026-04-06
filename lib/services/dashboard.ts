@@ -29,7 +29,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
           systemConfigMudarabah,
           qualifiedArn
         ] = await Promise.all([
-          (prisma as any).user.findUnique({
+          prisma.user.findUnique({
             where: { id: userId },
             select: {
               id: true,

@@ -31,10 +31,6 @@ export async function POST(req: Request) {
     }
 
     if (!user) return new NextResponse("User not found", { status: 404 });
-
-    if (!user.isActiveMember) {
-      return new NextResponse("Access Locked. You must activate your account with $1 first.", { status: 403 });
-    }
     
     if (!pool || !pool.isLive) {
       return new NextResponse("Pool not found or is not live", { status: 404 });
