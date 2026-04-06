@@ -31,10 +31,10 @@ export async function GET(req: Request) {
     // Fetch user details for access verification
     const user = await (prisma as any).user.findUnique({
       where: { id: session.user.id },
-      select: { mudarabahBalance: true, isMudarabaUnlocked: true }
+      select: { mudarabahBalance: true, isActiveMember: true }
     });
 
-    const isUnlocked = user?.isMudarabaUnlocked === true;
+    const isUnlocked = user?.isActiveMember === true;
 
     if (!isUnlocked) {
       return NextResponse.json({

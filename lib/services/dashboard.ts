@@ -41,7 +41,6 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
               memberId: true, 
               referralCode: true,
               isActiveMember: true,
-              isMudarabaUnlocked: true,
               totalDeposit: true,
               activeMembers: true,
               unlockExpiry: true,
