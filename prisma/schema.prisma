@@ -6,109 +6,78 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Tier {
-  NEWBIE
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-  DIAMOND
-  EMERALD
-}
-
-enum TierStatus {
-  CURRENT
-  UPGRADED
-}
-
 model User {
-  id            String    @id @default(cuid())
-  memberId      String    @unique @default(cuid())
-  name          String?
-  email         String?   @unique
-  phoneNumber   String?
-  emailVerified DateTime?
-  password      String?
-  image         String?
+  id                      String                   @id @default(cuid())
+  memberId                String                   @unique @default(cuid())
+  name                    String?
+  email                   String?                  @unique
+  phoneNumber             String?
+  emailVerified           DateTime?
+  password                String?
+  image                   String?
+  role                    String                   @default("USER")
+  balance                 Float                    @default(0.0)
+  tier                    Tier                     @default(NEWBIE)
+  tierStatus              TierStatus               @default(CURRENT)
+  arnBalance              Float                    @default(0.0)
+  lockedArnBalance        Float                    @default(0.0)
+  referralCode            String?                  @unique
+  referredByCode          String?
+  isActiveMember          Boolean                  @default(false)
+  isCbspMember            Boolean                  @default(false)
+  activeMembers           Int                      @default(0)
+  totalDeposit            Float                    @default(0.0)
+  mudarabahBalance        Float                    @default(0.0)
+  dailyEarningWallet      Float                    @default(0.0)
+  kycStatus               String                   @default("NOT_VERIFIED")
+  kycDocument             String?
+  securityQuestion        String?
+  securityAnswer          String?
+  spendingLimit           Float?
+  currency                String                   @default("USD")
+  language                String                   @default("en")
+  country                 String?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  lastWithdrawalTime      DateTime?
+  lastSpinTime            DateTime?
+  dailySpinCount          Int                      @default(0)
+  premiumBonusSpins       Int                      @default(0)
+  lastPremiumSpinTime     DateTime?
+  lastSurpriseDate        DateTime?
+  lastUnlockAt            DateTime?
+  unlockAt                DateTime?
+  unlockExpiry            DateTime?
+  lastActivityAt          DateTime                 @default(now())
+  lastLoginAt             DateTime?
+  lockedBalance           Float                    @default(0.0)
+  accounts                Account[]
+  adminLogs               AdminLog[]               @relation("AdminTarget")
+  cbspContributions       CbspContribution[]
+  dailyEarningInvestments DailyEarningInvestment[]
   emailVerificationTokens EmailVerificationToken[]
-  
+  investments             Investment[]
+  mlmLogs                 MLMLog[]
+  merchantTransactions    MerchantTransaction[]
+  mudarabahInvestments    MudarabahInvestment[]
+  passwordResetToken      PasswordResetToken?
+  paymentMethods          PaymentMethod[]
+  postbackLogs            PostbackLog[]
+  referralCommissions     ReferralCommission[]     @relation("CommissionEarner")
+  referralsMade           ReferralCommission[]     @relation("CommissionSource")
+  referralTree            ReferralTree?
+  royaltyContributions    RoyaltyContribution[]
+  sessions                Session[]
+  tasks                   TaskCompletion[]
+  transactions            Transaction[]
+  unlockActivations       UnlockActivation[]
+  referrer                User?                    @relation("ReferralTree", fields: [referredByCode], references: [referralCode])
+  referrals               User[]                   @relation("ReferralTree")
+  visits                  Visit[]
+  wallets                 Wallet?
+
   @@index([email])
   @@index([referralCode])
-  role          String    @default("USER") // USER, ADMIN
-  balance       Float     @default(0.0)
-  
-  // MLM Fields
-  tier          Tier      @default(NEWBIE)
-  tierStatus    TierStatus @default(CURRENT)
-  arnBalance    Float     @default(0.0)       // REPLACED: points -> arnBalance
-  lockedArnBalance Float  @default(0.0)       // Locked signup bonus
-  referralCode  String?   @unique
-  referredByCode String?
-  
-  // Relations: MLM Tree
-  referrer      User?     @relation("ReferralTree", fields: [referredByCode], references: [referralCode])
-  referrals     User[]    @relation("ReferralTree")
-
-  // MLM Activity Tracking
-  isActiveMember Boolean   @default(false) // True if user has deposited >= $1
-  isCbspMember   Boolean   @default(false) // True if user is a member of the CBSP Pool
-  activeMembers Int       @default(0) // Count of direct referrals with >= $1 deposit
-  totalDeposit  Float     @default(0.0) // Total amount deposited by user
-  mudarabahBalance Float   @default(0.0) // Balance restricted to Mudarabah investments
-  dailyEarningWallet Float @default(0.0) // Balance restricted to Daily Earning investments
-  
-  // New Settings Fields
-  kycStatus     String    @default("NOT_VERIFIED") // NOT_VERIFIED, PENDING, VERIFIED, REJECTED
-  kycDocument   String?
-  securityQuestion String?
-  securityAnswer   String?
-  spendingLimit    Float?
-  currency         String    @default("USD")
-  language         String    @default("en")
-  country          String?
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  lastWithdrawalTime DateTime? // For tracking 24h cooldown
-
-  accounts      Account[]
-  sessions      Session[]
-  paymentMethods PaymentMethod[]
-  visits        Visit[]
-  transactions  Transaction[]
-  investments   Investment[]
-  mudarabahInvestments MudarabahInvestment[]
-  tasks         TaskCompletion[]
-  
-  // New MLM Relations
-  wallets             Wallet[]
-  dailyEarningInvestments DailyEarningInvestment[]
-  referralCommissions ReferralCommission[] @relation("CommissionEarner")
-  referralsMade       ReferralCommission[] @relation("CommissionSource")
-  adminLogs           AdminLog[]           @relation("AdminTarget")
-  
-  // New Optimized MLM Relations
-  referralTree        ReferralTree?
-  mlmLogs             MLMLog[]
-  cbspContributions   CbspContribution[]
-  royaltyContributions RoyaltyContribution[]
-  postbackLogs        PostbackLog[]
-  merchantTransactions MerchantTransaction[]
-  lastSpinTime      DateTime? // Anti-Gravity: Enforcement of 24h spin cycle
-  dailySpinCount    Int       @default(0) // Track free spins used today
-  premiumBonusSpins Int       @default(0) // Earned via deposits
-  lastPremiumSpinTime DateTime? // Track 24h premium spin cycle
-  lastSurpriseDate  DateTime? // Track monthly surprise gift
-  
-  // $1 Unlock System Fields
-  lastUnlockAt      DateTime?
-  unlockExpiry      DateTime?
-  lastActivityAt    DateTime  @default(now())
-  lockedBalance     Float     @default(0.0)
-  
-  passwordResetToken  PasswordResetToken?
-  unlockActivations   UnlockActivation[]
 }
 
 model UnlockActivation {
@@ -121,7 +90,6 @@ model UnlockActivation {
   royalty         Float    @default(0.0)
   company         Float
   createdAt       DateTime @default(now())
-  
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -129,14 +97,13 @@ model SpinReward {
   id          String   @id @default(cuid())
   label       String
   value       Float
-  type        String   // "ARN", "BONUS_SPIN", "EMPTY", "MONEY", "SURPRISE", "TRY_AGAIN"
+  type        String
   probability Float
   color       String
   textColor   String?
   isEnabled   Boolean  @default(true)
-  spinType    String   // "FREE", "PREMIUM"
+  spinType    String
   order       Int      @default(0)
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -144,73 +111,66 @@ model SpinReward {
 model CbspContribution {
   id                 String   @id @default(cuid())
   userId             String
-  depositAmount      Float    // The original deposit amount (e.g. $1.0)
-  contributionAmount Float    // The 5% portion (e.g. $0.05)
+  depositAmount      Float
+  contributionAmount Float
   description        String?
   createdAt          DateTime @default(now())
-
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RoyaltyContribution {
   id                 String   @id @default(cuid())
   userId             String
-  depositAmount      Float    // The activation amount (e.g. $1.0)
-  contributionAmount Float    // The 5% portion
+  depositAmount      Float
+  contributionAmount Float
   createdAt          DateTime @default(now())
-
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// System Pools for Logic
 model PaymentMethod {
   id        String   @id @default(cuid())
   userId    String
-  title     String   // e.g. "Chase Bank", "Visa ending 4242"
-  type      String   // BANK, CARD, WALLET
-  details   String   // distinct info (last 4 digits, IBAN mask)
+  title     String
+  type      String
+  details   String
   isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
 model Distribution {
-  id        String   @id @default(cuid())
-  poolName  String?   // Optional linkage by name if relation is hard
-  poolId    String?
-  pool      Pool?    @relation(fields: [poolId], references: [id])
-  
-  amount    Float
+  id         String   @id @default(cuid())
+  poolName   String?
+  poolId     String?
+  amount     Float
   percentage Float
   recipients Int
   tierRates  Json?
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  pool       Pool?    @relation(fields: [poolId], references: [id])
 }
 
-// Global System Configuration (Key-Value Store)
 model SystemConfig {
   id        String   @id @default(cuid())
-  key       String   @unique // e.g., "COMING_SOON_CONFIG"
+  key       String   @unique
   value     Json
   updatedAt DateTime @updatedAt
 }
@@ -218,14 +178,13 @@ model SystemConfig {
 model PostbackLog {
   id        String   @id @default(cuid())
   network   String
-  url       String?  @db.Text
+  url       String?
   params    Json?
   userId    String?
-  status    String   // PROCESSED, FAILED, IGNORED
+  status    String
   error     String?
   createdAt DateTime @default(now())
-
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model Session {
@@ -244,48 +203,43 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Analytics / Tracking
 model Visit {
   id               String   @id @default(cuid())
   sessionId        String?
-  userId           String?  // Optional, if user is logged in
+  userId           String?
   ip               String?
   country          String?
   city             String?
-  device           String?  // Mobile, Desktop
-  os               String?  // Windows, iOS
-  browser          String?  // Chrome, Safari
+  device           String?
+  os               String?
+  browser          String?
   userAgent        String?
   path             String
   referrer         String?
-  
-  @@index([userId])
-  @@index([sessionId])
   screenResolution String?
   language         String?
-  duration         Int?     // Time spent in seconds
+  duration         Int?
   createdAt        DateTime @default(now())
+  user             User?    @relation(fields: [userId], references: [id])
 
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId])
+  @@index([sessionId])
 }
 
-// Business Logic
 model Transaction {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Float
-  type        String // DEPOSIT, WITHDRAWAL, INVESTMENT, REWARD, REFERRAL_COMMISSION
-  status      String // PENDING, COMPLETED, FAILED
-  method      String?  // STRIPE, TRC20, SYSTEM
-  description String?
-  arnMinted   Float    @default(0.0) // Tokens minted by this transaction
-  txId        String?  @unique // For Manual Crypto Deposits
-  
-  destinationAddress String? // For Withdrawals
-  
-  createdAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                 String   @id @default(cuid())
+  userId             String
+  amount             Float
+  type               String
+  status             String
+  method             String?
+  description        String?
+  arnMinted          Float    @default(0.0)
+  txId               String?  @unique
+  destinationAddress String?
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([txId])
   @@index([type])
@@ -296,54 +250,50 @@ model Investment {
   userId    String
   poolName  String
   amount    Float
-  roi       Float    // Project ROI
-  status    String   // ACTIVE, COMPLETED
+  roi       Float
+  status    String
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 
 model Task {
-  id          String   @id @default(cuid())
+  id          String           @id @default(cuid())
   title       String
   description String
   reward      Float
-  type        String   // SOCIAL, APP, SURVEY
-  status      String   // ACTIVE, INACTIVE
-  link        String?  // External URL for the task
-  imageUrl    String?  // Optional thumbnail
-  createdAt   DateTime @default(now())
-
-  completions TaskCompletion[]
-  
+  type        String
+  status      String
+  link        String?
+  imageUrl    String?
+  createdAt   DateTime         @default(now())
   companyId   String?
-  company     Company? @relation(fields: [companyId], references: [id])
+  company     Company?         @relation(fields: [companyId], references: [id])
+  completions TaskCompletion[]
 }
 
 model Company {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  logoUrl     String?
-  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tasks       Task[]
+  id        String   @id @default(cuid())
+  name      String   @unique
+  logoUrl   String?
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]
 }
 
 model TaskCompletion {
-  id        String   @id @default(cuid())
-  userId    String
-  taskId    String
-  status    String   // PENDING, APPROVED, REJECTED
-  proof     String?  // URL or text
-  remarks   String?  // Admin feedback
-  pointsEarned Float @default(0.0)
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  task      Task     @relation(fields: [taskId], references: [id])
+  id           String   @id @default(cuid())
+  userId       String
+  taskId       String
+  status       String
+  proof        String?
+  remarks      String?
+  pointsEarned Float    @default(0.0)
+  createdAt    DateTime @default(now())
+  task         Task     @relation(fields: [taskId], references: [id])
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Gig {
@@ -351,7 +301,7 @@ model Gig {
   title       String
   description String
   price       Float
-  sellerId    String // For now just a string or relate to User
+  sellerId    String
   image       String?
   category    String
   rating      Float    @default(5.0)
@@ -360,133 +310,107 @@ model Gig {
 }
 
 model PlatformWallet {
-  id          String   @id @default(cuid())
-  network     String   @unique // TRC20, BEP20
-  address     String
-  qrCodePath  String   @default("/qr-placeholder.png")
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  network    String   @unique
+  address    String
+  qrCodePath String   @default("/qr-placeholder.png")
+  updatedAt  DateTime @updatedAt
 }
 
-// --- New MLM Models ---
-
-// User's personal crypto wallets
 model Wallet {
   id        String   @id @default(cuid())
   userId    String   @unique
-  network   String   // TRC20, BEP20
+  network   String
   address   String
   createdAt DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Track referral earnings history specifically
 model ReferralCommission {
-  id             String   @id @default(cuid())
-  earnerId       String   // The referrer receiving the commission
-  sourceUserId   String   // The referee who made the deposit
-  amount         Float
-  level          Int      // 1, 2, or 3
-  percentage     Float    // e.g., 20.0, 10.0
-  createdAt      DateTime @default(now())
-
-  earner         User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
-  sourceUser     User     @relation("CommissionSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  earnerId     String
+  sourceUserId String
+  amount       Float
+  level        Int
+  percentage   Float
+  createdAt    DateTime @default(now())
+  earner       User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
+  sourceUser   User     @relation("CommissionSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
 }
 
-// Audit log for Admin Actions
 model AdminLog {
   id           String   @id @default(cuid())
   adminId      String
   targetUserId String?
-  actionType   String   // BALANCE_ADJUSTMENT, TIER_CHANGE, WITHDRAWAL_APPROVAL
+  actionType   String
   details      String
   createdAt    DateTime @default(now())
-  
-  targetUser   User?    @relation("AdminTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetUser   User?    @relation("AdminTarget", fields: [targetUserId], references: [id])
 }
 
-// Optimized Tree Lookup for 3-Level Deep
 model ReferralTree {
   id           String   @id @default(cuid())
   userId       String   @unique
-  
-  // Flattened Upline
-  advisorId    String?  // Level 1 (Direct Referrer)
-  supervisorId String?  // Level 2
-  managerId    String?  // Level 3
-  
+  advisorId    String?
+  supervisorId String?
+  managerId    String?
   updatedAt    DateTime @updatedAt
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// System System Events Log (different from Admin Log)
 model MLMLog {
   id          String   @id @default(cuid())
   userId      String
-  type        String   // COMMISSION, TIER_UPGRADE, BONUS
-  amount      Float    // Related value (points or money)
+  type        String
+  amount      Float
   description String
   createdAt   DateTime @default(now())
-  
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// System Pools for Logic
 model Pool {
-  id        String   @id @default(cuid())
-  name      String   @unique // CBSP, ROYALTY, REWARD, EMERGENCY
-  balance   Float    @default(0.0)
-  percentage Float   @default(0.0)
-  description String?
-  updatedAt DateTime @updatedAt
+  id                  String         @id @default(cuid())
+  name                String         @unique
+  balance             Float          @default(0.0)
+  percentage          Float          @default(0.0)
+  description         String?
+  updatedAt           DateTime       @updatedAt
   distributionHistory Distribution[]
 }
 
-// Old definitions removed to resolve duplication
-
-// --- Merchant Deposit System Models ---
-
 model MerchantCountry {
-  id        String   @id @default(cuid())
-  name      String   @unique // e.g., "Pakistan", "India"
-  code      String   // e.g., "PK", "IN"
-  status    String   @default("COMING_SOON") // ACTIVE, COMING_SOON
-  currency  String   @default("USD")
-  description String?
-  instruction String?
+  id                    String                  @id @default(cuid())
+  name                  String                  @unique
+  code                  String
+  status                String                  @default("COMING_SOON")
+  currency              String                  @default("USD")
+  description           String?
+  instruction           String?
   withdrawalDescription String?
   withdrawalInstruction String?
-  
-  exchangeRate Float @default(1.0)
-  serviceFee   Float @default(0.0)
-  
-  methods   MerchantPaymentMethod[]
-  contacts  MerchantContact[]
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  exchangeRate          Float                   @default(1.0)
+  serviceFee            Float                   @default(0.0)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  contacts              MerchantContact[]
+  methods               MerchantPaymentMethod[]
 }
 
 model MerchantPaymentMethod {
-  id            String   @id @default(cuid())
+  id            String          @id @default(cuid())
   countryId     String
-  name          String   // e.g., "Easypaisa", "JazzCash"
-  accountNumber String?  // e.g., "0300-1234567"
-  accountName   String?  // e.g., "LetsEarnify Official"
-  instructions  String?  // e.g., "Send to this number only"
-  
+  name          String
+  accountNumber String?
+  accountName   String?
+  instructions  String?
   country       MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
 }
 
-// Old SystemConfig removed
-
 model MerchantContact {
-  id        String   @id @default(cuid())
+  id        String          @id @default(cuid())
   countryId String
-  name      String   // e.g., "Merchant 1"
-  phone     String   // e.g., "+92317229711"
-  
+  name      String
+  phone     String
   country   MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
 }
 
@@ -495,24 +419,20 @@ model MerchantTransaction {
   userId          String
   countryCode     String
   paymentMethodId String
-  type            String   // DEPOSIT, WITHDRAWAL
-  amount          Float    // Amount in USD
-  
-  // New fields for currency tracking
-  currency        String?  // e.g., "PKR", "INR"
-  convertedAmount Float?   // Amount in local currency e.g., 3000
-  exchangeRate    Float?   // Rate used at time of transaction e.g., 300.0
-
-  screenshot      String?  // Path to uploaded screenshot (for deposits)
-  accountNumber   String?  // User's account number (for withdrawals)
-  accountName     String?  // User's account name (for withdrawals)
+  type            String
+  amount          Float
+  currency        String?
+  convertedAmount Float?
+  exchangeRate    Float?
+  screenshot      String?
+  accountNumber   String?
+  accountName     String?
   note            String?
-  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  status          String   @default("PENDING")
   adminNotes      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  user            User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PasswordResetToken {
@@ -521,9 +441,9 @@ model PasswordResetToken {
   otp       String
   expiresAt DateTime
   createdAt DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
 model EmailVerificationToken {
   id        String   @id @default(cuid())
   userId    String
@@ -533,124 +453,107 @@ model EmailVerificationToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// Dynamic Tier Rules
 model TierConfiguration {
-  id        String   @id @default(cuid())
-  tier      String   @unique
-  requiredArn Float   @default(0.0)
-  members   Int
-  levels    Json
-  
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  tier        String   @unique
+  requiredArn Float    @default(0.0)
+  members     Int
+  levels      Json
+  updatedAt   DateTime @updatedAt
 }
 
-// --- SOCIAL PROOF & FAKE STATS ---
-
 model SocialProofSettings {
-  id              String   @id @default(cuid())
-  totalUsers      Int      @default(12540)
-  totalDeposited  Float    @default(850000.00)
-  totalPayouts    Float    @default(320000.00)
-  activeOnline    Int      @default(345)
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  totalUsers     Int      @default(12540)
+  totalDeposited Float    @default(850000.00)
+  totalPayouts   Float    @default(320000.00)
+  activeOnline   Int      @default(345)
+  updatedAt      DateTime @updatedAt
 }
 
 model PayoutProof {
-  id              String   @id @default(cuid())
-  imageUrl        String
-  amount          Float
-  userName        String   // e.g. "Ahmad K."
-  method          String   // e.g. "USDT"
-  date            DateTime @default(now())
-  createdAt       DateTime @default(now())
+  id        String   @id @default(cuid())
+  imageUrl  String
+  amount    Float
+  userName  String
+  method    String
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
 }
-
-// Old PostbackLog removed
 
 model Network {
-  id            String   @id @default(cuid())
-  name          String   @unique
-  slug          String   @unique
-  type          String   // CPA, REVSHARE
-  apiKey        String?
-  secretKey     String?
-  postbackSecret String?
-  isEnabled     Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// --- Mudarabah Pool System ---
-
-model MudarabahPool {
   id             String   @id @default(cuid())
-  title          String
-  description    String?  @db.Text
-  imageUrl       String?  // Optional cover image URL for the pool
-  targetAmount   Float
-  minDeposit     Float    @default(1.0)
-  maxDeposit     Float
-  durationMonths Int
-  isLive         Boolean  @default(false)
-  totalDeposited Float    @default(0.0)
-  status         String   @default("OPEN") // OPEN, ACTIVE, COMPLETED
-  
-  investments    MudarabahInvestment[]
-  distributions  MudarabahDistribution[]
-  
+  name           String   @unique
+  slug           String   @unique
+  type           String
+  apiKey         String?
+  secretKey      String?
+  postbackSecret String?
+  isEnabled      Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model MudarabahPool {
+  id             String                  @id @default(cuid())
+  title          String
+  description    String?
+  imageUrl       String?
+  targetAmount   Float
+  minDeposit     Float                   @default(1.0)
+  maxDeposit     Float
+  durationMonths Int
+  isLive         Boolean                 @default(false)
+  totalDeposited Float                   @default(0.0)
+  status         String                  @default("OPEN")
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  distributions  MudarabahDistribution[]
+  investments    MudarabahInvestment[]
 }
 
 model MudarabahInvestment {
-  id             String   @id @default(cuid())
-  userId         String
-  poolId         String
-  amount         Float
-  status         String   @default("ACTIVE") // ACTIVE, COMPLETED
-  profitEarned   Float    @default(0.0)
-  
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pool           MudarabahPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
+  id           String        @id @default(cuid())
+  userId       String
+  poolId       String
+  amount       Float
+  status       String        @default("ACTIVE")
+  profitEarned Float         @default(0.0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  pool         MudarabahPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([poolId])
 }
 
 model MudarabahDistribution {
-  id                      String   @id @default(cuid())
+  id                      String        @id @default(cuid())
   poolId                  String
   totalProfit             Float
-  userSharePercentage     Float    // e.g., 80.0
-  platformSharePercentage Float    // e.g., 20.0
-  
+  userSharePercentage     Float
+  platformSharePercentage Float
+  createdAt               DateTime      @default(now())
   pool                    MudarabahPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
-  
-  createdAt               DateTime @default(now())
 }
-
-// --- Daily Earning Pool System ---
 
 model DailyEarningInvestment {
   id                 String   @id @default(cuid())
   userId             String
   amount             Float
-  status             String   @default("ACTIVE") // ACTIVE, COMPLETED, WITHDRAWN
+  status             String   @default("ACTIVE")
   profitEarned       Float    @default(0.0)
-  
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   lastCalculatedDate DateTime @default(now())
   expiresAt          DateTime
-  
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([status])
 }
+
 model AdminNotification {
   id        String   @id @default(cuid())
   type      String
@@ -659,4 +562,19 @@ model AdminNotification {
   metadata  String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+enum Tier {
+  NEWBIE
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+  EMERALD
+}
+
+enum TierStatus {
+  CURRENT
+  UPGRADED
 }
