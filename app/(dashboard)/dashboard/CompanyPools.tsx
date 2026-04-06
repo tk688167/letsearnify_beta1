@@ -60,7 +60,7 @@ export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }
             data: getPoolData("Royalty")
         },
         {
-            key: "REWARD",
+            key: "ACHIEVEMENT",
             name: "Achievement Pool",
             subtitle: "On Tier Upgrade",
             icon: GiftIcon,
@@ -72,7 +72,7 @@ export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }
             distribution: "Instant",
             qualification: "Rank Upgrades",
             features: ["Instant Payout", "One-time Bonus"],
-            data: getPoolData("REWARD")
+            data: getPoolData("ACHIEVEMENT")
         }
     ]
 
@@ -92,7 +92,7 @@ export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }
             {poolConfig.map((pool) => {
                 const isPoolEligible = isTierEligible(pool.key, userTier);
                 const isItemLocked = status === "LOCKED" || !isPoolEligible;
-                const isItemDev = status === "DEV" && isPoolEligible && pool.key !== "REWARD";
+                const isItemDev = status === "DEV" && isPoolEligible && pool.key !== "ACHIEVEMENT";
                 
                 const cardContent = (
                 <div 

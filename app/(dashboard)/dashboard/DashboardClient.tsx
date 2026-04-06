@@ -118,7 +118,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
       if (featureKey === "PLAY_EARN") return FEATURE_FLAGS.PLAY_EARN ? "LIVE" : "DEV";
       if (featureKey === "MARKETPLACE") return isMarketplaceLive ? "LIVE" : "DEV";
       if (featureKey === "MUDARABA") return isMudarabahLive ? "LIVE" : "DEV";
-      if (featureKey === "POOLS") return "DEV";
       return "LIVE";
   }
 

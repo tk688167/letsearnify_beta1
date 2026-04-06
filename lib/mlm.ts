@@ -101,17 +101,17 @@ export async function unlockUserAccount(userId: string, tx?: any) {
 
     // 3. Pool allocation
     let rewardPercentage = 20;
-    const existingRewardPool = await db.pool.findUnique({ where: { name: "REWARD" } });
-    if (existingRewardPool && existingRewardPool.percentage > 0) {
-        rewardPercentage = existingRewardPool.percentage;
+    const existingAchievementPool = await db.pool.findUnique({ where: { name: "ACHIEVEMENT" } });
+    if (existingAchievementPool && existingAchievementPool.percentage > 0) {
+        rewardPercentage = existingAchievementPool.percentage;
     }
     
     const achievementAllocation = 1.0 * (rewardPercentage / 100);
 
     await db.pool.upsert({
-        where: { name: "REWARD" },
+        where: { name: "ACHIEVEMENT" },
         update: { balance: { increment: achievementAllocation } },
-        create: { name: "REWARD", balance: achievementAllocation, percentage: rewardPercentage }
+        create: { name: "ACHIEVEMENT", balance: achievementAllocation, percentage: rewardPercentage }
     });
 
     // 4. Distribute referral commissions from the $1 unlock

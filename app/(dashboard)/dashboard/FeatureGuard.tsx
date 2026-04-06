@@ -15,7 +15,7 @@ interface FeatureGuardProps {
 
 // Features that are NOT launched yet — after $1 unlock, show "Under Development"
 // When admin launches them, remove from this array
-const UNDER_DEVELOPMENT_FEATURES = ['marketplace', 'mudarabah', 'cbsp', 'royalty'];
+const UNDER_DEVELOPMENT_FEATURES = ['cbsp', 'royalty'];
 
 // Feature-specific titles for the lock screen
 const FEATURE_TITLES: Record<string, string> = {
