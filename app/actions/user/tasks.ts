@@ -11,6 +11,15 @@ export async function getUserTasks() {
     throw new Error("Unauthorized")
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isActiveMember: true }
+  })
+
+  if (!user || !user.isActiveMember) {
+    throw new Error("PREMIUM_LOCKED")
+  }
+
   try {
     const tasks = await prisma.task.findMany({
       where: {
@@ -55,6 +64,15 @@ export async function completeTask(taskId: string, proof: string) {
 
   if (!proof || proof.trim().length === 0) {
       return { success: false, error: "Proof is required to complete this task." }
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { isActiveMember: true }
+  })
+
+  if (!user || !user.isActiveMember) {
+    return { success: false, error: "Premium membership required. Please activate your account with $1." }
   }
 
   try {

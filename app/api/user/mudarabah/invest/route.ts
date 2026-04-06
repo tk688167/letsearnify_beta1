@@ -31,6 +31,10 @@ export async function POST(req: Request) {
     }
 
     if (!user) return new NextResponse("User not found", { status: 404 });
+
+    if (!user.isMudarabaUnlocked) {
+      return new NextResponse("Access Locked. You must pay the $1 Mudaraba activation fee first.", { status: 403 });
+    }
     
     if (!pool || !pool.isLive) {
       return new NextResponse("Pool not found or is not live", { status: 404 });

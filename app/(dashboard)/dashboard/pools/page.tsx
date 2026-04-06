@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import PoolsPageContent from "@/app/components/pages/PoolsPageContent"
 import { prisma } from "@/lib/prisma"
+import { FeatureGuard } from "@/app/(dashboard)/dashboard/FeatureGuard"
 
 export const metadata: Metadata = {
   title: "Reward Pools | LetsEarnify",
@@ -19,12 +20,14 @@ export default async function PoolsPage() {
   })
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      <header className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">Reward Pools</h1>
-        <p className="text-muted-foreground">Explore our three reward systems designed to maximize your earnings</p>
-      </header>
-      <PoolsPageContent isActiveMember={user?.isActiveMember || false} />
-    </div>
+    <FeatureGuard feature="pools" previewMode={true} title="Reward Pools">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-2">Reward Pools</h1>
+          <p className="text-muted-foreground">Explore our three reward systems designed to maximize your earnings</p>
+        </header>
+        <PoolsPageContent isActiveMember={user?.isActiveMember || false} />
+      </div>
+    </FeatureGuard>
   )
 }

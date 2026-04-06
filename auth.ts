@@ -103,6 +103,21 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
     })
   ],
   events: {
+    async signIn({ user }) {
+        if (user?.id) {
+            try {
+                await (prisma as any).user.update({
+                    where: { id: user.id },
+                    data: { 
+                        lastLoginAt: new Date(),
+                        lastActivityAt: new Date()
+                    }
+                })
+            } catch (error) {
+                console.error("Failed to update lastLoginAt:", error)
+            }
+        }
+    },
     async createUser({ user }) {
         try {
             let validReferredByCode = 'COMPANY';

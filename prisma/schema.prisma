@@ -101,10 +101,12 @@ model User {
   lastPremiumSpinTime DateTime? // Track 24h premium spin cycle
   lastSurpriseDate  DateTime? // Track monthly surprise gift
   
-  // $1 Unlock System Fields
+  // $1 Unified Unlock System Fields
   lastUnlockAt      DateTime?
-  unlockExpiry      DateTime?
+  unlockAt          DateTime? // Unified lifetime unlock date
+  unlockExpiry      DateTime? // Deprecated for lifetime, but kept for legacy or internal use
   lastActivityAt    DateTime  @default(now())
+  lastLoginAt       DateTime? // Tracked for 3-month inactivity relock
   lockedBalance     Float     @default(0.0)
   
   passwordResetToken  PasswordResetToken?

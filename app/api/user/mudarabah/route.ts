@@ -28,16 +28,32 @@ export async function GET(req: Request) {
       });
     }
 
+    // Fetch user details for access verification
+    const user = await (prisma as any).user.findUnique({
+      where: { id: session.user.id },
+      select: { mudarabahBalance: true, isMudarabaUnlocked: true }
+    });
+
+    const isUnlocked = user?.isMudarabaUnlocked === true;
+
+    if (!isUnlocked) {
+      return NextResponse.json({
+        isFeatureLive: true,
+        isUnlocked: false,
+        pools: [],
+        userWallet: {
+          balance: user?.mudarabahBalance || 0,
+          totalInvested: 0,
+          totalProfit: 0,
+          investments: [],
+        }
+      });
+    }
+
     // Fetch live pools
     const pools = await (prisma as any).mudarabahPool.findMany({
       where: { isLive: true },
       orderBy: { createdAt: "desc" }
-    });
-
-    // Fetch user details for wallet display
-    const user = await (prisma as any).user.findUnique({
-      where: { id: session.user.id },
-      select: { mudarabahBalance: true }
     });
 
     // Fetch user's investments
@@ -54,6 +70,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       isFeatureLive: true,
+      isUnlocked: true,
       pools,
       userWallet: {
         balance: user?.mudarabahBalance || 0,

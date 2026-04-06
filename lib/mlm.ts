@@ -62,62 +62,60 @@ export const TIER_ORDER = ["NEWBIE", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DI
 // 5. All parties get tier check
 // ─────────────────────────────────────────────────────────────
 export async function unlockUserAccount(userId: string, tx?: any) {
-    console.log(`[MLM] Unlocking account for user ${userId}`);
+    console.log(`[MLM] Unified Lifetime Unlocking for user ${userId}`);
     const db = tx || prisma;
 
     const user = await db.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error("User not found");
     
-    if (user.isActiveMember && (!user.unlockExpiry || new Date(user.unlockExpiry) > new Date())) {
-        throw new Error("User account is already active and unlocked.");
+    if (user.isActiveMember) {
+        // We only allow re-unlocking if inactive? 
+        // Actually, the inactivity cron job will reset isActiveMember = false.
+        // So hitting this means they are already unlocked and active.
+        return { success: true, message: "User account is already active and unlocked." };
     }
 
     const now = new Date();
-    const expiry = new Date();
-    expiry.setMonth(expiry.getMonth() + 3);
 
-    // 1. Activate the account
+    // 1. Activate the account for LIFETIME
     await db.user.update({
         where: { id: userId },
         data: { 
             isActiveMember: true,
             lastUnlockAt: now,
-            unlockExpiry: expiry,
+            unlockAt: now,
+            unlockExpiry: null, // Lifetime access
             lastActivityAt: now,
+            lastLoginAt: now,
             premiumBonusSpins: { increment: 2 } 
         }
     });
 
-    // 2. Signup bonus is now granted immediately at registration.
-    
     await db.mLMLog.create({
         data: {
             userId: userId,
-            type: "ACCOUNT_UNLOCK",
+            type: "ACCOUNT_UNLOCK_UNIFIED",
             amount: 1.0,
-            description: "Account unlocked for 3 months via $1 activation. Withdrawals enabled."
+            description: "Unified lifetime premium access unlocked via $1 fee."
         }
     });
 
-    // 3. Pool allocation
-    let rewardPercentage = 20;
-    const existingRewardPool = await db.pool.findUnique({ where: { name: "REWARD" } });
-    if (existingRewardPool && existingRewardPool.percentage > 0) {
-        rewardPercentage = existingRewardPool.percentage;
-    }
-    
-    const achievementAllocation = 1.0 * (rewardPercentage / 100);
+    // 2. ACHIEVEMENT POOL ALLOCATION (FIXED 20%)
+    const achievementAllocation = 0.20;
 
     await db.pool.upsert({
         where: { name: "REWARD" },
         update: { balance: { increment: achievementAllocation } },
-        create: { name: "REWARD", balance: achievementAllocation, percentage: rewardPercentage }
+        create: { name: "REWARD", balance: achievementAllocation, percentage: 20, description: "Achievement Pool" }
     });
 
-    // 4. Distribute referral commissions from the $1 unlock
-    // Per PDF: "When Talha deposits $1 to unlock, Ali receives his referral reward"
+    // 3. REFERRAL COMMISSIONS (DISTRIBUTION BASED ON $1 AMOUNT)
+    // The distrubuteCommissions function will use the CURRENT TIER percentages (5/3/2 for Newbie, etc.)
     const referralEmissions = await distributeCommissions(userId, 1.0, db);
     
+    // 4. COMPANY SHARE (THE REMAINDER)
+    // Total distributed = 0.20 (Pool) + referralEmissions (e.g. 0.10 for Newbie)
+    // Company = 1.0 - Achievement - Referrals
     const companyRemainder = Math.max(1.0 - achievementAllocation - referralEmissions, 0);
 
     await db.unlockActivation.create({
@@ -126,8 +124,6 @@ export async function unlockUserAccount(userId: string, tx?: any) {
             amount: 1.0,
             achievementPool: achievementAllocation,
             referrals: referralEmissions,
-            cbsp: 0.0,
-            royalty: 0.0,
             company: companyRemainder
         }
     });
@@ -136,7 +132,7 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         await db.pool.upsert({
             where: { name: "COMPANY" },
             update: { balance: { increment: companyRemainder } },
-            create: { name: "COMPANY", balance: companyRemainder, percentage: 0 }
+            create: { name: "COMPANY", balance: companyRemainder, percentage: 0, description: "System Revenue" }
         });
     }
 
@@ -155,8 +151,8 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         data: {
             adminId: "SYSTEM",
             targetUserId: userId,
-            actionType: "USER_ACTIVATION",
-            details: `User ${user.email || userId} activated. Refs: $${referralEmissions.toFixed(2)}, Company: $${companyRemainder.toFixed(2)}`
+            actionType: "USER_ACTIVATION_UNIFIED",
+            details: `User ${user.email || userId} activated life-time. Pool: $0.20, Refs: $${referralEmissions.toFixed(2)}, Company: $${companyRemainder.toFixed(2)}`
         }
     });
 

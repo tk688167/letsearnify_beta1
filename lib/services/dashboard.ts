@@ -29,7 +29,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
           systemConfigMudarabah,
           qualifiedArn
         ] = await Promise.all([
-          prisma.user.findUnique({
+          (prisma as any).user.findUnique({
             where: { id: userId },
             select: {
               id: true,
@@ -41,6 +41,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
               memberId: true, 
               referralCode: true,
               isActiveMember: true,
+              isMudarabaUnlocked: true,
               totalDeposit: true,
               activeMembers: true,
               unlockExpiry: true,

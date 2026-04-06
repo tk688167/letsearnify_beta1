@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function MudarabahPage() {
   return (
-    <FeatureGuard title="Mudarabah Pool" feature="pools" previewMode={true}>
+    <FeatureGuard title="Mudarabah Pool" feature="mudarabah" previewMode={true}>
       <MudarabahClient />
     </FeatureGuard>
   );

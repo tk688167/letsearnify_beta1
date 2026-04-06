@@ -8,14 +8,13 @@ import { LockClosedIcon, CheckCircleIcon, ArrowRightIcon, XMarkIcon } from "@her
 
 interface FeatureGuardProps {
     title?: string;
-    feature?: 'tasks' | 'pools' | 'cbsp' | 'royalty' | 'marketplace' | 'mudarabah' | 'partner' | 'default';
+    feature?: 'tasks' | 'pools' | 'cbsp' | 'royalty' | 'marketplace' | 'mudarabah' | 'partner' | 'spin' | 'default';
     previewMode?: boolean;
     children?: React.ReactNode; 
 }
 
 // Features that are NOT launched yet — after $1 unlock, show "Under Development"
-// When admin launches them, remove from this array
-const UNDER_DEVELOPMENT_FEATURES = ['marketplace', 'mudarabah', 'cbsp', 'royalty'];
+const UNDER_DEVELOPMENT_FEATURES: string[] = [];
 
 // Feature-specific titles for the lock screen
 const FEATURE_TITLES: Record<string, string> = {
@@ -23,36 +22,34 @@ const FEATURE_TITLES: Record<string, string> = {
     mudarabah: '🔒 Mudarabah Pool Locked',
     pools: '🔒 Reward Pools Locked',
     partner: '🔒 Partner Program Locked',
+    tasks: '🔒 Premium Tasks Locked',
+    spin: '🔒 Premium Spin Locked',
+    cbsp: '🔒 CBS Pool Locked',
+    royalty: '🔒 Royalty Pool Locked',
 }
 
 const FEATURE_DESCRIPTIONS: Record<string, string> = {
-    marketplace: 'This is the Marketplace page, where users can access platform products and services. To unlock the Marketplace and other premium features, please activate your account with $1.',
-    mudarabah: 'This is the Mudarabah Pool, where users can access ethical investment opportunities. To unlock the Mudarabah Pool, please activate your account with $1.',
-    pools: 'This is the Reward Pools section, where active members earn from CBSP, Royalty, and Achievement pools. To unlock Reward Pools, please activate your account with $1.',
-    partner: 'The Partner Program allows you to earn commissions from your referral network. To unlock the Partner Program, please activate your account with $1.',
+    marketplace: 'Access verified professionals or post your project requirements. Activate your account with $1 to unlock the Marketplace and 6 other premium features.',
+    mudarabah: 'Access ethical investment opportunities with monthly profit sharing. Activate your account with $1 to unlock Mudarabah and 6 other premium features.',
+    pools: 'Earn from CBSP, Royalty, and Achievement pools. Activate your account with $1 to unlock all Reward Pools and 6 other premium features.',
+    partner: 'Earn commissions from your referral network. Activate your account with $1 to unlock the Partner Program and premium features.',
+    tasks: 'Complete premium tasks to earn high rewards. Activate your account with $1 to unlock full task access and 6 other premium features.',
+    spin: 'Spin for premium rewards and cash prizes. Activate your account with $1 to unlock the Premium Spin Wheel and 6 other premium features.',
+    cbsp: 'Participate in the Community Benefit Share Pool. Activate your account with $1 to unlock CBSP and 6 other premium features.',
+    royalty: 'Receive your share of the platform\'s royalty distributions. Activate your account with $1 to unlock Royalty Pool and 6 other premium features.',
 }
 
-// Under Development info per feature
+// Under Development info per feature (Kept for future features, but currently empty for the 7 gems)
 const DEV_FEATURE_INFO: Record<string, { title: string, description: string, icon: string }> = {
     marketplace: {
         title: "Freelance Marketplace",
-        description: "Our marketplace is being built where you can buy, sell, and trade digital services with platform members. Get early access as soon as it launches.",
+        description: "Our marketplace is live! Unlock now to connect with verified professionals.",
         icon: "🛍️"
     },
     mudarabah: {
         title: "Mudarabah Investment Pool",
-        description: "The Mudarabah Pool is an ethical investment opportunity where your funds are invested in halal ventures. Profit sharing will be distributed monthly.",
+        description: "Mudarabah is live! Unlock now to start your ethical investment journey.",
         icon: "📈"
-    },
-    cbsp: {
-        title: "CBSP Pool",
-        description: "This feature is currently under development. You will be notified once it becomes available. The CBSP Pool logic is being finalized for launch.",
-        icon: "👥"
-    },
-    royalty: {
-        title: "Royalty Pool",
-        description: "This feature is currently under development. You will be notified once it becomes available. The Royalty Pool distribution mechanics are being finalized for launch.",
-        icon: "👑"
     },
 }
 
@@ -80,7 +77,12 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
   // ════════════════════════════════════════════════════════════════
   const isRestrictedFeature = 
     feature === 'marketplace' || 
-    feature === 'mudarabah';
+    feature === 'mudarabah' ||
+    feature === 'tasks' ||
+    feature === 'pools' ||
+    feature === 'cbsp' ||
+    feature === 'royalty' ||
+    feature === 'spin';
 
   if (!isUnlocked && isRestrictedFeature) {
       const lockTitle = FEATURE_TITLES[feature] || `🔒 ${title || 'Feature'} Locked`;
@@ -93,7 +95,7 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
                      {children}
                  </div>
                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center p-4 sm:p-6 bg-black/10 dark:bg-black/50 backdrop-blur-[4px]">
-                     <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-700/80 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 max-w-[380px] sm:max-w-[420px] w-full shadow-2xl flex flex-col animate-in zoom-in-95 duration-500 max-h-full overflow-hidden relative">
+                     <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border border-gray-200/80 dark:border-gray-700/80 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 max-w-[380px] sm:max-w-[420px] w-full shadow-2xl flex flex-col animate-in zoom-in-95 duration-500 max-h-full overflow-hidden relative text-left">
                          <Link href="/dashboard" className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors z-20">
                              <XMarkIcon className="w-4 h-4" />
                          </Link>
@@ -107,7 +109,7 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
                          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 border border-gray-100 dark:border-gray-700/50 shrink-0">
                              <div className="text-[10px] sm:text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 sm:mb-4 text-center">After activation, you will get access to</div>
                              <ul className="space-y-2.5 sm:space-y-3">
-                                 {["Marketplace Access", "Mudarabah Pool Access", "Reward Pools", "Premium Tasks", "Withdrawal & Transfer", "Premium Spin Wheel", "Locked Balance Release"].map((item, i) => (
+                                 {["Marketplace Access", "Mudarabah Pool Access", "Reward Pools", "Premium Tasks", "Withdrawal & Transfer", "Premium Spin Wheel", "Lifetime Membership"].map((item, i) => (
                                      <li key={i} className="flex items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium">
                                          <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
                                          {item}
@@ -117,7 +119,7 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
                          </div>
                          <div className="flex flex-col gap-2.5 sm:gap-3 shrink-0 mt-auto">
                              <Link href="/dashboard/wallet?tab=deposit" className="w-full py-3.5 sm:py-4 bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm sm:text-base font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
-                                 Activate for $1.00 <ArrowRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                 Unlock All Content ($1.00) <ArrowRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                              </Link>
                              <Link href="/dashboard" className="w-full py-3 sm:py-3.5 bg-transparent border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm sm:text-base font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-all flex items-center justify-center">
                                  Go Back
