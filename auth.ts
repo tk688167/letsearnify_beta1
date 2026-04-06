@@ -235,15 +235,55 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (account?.provider === "google" && user.id && user.id !== "super-admin-id") {
           try {
             const dbUser = await prisma.user.findUnique({ where: { id: user.id } })
-            if (dbUser) { token.role = dbUser.role; token.memberId = dbUser.memberId; token.isActiveMember = dbUser.isActiveMember }
-          } catch { /* non-critical */ }
+            if (dbUser) { 
+              let updateNeeded = false
+              const updates: any = {}
+
+              // Fix missing memberId or CUID-style memberId
+              if (!dbUser.memberId || dbUser.memberId.length > 7 || /[a-z]/i.test(dbUser.memberId)) {
+                updates.memberId = generateMemberId()
+                updateNeeded = true
+              }
+
+              // Fix missing referralCode
+              if (!dbUser.referralCode) {
+                updates.referralCode = generateReferralCode()
+                updateNeeded = true
+              }
+
+              if (updateNeeded) {
+                const updated = await prisma.user.update({ where: { id: user.id }, data: updates })
+                token.memberId = updated.memberId
+                console.log(`[AUTH] Repaired missing fields for ${dbUser.email}`)
+              } else {
+                token.memberId = dbUser.memberId
+              }
+
+              token.role = dbUser.role
+              token.isActiveMember = dbUser.isActiveMember 
+            }
+          } catch (e) { console.error("[AUTH] JWT repair error:", e) }
         }
         return token
       }
       if (!token.sub || token.sub === "super-admin-id") return token
       try {
         const existingUser = await prisma.user.findUnique({ where: { id: token.sub } })
-        if (existingUser) { token.role = existingUser.role; token.memberId = existingUser.memberId; token.isActiveMember = existingUser.isActiveMember }
+        if (existingUser) { 
+          token.role = existingUser.role
+          token.isActiveMember = existingUser.isActiveMember
+
+          // Self-healing for credentials login too
+          if (!existingUser.memberId || existingUser.memberId.length > 7 || !existingUser.referralCode) {
+            const updates: any = {}
+            if (!existingUser.memberId || existingUser.memberId.length > 7) updates.memberId = generateMemberId()
+            if (!existingUser.referralCode) updates.referralCode = generateReferralCode()
+            const updated = await prisma.user.update({ where: { id: existingUser.id }, data: updates })
+            token.memberId = updated.memberId
+          } else {
+            token.memberId = existingUser.memberId
+          }
+        }
       } catch { /* non-critical */ }
       return token
     },
