@@ -64,11 +64,11 @@ export default function TaskModal({ task, companies, defaultType, onClose, onSuc
                             <input 
                                 name="reward" 
                                 type="number" 
-                                step="1" 
+                                step="any" 
                                 defaultValue={task?.reward} 
                                 required 
                                 className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm font-black"
-                                placeholder="0"
+                                placeholder="0.00"
                             />
                         </div>
                     </div>
@@ -88,14 +88,13 @@ export default function TaskModal({ task, companies, defaultType, onClose, onSuc
                     </div>
 
                     <div className="space-y-1">
-                        <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.15em] ml-1">Instruction Details</label>
+                        <label className="block text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.15em] ml-1">Instruction Details (Optional)</label>
                         <textarea 
                             name="description" 
                             defaultValue={task?.description} 
-                            required 
                             rows={3} 
                             className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm font-medium resize-none"
-                            placeholder="Provide clear steps for the user..."
+                            placeholder="Provide clear steps for the user (optional)..."
                         />
                     </div>
 

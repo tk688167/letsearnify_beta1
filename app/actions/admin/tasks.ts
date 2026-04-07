@@ -8,7 +8,7 @@ import { z } from "zod"
 // Schema for Task Validation
 const TaskSchema = z.object({
   title: z.string().min(3, "Title too short"),
-  description: z.string().min(10, "Description too short"),
+  description: z.string().optional().or(z.literal("")),
   reward: z.coerce.number().positive("Reward must be positive"),
   type: z.enum(["BASIC", "PREMIUM", "SOCIAL", "APP", "SURVEY", "VIDEO", "OTHER"]),
   status: z.enum(["ACTIVE", "INACTIVE"]),
@@ -61,7 +61,7 @@ export async function createTask(formData: FormData) {
       const task = await prisma.task.create({
           data: {
               title: validated.data.title,
-              description: validated.data.description,
+              description: validated.data.description ?? "",
               reward: validated.data.reward,
               type: validated.data.type as any,
               status: validated.data.status,
