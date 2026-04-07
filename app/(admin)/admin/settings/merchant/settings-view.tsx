@@ -78,7 +78,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
         <div className="relative" ref={wrapperRef}>
              <div className="relative">
                 <input 
-                    className="w-full p-3 pr-10 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 cursor-pointer"
+                    className="w-full p-3 pr-10 mt-1 border border-border bg-background text-foreground rounded-xl outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                     placeholder={isLoading ? "Loading countries..." : "Select a country..."}
                     value={query}
                     onChange={(e: any) => {
@@ -98,12 +98,12 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
              </div>
 
             {isOpen && !isLoading && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-card border border-border rounded-xl shadow-xl max-h-60 overflow-y-auto">
                     {filteredCountries.length > 0 ? (
                         filteredCountries.map((c: any) => (
                             <div 
                                 key={c.code}
-                                className="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between border-b border-gray-50 last:border-0"
+                                className="p-3 hover:bg-accent cursor-pointer flex items-center justify-between border-b border-border last:border-0"
                                 onClick={() => {
                                     setQuery(c.name)
                                     onSelect(c)
@@ -113,8 +113,8 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
                                 <div className="flex items-center gap-3">
                                     <img src={c.flag} alt={c.code} className="w-6 h-4 object-cover rounded shadow-sm" />
                                     <div>
-                                        <div className="text-sm font-bold text-gray-900">{c.name}</div>
-                                        <div className="text-xs text-gray-500">{c.code} • {c.currency}</div>
+                                        <div className="text-sm font-bold text-foreground">{c.name}</div>
+                                        <div className="text-xs text-muted-foreground">{c.code} • {c.currency}</div>
                                     </div>
                                 </div>
                                 <PlusIcon className="w-4 h-4 text-gray-300"/>
@@ -474,17 +474,17 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
             {/* ADD COUNTRY MODAL */}
             {isAddCountryOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl mx-auto">
-                        <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                    <div className="bg-card text-foreground rounded-3xl w-full max-w-md overflow-hidden shadow-2xl mx-auto border border-border">
+                        <div className="p-4 md:p-6 border-b border-border bg-muted flex justify-between items-center">
                             <h3 className="text-lg font-bold flex items-center gap-2">
                                 Add Region 
-                                {isFetchingConfig && <span className="text-xs font-normal text-blue-600 flex items-center gap-1 animate-pulse"><SparklesIcon className="w-3 h-3"/> Fetching...</span>}
+                                {isFetchingConfig && <span className="text-xs font-bold text-primary flex items-center gap-1 animate-pulse"><ArrowPathIcon className="w-3 h-3 animate-spin"/> Fetching Live USDT Rate...</span>}
                             </h3>
-                            <button onClick={() => setIsAddCountryOpen(false)}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600"/></button>
+                            <button onClick={() => setIsAddCountryOpen(false)}><XMarkIcon className="w-6 h-6 text-muted-foreground hover:text-foreground"/></button>
                         </div>
                         <div className="p-6 space-y-4">
                             <div className="relative">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Country Search</label>
+                                <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Country Search</label>
                                 <CountryAutocomplete 
                                     onSelect={(country) => {
                                         setNewCountry({
@@ -508,9 +508,9 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                             
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Code</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Code</label>
                                     <input 
-                                        className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 bg-gray-50"
+                                        className="w-full p-3 mt-1 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                                         placeholder="CA"
                                         value={newCountry.code}
                                         onChange={e => setNewCountry({...newCountry, code: e.target.value.toUpperCase()})}
@@ -518,9 +518,9 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Currency</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Currency</label>
                                     <input 
-                                        className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 bg-gray-50"
+                                        className="w-full p-3 mt-1 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                                         placeholder="CAD"
                                         value={newCountry.currency}
                                         onChange={e => setNewCountry({...newCountry, currency: e.target.value.toUpperCase()})}
@@ -530,20 +530,20 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Exchange Rate</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Exchange Rate</label>
                                     <input 
                                         type="number"
                                         step="0.01"
-                                        className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900"
+                                        className="w-full p-3 mt-1 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                                         placeholder="1.0"
                                         value={newCountry.exchangeRate}
                                         onChange={e => setNewCountry({...newCountry, exchangeRate: parseFloat(e.target.value)})}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Status</label>
+                                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Status</label>
                                     <select 
-                                        className="w-full p-3 mt-1 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 bg-white"
+                                        className="w-full p-3 mt-1 border border-border rounded-xl outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                                         value={newCountry.status}
                                         onChange={e => setNewCountry({...newCountry, status: e.target.value as any})}
                                     >
@@ -556,7 +556,7 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                             <button 
                                 onClick={handleAddCountry}
                                 disabled={!newCountry.name || !newCountry.code || isPending}
-                                className="w-full py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black disabled:opacity-50 transition-all mt-4"
+                                className="w-full py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 disabled:opacity-50 transition-all mt-4"
                             >
                                 {isPending ? "Creating..." : "Create Region"}
                             </button>
@@ -571,37 +571,37 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                 if(!country) return null
                 return (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-                        <div className="bg-white rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl h-[85vh] flex flex-col mx-auto">
-                           <div className="p-4 md:p-6 border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
+                        <div className="bg-card text-foreground rounded-[2rem] w-full max-w-2xl overflow-hidden shadow-2xl h-[85vh] flex flex-col mx-auto border border-border">
+                           <div className="p-4 md:p-6 border-b border-border bg-muted flex justify-between items-center sticky top-0 relative z-10">
                                 <div>
                                     <h3 className="text-xl font-bold flex items-center gap-2">
                                         Edit Details: {country.name}
-                                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-md">{country.code}</span>
+                                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-md border border-primary/20">{country.code}</span>
                                     </h3>
                                 </div>
-                                <button onClick={() => setExpandedCountryId(null)}><XMarkIcon className="w-6 h-6 text-gray-400 hover:text-gray-600"/></button>
+                                <button onClick={() => setExpandedCountryId(null)}><XMarkIcon className="w-6 h-6 text-muted-foreground hover:text-foreground"/></button>
                             </div>
                             
                             <div className="p-8 overflow-y-auto space-y-8 flex-1">
                                 
                                 {/* Configuration Section */}
                                 <section className="space-y-4">
-                                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Configuration</h4>
+                                    <h4 className="text-sm font-bold text-foreground uppercase tracking-wide border-b border-border pb-2">Configuration</h4>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Currency Code</label>
+                                            <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Currency Code</label>
                                             <input 
-                                                className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full p-3 text-sm border border-border bg-background text-foreground rounded-xl focus:ring-2 focus:ring-primary outline-none"
                                                 defaultValue={country.currency || "USD"}
                                                 onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { currency: e.target.value }) })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Exchange Rate (to USD)</label>
+                                            <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Exchange Rate (to USD)</label>
                                             <input 
                                                 type="number"
                                                 step="0.01"
-                                                className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full p-3 text-sm border border-border bg-background text-foreground rounded-xl focus:ring-2 focus:ring-primary outline-none"
                                                 defaultValue={country.exchangeRate || 1.0}
                                                 onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { exchangeRate: parseFloat(e.target.value) }) })}
                                             />
@@ -611,21 +611,21 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
 
                                 {/* Instructions Section */}
                                 <section className="space-y-6">
-                                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Deposit Instructions</h4>
+                                    <h4 className="text-sm font-bold text-foreground uppercase tracking-wide border-b border-border pb-2">Deposit Instructions</h4>
                                     
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Description</label>
                                         <textarea 
-                                            className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                            className="w-full p-3 text-sm border border-border bg-background text-foreground rounded-xl focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
                                             defaultValue={country.description || ""}
                                             placeholder="Standard deposit description..."
                                             onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { description: e.target.value }) })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Important Warning</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Important Warning</label>
                                         <textarea 
-                                            className="w-full p-3 text-sm border border-orange-100 bg-orange-50/30 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-orange-900 placeholder:text-orange-300 min-h-[80px]"
+                                            className="w-full p-3 text-sm border border-orange-200 bg-orange-50/30 text-orange-900 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none placeholder:text-orange-300 min-h-[80px]"
                                             defaultValue={country.instruction || ""}
                                             placeholder="Warning message for users..."
                                             onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { instruction: e.target.value }) })}
@@ -634,21 +634,21 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                 </section>
 
                                 <section className="space-y-6">
-                                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide border-b border-gray-100 pb-2">Withdrawal Instructions</h4>
+                                    <h4 className="text-sm font-bold text-foreground uppercase tracking-wide border-b border-border pb-2">Withdrawal Instructions</h4>
                                     
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Description</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Description</label>
                                         <textarea 
-                                            className="w-full p-3 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                            className="w-full p-3 text-sm border border-border bg-background text-foreground rounded-xl focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
                                             defaultValue={country.withdrawalDescription || ""}
                                             placeholder="Standard withdrawal description..."
                                             onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalDescription: e.target.value }) })}
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Important Warning</label>
+                                        <label className="text-xs font-bold text-muted-foreground uppercase mb-1 block">Important Warning</label>
                                         <textarea 
-                                            className="w-full p-3 text-sm border border-red-100 bg-red-50/30 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-red-900 placeholder:text-red-300 min-h-[80px]"
+                                            className="w-full p-3 text-sm border border-red-200 bg-red-50/30 text-red-900 rounded-xl focus:ring-2 focus:ring-red-500 outline-none placeholder:text-red-300 min-h-[80px]"
                                             defaultValue={country.withdrawalInstruction || ""}
                                             placeholder="Warning message for withdrawals..."
                                             onBlur={(e: any) => startTransition(async () => { await updateCountryDetails(country.id, { withdrawalInstruction: e.target.value }) })}
@@ -657,10 +657,10 @@ export default function MerchantSettingsPage({ countries }: { countries: any[] }
                                 </section>
                             </div>
 
-                            <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+                            <div className="p-4 border-t border-border bg-muted text-right sticky bottom-0">
                                 <button 
                                     onClick={() => setExpandedCountryId(null)}
-                                    className="px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-all"
+                                    className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-md"
                                 >
                                     Done
                                 </button>

@@ -31,9 +31,10 @@ import {
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
+import { DepositRequired } from "../DepositRequired"
 import toast, { Toaster } from "react-hot-toast"
 
-// ─── Brand logo helper ──────────────────────────────────────────────
+// --- Brand logo helper ---
 const BRAND_LOGOS: Record<string, string> = {
   "jazzcash": "/jazzcash.webp",
   "jazz cash": "/jazzcash.webp",
@@ -42,7 +43,7 @@ const BRAND_LOGOS: Record<string, string> = {
 }
 const FALLBACK_GRADS = ["from-blue-500 to-indigo-600", "from-green-500 to-emerald-600", "from-purple-500 to-violet-600", "from-orange-500 to-amber-600"]
 
-// ─── Country flags by code ──────────────────────────────────────────
+// --- Country flags by code ---
 const COUNTRY_FLAGS: Record<string, string> = {
   PK: "🇵🇰", IN: "🇮🇳", BD: "🇧🇩", AE: "🇦🇪", US: "🇺🇸", GB: "🇬🇧",
   SA: "🇸🇦", TR: "🇹🇷", NG: "🇳🇬", EG: "🇪🇬", KE: "🇰🇪", MY: "🇲🇾",
@@ -83,7 +84,7 @@ function PaymentMethodIconDark({ name }: { name: string }) {
   )
 }
 
-// ─── Main Export ─────────────────────────────────────────────────────
+// --- Main Export ---
 
 export default function WalletClient({ user, transactions, platformWallets, merchantSettings }: { user: any, transactions: any[], platformWallets: any[], merchantSettings: any[] }) {
   return (
@@ -175,7 +176,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     const file = e.target.files?.[0]
     if (!file) return
 
-    // ── Validate file type ──────────────────────────────────────────
+    // ΓöÇΓöÇ Validate file type ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"]
     if (!allowedTypes.includes(file.type)) {
       setMessage({ type: 'error', text: "Invalid file type. Please upload a JPG, PNG, WEBP or GIF image." })
@@ -183,7 +184,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       return
     }
 
-    // ── Validate file size (max 15 MB before compression) ───────────
+    // ΓöÇΓöÇ Validate file size (max 15 MB before compression) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const MAX_RAW_SIZE_MB = 15
     if (file.size > MAX_RAW_SIZE_MB * 1024 * 1024) {
       setMessage({ type: 'error', text: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_RAW_SIZE_MB} MB.` })
@@ -194,7 +195,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setMessage(null)
     setIsUploadingScreenshot(true)
 
-    // ── Compress to JPEG via canvas (max 1200px, quality 0.75) ───────
+    // ΓöÇΓöÇ Compress to JPEG via canvas (max 1200px, quality 0.75) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     const reader = new FileReader()
     reader.onloadend = () => {
       const img = new Image()
@@ -279,7 +280,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     })
   }
 
-  // ─── Render Helpers ───────────────────────────────────────────────
+  // --- Render Helpers ---
 
   const MethodOption = ({ id, label, icon: Icon, sub, selected, onClick, color = "blue" }: any) => {
       const isSelected = selected === id;
@@ -304,11 +305,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
   }
 
-  // ─── Merchant Modal Content ───────────────────────────────────────
+  // --- Merchant Modal Content ---
 
   const renderMerchantContent = (type: 'DEPOSIT' | 'WITHDRAWAL') => {
 
-    // ── STEP 1: Country Selection ──
+    // ΓöÇΓöÇ STEP 1: Country Selection ΓöÇΓöÇ
     if (!selectedCountry) {
       const filteredCountries = merchantSettings.filter((c: any) => 
         !countrySearch || c.name.toLowerCase().includes(countrySearch.toLowerCase()) || c.code.toLowerCase().includes(countrySearch.toLowerCase())
@@ -377,7 +378,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
     }
 
-    // ── STEP 2: Payment Method Selection ──
+    // ΓöÇΓöÇ STEP 2: Payment Method Selection ΓöÇΓöÇ
     if (!selectedPaymentMethod) {
       return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -415,8 +416,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       )
     }
 
-    // ── STEP 3: Action Form ──
-    const rate = selectedCountry.currency === 'PKR' ? 300 : (selectedCountry.exchangeRate || 1)
+    // ΓöÇΓöÇ STEP 3: Action Form ΓöÇΓöÇ
+    const rate = selectedCountry.exchangeRate || 1
     const val = parseFloat(amount)
     const totalPayable = !isNaN(val) && val > 0 ? val * rate : 0
 
@@ -480,7 +481,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <div className="rounded-xl bg-muted/40 border border-border overflow-hidden animate-in fade-in duration-200">
                 <div className="flex justify-between items-center px-4 py-2.5 bg-muted/60 border-b border-border">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Conversion</span>
-                  <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">1 USD = {rate} {selectedCountry.currency}</span>
+                  <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">1 USDT = {rate} {selectedCountry.currency}</span>
                 </div>
                 <div className="p-4">
                   <div className="flex items-center justify-between gap-4 mb-3">
@@ -522,7 +523,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                         <img src={screenshot} alt="Proof" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded ✓</p>
+                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded ✅</p>
                         <p className="text-muted-foreground text-[10px] uppercase tracking-widest mt-0.5">Tap to replace image</p>
                       </div>
                       <CheckCircleIcon className="w-6 h-6 text-green-500 shrink-0 mx-2" />
@@ -579,7 +580,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     )
   }
 
-  // ─── Transaction type display helper ──────────────────────────────
+  // --- Transaction type display helper ---
   const getTxDisplay = (tx: any, iconSize = "w-5 h-5") => {
     let typeDisplay = tx.type, icon = <ArrowPathIcon className={`${iconSize} text-gray-500`}/>, iconBg = "bg-gray-100 dark:bg-gray-900/30", amountColor = "text-foreground", prefix = "";
     if (tx.type === 'DEPOSIT') { icon = <ArrowDownTrayIcon className={`${iconSize} text-green-600 dark:text-green-400`}/>; iconBg = "bg-green-100 dark:bg-green-900/30"; amountColor = "text-green-600 dark:text-green-400"; prefix = "+"; typeDisplay = "Wallet Deposit"; }
@@ -594,7 +595,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     return { typeDisplay, icon, iconBg, amountColor, prefix }
   }
 
-  // ─── MAIN RETURN ──────────────────────────────────────────────────
+  // --- MAIN RETURN ---
 
   return (
     <div className="flex flex-col gap-6 md:gap-8 min-h-screen pb-12 w-full">
@@ -614,10 +615,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                          <h2 className="text-blue-100 font-bold tracking-widest uppercase text-xs">Total Balance</h2>
                      </div>
                      <div className="text-4xl sm:text-5xl md:text-6xl font-black font-serif tracking-tight text-white mb-2 leading-none">
-                         {((user.balance || 0) * 10).toFixed(2)} <span className="text-xl sm:text-2xl text-blue-200">ARN</span>
+                         {(user.arnBalance || 0).toFixed(2)} <span className="text-xl sm:text-2xl text-blue-200">ARN</span>
                      </div>
                      <div className="flex items-center gap-2.5 mt-2">
-                         <span className="text-blue-100/90 font-medium text-sm">≈ {formatCurrency(user.balance || 0)}</span>
+                         <span className="text-blue-100/90 font-medium text-sm">≈ {formatCurrency(user.balance || 0)} {userCurrency}</span>
                          <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", user.isActiveMember ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30")}>
                              {user.isActiveMember ? "Active" : "Locked"}
                          </span>
@@ -643,15 +644,6 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.dailyEarningWallet || 0)}</span>
                    </div>
 
-                   {user.lockedArnBalance > 0 && !user.isActiveMember && (
-                       <div className="bg-card border border-orange-500/30 rounded-2xl p-4 flex flex-col shadow-sm col-span-2 md:col-span-1">
-                           <div className="flex items-center gap-2 mb-2">
-                               <div className="p-1.5 bg-orange-500/10 rounded-md shrink-0"><LockClosedIcon className="w-4 h-4 text-orange-500" /></div>
-                               <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate text-orange-600 dark:text-orange-400">Locked Bonus</span>
-                           </div>
-                           <span className="text-lg md:text-xl font-bold text-foreground leading-none">{user.lockedArnBalance.toFixed(2)} ARN</span>
-                       </div>
-                   )}
                </div>
 
                {/* Unlock Section */}
@@ -801,12 +793,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
                  {/* === WITHDRAW === */}
                  {activeTab === "withdraw" && !user.isActiveMember && (
-                    <div className="p-8 text-center bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-200 dark:border-amber-900/30 animate-in fade-in">
-                        <LockClosedIcon className="w-12 h-12 text-amber-500 mx-auto mb-3" />
-                        <h4 className="font-bold text-amber-700 dark:text-amber-400 text-lg">Withdrawal Locked</h4>
-                        <p className="text-sm text-amber-600 dark:text-amber-300 max-w-sm mx-auto mt-2">
-                           You must unlock your account by meeting the $1 requirement to access withdrawals.
-                        </p>
+                    <div className="animate-in fade-in zoom-in-95 duration-500">
+                        <DepositRequired />
                     </div>
                  )}
                  {activeTab === "withdraw" && user.isActiveMember && (
@@ -835,7 +823,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e: any) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
                                     <div className="flex flex-col gap-1 mt-2 px-1">
-                                        <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {((balance || 0) * 10).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {(user.arnBalance || 0).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
                                         <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
                                     </div>
                                 </div>
@@ -906,14 +894,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                               <div className="flex items-center gap-2.5 min-w-0"><div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-xs leading-tight truncate">{d.typeDisplay}</div><div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div></div></div>
                               <div className="text-right shrink-0"><div className={cn("text-sm font-black leading-tight", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)}</div>{tx.arnMinted > 0 && <div className="text-[9px] font-bold text-blue-500">+{tx.arnMinted.toFixed(2)} ARN</div>}</div>
                           </div>
-                          <div className="flex items-center justify-between gap-2"><div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()} · {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></div>
+                          <div className="flex items-center justify-between gap-2"><div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()} ┬╖ {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></div>
                       </div>
                   ) })}
               </div>
           </div>
        </div>
 
-       {/* ════════ CENTERED MERCHANT MODAL ════════ */}
+       {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ CENTERED MERCHANT MODAL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
        {merchantModalOpen && (
         <>
           <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMerchantModal}/>
@@ -934,7 +922,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               <div className="flex-1 overflow-y-auto p-5 overscroll-contain">
                 {message && (
                   <div className={cn("p-3 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 animate-in fade-in", message.type === 'success' ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800")}>
-                    {message.type === 'success' ? <CheckIcon className="w-4 h-4 shrink-0"/> : <span className="shrink-0">⚠️</span>}{message.text}
+                    {message.type === 'success' ? <CheckIcon className="w-4 h-4 shrink-0"/> : <span className="shrink-0">ΓÜá∩╕Å</span>}{message.text}
                   </div>
                 )}
                 {renderMerchantContent(merchantModalType)}

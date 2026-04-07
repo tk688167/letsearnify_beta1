@@ -36,40 +36,40 @@ const FEATURE_FLAGS = {
 // Feature info for the unlock modal
 const FEATURE_INFO: Record<string, { title: string, description: string, benefits: string[], redirectTo: string }> = {
     WITHDRAW: {
-        title: "Withdrawal & Transfer",
-        description: "To unlock withdrawals and transfers, please activate your account with $1.",
-        benefits: ["Withdraw funds to TRC20 wallet", "Transfer between pools", "Tier-based withdrawal limits", "24/7 processing"],
+        title: "This is locked. All these features are currently locked.",
+        description: "To unlock withdrawals and transfers, please activate your account with a $1.00 deposit.",
+        benefits: ["Withdraw funds to TRC20 wallet", "Transfer between pools", "Tier-based withdrawal limits", "Real-time processing"],
         redirectTo: "/dashboard/wallet?tab=deposit"
     },
     MARKETPLACE: {
-        title: "Marketplace",
-        description: "This is the Marketplace page, where users can access platform products and services. To unlock the Marketplace, please activate your account with $1.",
+        title: "This is locked. All these features are currently locked.",
+        description: "To unlock the Marketplace and access platform products, please activate your account with a $1.00 deposit.",
         benefits: ["Marketplace Access", "Buy & Sell digital assets", "Peer-to-peer economy", "Exclusive listings"],
         redirectTo: "/dashboard/wallet?tab=deposit"
     },
     MUDARABA: {
-        title: "Mudarabah Pool",
-        description: "To unlock the Mudarabah Pool and ethical investment features, please activate your account with $1.",
+        title: "This is locked. All these features are currently locked.",
+        description: "To unlock the Mudarabah Pool and ethical investment features, please activate your account with a $1.00 deposit.",
         benefits: ["Mudarabah Pool Access", "Profit-sharing investments", "Islamic Finance principles", "Monthly distributions"],
         redirectTo: "/dashboard/wallet?tab=deposit"
     },
     POOLS: {
-        title: "Reward Pools",
-        description: "To unlock Reward Pools and passive income features, please activate your account with $1.",
+        title: "This is locked. All these features are currently locked.",
+        description: "To unlock Reward Pools and passive income features, please activate your account with a $1.00 deposit.",
         benefits: ["CBSP Pool Access", "Royalty Pool Access", "Achievement Rewards", "Global profit sharing"],
         redirectTo: "/dashboard/wallet?tab=deposit"
     },
     PLAY_EARN: {
-        title: "Play & Earn",
-        description: "To unlock Play & Earn Web3 games and rewards, please activate your account with $1.",
+        title: "This is locked. All these features are currently locked.",
+        description: "To unlock Play & Earn Web3 games and rewards, please activate your account with a $1.00 deposit.",
         benefits: ["Web3 Gaming access", "Play-to-Earn rewards", "Daily game bonuses", "Leaderboard prizes"],
         redirectTo: "/dashboard/wallet?tab=deposit"
     }
 }
 
 export default function DashboardClient({ user, pools, stats, isMarketplaceLive = false, isMudarabahLive = false }: { user: any, pools: any[], stats: any, isMarketplaceLive?: boolean, isMudarabahLive?: boolean }) {
-  const [isUnlocked, setIsUnlocked] = useState(() => user.isActiveMember || false);
-  const [balance, setBalance] = useState(() => user.balance || 0);
+  const [isUnlocked, setIsUnlocked] = useState(() => user?.isActiveMember || false);
+  const [balance, setBalance] = useState(() => user?.balance || 0);
   const router = useRouter();
   const { formatCurrency, userCurrency } = useCurrency();
 
@@ -110,14 +110,23 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   };
 
   const getFeatureStatus = (featureKey: "TASKS" | "PLAY_EARN" | "MARKETPLACE" | "MUDARABA" | "POOLS" | "WITHDRAW") => {
-      // Tasks are always open for everyone
+      // Tasks are always open for everyone (standard tasks)
       if (featureKey === "TASKS") return "LIVE";
-      // Everything else requires $1 activation
+      
+      // Initially, all premium features are LOCKED
       if (!isUnlocked) return "LOCKED";
-      // After unlock, check if feature is actually live
+      
+      // After unlock ($1 activation):
+      // Marketplace, Mudaraba, CBSP, and Royalty (POOLS) show Development Mode
+      if (featureKey === "MARKETPLACE") return "DEV";
+      if (featureKey === "MUDARABA") return "DEV";
+      if (featureKey === "POOLS") return "DEV";
+      
+      // Withdraw and other features become LIVE
+      if (featureKey === "WITHDRAW") return "LIVE";
+      
       if (featureKey === "PLAY_EARN") return FEATURE_FLAGS.PLAY_EARN ? "LIVE" : "DEV";
-      if (featureKey === "MARKETPLACE") return isMarketplaceLive ? "LIVE" : "DEV";
-      if (featureKey === "MUDARABA") return isMudarabahLive ? "LIVE" : "DEV";
+      
       return "LIVE";
   }
 
@@ -125,10 +134,10 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   const modalInfo = unlockFeature ? FEATURE_INFO[unlockFeature] : null;
 
   const { progress, nextTier } = calculateTierProgress(
-    user.tier,
-    user.qualifiedArn || 0,
-    user.totalSignups || 0,
-    user.tierRules || {}
+    user?.tier || 'NEWBIE',
+    user?.qualifiedArn || 0,
+    user?.totalSignups || 0,
+    user?.tierRules || {}
   );
 
   const TIER_COLORS: Record<string, string> = {
@@ -172,7 +181,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
 
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-4 sm:mb-5">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-blue-300">
-              {user.name || "Partner"}
+              {user?.name || "Partner"}
             </span>
           </h1>
 
@@ -181,19 +190,19 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           <div className="flex items-center justify-center gap-1.5 flex-wrap">
             <div className={cn(
               "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border",
-              user.tier === 'DIAMOND' ? 'bg-blue-500/15 border-blue-400/25 text-blue-300' :
-              user.tier === 'PLATINUM' ? 'bg-slate-400/15 border-slate-300/25 text-slate-300' :
-              user.tier === 'GOLD' ? 'bg-amber-500/15 border-amber-400/25 text-amber-300' :
-              user.tier === 'EMERALD' ? 'bg-emerald-500/15 border-emerald-400/25 text-emerald-300' :
+              user?.tier === 'DIAMOND' ? 'bg-blue-500/15 border-blue-400/25 text-blue-300' :
+              user?.tier === 'PLATINUM' ? 'bg-slate-400/15 border-slate-300/25 text-slate-300' :
+              user?.tier === 'GOLD' ? 'bg-amber-500/15 border-amber-400/25 text-amber-300' :
+              user?.tier === 'EMERALD' ? 'bg-emerald-500/15 border-emerald-400/25 text-emerald-300' :
               'bg-white/8 border-white/10 text-white/60'
             )}>
               <span className={cn("w-1 h-1 rounded-full",
-                user.tier === 'DIAMOND' ? 'bg-blue-400' :
-                user.tier === 'PLATINUM' ? 'bg-slate-300' :
-                user.tier === 'GOLD' ? 'bg-amber-400' :
-                user.tier === 'EMERALD' ? 'bg-emerald-400' : 'bg-white/50'
+                user?.tier === 'DIAMOND' ? 'bg-blue-400' :
+                user?.tier === 'PLATINUM' ? 'bg-slate-300' :
+                user?.tier === 'GOLD' ? 'bg-amber-400' :
+                user?.tier === 'EMERALD' ? 'bg-emerald-400' : 'bg-white/50'
               )} />
-              {user.tier}
+              {user?.tier || 'NEWBIE'}
             </div>
             
             {isUnlocked ? (
@@ -222,12 +231,12 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
       <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub={`Available ${userCurrency}`} icon={WalletIcon} color="emerald" delay={0.1} />
           <StatCard title="Total ARN" value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} icon={StarIcon} color="blue" delay={0.2} />
-          <StatCard title="Task Earnings" value={formatCurrency(user.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
-          <StatCard title="Referral Earnings" value={formatCurrency(user.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
-          <StatCard title="Total Deposited" value={formatCurrency(user.totalDeposit || 0)} sub="Lifetime Investment" icon={ArrowDownTrayIcon} color="amber" delay={0.5} />
-          <StatCard title="Pending Deposit" value={formatCurrency(user.pendingDeposit || 0)} sub="Processing" icon={ClockIcon} color="blue" delay={0.6} />
-          <StatCard title="Total Withdrawn" value={formatCurrency(user.totalWithdrawal || 0)} sub="Successful Payouts" icon={CheckIcon} color="emerald" delay={0.7} />
-          <StatCard title="Pending Withdrawal" value={formatCurrency(user.pendingWithdrawal || 0)} sub="Processing" icon={ArrowUpTrayIcon} color="orange" delay={0.8} />
+          <StatCard title="Task Earnings" value={formatCurrency(user?.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
+          <StatCard title="Referral Earnings" value={formatCurrency(user?.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
+          <StatCard title="Total Deposited" value={formatCurrency(user?.totalDeposit || 0)} sub="Lifetime Investment" icon={ArrowDownTrayIcon} color="amber" delay={0.5} />
+          <StatCard title="Pending Deposit" value={formatCurrency(user?.pendingDeposit || 0)} sub="Processing" icon={ClockIcon} color="blue" delay={0.6} />
+          <StatCard title="Total Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} sub="Successful Payouts" icon={CheckIcon} color="emerald" delay={0.7} />
+          <StatCard title="Pending Withdrawal" value={formatCurrency(user?.pendingWithdrawal || 0)} sub="Processing" icon={ArrowUpTrayIcon} color="orange" delay={0.8} />
       </div>
 
       {/* 2b. STATS OVERVIEW (Mobile) */}
@@ -244,10 +253,10 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
                           <StarIcon className="w-3 h-3"/> Total ARN Balance
                       </h3>
                       <div className="text-3xl font-bold font-serif tracking-tight leading-none mb-1">
-                          {((user.balance || 0) * 10).toFixed(2)} <span className="text-sm text-blue-200 font-sans">ARN</span>
+                          {((user?.balance || 0) * 10).toFixed(2)} <span className="text-sm text-blue-200 font-sans">ARN</span>
                       </div>
                       <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm">
-                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user.balance || 0)}</span>
+                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user?.balance || 0)}</span>
                       </div>
                   </div>
                   <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
@@ -257,14 +266,14 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           </motion.div>
 
           <div className="grid grid-cols-2 gap-2">
-              <MobileStatCard title="Wallet Balance" value={formatCurrency(user.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
-              <MobileStatCard title="Total Deposited" value={formatCurrency(user.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
-              <MobileStatCard title="Task Earnings" value={formatCurrency(user.taskEarnings || 0)} icon={BriefcaseIcon} color="indigo" delay={0.3} />
-              <MobileStatCard title="Ref. Earnings" value={formatCurrency(user.referralEarnings || 0)} icon={UserGroupIcon} color="purple" delay={0.4} />
-              <MobileStatCard title="Total Withdrawn" value={formatCurrency(user.totalWithdrawal || 0)} icon={CheckIcon} color="emerald" delay={0.5} />
-              <MobileStatCard title="Pending Withdraw" value={formatCurrency(user.pendingWithdrawal || 0)} icon={ArrowUpTrayIcon} color="orange" delay={0.6} />
-              <MobileStatCard title="Pending Deposit" value={formatCurrency(user.pendingDeposit || 0)} icon={ClockIcon} color="blue" delay={0.7} />
-              <MobileStatCard title="Team / Tier" value={`${user.activeMembers} / ${user.tier.charAt(0)}`} icon={UserGroupIcon} color="amber" delay={0.8} />
+              <MobileStatCard title="Wallet Balance" value={formatCurrency(user?.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
+              <MobileStatCard title="Total Deposited" value={formatCurrency(user?.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
+              <MobileStatCard title="Task Earnings" value={formatCurrency(user?.taskEarnings || 0)} icon={BriefcaseIcon} color="indigo" delay={0.3} />
+              <MobileStatCard title="Ref. Earnings" value={formatCurrency(user?.referralEarnings || 0)} icon={UserGroupIcon} color="purple" delay={0.4} />
+              <MobileStatCard title="Total Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} icon={CheckIcon} color="emerald" delay={0.5} />
+              <MobileStatCard title="Pending Withdraw" value={formatCurrency(user?.pendingWithdrawal || 0)} icon={ArrowUpTrayIcon} color="orange" delay={0.6} />
+              <MobileStatCard title="Pending Deposit" value={formatCurrency(user?.pendingDeposit || 0)} icon={ClockIcon} color="blue" delay={0.7} />
+              <MobileStatCard title="Team / Tier" value={`${user?.activeMembers || 0} / ${(user?.tier || 'N').charAt(0)}`} icon={UserGroupIcon} color="amber" delay={0.8} />
           </div>
       </div>
 
@@ -348,7 +357,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
               <CompanyPools 
                  pools={pools} 
                  status={getFeatureStatus("POOLS")} 
-                 userTier={user.tier} 
+                 userTier={user?.tier || 'NEWBIE'} 
                  onLockedClick={() => openUnlockModal("POOLS")}
               />
           </div>

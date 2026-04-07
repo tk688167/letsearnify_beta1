@@ -20,6 +20,11 @@ export async function getCountries() {
 
 export async function createCountry(data: { name: string, code: string, currency: string, exchangeRate?: number, serviceFee?: number }) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
     const existing = await prisma.merchantCountry.findUnique({ where: { name: data.name } })
     if (existing) return { success: false, error: "Country already exists" }
 
@@ -37,31 +42,43 @@ export async function createCountry(data: { name: string, code: string, currency
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Country added successfully" }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create Country Error:", error)
-    return { success: false, error: "Failed to create country" }
+    return { success: false, error: `Failed to create country: ${error?.message || "Unknown error"}` }
   }
 }
 
 export async function updateCountry(id: string, data: { name?: string, code?: string, currency?: string, status?: string, exchangeRate?: number, serviceFee?: number }) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
     await prisma.merchantCountry.update({ where: { id }, data })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Country updated successfully" }
-  } catch (error) {
-    return { success: false, error: "Failed to update country" }
+  } catch (error: any) {
+    console.error("Update Country Error:", error)
+    return { success: false, error: `Failed to update country: ${error?.message || "Unknown error"}` }
   }
 }
 
 export async function deleteCountry(id: string) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
     await prisma.merchantCountry.delete({ where: { id } })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Country deleted successfully" }
-  } catch (error) {
-    return { success: false, error: "Failed to delete country" }
+  } catch (error: any) {
+    console.error("Delete Country Error:", error)
+    return { success: false, error: `Failed to delete country: ${error?.message || "Unknown error"}` }
   }
 }
 
@@ -79,38 +96,78 @@ export async function getPaymentMethods(countryId: string) {
   }
 }
 
-export async function addPaymentMethod(countryId: string, data: { name: string, accountNumber: string, accountName: string, instructions?: string }) {
+export async function addPaymentMethod(countryId: string, data: { name: string, accountNumber: string, accountName: string, iban?: string, instructions?: string }) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
+    // Normalize data: ensure empty strings are treated as null if they are optional
+    const normalizedData = {
+      countryId,
+      name: data.name,
+      accountNumber: data.accountNumber,
+      accountName: data.accountName,
+      iban: data.iban && data.iban.trim() !== "" ? data.iban : null,
+      instructions: data.instructions && data.instructions.trim() !== "" ? data.instructions : null
+    }
+
     await prisma.merchantPaymentMethod.create({
-      data: { countryId, name: data.name, accountNumber: data.accountNumber, accountName: data.accountName, instructions: data.instructions }
+      data: normalizedData
     })
+    
     revalidatePath(`/admin/merchant/${countryId}`)
+    revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method added" }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Add Method Error:", error)
-    return { success: false, error: "Failed to add payment method" }
+    return { success: false, error: `Failed to add payment method: ${error?.message || "Unknown error"}` }
   }
 }
 
-export async function updatePaymentMethod(id: string, data: { name?: string, accountNumber?: string, accountName?: string, instructions?: string }) {
+export async function updatePaymentMethod(id: string, data: { name?: string, accountNumber?: string, accountName?: string, iban?: string, instructions?: string }) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
     await prisma.merchantPaymentMethod.update({ where: { id }, data })
     revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method updated" }
-  } catch (error) {
-    return { success: false, error: "Failed to update payment method" }
+  } catch (error: any) {
+    console.error("Update Method Error:", error)
+    return { success: false, error: `Failed to update payment method: ${error?.message || "Unknown error"}` }
   }
 }
 
 export async function deletePaymentMethod(id: string) {
   try {
+    const session = await auth()
+    if (!session?.user?.id || session.user.role !== 'ADMIN') {
+        return { success: false, error: "Unauthorized" }
+    }
+
+    // Find countryId before deletion for revalidation
+    const method = await prisma.merchantPaymentMethod.findUnique({ 
+        where: { id },
+        select: { countryId: true }
+    })
+
     await prisma.merchantPaymentMethod.delete({ where: { id } })
+    
+    if (method?.countryId) {
+        revalidatePath(`/admin/merchant/${method.countryId}`)
+    }
+    revalidatePath("/admin/merchant")
     revalidatePath("/dashboard/wallet")
     return { success: true, message: "Payment method deleted" }
-  } catch (error) {
-    return { success: false, error: "Failed to delete payment method" }
+  } catch (error: any) {
+    console.error("Delete Method Error:", error)
+    return { success: false, error: `Failed to delete payment method: ${error?.message || "Unknown error"}` }
   }
 }
 
@@ -130,7 +187,7 @@ export async function approveMerchantTransaction(transactionId: string) {
     }
 
     // 1. Pre-load imports outside transaction
-    const { checkTierUpgrade, TIER_COMMISSIONS } = await import("@/lib/mlm")
+    const { checkTierUpgrade } = await import("@/lib/mlm")
 
     await prisma.$transaction(async (tx: any) => {
         // 2. Update merchant transaction status
@@ -176,90 +233,8 @@ export async function approveMerchantTransaction(transactionId: string) {
                 }
             })
 
-            // 6. Check if user is active — if so, distribute referral commissions
-            // Per PDF: "When Talha deposits, Ali receives his referral reward"
-            const user = await tx.user.findUnique({
-                where: { id: transaction.userId },
-                select: { isActiveMember: true }
-            })
-
-            if (user?.isActiveMember) {
-                // Distribute commissions to upline (L1, L2, L3)
-                const tree = await tx.referralTree.findUnique({
-                    where: { userId: transaction.userId }
-                })
-
-                if (tree) {
-                    const sourceUser = await tx.user.findUnique({
-                        where: { id: transaction.userId },
-                        select: { name: true, email: true }
-                    })
-                    const sourceName = sourceUser?.name || sourceUser?.email || "a team member"
-
-                    const uplineIds = [tree.advisorId, tree.supervisorId, tree.managerId].filter(Boolean) as string[]
-
-                    for (let i = 0; i < uplineIds.length; i++) {
-                        const uplineId = uplineIds[i]
-                        const level = i + 1
-
-                        const referrer = await tx.user.findUnique({
-                            where: { id: uplineId },
-                            select: { id: true, tier: true, isActiveMember: true }
-                        })
-                        if (!referrer) continue
-
-                        const currentTier = (referrer.tier || "NEWBIE").toUpperCase();
-                        const validTier = TIER_COMMISSIONS[currentTier] ? currentTier : "NEWBIE"
-                        const rates = TIER_COMMISSIONS[validTier]
-                        const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3
-
-                        console.log(`[Merchant] Distributing commission: Earner=${uplineId}, Tier=${validTier}, Level=${level}, Rate=${rate}%`);
-
-                        if (rate > 0) {
-                            const commissionUSD = amount * (rate / 100)
-                            const commissionARN = commissionUSD * 10
-
-                            await tx.user.update({
-                                where: { id: uplineId },
-                                data: referrer.isActiveMember ? {
-                                    arnBalance: { increment: commissionARN },
-                                    balance: { increment: commissionUSD }
-                                } : {
-                                    lockedArnBalance: { increment: commissionARN },
-                                    lockedBalance: { increment: commissionUSD }
-                                }
-                            })
-
-                            await tx.referralCommission.create({
-                                data: {
-                                    earnerId: uplineId,
-                                    sourceUserId: transaction.userId,
-                                    amount: commissionUSD,
-                                    level: level,
-                                    percentage: rate
-                                }
-                            })
-
-                            if (referrer.isActiveMember) {
-                                await tx.transaction.create({
-                                    data: {
-                                        userId: uplineId,
-                                        amount: commissionUSD,
-                                        arnMinted: commissionARN,
-                                        type: "REFERRAL_COMMISSION",
-                                        status: "COMPLETED",
-                                        method: "SYSTEM",
-                                        description: `L${level} commission (${rate}%) from ${sourceName}'s $${amount.toFixed(2)} deposit`
-                                    }
-                                })
-                            }
-                        }
-                    }
-                }
-
-                // Check tier upgrade for the depositor
-                await checkTierUpgrade(transaction.userId, tx)
-            }
+            // 6. Check for Tier Upgrades (Deposits contribute to Tier ARN)
+            await checkTierUpgrade(transaction.userId, tx)
         }
         
         // 7. Audit log Entry

@@ -129,8 +129,9 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                 let signupBonusArn = 0;
                 let signupBonusUsd = 0;
                 let referrerTier = "NONE";
-                
+
                 if (validReferrer && validReferrer.referralCode !== 'COMPANY') {
+                    referrerTier = (validReferrer.tier as string) || "NEWBIE";
                     signupBonusArn = SIGNUP_BONUS_RATES[referrerTier] ?? 3;
                     signupBonusUsd = signupBonusArn / 10;
                     console.log(`[Google Auth] Signup bonus for ${user.email}: ${signupBonusArn} ARN (referrer ${referrerTier})`);
@@ -149,6 +150,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
+                        currency: "USD",
                         role: "USER"
                     }
                 })

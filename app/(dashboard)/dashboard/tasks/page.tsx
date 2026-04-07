@@ -80,7 +80,7 @@ export default async function TasksPage() {
               id: `ext-${offer.id}`,
               title: offer.title,
               description: offer.description,
-              reward: offer.payout, // Map payout to reward
+              reward: (offer.payout || 0) * 10, // Map payout ($) to reward (Tokens)
               type: 'SURVEY',       // Enforce type
               status: 'ACTIVE',
               link: offer.link,
@@ -125,13 +125,13 @@ export default async function TasksPage() {
   }
 
   return (
-      <div className="w-full max-w-5xl mx-auto py-6">
-         <TaskPageClient 
-            user={user} 
-            platformTasks={allTasks} 
-            cfxUrl={cfxUrl} 
-            isUnlocked={isUnlocked}
-         />
-      </div>
+    <div className="w-full max-w-5xl mx-auto py-6">
+       <TaskPageClient 
+          user={user} 
+          platformTasks={allTasks} 
+          cfxUrl={cfxUrl} 
+          isUnlocked={isUnlocked}
+       />
+    </div>
   )
 }

@@ -18,6 +18,8 @@ import {
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
+import MudarabahDevScreen from "@/app/components/pages/MudarabahDevScreen";
+
 interface MudarabahPool {
   id: string;
   title: string;
@@ -114,80 +116,7 @@ export default function MudarabahClient() {
   }
 
   if (!isFeatureLive) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-0 py-10 space-y-10">
-
-        {/* Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-emerald-950 to-teal-950 px-8 py-14 text-center shadow-2xl">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 70% 20%, #10b981 0%, transparent 50%), radial-gradient(circle at 30% 80%, #0d9488 0%, transparent 50%)" }}></div>
-          
-          {/* Dev Badge */}
-          <div className="relative inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            In Development
-          </div>
-
-          <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/30 mb-6">
-            <ChartPieIcon className="h-10 w-10 text-emerald-400" />
-          </div>
-
-          <h1 className="relative text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
-            Mudarabah Pool<br/>
-            <span className="text-emerald-400">Coming Soon!</span>
-          </h1>
-          <p className="relative text-emerald-100/70 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-            We're building something truly special — a fully Shariah-compliant, profit-sharing investment ecosystem trusted by thousands. Stay tuned.
-          </p>
-        </div>
-
-        {/* What is Mudarabah? */}
-        <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">What is the Mudarabah Pool?</h2>
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base">
-            Mudarabah is a classical Islamic finance model of <strong>profit-sharing partnership</strong>. In this model, you act as the capital provider (Rabb-ul-Mal), while LetsEarnify's expert team acts as the fund manager (Mudarib). Profits are distributed based on a pre-agreed ratio — and the entire structure is audit-compliant and 100% interest-free (riba-free).
-          </p>
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm sm:text-base mt-3">
-            Once launched, you'll be able to browse curated investment pools across industries like <strong>Real Estate</strong>, <strong>Trade Finance</strong>, and more — all with transparent profit reports and structured exit timelines.
-          </p>
-        </div>
-
-        {/* What to Expect */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">What to Expect at Launch</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { icon: BuildingLibraryIcon, title: "Curated Pools", desc: "Access professionally vetted, high-yield investment pools across diversified sectors." },
-              { icon: ArrowTrendingUpIcon, title: "Real-time Tracking", desc: "Track your investment, profit allocation, and pool progress live in your dashboard." },
-              { icon: ShieldExclamationIcon, title: "Shariah Certified", desc: "Every pool is structured and reviewed for full Shariah compliance — no ambiguity." },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex flex-col gap-3 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 shadow-sm">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">{title}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10 p-6 flex gap-5 items-start">
-          <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mt-0.5">
-            <ClockIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Currently in Development</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-              Our team is finalizing the Mudarabah Pool infrastructure, including pool verification, profit distribution logic, and compliance checks. Once the Admin enables the feature, you will have full access to browse and invest. Keep an eye on your notifications for launch updates.
-            </p>
-          </div>
-        </div>
-
-      </div>
-    );
+    return <MudarabahDevScreen />;
   }
 
   const livePools = pools.filter((p: any) => p.status === "OPEN" || p.status === "ACTIVE");

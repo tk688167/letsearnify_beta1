@@ -33,19 +33,19 @@ export function DepositRequired() {
               </div>
           </div>
 
-          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight tracking-tight">
-             <span className="text-gray-500 block text-xs md:text-lg font-sans font-bold uppercase tracking-widest mb-2">Restricted Area</span>
-             Vault <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Locked</span>
+          <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight tracking-tight uppercase">
+             <span className="text-gray-500 block text-xs md:text-lg font-sans font-bold uppercase tracking-widest mb-2">Restricted Access</span>
+             Feature <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Locked</span>
           </h2>
           <p className="text-gray-400 mb-10 leading-relaxed text-lg max-w-md mx-auto">
-             Access to the platform's core features requires a one-time activation. A $1.00 activation fee will unlock your account.
+             The siguiente 7 features are strictly locked: Marketplace, Mudaraba Pool, Premium Spin, Premium Tasks, CBSP Pool, Royalty Pool, and Withdraw access. 
           </p>
 
           <div className="bg-gradient-to-b from-gray-800/50 to-gray-900/50 rounded-2xl p-1 border border-white/5 mb-8 max-w-sm mx-auto shadow-inner">
              <div className="bg-gray-950/50 rounded-xl px-6 py-4 flex items-center justify-between">
                  <div className="text-left">
-                     <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Fee</div>
-                     <div className="text-gray-300 font-mono text-sm line-through decoration-red-500/50">$10.00</div>
+                     <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Status</div>
+                     <div className="text-red-500 font-mono text-sm uppercase">Locked</div>
                  </div>
                  <div className="h-8 w-px bg-gray-800"></div>
                  <div className="text-right">
@@ -56,16 +56,16 @@ export function DepositRequired() {
           </div>
 
           <div className="flex flex-col gap-4">
-             <Link href="/dashboard/wallet?tab=deposit" className="relative w-full py-5 bg-white text-gray-950 font-bold text-lg rounded-2xl hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3 group/btn overflow-hidden">
+             <Link href="/dashboard/wallet?tab=deposit" className="relative w-full py-5 bg-white text-gray-950 font-bold text-lg rounded-2xl hover:bg-gray-50 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)] flex items-center justify-center gap-3 group/btn overflow-hidden uppercase tracking-tighter">
                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
                  <BanknotesIcon className="w-6 h-6 text-gray-900 group-hover/btn:rotate-12 transition-transform duration-300"/>
-                 Unlock Vault Access
+                 Use $1 to unlock your account
              </Link>
              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-[0.2em] opacity-60 mb-1">
                  Instant Setup • Lifetime Access
              </p>
-             <p className="text-xs text-emerald-400/90 font-medium max-w-sm mx-auto leading-relaxed italic">
-                 "This one-time $1 activation fee unlocks the Task Center, Mudarabah Pool, Marketplace, and all other exclusive platform features."
+             <p className="text-xs text-amber-500/90 font-medium max-w-sm mx-auto leading-relaxed italic">
+                 "Once you make a direct $1 deposit, all seven features will be instantly unlocked and fully accessible without delay."
              </p>
           </div>
        </motion.div>

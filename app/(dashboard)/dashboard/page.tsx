@@ -12,8 +12,29 @@ export default async function DashboardPage() {
   
   const { user, pools, isOffline, isMarketplaceLive, isMudarabahLive } = await getDashboardData(session.user.id);
 
+  // Anti-Gravity: Handle Super Admin fallback
+  let displayUser = user;
+  if (!displayUser && (session.user as any).id === "super-admin-id") {
+      const { DEFAULT_TIER_REQUIREMENTS } = await import("@/lib/mlm")
+      displayUser = {
+          id: "super-admin-id",
+          name: "Super Admin",
+          email: "admin@letsearnify.com",
+          balance: 0,
+          tier: "EMERALD",
+          arnBalance: 0,
+          memberId: "0000000",
+          referralCode: "ADMIN",
+          isActiveMember: true,
+          totalDeposit: 5000,
+          totalSignups: 0,
+          qualifiedArn: 5000,
+          tierRules: DEFAULT_TIER_REQUIREMENTS
+      } as any;
+  }
+
   // Handle case where DB works but user not found (should be handled by auth redir normally)
-  if (!user && !isOffline && (session.user as any)?.id !== "super-admin-id") {
+  if (!displayUser && !isOffline) {
        // Force logout or error page?
        // For now, redirect to login as session might be stale
        redirect("/login")
@@ -27,7 +48,7 @@ export default async function DashboardPage() {
             </div>
         )}
         <DashboardClient 
-            user={user} 
+            user={displayUser} 
             pools={pools} 
             stats={{}} 
             isMarketplaceLive={isMarketplaceLive}

@@ -155,6 +155,41 @@ export default function EditForm({ user }: EditFormProps) {
 
         <div className="h-px w-full bg-border/50" />
 
+        <section>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+              <SwatchIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-xl font-bold font-serif text-foreground">Account Settings</h2>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-5 sm:gap-6">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest pl-1">Primary Currency</label>
+              <div className="relative">
+                <select 
+                  name="currency" 
+                  defaultValue={user?.currency || "USD"}
+                  className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground hover:border-primary/40 appearance-none"
+                >
+                  <option value="USD">USD - United States Dollar</option>
+                  <option value="PKR">PKR - Pakistani Rupee</option>
+                  <option value="INR">INR - Indian Rupee</option>
+                  <option value="AED">AED - UAE Dirham</option>
+                  <option value="BDT">BDT - Bangladeshi Taka</option>
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="EUR">EUR - Euro</option>
+                </select>
+                <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                  <ArrowPathIcon className="w-4 h-4 text-muted-foreground/50" />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground pl-1 italic">Balances will be automatically converted based on live rates.</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px w-full bg-border/50" />
+
         {/* Section 2: Platform Details (Read-only) */}
         <section>
           <h2 className="text-xl font-bold font-serif text-foreground mb-6">Platform Details</h2>

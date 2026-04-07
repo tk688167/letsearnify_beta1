@@ -91,7 +91,7 @@ export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }
         <div className="flex flex-col gap-3 md:gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             {poolConfig.map((pool) => {
                 const isPoolEligible = isTierEligible(pool.key, userTier);
-                const isItemLocked = status === "LOCKED" || !isPoolEligible;
+                const isItemLocked = (status === "LOCKED" || !isPoolEligible) && pool.key !== "ACHIEVEMENT";
                 const isItemDev = status === "DEV" && isPoolEligible && pool.key !== "ACHIEVEMENT";
                 
                 const cardContent = (

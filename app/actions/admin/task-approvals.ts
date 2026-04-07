@@ -51,8 +51,8 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
             await tx.user.update({
                 where: { id: completion.userId },
                 data: {
-                    arnBalance: { increment: reward * 10 },
-                    balance: { increment: reward }
+                    arnBalance: { increment: reward },
+                    balance: { increment: reward / 10 }
                 }
             })
 
@@ -61,11 +61,11 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 data: {
                     userId: completion.userId,
                     type: "TASK_REWARD",
-                    amount: reward,
+                    amount: reward / 10,
                     status: "COMPLETED",
                     method: "SYSTEM",
                     description: `Task Approved: ${completion.task.title}`,
-                    arnMinted: reward * 10
+                    arnMinted: reward
                 }
             })
 
@@ -74,8 +74,8 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
                 data: {
                     userId: completion.userId,
                     type: "TASK_REWARD",
-                    amount: reward * 10,
-                    description: `Earned ${reward * 10} ARN ($${reward.toFixed(2)}) for: ${completion.task.title}`
+                    amount: reward,
+                    description: `Earned ${reward} ARN ($${(reward / 10).toFixed(2)}) for: ${completion.task.title}`
                 }
             })
         }, {

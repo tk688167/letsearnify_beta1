@@ -10,14 +10,16 @@ import {
   PencilIcon,
   MagnifyingGlassIcon,
   FunnelIcon,
-  CheckBadgeIcon
+  CheckBadgeIcon,
+  ShieldCheckIcon,
+  ArrowPathIcon,
+  ChevronUpDownIcon
 } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import { createCountry, deleteCountry, updateCountry, getCountries } from "@/app/actions/admin/merchant"
 import { useRouter } from "next/navigation"
 import toast, { Toaster } from "react-hot-toast"
 import { getAllCountries } from "@/app/actions/admin/merchant-settings"
-import { ChevronUpDownIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 
 function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
     const [query, setQuery] = useState("")
@@ -62,7 +64,7 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
         <div className="relative" ref={wrapperRef}>
              <div className="relative">
                 <input 
-                    className="w-full p-4 pr-10 border border-gray-200 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 cursor-pointer"
+                    className="w-full p-4 pr-10 border border-border bg-background text-foreground rounded-2xl outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary cursor-pointer"
                     placeholder={isLoading ? "Loading countries..." : "Select a country to auto-fill..."}
                     value={query}
                     onChange={(e: any) => {
@@ -83,12 +85,12 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
              </div>
 
             {isOpen && !isLoading && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
                     {filteredCountries.length > 0 ? (
                         filteredCountries.map((c: any) => (
                             <div 
                                 key={c.code}
-                                className="p-3 hover:bg-gray-50 cursor-pointer flex items-center justify-between border-b border-gray-50 last:border-0"
+                                className="p-3 hover:bg-accent cursor-pointer flex items-center justify-between border-b border-border last:border-0"
                                 onClick={() => {
                                     setQuery(c.name)
                                     onSelect(c)
@@ -98,8 +100,8 @@ function CountryAutocomplete({ onSelect }: { onSelect: (c: any) => void }) {
                                 <div className="flex items-center gap-3">
                                     <img src={c.flag} alt={c.code} className="w-6 h-4 object-cover rounded shadow-sm" />
                                     <div>
-                                        <div className="text-sm font-bold text-gray-900">{c.name}</div>
-                                        <div className="text-xs text-gray-500">{c.code} • {c.currency}</div>
+                                        <div className="text-sm font-bold text-foreground">{c.name}</div>
+                                        <div className="text-xs text-muted-foreground">{c.code} • {c.currency}</div>
                                     </div>
                                 </div>
                                 <PlusIcon className="w-4 h-4 text-gray-300"/>
@@ -346,14 +348,14 @@ export default function AdminMerchantPage() {
        {/* Add/Edit Modal */}
        {showModal && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-             <div className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl border border-gray-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+              <div className="bg-card text-foreground rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl border border-border max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between">
-                   <h2 className="text-2xl font-extrabold text-gray-900">
+                   <h2 className="text-2xl font-extrabold text-foreground">
                      {editingCountry ? "Edit Settings" : "Add Country"}
                    </h2>
-                   <div className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                      Configuration
-                   </div>
+                    <div className="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                       {isPending ? <ArrowPathIcon className="w-3 h-3 animate-spin"/> : <ShieldCheckIcon className="w-3 h-3"/>} Configuration
+                    </div>
                 </div>
                 
                 <div className="space-y-5">
@@ -361,7 +363,7 @@ export default function AdminMerchantPage() {
                   
                     {/* Country Search & Auto-fill */}
                     <div className="relative z-50">
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Search Country</label>
+                        <label className="block text-sm font-bold text-muted-foreground mb-2">Search Country</label>
                         <CountryAutocomplete 
                             onSelect={(c) => {
                                 setFormData({
@@ -379,15 +381,15 @@ export default function AdminMerchantPage() {
                                 })
                             }}
                         />
-                        <p className="text-xs text-gray-400 mt-1">Select from list to auto-fill details.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Select from list to auto-fill details.</p>
                     </div>
 
                   <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-2">Country Name</label>
+                     <label className="block text-sm font-bold text-muted-foreground mb-2">Country Name</label>
                      <input 
                         type="text" 
                         placeholder="e.g. Pakistan"
-                        className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 bg-gray-50 focus:bg-white transition-all font-medium"
+                        className="w-full p-4 rounded-2xl border border-border outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 bg-background text-foreground transition-all font-medium"
                         value={formData.name}
                         onChange={(e: any) => setFormData({...formData, name: e.target.value})}
                      />
@@ -395,22 +397,22 @@ export default function AdminMerchantPage() {
 
                   <div className="grid grid-cols-2 gap-5">
                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Code (ISO)</label>
+                        <label className="block text-sm font-bold text-muted-foreground mb-2">Code (ISO)</label>
                         <input 
                            type="text" 
                            placeholder="PK"
-                           className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 uppercase font-mono bg-gray-50 focus:bg-white transition-all text-center font-bold"
+                           className="w-full p-4 rounded-2xl border border-border outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 uppercase font-mono bg-background text-foreground transition-all text-center font-bold"
                            value={formData.code}
                            onChange={(e: any) => setFormData({...formData, code: e.target.value})}
                            maxLength={2}
                         />
                      </div>
                      <div>
-                         <label className="block text-sm font-bold text-gray-700 mb-2">Currency</label>
-                         <input 
-                            type="text" 
-                            placeholder="PKR"
-                            className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 uppercase font-mono bg-gray-50 focus:bg-white transition-all text-center font-bold"
+                         <label className="block text-sm font-bold text-muted-foreground mb-2">Currency</label>
+                          <input 
+                             type="text" 
+                             placeholder="PKR"
+                             className="w-full p-4 rounded-2xl border border-border outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 uppercase font-mono bg-background text-foreground transition-all text-center font-bold"
                             value={formData.currency}
                             onChange={(e: any) => setFormData({...formData, currency: e.target.value})}
                             maxLength={3}
@@ -420,12 +422,12 @@ export default function AdminMerchantPage() {
 
                   <div className="grid grid-cols-2 gap-5">
                       <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-2">Exchange Rate</label>
+                          <label className="block text-sm font-bold text-muted-foreground mb-2">Exchange Rate (1 USDT = ?)</label>
                           <div className="relative">
                             <input 
                                 type="number" 
                                 placeholder="280.0"
-                                className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
+                                className="w-full p-4 rounded-2xl border border-border outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 font-bold bg-background text-foreground transition-all pr-12"
                                 value={isNaN(formData.exchangeRate) ? "" : formData.exchangeRate}
                                 onChange={(e: any) => {
                                    const val = parseFloat(e.target.value)
@@ -433,47 +435,51 @@ export default function AdminMerchantPage() {
                                 }}
                                 step="0.01"
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">/ USD</span>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">
+                                {formData.currency || "USD"}
+                            </div>
                           </div>
+                          <p className="text-[10px] text-muted-foreground mt-1">Fetch rate automatically by selecting a country above.</p>
                       </div>
-                      <div>
-                          <label className="block text-sm font-bold text-gray-700 mb-2">Fixed Fee</label>
+
+                       <div>
+                          <label className="block text-sm font-bold text-muted-foreground mb-2">Fixed Fee</label>
                           <div className="relative">
                             <input 
                                 type="number" 
                                 placeholder="20"
-                                className="w-full p-4 rounded-2xl border border-gray-200 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-bold bg-gray-50 focus:bg-white transition-all"
+                                className="w-full p-4 rounded-2xl border border-border outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 font-bold bg-background text-foreground transition-all"
                                 value={isNaN(formData.serviceFee) ? "" : formData.serviceFee}
                                 onChange={(e: any) => {
                                    const val = parseFloat(e.target.value)
                                    setFormData({...formData, serviceFee: isNaN(val) ? 0 : val})
                                 }}
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">{formData.currency || 'Curr'}</span>
+                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">{formData.currency || 'Curr'}</span>
                           </div>
                       </div>
                   </div>
 
                   <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-2">Visibility Status</label>
-                     <div className="grid grid-cols-2 gap-3 p-1.5 bg-gray-100 rounded-2xl">
+                     <label className="block text-sm font-bold text-muted-foreground mb-2">Visibility Status</label>
+                     <div className="grid grid-cols-2 gap-3 p-1.5 bg-muted rounded-2xl border border-border">
                         <button
-                          className={`py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                            formData.status === "ACTIVE" 
-                            ? "bg-white text-green-700 shadow-md ring-1 ring-black/5" 
-                            : "text-gray-500 hover:bg-gray-200"
-                          }`}
+                           className={`py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                             formData.status === "ACTIVE" 
+                             ? "bg-background text-green-600 shadow-md ring-1 ring-border" 
+                             : "text-muted-foreground hover:bg-background/50"
+                           }`}
                           onClick={() => setFormData({...formData, status: "ACTIVE"})}
                         >
                           {formData.status === "ACTIVE" && <CheckBadgeIcon className="w-5 h-5"/>}
                           Active
                         </button>
                         <button
-                          className={`py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
-                            formData.status === "COMING_SOON" 
-                            ? "bg-white text-amber-700 shadow-md ring-1 ring-black/5" 
-                            : "text-gray-500 hover:bg-gray-200"
-                          }`}
+                           className={`py-3 text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                             formData.status === "COMING_SOON" 
+                             ? "bg-background text-amber-600 shadow-md ring-1 ring-border" 
+                             : "text-muted-foreground hover:bg-background/50"
+                           }`}
                           onClick={() => setFormData({...formData, status: "COMING_SOON"})}
                         >
                           {formData.status === "COMING_SOON" && <CheckBadgeIcon className="w-5 h-5"/>}
@@ -483,20 +489,20 @@ export default function AdminMerchantPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t border-gray-100">
-                   <button 
-                      onClick={() => setShowModal(false)}
-                      className="flex-1 py-4 bg-gray-50 rounded-2xl font-bold hover:bg-gray-100 text-gray-600 transition"
-                   >
-                      Cancel
-                   </button>
-                   <button 
-                      onClick={handleSubmit}
-                      disabled={isPending || !formData.name || !formData.code}
-                      className="flex-1 py-4 bg-blue-600 rounded-2xl font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition shadow-lg shadow-blue-500/20"
-                   >
-                      {isPending ? "Saving..." : (editingCountry ? "Save Changes" : "Create Country")}
-                   </button>
+                 <div className="flex gap-4 pt-4 border-t border-border">
+                    <button 
+                       onClick={() => setShowModal(false)}
+                       className="flex-1 py-4 bg-muted text-muted-foreground rounded-2xl font-bold hover:bg-muted/80 transition"
+                    >
+                       Cancel
+                    </button>
+                    <button 
+                       onClick={handleSubmit}
+                       disabled={isPending || !formData.name || !formData.code}
+                       className="flex-1 py-4 bg-primary text-white rounded-2xl font-bold hover:opacity-90 disabled:opacity-50 transition shadow-lg shadow-primary/20"
+                    >
+                       {isPending ? "Saving..." : (editingCountry ? "Save Changes" : "Create Country")}
+                    </button>
                 </div>
              </div>
           </div>

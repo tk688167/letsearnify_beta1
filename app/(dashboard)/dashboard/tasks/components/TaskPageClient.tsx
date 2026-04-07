@@ -11,7 +11,9 @@ import {
     GiftIcon,
     InformationCircleIcon
 } from "@heroicons/react/24/outline"
+import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { completeTask } from "@/app/actions/user/tasks"
+import { useRouter } from "next/navigation"
 
 interface Task {
     id: string
@@ -37,6 +39,7 @@ interface TaskPageClientProps {
 }
 
 export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked }: TaskPageClientProps) {
+    const router = useRouter()
     const userIsActive = isUnlocked
 
     const [taskStates, setTaskStates] = useState<Record<string, { status: string, remarks?: string | null }>>(() => {
@@ -154,7 +157,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                   </div>
                   <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
                     <div className="text-base sm:text-lg font-black text-amber-400 leading-none mb-0.5">
-                      {(platformTasks.reduce((sum: number, t: any) => sum + t.reward, 0)).toFixed(0)}
+                      {(platformTasks.reduce((sum: number, t: any) => sum + t.reward, 0)).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                     </div>
                     <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">ARN</div>
                   </div>
@@ -191,7 +194,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                        {platformTasks.filter((t: any) => t.type !== 'SOCIAL').map((task, index) => {
+                        {platformTasks.filter((t: any) => t.type === 'PREMIUM').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
                             const isPendingTask = state?.status === 'PENDING'
@@ -202,25 +205,27 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 overflow-hidden shadow-sm min-h-[180px]">
                                         <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
                                         
-                                        <div className="relative z-20 flex flex-col items-center">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 sm:mb-2 text-gray-400 group-hover:bg-amber-50 dark:group-hover:bg-amber-900/20 group-hover:text-amber-500 transition-colors">
+                                        <div className="relative z-20 flex flex-col items-center opacity-20 grayscale grayscale-50">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 sm:mb-2 text-gray-400">
                                                 <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                                             </div>
-                                            <h3 className="font-bold text-foreground text-sm sm:text-base">Premium Opportunity</h3>
-                                            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-bold text-muted-foreground bg-gray-50 dark:bg-gray-800/50 px-2 sm:px-2.5 py-1 sm:py-1 rounded-full border border-gray-100 dark:border-gray-800 mt-1">
-                                                <span className="w-1.5 h-1.5 sm:w-1.5 sm:h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                Reward: {task.reward.toFixed(0)} ARN
-                                            </div>
-                                            <p className="text-[9px] sm:text-[10px] text-muted-foreground max-w-[180px] mt-1.5 leading-relaxed">
-                                                Unlock this task and others by upgrading your status.
-                                            </p>
+                                            <h3 className="font-bold text-foreground text-sm sm:text-base">{task.title}</h3>
                                         </div>
                                         
-                                        {/* Fixed overlay — rounded + no scale overflow */}
-                                        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[2px] z-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl">
-                                            <a href="/dashboard/wallet" className="shadow-xl px-4 sm:px-5 py-2 sm:py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-1.5">
-                                                <BoltIcon className="w-3.5 h-3.5 text-amber-400 dark:text-amber-500" /> Unlock
-                                            </a>
+                                        <div className="absolute inset-0 z-30 bg-background/60 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-amber-500/20">
+                                            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3 text-amber-600 dark:text-amber-500">
+                                                <LockClosedIcon className="w-6 h-6" />
+                                            </div>
+                                            <h3 className="text-sm font-black text-foreground mb-1 leading-tight">This is locked. All these features are currently locked.</h3>
+                                            <p className="text-[10px] text-muted-foreground max-w-[180px] mb-4">
+                                                Unlock premium tasks ($0.50+ / task) with a $1.00 deposit.
+                                            </p>
+                                            <button 
+                                                onClick={() => router.push("/dashboard/wallet?tab=deposit")}
+                                                className="px-4 py-2 bg-foreground text-background font-bold rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all text-[10px]"
+                                            >
+                                                Unlock Now →
+                                            </button>
                                         </div>
                                     </div>
                                 )
@@ -268,7 +273,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                             <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground">Reward</span>
                                             <div className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                                                 <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-                                                {task.reward.toFixed(0)} ARN
+                                                {task.reward.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
                                             </div>
                                         </div>
                                         
@@ -302,7 +307,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                        {platformTasks.filter((t: any) => t.type === 'SOCIAL').map((task, index) => {
+                        {platformTasks.filter((t: any) => t.type !== 'PREMIUM').map((task, index) => {
                             const state = taskStates[task.id]
                             const isApproved = state?.status === 'APPROVED'
                             const isPendingTask = state?.status === 'PENDING'
@@ -344,7 +349,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
 
                                     <div className="flex items-center justify-between border-t border-border pt-3 sm:pt-4 mt-auto">
                                         <div className="text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-indigo-100 dark:border-indigo-800/50">
-                                            +{task.reward} ARN
+                                            +{task.reward.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
                                         </div>
                                         
                                         {!isApproved && !isPendingTask && (
@@ -408,7 +413,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     <span className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">Reward</span>
                                     <div className="text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end">
                                         <SparklesIcon className="w-4 h-4" />
-                                        {selectedTask?.reward} ARN
+                                        {selectedTask?.reward?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
                                     </div>
                                 </div>
                             </div>

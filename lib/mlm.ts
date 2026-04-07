@@ -99,25 +99,26 @@ export async function unlockUserAccount(userId: string, tx?: any) {
         }
     });
 
-    // 3. Pool allocation
-    let rewardPercentage = 20;
-    const existingAchievementPool = await db.pool.findUnique({ where: { name: "ACHIEVEMENT" } });
-    if (existingAchievementPool && existingAchievementPool.percentage > 0) {
-        rewardPercentage = existingAchievementPool.percentage;
-    }
-    
-    const achievementAllocation = 1.0 * (rewardPercentage / 100);
+    try {
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/wallet");
+        revalidatePath("/dashboard/tasks");
+    } catch (e) { console.error("[MLM] Revalidation failed:", e); }
+
+    // 3. Pool allocation (Strict 20% = $0.20)
+    const achievementAllocation = 0.20;
 
     await db.pool.upsert({
         where: { name: "ACHIEVEMENT" },
         update: { balance: { increment: achievementAllocation } },
-        create: { name: "ACHIEVEMENT", balance: achievementAllocation, percentage: rewardPercentage }
+        create: { name: "ACHIEVEMENT", balance: achievementAllocation, percentage: 20 }
     });
 
-    // 4. Distribute referral commissions from the $1 unlock
-    // Per PDF: "When Talha deposits $1 to unlock, Ali receives his referral reward"
-    const referralEmissions = await distributeCommissions(userId, 1.0, db);
+    // 4. Distribute referral commissions from the $1 unlock based on Referrer's Tier Percentages
+    const referralEmissions = await distributeActivationCommissions(userId, db);
     
+    // Remaining stays with company
     const companyRemainder = Math.max(1.0 - achievementAllocation - referralEmissions, 0);
 
     await db.unlockActivation.create({
@@ -173,9 +174,48 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
         try { await mintArnForDeposit(userId, amount, txId, db); } 
         catch (e) { console.error("[MLM] Token Minting Failed", e); throw e; }
 
-        if (user.isActiveMember) {
-            await distributeCommissions(userId, amount, db);
+        // --- AUTO-UNLOCK LOGIC ---
+        // If user is NOT active and their total deposit is now >= $1, auto-unlock them.
+        const updatedUser = await db.user.findUnique({
+            where: { id: userId },
+            select: { id: true, isActiveMember: true, totalDeposit: true, balance: true }
+        });
+
+        if (updatedUser && !updatedUser.isActiveMember && (updatedUser.totalDeposit || 0) >= 1.0) {
+            console.log(`[MLM] Auto-unlocking user ${userId} (Deposit Threshold Met)`);
+            
+            // 1. Deduct $1 Activation Fee from Balance
+            if (updatedUser.balance >= 1.0) {
+                await db.user.update({
+                    where: { id: userId },
+                    data: { 
+                        balance: { decrement: 1.0 },
+                        arnBalance: { decrement: 10.0 } // Optional: also deduct tokens if needed, but usually it's a USD fee
+                    }
+                });
+
+                // 2. Log Payment Transaction
+                await db.transaction.create({
+                    data: {
+                        userId: userId,
+                        amount: 1.0,
+                        type: "UNLOCK_FEE",
+                        status: "COMPLETED",
+                        description: "Automated $1.00 activation fee (Deposit Threshold Met)",
+                    }
+                });
+
+                // 3. Trigger actual Unlock logic (Distributions, Tiers, etc.)
+                await unlockUserAccount(userId, db);
+            } else {
+                console.warn(`[MLM] User ${userId} reached $1 deposit but balance is insufficient ($${updatedUser.balance}) for auto-unlock.`);
+            }
         }
+
+        /* 
+           Referral commissions are no longer triggered by deposits.
+           They are only triggered by the $1 Account Unlock Fee.
+        */
     }
     await checkTierUpgrade(userId, db);
 }
@@ -225,12 +265,15 @@ export async function distributeCommissions(sourceUserId: string, amount: number
             const commissionUSD = amount * (rate / 100);
             const commissionARN = commissionUSD * 10;
 
-            // Always credit real balance
+            // Credit balance (Main or Locked depending on referrer status)
             await db.user.update({
                 where: { id: uplineId },
-                data: { 
+                data: referrer.isActiveMember ? { 
                     arnBalance: { increment: commissionARN },
                     balance: { increment: commissionUSD }
+                } : {
+                    lockedArnBalance: { increment: commissionARN },
+                    lockedBalance: { increment: commissionUSD }
                 }
             });
 
@@ -254,6 +297,85 @@ export async function distributeCommissions(sourceUserId: string, amount: number
             console.log(`[MLM] Paid $${commissionUSD} (L${level} @ ${rate}%) to ${uplineId}`);
             
             await checkTierUpgrade(uplineId, db);
+        }
+
+        try {
+            const { revalidatePath } = await import("next/cache");
+            revalidatePath("/dashboard/wallet");
+            revalidatePath("/dashboard/profile");
+        } catch (e) {}
+    }
+    
+    return totalDistributed;
+}
+
+/**
+ * Specifically distributes percentages of the $1 activation fee to referrers based on their tiers.
+ * Logic: L1 % of $1, L2 % of $1, L3 % of $1
+ */
+export async function distributeActivationCommissions(sourceUserId: string, db: any): Promise<number> {
+    const activationFee = 1.0;
+    let totalDistributed = 0;
+    
+    const tree = await db.referralTree.findUnique({
+        where: { userId: sourceUserId }
+    });
+    if (!tree) return 0;
+
+    const sourceUser = await db.user.findUnique({
+        where: { id: sourceUserId },
+        select: { name: true, email: true }
+    });
+    const sourceName = sourceUser?.name || sourceUser?.email || "a team member";
+
+    const uplineIds = [tree.advisorId, tree.supervisorId, tree.managerId].filter(Boolean) as string[];
+
+    for (let i = 0; i < uplineIds.length; i++) {
+        const uplineId = uplineIds[i];
+        const level = i + 1;
+
+        const referrer = await db.user.findUnique({
+            where: { id: uplineId },
+            select: { id: true, tier: true, isActiveMember: true }
+        });
+        if (!referrer) continue;
+
+        const currentTier = (referrer.tier || "NEWBIE").toUpperCase();
+        const validTier = TIER_COMMISSIONS[currentTier] ? currentTier : "NEWBIE";
+        const rates = TIER_COMMISSIONS[validTier];
+        const rate = level === 1 ? rates.L1 : level === 2 ? rates.L2 : rates.L3;
+
+        if (rate > 0) {
+            const amountUSD = activationFee * (rate / 100);
+            const amountARN = amountUSD * 10;
+
+            // Always credit main balance and ARN balance
+            await db.user.update({
+                where: { id: uplineId },
+                data: { 
+                    arnBalance: { increment: amountARN },
+                    balance: { increment: amountUSD }
+                }
+            });
+
+            await db.referralCommission.create({
+                data: {
+                    earnerId: uplineId, sourceUserId: sourceUserId,
+                    amount: amountUSD, level: level, percentage: rate
+                }
+            });
+
+            await db.transaction.create({
+                data: {
+                    userId: uplineId,
+                    amount: amountUSD, arnMinted: amountARN,
+                    type: "REFERRAL_COMMISSION", status: "COMPLETED", method: "SYSTEM",
+                    description: `L${level} Activation Reward (${rate}%) from ${sourceName}`
+                }
+            });
+
+            totalDistributed += amountUSD;
+            console.log(`[MLM] Paid $${amountUSD.toFixed(3)} activation reward (L${level} @ ${rate}%) to ${uplineId}`);
         }
     }
     
@@ -384,6 +506,12 @@ export async function addUserPoints(userId: string, amount: number, tx?: any) {
         });
     }
     await checkTierUpgrade(userId, db);
+
+    try {
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/wallet");
+    } catch (e) {}
 }
 
 export async function getTierRules() { return await getTierRequirements(prisma); }
@@ -409,6 +537,13 @@ export async function grantTierRewards(userId: string, tier: string, tx?: any) {
             description: `Tier Achievement: ${tier}`
         }
     });
+
+    try {
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/wallet");
+        revalidatePath("/dashboard/profile");
+    } catch (e) {}
 }
 
 export function getTierWithdrawLimit(tier: string): number {
@@ -441,5 +576,11 @@ export async function checkAccountLock(userId: string) {
         } else {
             await prisma.user.update({ where: { id: userId }, data: { lastActivityAt: now } });
         }
+
+        try {
+            const { revalidatePath } = await import("next/cache");
+            revalidatePath("/dashboard");
+            revalidatePath("/dashboard/wallet");
+        } catch (e) {}
     } catch (error) { console.error("[MLM] checkAccountLock error:", error); }
 }

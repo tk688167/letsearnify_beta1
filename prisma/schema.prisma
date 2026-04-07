@@ -402,6 +402,7 @@ model MerchantPaymentMethod {
   name          String
   accountNumber String?
   accountName   String?
+  iban          String?
   instructions  String?
   country       MerchantCountry @relation(fields: [countryId], references: [id], onDelete: Cascade)
 }

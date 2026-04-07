@@ -127,7 +127,8 @@ export async function registerUser(formData: FormData) {
                 balance: signupBonusUsd,
                 activeMembers: 0,
                 totalDeposit: 0.0,
-                isActiveMember: false
+                isActiveMember: false,
+                currency: "USD"
               }
             })
 

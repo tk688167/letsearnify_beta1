@@ -37,18 +37,17 @@ type TierProgressViewProps = {
   stats: { teamSize: number; totalSignups: number }
   tierConfig: Record<string, { arn: number, directs: number }>
   referralTree: any[]
-  commissions: any[]
   qualifiedTransactions: any[]
 }
 
-export default function TierProgressView({ user, stats, tierConfig, referralTree, commissions, qualifiedTransactions }: TierProgressViewProps) {
+export default function TierProgressView({ user, stats, tierConfig, referralTree, qualifiedTransactions }: TierProgressViewProps) {
   const currentTierIndex = TIERS.indexOf((user.tier || "NEWBIE").toUpperCase().trim())
   const currentTierIndexLocal = currentTierIndex === -1 ? 0 : currentTierIndex;
   
   const { formatCurrency } = useCurrency();
   
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
-  const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'EARNINGS' | 'ARN_LOG'>('PARTNERS')
+  const [historyTab, setHistoryTab] = useState<'PARTNERS' | 'ARN_LOG'>('PARTNERS')
   const [timeFilter, setTimeFilter] = useState<'7D' | '30D' | 'CUSTOM'>('30D')
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -420,15 +419,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                   Partners
                 </button>
                 <button
-                  onClick={() => setHistoryTab('EARNINGS')}
-                  className={cn(
-                    "flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all",
-                    historyTab === 'EARNINGS' ? "bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm" : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-400"
-                  )}
-                >
-                    Commissions
-                </button>
-                <button
                   onClick={() => setHistoryTab('ARN_LOG')}
                   className={cn(
                     "flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all",
@@ -481,30 +471,6 @@ export default function TierProgressView({ user, stats, tierConfig, referralTree
                                 {member.level === 1 ? 'Direct' : 'Level ' + member.level}
                               </span>
                               <span className="text-[10px] font-medium text-gray-400">{format(new Date(member.createdAt), "MMM d, yyyy")}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              ) : historyTab === 'EARNINGS' ? (
-                <div className="space-y-3 pb-10">
-                  {commissions
-                    .filter((c: any) => !searchTerm || c.sourceUser?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((comm) => (
-                      <div key={comm.id} className="p-4 bg-white dark:bg-gray-900 rounded-[1.5rem] border border-gray-100 dark:border-gray-800 shadow-sm flex items-center justify-between group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 flex items-center justify-center text-emerald-600">
-                            <CurrencyDollarIcon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <h4 className="text-sm font-black text-gray-900 dark:text-gray-100">
-                                +{formatCurrency(comm.amount || 0)}
-                                <span className="ml-1.5 text-xs text-gray-400 font-medium">commission</span>
-                            </h4>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">From {comm.sourceUser?.name || "Direct Referral"}</span>
-                                <span className="text-[10px] font-medium text-gray-400">{format(new Date(comm.createdAt), "MMM d, yyyy")}</span>
                             </div>
                           </div>
                         </div>

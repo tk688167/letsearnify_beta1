@@ -50,7 +50,8 @@ export function ArnHistory({ transactions }: ArnHistoryProps) {
                     Qualified Earnings
                 </span>
             </div>
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">
                         <tr>
@@ -113,6 +114,48 @@ export function ArnHistory({ transactions }: ArnHistoryProps) {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
+                {transactions.length > 0 ? transactions.map((tx) => (
+                    <div key={tx.id} className="p-4 bg-white dark:bg-gray-900 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center border border-gray-100 dark:border-gray-700 shadow-xs">
+                                    {getIcon(tx.type, tx.method)}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">
+                                        {getSourceLabel(tx.type, tx.method)}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400 uppercase tracking-tighter">
+                                        {format(new Date(tx.createdAt), "MMM d, yyyy · HH:mm")}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                                    +{tx.arnMinted.toLocaleString()} <span className="text-[10px] font-bold">ARN</span>
+                                </div>
+                                {tx.amount > 0 && (
+                                    <div className="text-[9px] text-gray-400 font-bold">
+                                        {formatCurrency(tx.amount)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="pl-4 py-2 border-l-2 border-gray-100 dark:border-gray-800 ml-1">
+                            <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                                {tx.description || "Qualified ARN contribution"}
+                            </p>
+                        </div>
+                    </div>
+                )) : (
+                    <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 font-medium">
+                        No qualified ARN earnings found.
+                    </div>
+                )}
             </div>
         </div>
     );

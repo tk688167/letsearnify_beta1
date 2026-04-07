@@ -1,104 +1,125 @@
 "use client"
-// MarketplaceDevScreen — shown to users when marketplace is in development mode
 
-import Link from "next/link"
-import Logo from "@/app/components/ui/Logo"
-import ThemeToggle from "@/app/components/ui/ThemeToggle"
+/**
+ * MarketplaceDevScreen — displayed when the marketplace is in development mode.
+ * Refactored to be professional, simple, and mobile-responsive.
+ */
+
+import { useState, useTransition } from "react"
+import { motion } from "framer-motion"
+import { 
+  BriefcaseIcon, 
+  BellAlertIcon, 
+  CheckCircleIcon, 
+  RocketLaunchIcon 
+} from "@heroicons/react/24/solid"
+import { joinWaitlist } from "@/app/actions/waitlist"
+import toast from "react-hot-toast"
+import { cn } from "@/lib/utils"
 
 export default function MarketplaceDevScreen() {
+  const [isPending, startTransition] = useTransition()
+  const [joined, setJoined] = useState(false)
+
+  const handleNotifyMe = () => {
+    startTransition(async () => {
+      const result = await joinWaitlist("Freelance Marketplace")
+      if (result.success) {
+        setJoined(true)
+        toast.success("Successfully joined the notification list!")
+      } else {
+        toast.error(result.error || "Failed to join notification list.")
+      }
+    })
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 flex flex-col transition-colors duration-200">
-      {/* Navbar */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-gray-200/60 dark:border-slate-800/60">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" />
+    <div className="relative min-h-[70vh] flex items-center justify-center p-4 md:p-8 overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 shadow-xl transition-colors duration-300 group">
+      
+      {/* Decorative Gradients */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 opacity-50 transition-all duration-1000"></div>
+      <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-100 dark:bg-indigo-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60"></div>
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-100 dark:bg-purple-900/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 opacity-60"></div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative z-10 max-w-2xl w-full text-center space-y-8"
+      >
+        {/* Icon & Badge */}
+        <div className="flex flex-col items-center">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-3xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl shadow-indigo-500/20 transform transition-transform group-hover:scale-105 duration-500">
+            <BriefcaseIcon className="w-10 h-10 md:w-12 md:h-12 text-white" />
           </div>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-colors shadow-md shadow-blue-500/20"
-            >
-              Sign In
-            </Link>
+          
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800/50 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
+              Coming Soon
+            </span>
           </div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-20">
-        <div className="max-w-xl w-full text-center space-y-8">
-          {/* Icon */}
-          <div className="flex justify-center">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-xl shadow-amber-500/30">
-                <span className="text-4xl">🚧</span>
-              </div>
-              {/* Pulse ring */}
-              <span className="absolute inset-0 rounded-3xl animate-ping bg-amber-400/20" />
+        {/* Content */}
+        <div className="space-y-4">
+          <h1 className="text-3xl md:text-5xl font-serif font-black text-gray-900 dark:text-white tracking-tight">
+            Marketplace Coming Soon
+          </h1>
+          <p className="text-gray-500 dark:text-slate-400 text-base md:text-lg leading-relaxed max-w-lg mx-auto">
+            Our Freelance Marketplace is under active development. We're building a secure, premium hub for freelancers and clients to connect, collaborate, and grow.
+          </p>
+        </div>
+
+        {/* Action / Notification Form */}
+        <div className="max-w-md mx-auto pt-4">
+          <div className="p-1.5 bg-gray-50 dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-slate-800 shadow-inner flex flex-col sm:flex-row gap-2 transition-all">
+            <div className="flex-1 px-4 py-3 text-left">
+              <p className="text-[10px] uppercase font-bold text-gray-400 dark:text-slate-500 tracking-widest leading-none mb-1">Status</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white leading-none">Launching in Q2 2026</p>
             </div>
+            
+            <button 
+              onClick={handleNotifyMe}
+              disabled={isPending || joined}
+              className={cn(
+                "px-6 py-3.5 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2",
+                joined 
+                  ? "bg-emerald-500 text-white cursor-default" 
+                  : "bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 active:scale-95"
+              )}
+            >
+              {isPending ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : joined ? (
+                <>
+                  <CheckCircleIcon className="w-4 h-4" />
+                  Notified!
+                </>
+              ) : (
+                <>
+                  <BellAlertIcon className="w-4 h-4" />
+                  Notify Me
+                </>
+              )}
+            </button>
           </div>
-
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-bold px-4 py-1.5 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-            Under Development
-          </div>
-
-          {/* Heading */}
-          <div className="space-y-3">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white leading-tight">
-              Marketplace Coming Soon
-            </h1>
-            <p className="text-base text-gray-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
-              The LetsEarnify Freelance Marketplace is currently under active development. 
-              We're building something great — check back soon or join the waitlist to get early access.
+          
+          {joined && (
+            <p className="mt-3 text-[11px] font-medium text-emerald-600 dark:text-emerald-400 animate-in fade-in slide-in-from-top-1">
+               Perfect! You'll be the first to know when we're live.
             </p>
-          </div>
-
-          {/* Features preview cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
-            {[
-              { emoji: "✅", title: "Verified Freelancers", desc: "Every profile manually verified" },
-              { emoji: "🌍", title: "75+ Countries", desc: "Talent from around the world" },
-              { emoji: "⚡", title: "Fast Response", desc: "Average reply under 2 hours" },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800/60 rounded-2xl p-4"
-              >
-                <span className="text-2xl">{item.emoji}</span>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white mt-2">{item.title}</p>
-                <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg shadow-blue-500/20 text-sm"
-            >
-              Join Waitlist
-            </Link>
-            <Link
-              href="/"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-semibold px-6 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors text-sm"
-            >
-              ← Back to Home
-            </Link>
-          </div>
+          )}
         </div>
-      </main>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200/60 dark:border-slate-800/60 py-5 text-center">
-        <p className="text-xs text-gray-400 dark:text-slate-500">
-          © {new Date().getFullYear()} LetsEarnify. Marketplace launching soon.
-        </p>
-      </footer>
+        {/* Minimal Footer */}
+        <div className="pt-8 flex items-center justify-center gap-6 opacity-40">
+           <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+             <RocketLaunchIcon className="w-3.5 h-3.5" />
+             Stay Tuned
+           </div>
+        </div>
+      </motion.div>
     </div>
   )
 }

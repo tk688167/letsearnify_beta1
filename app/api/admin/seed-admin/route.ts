@@ -40,6 +40,7 @@ export async function GET() {
           isActiveMember: true,
           emailVerified: new Date(),
           referralCode: "ADMIN001",
+          currency: "USD",
         }
       });
     }

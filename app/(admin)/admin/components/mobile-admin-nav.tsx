@@ -34,7 +34,6 @@ const navigation = [
   { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
   { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
   { name: "Merchant Deposits", href: "/admin/merchant/deposits", icon: BanknotesIcon },
-  { name: "Manual Deposit", href: "/admin/manual-deposit", icon: BanknotesIcon },
   { name: "Withdrawal Requests", href: "/admin/withdrawals", icon: ArrowLeftOnRectangleIcon },
   { name: "Wallet Settings", href: "/admin/wallets", icon: WalletIcon },
   { name: "Merchant Settings", href: "/admin/settings/merchant", icon: BanknotesIcon },

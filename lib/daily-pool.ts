@@ -10,16 +10,26 @@ import { prisma } from "@/lib/prisma"
 export async function executeDailyPoolDistribution(options: { force?: boolean } = {}) {
     const { force = false } = options;
     const now = new Date();
-    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Helper to get Midnight NY Time for a given date
+    const getMidnightNY = (date: Date) => {
+        const nyDate = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            year: "numeric", month: "numeric", day: "numeric"
+        }).format(date);
+        return new Date(nyDate);
+    };
 
-    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()} (Force: ${force})`);
+    const nowNY = getMidnightNY(now);
+
+    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()} (NY Midnight: ${nowNY.toISOString()}) (Force: ${force})`);
 
     // 1. Calculate Daily Earnings (1%) with Catch-up logic
     const activePools = await prisma.dailyEarningInvestment.findMany({
         where: {
             status: "ACTIVE",
-            // If NOT force, only process pools that haven't been touched in 24h
-            ...(force ? {} : { lastCalculatedDate: { lte: twentyFourHoursAgo } })
+            // If NOT force, only process pools that have not been credited for the current NY day
+            ...(force ? {} : { lastCalculatedDate: { lt: nowNY } })
         }
     });
 
@@ -27,17 +37,20 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
     let totalProfitDistributed = 0;
 
     for (const pool of activePools) {
-        const timeSinceLast = now.getTime() - pool.lastCalculatedDate.getTime();
-        const daysToProcess = Math.floor(timeSinceLast / (24 * 60 * 60 * 1000));
+        const lastNY = getMidnightNY(pool.lastCalculatedDate);
         
-        // Skip if less than 24h has passed since last calculation
+        // Count how many "midnights" have passed
+        const diffTime = nowNY.getTime() - lastNY.getTime();
+        const daysToProcess = Math.floor(diffTime / (24 * 60 * 60 * 1000));
+        
+        // Skip if we already credited today
         if (daysToProcess < 1) continue;
 
         const dailyProfitPerDay = pool.amount * 0.01;
         const totalProfitToGrant = dailyProfitPerDay * daysToProcess;
         
-        // Advance the lastCalculatedDate by exact 24h increments to keep it consistent
-        const finalCalculatedDate = new Date(pool.lastCalculatedDate.getTime() + (daysToProcess * 24 * 60 * 60 * 1000));
+        // Set lastCalculatedDate to exactly today's midnight (New York Time)
+        const finalCalculatedDate = nowNY;
 
         await prisma.$transaction([
             prisma.dailyEarningInvestment.update({

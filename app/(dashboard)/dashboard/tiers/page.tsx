@@ -34,15 +34,7 @@ export default async function TierPage() {
                 }
               }
             },
-            referralsMade: { // Commissions
-               orderBy: { createdAt: 'desc' },
-               take: 50,
-               include: {
-                  sourceUser: {
-                     select: { name: true, email: true }
-                  }
-               }
-            }
+            referralsMade: false
           }
         }),
         calculateQualifiedTierArn(userId, prisma),
@@ -63,34 +55,29 @@ export default async function TierPage() {
         })
       ]);
       
-      user = dbUser;
-      qualifiedArn = qArn;
-      qualifiedTransactions = qTransactions;
-      
-      if (user) {
-          // Flatten the Tree
-          user.referrals.forEach((l1: any) => {
-            referralTree.push({ ...l1, level: 1 })
-            l1.referrals.forEach((l2: any) => {
-              referralTree.push({ ...l2, level: 2 })
-              l2.referrals.forEach((l3: any) => {
-                referralTree.push({ ...l3, level: 3 })
-              })
-            })
-          })
+          user = dbUser;
+          qualifiedArn = qArn;
+          qualifiedTransactions = qTransactions;
           
-           const totalEarningsAgg = await prisma.referralCommission.aggregate({
-              where: { earnerId: user.id },
-              _sum: { amount: true }
-           })
-
-           // Fetch absolute direct signup count for consistent tier calculation
-           const dbTotalSignups = await prisma.user.count({
-              where: { referredByCode: user.referralCode }
-           });
-           (user as any).totalSignups = dbTotalSignups;
-       }
-  } catch (error) {
+          if (user) {
+              // Flatten the Tree
+              user.referrals.forEach((l1: any) => {
+                referralTree.push({ ...l1, level: 1 })
+                l1.referrals.forEach((l2: any) => {
+                  referralTree.push({ ...l2, level: 2 })
+                  l2.referrals.forEach((l3: any) => {
+                    referralTree.push({ ...l3, level: 3 })
+                  })
+                })
+              })
+              
+               // Fetch absolute direct signup count for consistent tier calculation
+               const dbTotalSignups = await prisma.user.count({
+                  where: { referredByCode: user.referralCode }
+               });
+               (user as any).totalSignups = dbTotalSignups;
+           }
+      } catch (error) {
       console.error("⚠️ Tiers Page Offline Mode:", error);
       tierConfig = { 
           NEWBIE: { arn: 0, directs: 0 }, 
@@ -124,7 +111,6 @@ export default async function TierPage() {
             stats={{ teamSize: referralTree.length, totalSignups: (user as any).totalSignups || 0 }}
             tierConfig={tierConfig}
             referralTree={referralTree}
-            commissions={user.referralsMade || []}
             qualifiedTransactions={qualifiedTransactions}
          />
 

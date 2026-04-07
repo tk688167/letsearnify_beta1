@@ -29,6 +29,15 @@ export async function POST() {
             return NextResponse.json({ error: "Insufficient wallet balance. You need at least $1.00 to unlock your account." }, { status: 400 });
         }
 
+        const stats = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { totalDeposit: true }
+        });
+
+        if (!stats || (stats.totalDeposit || 0) < 1.0) {
+            return NextResponse.json({ error: "Activation requires a minimum deposit of $1.00 USD. Earnings from tasks, spins, or referrals cannot be used for the initial account activation." }, { status: 400 });
+        }
+
         // Fix null referredByCode before transaction
         if (!user.referredByCode) {
             await prisma.user.update({

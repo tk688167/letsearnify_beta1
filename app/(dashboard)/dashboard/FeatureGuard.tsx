@@ -8,7 +8,7 @@ import { LockClosedIcon, CheckCircleIcon, ArrowRightIcon, XMarkIcon } from "@her
 
 interface FeatureGuardProps {
     title?: string;
-    feature?: 'tasks' | 'pools' | 'cbsp' | 'royalty' | 'marketplace' | 'mudarabah' | 'partner' | 'default';
+    feature?: 'tasks' | 'pools' | 'cbsp' | 'royalty' | 'marketplace' | 'mudarabah' | 'partner' | 'spin' | 'withdraw' | 'default';
     previewMode?: boolean;
     children?: React.ReactNode; 
 }
@@ -26,10 +26,10 @@ const FEATURE_TITLES: Record<string, string> = {
 }
 
 const FEATURE_DESCRIPTIONS: Record<string, string> = {
-    marketplace: 'This is the Marketplace page, where users can access platform products and services. To unlock the Marketplace and other premium features, please activate your account with $1.',
-    mudarabah: 'This is the Mudarabah Pool, where users can access ethical investment opportunities. To unlock the Mudarabah Pool, please activate your account with $1.',
-    pools: 'This is the Reward Pools section, where active members earn from CBSP, Royalty, and Achievement pools. To unlock Reward Pools, please activate your account with $1.',
-    partner: 'The Partner Program allows you to earn commissions from your referral network. To unlock the Partner Program, please activate your account with $1.',
+    marketplace: 'The Marketplace allows you to access platform-exclusive products and professional services. To unlock access to the Marketplace and all premium features, please activate your account with a direct $1 deposit.',
+    mudarabah: 'The Mudaraba Pool provides ethical, Shariah-compliant investment opportunities for wealth growth. To unlock the Mudaraba Pool and all premium features, please activate your account with a direct $1 deposit.',
+    pools: 'Our Reward Pools distribute earnings to active members. To unlock the CBSP, Royalty, and Achievement pools, please activate your account with a direct $1 deposit.',
+    partner: 'The Partner Program enables multi-level referral commissions. To unlock the Partner Program and withdrawal access, please activate your account with a direct $1 deposit.',
 }
 
 // Under Development info per feature
@@ -80,7 +80,14 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
   // ════════════════════════════════════════════════════════════════
   const isRestrictedFeature = 
     feature === 'marketplace' || 
-    feature === 'mudarabah';
+    feature === 'mudarabah' ||
+    feature === 'pools' ||
+    feature === 'cbsp' ||
+    feature === 'royalty' ||
+    feature === 'tasks' ||
+    feature === 'partner' ||
+    feature === 'spin' ||
+    feature === 'withdraw';
 
   if (!isUnlocked && isRestrictedFeature) {
       const lockTitle = FEATURE_TITLES[feature] || `🔒 ${title || 'Feature'} Locked`;
@@ -105,19 +112,24 @@ export async function FeatureGuard({ title, feature = 'default', previewMode = f
                          </div>
                          <p className="text-sm sm:text-[15px] font-medium text-gray-700 dark:text-gray-200 mb-5 sm:mb-6 text-center leading-relaxed shrink-0">{lockDescription}</p>
                          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 border border-gray-100 dark:border-gray-700/50 shrink-0">
-                             <div className="text-[10px] sm:text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 sm:mb-4 text-center">After activation, you will get access to</div>
-                             <ul className="space-y-2.5 sm:space-y-3">
-                                 {["Marketplace Access", "Mudarabah Pool Access", "Reward Pools", "Premium Tasks", "Withdrawal & Transfer", "Premium Spin Wheel", "Locked Balance Release"].map((item, i) => (
-                                     <li key={i} className="flex items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-medium">
+                             <div className="text-[10px] sm:text-[11px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 sm:mb-4 text-center italic">The following 7 features are strictly locked:</div>
+                             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2.5 sm:gap-y-3">
+                                 {["Marketplace", "Mudaraba Pool", "Premium Spin", "Premium Tasks", "CBSP Pool", "Royalty Pool", "Withdraw access"].map((item, i) => (
+                                     <li key={i} className="flex items-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-gray-800 dark:text-gray-200 font-bold">
                                          <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 shrink-0" />
                                          {item}
                                      </li>
                                  ))}
                              </ul>
                          </div>
+                         <div className="mb-4 px-2">
+                             <p className="text-[10px] sm:text-xs font-medium text-amber-600 dark:text-amber-500 text-center italic leading-relaxed">
+                                 Note: Once you make a direct $1 deposit, all seven features will be instantly unlocked and fully accessible without delay.
+                             </p>
+                         </div>
                          <div className="flex flex-col gap-2.5 sm:gap-3 shrink-0 mt-auto">
-                             <Link href="/dashboard/wallet?tab=deposit" className="w-full py-3.5 sm:py-4 bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm sm:text-base font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2">
-                                 Activate for $1.00 <ArrowRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                             <Link href="/dashboard/wallet?tab=deposit" className="w-full py-3.5 sm:py-4 bg-gray-900 hover:bg-black dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 text-sm sm:text-base font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 uppercase tracking-tighter">
+                                 Use $1 to unlock your account <ArrowRightIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                              </Link>
                              <Link href="/dashboard" className="w-full py-3 sm:py-3.5 bg-transparent border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-sm sm:text-base font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white transition-all flex items-center justify-center">
                                  Go Back
