@@ -26,7 +26,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       redirect("/unauthorized") // Or "/"
   }
 
-  const counts = await getPendingCounts()
+  let counts = { deposits: 0, withdrawals: 0, merchantDeposits: 0 }
+  try {
+      counts = await getPendingCounts()
+  } catch (error) {
+      console.error("Layout Counts Error:", error)
+  }
 
   return (
     <div className="flex h-screen bg-background font-sans md:flex-row flex-col overflow-hidden">

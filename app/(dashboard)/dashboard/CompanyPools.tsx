@@ -13,18 +13,16 @@ import {
 } from "@heroicons/react/24/outline"
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useCurrency } from "@/app/components/providers/CurrencyProvider";
 
 export function CompanyPools({ pools, status = "LIVE", userTier, onLockedClick }: { pools: any[], status?: "LOCKED" | "DEV" | "LIVE", userTier?: string, onLockedClick?: () => void }) {
+    const { formatCurrency } = useCurrency();
     
-    // Helper to format currency
-    const formatMoney = (amount: number) => 
-        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-
     const getPoolData = (key: string) => {
         const pool = pools.find((p: any) => p.name === key);
         return {
             balance: pool ? pool.balance : 0,
-            formatted: pool ? formatMoney(pool.balance) : "$0.00"
+            formatted: pool ? formatCurrency(pool.balance) : formatCurrency(0)
         }
     }
 

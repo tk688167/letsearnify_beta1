@@ -10,25 +10,46 @@ export async function getWithdrawalRequests() {
     if (session?.user?.role !== "ADMIN") return [];
 
     try {
-        const requests = await prisma.transaction.findMany({
-            where: {
-                type: "WITHDRAWAL",
-                status: "PENDING"
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        email: true,
-                        balance: true
-                    }
-                }
-            },
-            orderBy: {
-                createdAt: "desc"
-            }
-        });
-        return requests;
+        const [cryptoRequests, merchantRequests] = await Promise.all([
+            prisma.transaction.findMany({
+                where: { type: "WITHDRAWAL", status: "PENDING" },
+                include: { user: { select: { id: true, email: true, balance: true } } },
+                orderBy: { createdAt: "desc" }
+            }),
+            prisma.merchantTransaction.findMany({
+                where: { type: "WITHDRAWAL", status: "PENDING" },
+                include: { user: { select: { id: true, email: true, balance: true } } },
+                orderBy: { createdAt: "desc" }
+            })
+        ]);
+
+        // Map to a common format
+        const unified = [
+            ...cryptoRequests.map(r => ({
+                id: r.id,
+                userId: r.userId,
+                amount: r.amount,
+                status: r.status,
+                type: "CRYPTO",
+                destinationAddress: r.destinationAddress,
+                method: r.method || "TRC20",
+                createdAt: r.createdAt,
+                user: r.user
+            })),
+            ...merchantRequests.map(r => ({
+                id: r.id,
+                userId: r.userId,
+                amount: r.amount,
+                status: r.status,
+                type: "MERCHANT",
+                destinationAddress: `${r.accountName} (${r.accountNumber}) - ${r.currency}`,
+                method: `Merchant (${r.countryCode})`,
+                createdAt: r.createdAt,
+                user: r.user
+            }))
+        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        return unified;
     } catch (error) {
         console.error("Error fetching withdrawal requests:", error);
         return [];
@@ -40,51 +61,90 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
     if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
 
     try {
-        const transaction = await prisma.transaction.findUnique({
+        // Try to find in Transaction first
+        let transaction: any = await prisma.transaction.findUnique({
             where: { id: transactionId },
             include: { user: true }
         });
+
+        let isMerchant = false;
+        if (!transaction) {
+            transaction = await prisma.merchantTransaction.findUnique({
+                where: { id: transactionId },
+                include: { user: true }
+            });
+            isMerchant = true;
+        }
 
         if (!transaction || transaction.type !== "WITHDRAWAL" || transaction.status !== "PENDING") {
             return { error: "Invalid withdrawal request." };
         }
 
+        const userId = transaction.userId;
+        const amount = transaction.amount;
+        const arnToRefund = amount * 10;
+
         if (action === "REJECT") {
             await prisma.$transaction(async (tx: any) => {
-                 await tx.transaction.update({
-                    where: { id: transactionId },
-                    data: { status: "REJECTED" }
-                });
-                // Refund
+                // 1. Update Transaction Status
+                if (isMerchant) {
+                    await tx.merchantTransaction.update({
+                        where: { id: transactionId },
+                        data: { status: "REJECTED" }
+                    });
+                } else {
+                    await tx.transaction.update({
+                        where: { id: transactionId },
+                        data: { status: "REJECTED" }
+                    });
+                }
+
+                // 2. Refund Balance AND ARN Tokens
                 await tx.user.update({
-                    where: { id: transaction.userId },
-                    data: { balance: { increment: transaction.amount } }
+                    where: { id: userId },
+                    data: { 
+                        balance: { increment: amount },
+                        arnBalance: { increment: arnToRefund }
+                    }
+                });
+
+                // 3. Audit Log
+                await tx.adminLog.create({
+                    data: {
+                        adminId: session.user.id!,
+                        targetUserId: userId,
+                        actionType: "WITHDRAWAL_REJECTION",
+                        details: `Rejected ${isMerchant ? 'Merchant' : 'TRC20'} withdrawal of $${amount}. USD and ARN tokens refunded.`
+                    }
                 });
             });
+
             revalidatePath("/admin/withdrawals");
             return { success: true };
         }
 
         if (action === "APPROVE") {
-            // Transactional update: Deduct balance AND update status
             await prisma.$transaction(async (tx: any) => {
-                // Funds already locked, just verify solvency check if needed (though already deducted)
-                // Actually they are deducted, so we don't check balance here.
-                
-                // Just update status
-                await tx.transaction.update({
-                    where: { id: transactionId },
-                    data: { status: "APPROVED" }
-                });
+                // 1. Update Status
+                if (isMerchant) {
+                    await tx.merchantTransaction.update({
+                        where: { id: transactionId },
+                        data: { status: "COMPLETED" } // Merchant typically uses COMPLETED/APPROVED
+                    });
+                } else {
+                    await tx.transaction.update({
+                        where: { id: transactionId },
+                        data: { status: "APPROVED" }
+                    });
+                }
 
-                // Audit Log
+                // 2. Audit Log
                 await tx.adminLog.create({
                     data: {
                         adminId: session.user.id!,
-                        targetUserId: transaction.userId,
+                        targetUserId: userId,
                         actionType: "WITHDRAWAL_APPROVAL",
-                        // @ts-ignore
-                        details: `Approved withdrawal of $${transaction.amount} to ${transaction.destinationAddress}`
+                        details: `Approved ${isMerchant ? 'Merchant' : 'TRC20'} withdrawal of $${amount}.`
                     }
                 });
             });

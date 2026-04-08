@@ -74,6 +74,8 @@ export async function submitMerchantDeposit(data: z.infer<typeof depositSchema>)
   }
 }
 
+import { getTierWithdrawLimit } from "@/lib/mlm"
+
 export async function submitMerchantWithdrawal(data: z.infer<typeof withdrawalSchema>) {
   try {
     const session = await auth()
@@ -83,58 +85,106 @@ export async function submitMerchantWithdrawal(data: z.infer<typeof withdrawalSc
 
     const validated = withdrawalSchema.parse(data)
 
-    // Check user balance
+    // 1. Check for Pending Withdrawals (Merchant or TRC20)
+    const [pendingMerchant, pendingCrypto] = await Promise.all([
+        prisma.merchantTransaction.findFirst({
+            where: { userId: session.user.id, type: "WITHDRAWAL", status: "PENDING" }
+        }),
+        prisma.transaction.findFirst({
+            where: { userId: session.user.id, type: "WITHDRAWAL", status: "PENDING" }
+        })
+    ]);
+
+    if (pendingMerchant || pendingCrypto) {
+        return { success: false, error: "You already have a pending withdrawal request." }
+    }
+
+    // 2. Fetch User & Validation
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { balance: true, isActiveMember: true }
+      select: { balance: true, arnBalance: true, lastWithdrawalTime: true, tier: true, isActiveMember: true }
     })
 
-    if (!user || user.balance < validated.amount) {
+    if (!user) return { success: false, error: "User not found" }
+
+    if (user.balance < validated.amount) {
       return { success: false, error: "Insufficient balance" }
     }
 
-    // Must be activated
     if (!user.isActiveMember) {
         return { success: false, error: "You must activate your account ($1 deposit) before withdrawing." }
     }
 
-    // NEW: Fetch country to get rate
+    // 3. ARN Token Validation (10 ARN per $1)
+    const arnRequired = validated.amount * 10;
+    if (user.arnBalance < arnRequired) {
+        return { success: false, error: `Insufficient ARN. You need ${arnRequired} ARN but have ${user.arnBalance.toFixed(2)}` };
+    }
+
+    // 4. Tier-Based Limit Validation
+    const withdrawLimitPercent = getTierWithdrawLimit(user.tier || "NEWBIE");
+    const maxWithdrawal = user.balance * (withdrawLimitPercent / 100);
+    if (validated.amount > maxWithdrawal) {
+        return { success: false, error: `Maximum withdrawal for your ${user.tier} tier is ${withdrawLimitPercent}% ($${maxWithdrawal.toFixed(2)}).` };
+    }
+
+    // 5. 24-Hour Cooldown Check
+    if (user.lastWithdrawalTime) {
+        const hoursSinceLast = (Date.now() - user.lastWithdrawalTime.getTime()) / (1000 * 60 * 60);
+        if (hoursSinceLast < 24) {
+             const hoursRemaining = (24 - hoursSinceLast).toFixed(1);
+             return { success: false, error: `Withdrawal limit: Once every 24 hours. Try again in ${hoursRemaining} hours.` };
+        }
+    }
+
+    // 6. Fetch country to get rate
     const country = await prisma.merchantCountry.findFirst({
         where: { code: validated.countryCode }
     })
     
-    // Apply fixed PKR rule or use dynamic rate
+    // Apply fixed PKR rule (300) or use dynamic rate
     const finalRate = country?.currency === 'PKR' ? 300 : (country?.exchangeRate || 1.0)
     const convertedAmount = validated.amount * finalRate
     const currency = country?.currency || 'USD'
 
+    // 7. Perform Transaction
+    const transaction = await prisma.$transaction(async (tx) => {
+        // Create merchant transaction
+        const mt = await tx.merchantTransaction.create({
+            data: {
+                userId: session.user.id,
+                countryCode: validated.countryCode,
+                paymentMethodId: validated.paymentMethodId,
+                type: "WITHDRAWAL",
+                amount: validated.amount,
+                currency,
+                exchangeRate: finalRate,
+                convertedAmount,
+                accountNumber: validated.accountNumber,
+                accountName: validated.accountName,
+                note: validated.note,
+                status: "PENDING"
+            }
+        });
 
-    // Create merchant transaction
-    const transaction = await prisma.merchantTransaction.create({
-      data: {
-        userId: session.user.id,
-        countryCode: validated.countryCode,
-        paymentMethodId: validated.paymentMethodId,
-        type: "WITHDRAWAL",
-        amount: validated.amount,
+        // Update user state
+        await tx.user.update({
+            where: { id: session.user.id },
+            data: {
+                lastWithdrawalTime: new Date(),
+                balance: { decrement: validated.amount },
+                arnBalance: { decrement: arnRequired }
+            }
+        });
 
-        // Save currency info
-        currency,
-        exchangeRate: finalRate,
-        convertedAmount,
-
-        accountNumber: validated.accountNumber,
-        accountName: validated.accountName,
-        note: validated.note,
-        status: "PENDING"
-      }
-    })
+        return mt;
+    });
 
     revalidatePath("/dashboard/wallet")
     
     return { 
       success: true, 
-      message: "Withdrawal request submitted successfully! Your funds will be processed within 24-48 hours.",
+      message: `Withdrawal request submitted successfully! Converted amount: ${convertedAmount.toFixed(2)} ${currency}.`,
       transactionId: transaction.id
     }
   } catch (error: any) {

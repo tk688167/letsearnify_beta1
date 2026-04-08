@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useTransition, useEffect, Suspense, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -9,6 +11,7 @@ import { submitWithdrawal } from "@/app/actions/wallet"
 
 import { submitMerchantDeposit, submitMerchantWithdrawal } from "@/app/actions/user/merchant-transaction"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
+import { TIER_WITHDRAWAL_LIMITS } from "@/lib/mlm-constants"
 import { 
   BanknotesIcon, 
   ArrowDownTrayIcon, 
@@ -26,8 +29,9 @@ import {
   MapPinIcon,
   ChartPieIcon,
   FunnelIcon,
-  CalendarDaysIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  InformationCircleIcon,
+  CalendarDaysIcon
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
@@ -99,11 +103,12 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab")
   
-  const { formatCurrency, userCurrency, convertFromUSD } = useCurrency()
+  const { formatCurrency, userCurrency, convertFromUSD, convertToUSD, rates } = useCurrency()
   
   const [balance, setBalance] = useState(user.balance)
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
   const [amount, setAmount] = useState("")
+  const [displayCurrency, setDisplayCurrency] = useState<"USD" | "LOCAL">(userCurrency !== "USD" ? "LOCAL" : "USD")
   const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT">("TRC20")
   const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20">("TRC20")
   const [txHash, setTxHash] = useState("")
@@ -127,6 +132,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setAccountNumber("")
     setAccountName("")
     setAmount("")
+    setDisplayCurrency("USD")
     setMessage(null)
     setCountrySearch("")
   }
@@ -250,8 +256,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
   const handleAction = () => {
     setMessage(null)
-    const val = parseFloat(amount)
-    if (isNaN(val) || val <= 0) { setMessage({ type: 'error', text: "Please enter a valid amount." }); return }
+    const rawAmount = parseFloat(amount)
+    if (isNaN(rawAmount) || rawAmount <= 0) { setMessage({ type: 'error', text: "Please enter a valid amount." }); return }
+    
+    // Convert to USD if in LOCAL mode
+    const val = displayCurrency === "LOCAL" ? convertToUSD(rawAmount) : rawAmount
     startTransition(async () => {
       try {
         let res: any
@@ -281,6 +290,32 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   }
 
   // --- Render Helpers ---
+
+  const CurrencyToggle = () => {
+    if (userCurrency === 'USD') return null;
+    return (
+      <div className="flex p-1 bg-muted/50 rounded-xl border border-border w-fit self-end mb-2">
+        <button 
+          onClick={() => setDisplayCurrency("USD")}
+          className={cn(
+            "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
+            displayCurrency === "USD" ? "bg-card text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          USD
+        </button>
+        <button 
+          onClick={() => setDisplayCurrency("LOCAL")}
+          className={cn(
+            "px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
+            displayCurrency === "LOCAL" ? "bg-card text-foreground shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {userCurrency}
+        </button>
+      </div>
+    )
+  }
 
   const MethodOption = ({ id, label, icon: Icon, sub, selected, onClick, color = "blue" }: any) => {
       const isSelected = selected === id;
@@ -315,27 +350,40 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         !countrySearch || c.name.toLowerCase().includes(countrySearch.toLowerCase()) || c.code.toLowerCase().includes(countrySearch.toLowerCase())
       )
       return (
-        <div className="space-y-5 animate-in fade-in duration-300">
+        <motion.div 
+          key="country-selection"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="space-y-5"
+        >
           <div className="text-center pb-1">
-            <div className="text-4xl mb-3">🌍</div>
-            <h3 className="text-lg font-bold text-foreground">Select Your Country</h3>
+            <motion.div 
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              className="text-5xl mb-4"
+            >
+              🌍
+            </motion.div>
+            <h3 className="text-xl font-bold text-foreground">Select Your Country</h3>
             <p className="text-sm text-muted-foreground mt-1">Choose where you&apos;ll be sending payment from</p>
           </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"/>
+          <div className="relative group">
+            <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-green-500 transition-colors"/>
             <input
               type="text"
               value={countrySearch}
               onChange={(e: any) => setCountrySearch(e.target.value)}
               placeholder="Search countries..."
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-muted/30 focus:bg-card focus:border-green-500 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 transition-all"
+              className="w-full pl-10 pr-4 py-3.5 rounded-2xl border border-border bg-muted/30 focus:bg-card focus:border-green-500 outline-none text-sm text-foreground placeholder:text-muted-foreground/50 transition-all shadow-sm focus:shadow-md"
             />
           </div>
 
           {merchantSettings.length === 0 ? (
-            <div className="p-10 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+            <div className="p-10 text-center bg-muted/30 rounded-[2rem] border border-dashed border-border">
               <MapPinIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3"/>
               <p className="text-muted-foreground text-sm font-medium">No countries available yet.</p>
             </div>
@@ -345,194 +393,296 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {filteredCountries.map((country: any) => {
+              {filteredCountries.map((country: any, idx: number) => {
                 const isComingSoon = country.status === "COMING_SOON"
                 const flag = COUNTRY_FLAGS[country.code?.toUpperCase()] || "🏳️"
                 return (
-                  <button key={country.id} onClick={() => { if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } setSelectedCountry(country); setMessage(null); setCountrySearch("") }}
-                    className={cn("flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-xl border transition-all text-left w-full group",
+                  <motion.button 
+                    key={country.id} 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => { if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } setSelectedCountry(country); setMessage(null); setCountrySearch("") }}
+                    className={cn("flex items-center gap-4 p-4 rounded-2xl border transition-all text-left w-full group relative overflow-hidden",
                       isComingSoon
                         ? "bg-muted/20 border-border opacity-50 cursor-not-allowed"
-                        : "bg-card border-border hover:border-green-500 hover:shadow-sm hover:bg-green-50/10 dark:hover:bg-green-900/10 active:scale-[0.99]"
+                        : "bg-card border-border hover:border-green-500/50 hover:shadow-xl hover:shadow-green-500/5 hover:bg-green-50/10 dark:hover:bg-green-900/10 active:scale-[0.98]"
                     )}>
-                    <div className="text-2xl sm:text-3xl shrink-0 group-hover:scale-105 transition-transform">{flag}</div>
+                    <div className="text-3xl shrink-0 group-hover:scale-110 transition-transform duration-300">{flag}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                          <div className="flex flex-row items-center gap-2 min-w-0">
-                            <span className={cn("font-bold text-sm truncate", isComingSoon ? "text-muted-foreground" : "text-foreground")}>{country.name}</span>
-                            <span className="text-[10px] font-bold text-muted-foreground bg-muted border border-border px-1.5 py-0.5 rounded uppercase tracking-wider shrink-0">{country.code || country.name.substring(0,3).toUpperCase()}</span>
+                            <span className={cn("font-bold text-base truncate", isComingSoon ? "text-muted-foreground" : "text-foreground")}>{country.name}</span>
+                            <span className="text-[10px] font-black text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded-lg uppercase tracking-widest shrink-0">{country.code || country.name.substring(0,3).toUpperCase()}</span>
                          </div>
                          {isComingSoon ? (
-                             <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">Soon</span>
+                             <span className="text-[9px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full uppercase tracking-wider shrink-0">Soon</span>
                          ) : (
-                             <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
+                             <div className="w-8 h-8 rounded-full bg-muted/50 group-hover:bg-green-500/10 flex items-center justify-center transition-colors">
+                                <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
+                             </div>
                          )}
                       </div>
                     </div>
-                  </button>
+                  </motion.button>
                 )
               })}
             </div>
           )}
-        </div>
+        </motion.div>
       )
     }
+
 
     // ΓöÇΓöÇ STEP 2: Payment Method Selection ΓöÇΓöÇ
     if (!selectedPaymentMethod) {
       return (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          <button onClick={() => { setSelectedCountry(null); setMessage(null) }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors">
-            <ArrowLeftIcon className="w-3.5 h-3.5"/> Back to countries
+        <motion.div 
+          key="payment-method-selection"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="space-y-6"
+        >
+          <button onClick={() => { setSelectedCountry(null); setMessage(null) }} className="group flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground font-bold transition-all bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full w-fit">
+            <ArrowLeftIcon className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform"/> Back to countries
           </button>
+          
           <div className="text-center pb-2">
-            <div className="text-4xl mb-3">{COUNTRY_FLAGS[selectedCountry.code?.toUpperCase()] || "🏳️"}</div>
-            <h3 className="text-lg font-bold text-foreground">Choose Payment Method</h3>
-            <p className="text-sm text-muted-foreground mt-1">Pay via {selectedCountry.name} local transfer</p>
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-5xl mb-4"
+            >
+              {COUNTRY_FLAGS[selectedCountry.code?.toUpperCase()] || "🏳️"}
+            </motion.div>
+            <h3 className="text-xl font-bold text-foreground">Choose Payment Method</h3>
+            <p className="text-sm text-muted-foreground mt-1">Select a local method in {selectedCountry.name}</p>
           </div>
+
           {selectedCountry.methods && selectedCountry.methods.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {selectedCountry.methods.map((m: any, idx: number) => (
-                <button key={m.id} onClick={() => { setSelectedPaymentMethod(m); setMessage(null) }}
-                  className="w-full text-left p-3.5 sm:p-4 rounded-xl border-2 border-border hover:border-green-500 hover:shadow-md hover:shadow-green-500/10 transition-all group bg-card flex items-center justify-between gap-3 active:scale-[0.99]">
-                  <div className="flex items-center gap-3">
-                    <div className="shrink-0"><PaymentMethodIcon name={m.name} idx={idx} /></div>
+                <motion.button 
+                  key={m.id} 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  onClick={() => { setSelectedPaymentMethod(m); setMessage(null) }}
+                  className="w-full text-left p-4 rounded-2xl border border-border hover:border-green-500/50 hover:shadow-xl hover:shadow-green-500/5 transition-all group bg-card flex items-center justify-between gap-4 active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="shrink-0 group-hover:scale-105 transition-transform"><PaymentMethodIcon name={m.name} idx={idx} size="w-14 h-14" imgSize="w-12 h-12" /></div>
                     <div className="min-w-0">
-                      <div className="font-bold text-foreground text-sm truncate">{m.name}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium truncate mt-0.5 uppercase tracking-wider">{m.accountName}</div>
+                      <div className="font-bold text-foreground text-base truncate">{m.name}</div>
+                      <div className="text-[10px] text-muted-foreground font-black truncate mt-1 uppercase tracking-widest">{selectedCountry.currency} ┬╖ Local Transfer</div>
                     </div>
                   </div>
-                  <ChevronRightIcon className="w-4 h-4 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
-                </button>
+                  <div className="w-10 h-10 rounded-full bg-muted/50 group-hover:bg-green-500/10 flex items-center justify-center transition-colors">
+                    <ChevronRightIcon className="w-5 h-5 text-muted-foreground group-hover:text-green-500 transition-colors shrink-0"/>
+                  </div>
+                </motion.button>
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
+            <div className="p-10 text-center bg-muted/30 rounded-[2rem] border border-dashed border-border">
               <BanknotesIcon className="w-10 h-10 text-muted-foreground mx-auto mb-3"/>
               <p className="text-sm text-muted-foreground font-medium">No payment methods configured for {selectedCountry.name}.</p>
             </div>
           )}
-        </div>
+        </motion.div>
       )
     }
 
-    // ΓöÇΓöÇ STEP 3: Action Form ΓöÇΓöÇ
-    const rate = selectedCountry.exchangeRate || 1
-    const val = parseFloat(amount)
-    const totalPayable = !isNaN(val) && val > 0 ? val * rate : 0
+    // --- Step 3: Global Variables ---
+    const rate = rates?.[selectedCountry.currency] || selectedCountry.exchangeRate || 1;
+    const valInUsd = displayCurrency === "LOCAL" ? convertToUSD(parseFloat(amount)) : parseFloat(amount);
+    const val = isNaN(valInUsd) ? 0 : valInUsd;
+    const totalPayable = val > 0 ? val * rate : 0;
 
     return (
-      <div className="space-y-5 animate-in fade-in duration-300">
-        <button onClick={() => { setSelectedPaymentMethod(null); setMessage(null) }} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors">
-          <ArrowLeftIcon className="w-3.5 h-3.5"/> Back to methods
+      <motion.div 
+        key="action-form"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="space-y-6"
+      >
+        <button onClick={() => { setSelectedPaymentMethod(null); setMessage(null) }} className="group flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground font-bold transition-all bg-muted/50 hover:bg-muted px-3 py-1.5 rounded-full w-fit">
+          <ArrowLeftIcon className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform"/> Back to methods
         </button>
 
         {type === 'DEPOSIT' ? (
-          <div className="space-y-5">
-            {/* Account Details Card */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-white shadow-2xl p-5">
-              <div className="absolute -top-20 -right-20 w-48 h-48 bg-green-500/10 rounded-full blur-3xl pointer-events-none"/>
-              <div className="relative z-10 space-y-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <PaymentMethodIconDark name={selectedPaymentMethod.name} />
-                    <div className="min-w-0">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Send Payment To</p>
-                      <p className="text-base font-bold text-white truncate">{selectedPaymentMethod.name}</p>
+          <div className="space-y-6">
+            {/* Premium Fintech Card Design */}
+            <div className="relative group perspective-1000">
+              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white shadow-2xl p-6 transition-all duration-500 hover:shadow-indigo-500/20">
+                {/* Abstract background elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] pointer-events-none -translate-y-1/2 translate-x-1/4"/>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none translate-y-1/2 -translate-x-1/4"/>
+                
+                <div className="relative z-10 space-y-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-white/20 blur-md rounded-xl"/>
+                        <PaymentMethodIconDark name={selectedPaymentMethod.name} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black text-indigo-300/60 uppercase tracking-[0.2em]">Recipient Service</p>
+                        <p className="text-lg font-bold text-white truncate drop-shadow-sm">{selectedPaymentMethod.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-black bg-indigo-500/30 text-indigo-100 border border-indigo-500/30 px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md">{selectedCountry.currency} Account</span>
                     </div>
                   </div>
-                  <span className="text-[9px] font-bold bg-green-500/20 text-green-300 border border-green-500/30 px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">{selectedCountry.currency}</span>
-                </div>
-                <div className="h-px bg-white/10"/>
-                <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Account Holder</p>
-                  <p className="text-lg font-bold text-white">{selectedPaymentMethod.accountName}</p>
-                </div>
-                <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Account Number</p>
-                  <div className="flex items-center gap-3">
-                    <p className="text-2xl font-mono font-bold text-white tracking-wider break-all flex-1 min-w-0">{selectedPaymentMethod.accountNumber}</p>
-                    <button onClick={() => { navigator.clipboard.writeText(selectedPaymentMethod.accountNumber); setMessage({ type: 'success', text: "Account number copied!" }); setTimeout(() => setMessage(null), 2000) }}
-                      className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all border border-white/10 shrink-0">
-                      <DocumentDuplicateIcon className="w-5 h-5"/>
-                    </button>
+
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"/>
+
+                  <div className="grid grid-cols-1 gap-5">
+                    <div>
+                      <p className="text-[10px] font-black text-indigo-300/60 uppercase tracking-[0.2em] mb-1.5">Account Holder</p>
+                      <p className="text-xl font-bold text-white tracking-tight drop-shadow-md">{selectedPaymentMethod.accountName}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-[10px] font-black text-indigo-300/60 uppercase tracking-[0.2em] mb-2">Account Number</p>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10 p-4 group/box transition-all hover:bg-white/10">
+                          <p className="text-2xl font-mono font-bold text-indigo-50 tracking-[0.1em] break-all leading-none">{selectedPaymentMethod.accountNumber}</p>
+                        </div>
+                        <button 
+                          onClick={() => { 
+                            navigator.clipboard.writeText(selectedPaymentMethod.accountNumber); 
+                            toast.success("Copied to clipboard!", { icon: "📋", style: { background: '#1e293b', color: '#fff', borderRadius: '#12px' } });
+                          }}
+                          className="w-14 h-14 bg-white/5 hover:bg-green-500 text-white rounded-2xl transition-all border border-white/10 shrink-0 flex items-center justify-center active:scale-90 shadow-lg"
+                        >
+                          <DocumentDuplicateIcon className="w-6 h-6"/>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+                {/* Glass decoration */}
+                <div className="absolute top-4 right-4 text-white/5 font-black text-6xl pointer-events-none select-none italic">LOCAL</div>
               </div>
             </div>
 
             {selectedPaymentMethod.instructions && (
-              <div className="flex gap-3 items-start p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5"><span className="text-white font-bold text-[10px]">i</span></div>
-                <div className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed"><span className="font-bold block mb-0.5">Instructions</span>{selectedPaymentMethod.instructions}</div>
+              <div className="group flex gap-4 items-start p-5 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 rounded-[1.5rem] transition-colors">
+                <div className="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-500 flex items-center justify-center shrink-0">
+                  <InformationCircleIcon className="w-6 h-6"/>
+                </div>
+                <div className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed font-medium">
+                  <span className="font-bold text-blue-900 dark:text-blue-100 block mb-1">Transfer Instructions</span>
+                  {selectedPaymentMethod.instructions}
+                </div>
               </div>
             )}
 
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">$</span>
-                <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)}
-                  className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl transition-all bg-muted/30 focus:bg-card text-foreground placeholder:text-muted-foreground/40" placeholder="0.00"/>
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2 px-1">
+                  <label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Amount to Send</label>
+                  <CurrencyToggle />
+                </div>
+                <div className="relative">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-black text-2xl">{displayCurrency === 'USD' ? '$' : ''}</span>
+                  <input 
+                    type="number" 
+                    value={amount} 
+                    onChange={(e: any) => setAmount(e.target.value)}
+                    className={cn(
+                      "w-full pr-6 py-5 rounded-[1.5rem] border-2 border-border outline-none focus:border-green-500 font-bold text-2xl transition-all shadow-sm focus:shadow-xl bg-card text-foreground placeholder:text-muted-foreground/20",
+                      displayCurrency === 'USD' ? 'pl-11' : 'pl-6'
+                    )} 
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
+
+              <AnimatePresence>
+                {val > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="rounded-[2rem] bg-gradient-to-b from-muted/50 to-muted/20 border border-border overflow-hidden shadow-sm"
+                  >
+                    <div className="flex justify-between items-center px-6 py-3 bg-muted/40 border-b border-border">
+                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Market Conversion</span>
+                      <span className="text-[10px] font-black bg-white dark:bg-slate-800 text-green-600 px-3 py-1 rounded-full border border-green-500/20 shadow-sm">1 USD ≈ {rate.toFixed(2)} {selectedCountry.currency}</span>
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center justify-between gap-6 mb-4">
+                        <div>
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Payable</p>
+                          <p className="text-3xl font-black text-foreground tabular-nums">{totalPayable.toLocaleString()} <span className="text-sm font-bold text-muted-foreground">{selectedCountry.currency}</span></p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Estimated Value</p>
+                          <p className="text-base font-bold text-green-600 tabular-nums">{formatCurrency(val)}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 items-center bg-amber-500/10 p-4 rounded-2xl border border-amber-500/20">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0"/>
+                        <p className="text-xs text-amber-800 dark:text-amber-400 font-bold leading-none">Transfer <span className="underline decoration-2 underline-offset-2">exactly</span> {totalPayable.toLocaleString()} {selectedCountry.currency}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {val > 0 && (
-              <div className="rounded-xl bg-muted/40 border border-border overflow-hidden animate-in fade-in duration-200">
-                <div className="flex justify-between items-center px-4 py-2.5 bg-muted/60 border-b border-border">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Conversion</span>
-                  <span className="text-[10px] font-bold bg-card text-foreground px-2 py-0.5 rounded border border-border">1 USDT = {rate} {selectedCountry.currency}</span>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between gap-4 mb-3">
-                    <div><p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Pay</p><p className="text-2xl font-bold text-foreground">{totalPayable.toLocaleString()} <span className="text-sm font-bold text-muted-foreground">{selectedCountry.currency}</span></p></div>
-                    <div className="text-right"><p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">You Get</p><p className="text-sm font-bold text-green-600 dark:text-green-400">{(val * 10).toFixed(0)} ARN</p></div>
-                  </div>
-                  <div className="flex gap-2 items-start bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800/30">
-                    <div className="w-1 h-8 bg-amber-500 rounded-full shrink-0 mt-0.5"/>
-                    <p className="text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed"><span className="font-bold">Transfer exactly </span>{totalPayable.toLocaleString()} {selectedCountry.currency} to the account above.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Payment Proof</label>
+            <div className="space-y-3">
+              <label className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Payment Proof (Screenshot)</label>
               <div className="relative group">
                 <input
                   type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  accept="image/*"
                   onChange={handleFileUpload}
                   disabled={isUploadingScreenshot}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 disabled:cursor-not-allowed"
                 />
                 <div className={cn(
-                  "w-full rounded-2xl border-2 transition-all duration-300 flex flex-col items-center justify-center p-2 text-center overflow-hidden",
-                  isUploadingScreenshot ? "border-border min-h-[140px] bg-muted/30 animate-pulse" :
-                  screenshot ? "border-green-500 bg-green-50 dark:bg-green-900/10 shadow-sm" :
-                  "border-dashed border-border min-h-[140px] bg-muted/20 hover:bg-muted/40 hover:border-muted-foreground/40"
+                  "w-full rounded-[2rem] border-3 transition-all duration-500 flex flex-col items-center justify-center p-3 text-center overflow-hidden min-h-[160px]",
+                  isUploadingScreenshot ? "border-border bg-muted/30 animate-pulse" :
+                  screenshot ? "border-green-500 bg-green-500/5 shadow-xl shadow-green-500/5" :
+                  "border-dashed border-border bg-muted/20 hover:bg-muted/40 hover:border-green-500/30 group-hover:shadow-lg"
                 )}>
                   {isUploadingScreenshot ? (
-                    <div className="space-y-2 py-6">
-                      <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"/>
-                      <p className="text-muted-foreground text-sm font-medium">Processing image...</p>
+                    <div className="space-y-3 py-6">
+                      <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"/>
+                      <p className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Processing Image</p>
                     </div>
                   ) : screenshot ? (
-                    <div className="w-full flex items-center gap-3 bg-card p-2 rounded-xl">
-                      <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-border bg-black/5">
+                    <div className="w-full flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-green-200 dark:border-green-900/50">
+                      <div className="w-16 h-16 shrink-0 rounded-xl overflow-hidden border-2 border-green-500/20 bg-slate-100 shadow-inner">
                         <img src={screenshot} alt="Proof" className="w-full h-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0 text-left">
-                        <p className="font-bold text-green-700 dark:text-green-400 text-sm truncate">Screenshot Uploaded ✅</p>
-                        <p className="text-muted-foreground text-[10px] uppercase tracking-widest mt-0.5">Tap to replace image</p>
+                        <p className="font-black text-green-700 dark:text-green-400 text-sm flex items-center gap-1.5">Success <CheckCircleIcon className="w-4 h-4" /></p>
+                        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-0.5">Proof Received</p>
+                        <button className="mt-1 text-green-600 text-[10px] font-black uppercase hover:underline">Change File</button>
                       </div>
-                      <CheckCircleIcon className="w-6 h-6 text-green-500 shrink-0 mx-2" />
+                      <div className="p-2 bg-green-500 text-white rounded-full">
+                         <CheckIcon className="w-5 h-5" />
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-1.5 py-6">
-                       <ArrowUpTrayIcon className="w-8 h-8 text-muted-foreground mx-auto"/>
-                       <p className="font-bold text-foreground text-sm">Upload Screenshot Image</p>
-                       <p className="text-muted-foreground text-xs">JPG, PNG or WEBP formats (max 15 MB)</p>
+                    <div className="space-y-3 py-6 group-hover:scale-105 transition-transform">
+                       <div className="w-16 h-16 bg-muted-foreground/10 rounded-3xl flex items-center justify-center mx-auto transition-colors group-hover:bg-green-500/10 group-hover:text-green-500">
+                          <ArrowUpTrayIcon className="w-8 h-8"/>
+                       </div>
+                       <div>
+                         <p className="font-black text-foreground text-sm uppercase tracking-widest">Upload Screenshot</p>
+                         <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1">Maximum 15MB ┬╖ JPG or PNG</p>
+                       </div>
                     </div>
                   )}
                 </div>
@@ -540,43 +690,96 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             </div>
 
             <button onClick={handleAction} disabled={!amount || !screenshot || isPending || isUploadingScreenshot}
-              className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.98]">
-              {isPending ? "Submitting..." : isUploadingScreenshot ? "Processing image..." : "Confirm & Submit Deposit"}
+              className="group relative w-full py-5 bg-green-600 hover:bg-green-500 disabled:bg-muted disabled:text-muted-foreground text-white font-black rounded-[1.5rem] shadow-xl shadow-green-600/20 transition-all active:scale-[0.98] disabled:scale-100 disabled:shadow-none overflow-hidden">
+              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
+              <span className="relative flex items-center justify-center gap-3 text-lg tracking-widest uppercase">
+                {isPending ? "Connecting..." : isUploadingScreenshot ? "Optimizing Proof..." : (
+                  <>
+                    Confirm Payment <ChevronRightIcon className="w-6 h-6 group-hover:translate-x-1 transition-transform"/>
+                  </>
+                )}
+              </span>
             </button>
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-6">
             <div className="text-center pb-2">
-              <h3 className="text-lg font-bold text-foreground">Withdraw to {selectedPaymentMethod.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">Enter your account details below</p>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Your {selectedPaymentMethod.name} Number</label>
-              <input type="text" value={accountNumber} onChange={(e: any) => setAccountNumber(e.target.value)}
-                className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card font-mono font-bold transition-all text-foreground text-sm"
-                placeholder={`Enter your ${selectedPaymentMethod.name} number`}/>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Account Title / Name</label>
-              <input type="text" value={accountName} onChange={(e: any) => setAccountName(e.target.value)}
-                className="w-full p-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 bg-muted/30 focus:bg-card transition-all text-foreground text-sm" placeholder="Name on account"/>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount (USD)</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)}
-                  className="w-full pl-9 pr-4 py-3.5 rounded-xl border-2 border-input outline-none focus:border-green-500 font-bold text-xl bg-muted/30 focus:bg-card transition-all text-foreground" placeholder="0.00"/>
+              <div className="w-16 h-16 bg-green-500/10 text-green-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <ArrowUpTrayIcon className="w-8 h-8"/>
               </div>
-              <p className="text-xs text-muted-foreground mt-1.5 font-medium">Available: {((user.balance || 0) * 10).toFixed(2)} ARN</p>
+              <h3 className="text-xl font-bold text-foreground">Withdrawal Setup</h3>
+              <p className="text-sm text-muted-foreground mt-1">Funds will be sent to {selectedPaymentMethod.name}</p>
             </div>
+
+            <div className="grid grid-cols-1 gap-5">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Your {selectedPaymentMethod.name} Number</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-green-500 transition-colors"><BanknotesIcon className="w-5 h-5"/></div>
+                  <input type="text" value={accountNumber} onChange={(e: any) => setAccountNumber(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border focus:border-green-500 outline-none bg-card font-mono font-black transition-all text-foreground tracking-widest"
+                    placeholder="Enter account / phone number"/>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Account Title / Name</label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-green-500 transition-colors"><MapPinIcon className="w-5 h-5"/></div>
+                  <input type="text" value={accountName} onChange={(e: any) => setAccountName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-border focus:border-green-500 outline-none bg-card font-black transition-all text-foreground" 
+                    placeholder="Exact name on account"/>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black text-muted-foreground uppercase tracking-widest px-1">Amount to Withdraw</label>
+                    <CurrencyToggle />
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-black text-2xl">{displayCurrency === 'USD' ? '$' : ''}</span>
+                    <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)}
+                      className={cn(
+                        "w-full pr-6 py-5 rounded-[1.5rem] border-2 border-border outline-none focus:border-green-500 font-bold text-2xl bg-card transition-all text-foreground shadow-sm",
+                        displayCurrency === 'USD' ? 'pl-11' : 'pl-6'
+                      )} 
+                      placeholder="0.00"/>
+                  </div>
+                </div>
+                
+                {/* Tier-Based Limit Display */}
+                <div className="p-4 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/10 space-y-3">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Limit Gating (<span className="text-indigo-600">{user.tier || 'NEWBIE'}</span>)</span>
+                    <span className="text-[10px] font-black bg-indigo-500 text-white px-2 py-0.5 rounded-lg">{TIER_WITHDRAWAL_LIMITS[user.tier || 'NEWBIE'] || 10}% Max</span>
+                  </div>
+                  <div className="h-px bg-indigo-500/10"/>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="font-bold text-muted-foreground">Available Allowance</span>
+                    <span className="font-black text-indigo-600">{formatCurrency((user.balance || 0) * ((TIER_WITHDRAWAL_LIMITS[user.tier || 'NEWBIE'] || 10) / 100))}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-center p-4 bg-muted/30 rounded-2xl border border-border">
+                  <div className="w-10 h-10 bg-card rounded-xl flex items-center justify-center shadow-sm text-muted-foreground">
+                    <InformationCircleIcon className="w-6 h-6" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-snug font-bold italic">
+                    Withdrawals are processed every 24h cycle to maintain security.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending}
-              className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base active:scale-[0.98]">
-              {isPending ? "Processing..." : "Confirm Withdrawal Request"}
+              className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-[1.5rem] shadow-xl shadow-indigo-600/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:scale-100 text-lg uppercase tracking-widest">
+              {isPending ? "Connecting Securely..." : "Request Local Withdrawal"}
             </button>
           </div>
         )}
-      </div>
+      </motion.div>
     )
   }
 
@@ -697,8 +900,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                       <span className="whitespace-normal leading-tight">{activeTab === 'withdraw' ? 'Swap & Withdraw' : `${activeTab} ${activeTab === 'deposit' ? 'USD' : 'Funds'}`}</span>
                   </h3>
                   {(activeTab === 'deposit') && (
-                     <div className="hidden sm:flex px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full items-center gap-1.5 border border-green-100 dark:border-green-800">
-                        <ShieldCheckIcon className="w-4 h-4"/><span>1 USD = 10 ARN</span>
+                     <div className="hidden sm:flex px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-bold rounded-full items-center gap-1.5 border border-blue-100 dark:border-blue-800">
+                        <ShieldCheckIcon className="w-4 h-4"/><span>Manual Verification Required</span>
                      </div>
                   )}
               </div>
@@ -773,14 +976,35 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                           <button onClick={copyAddress} className="p-2 bg-foreground text-background rounded-lg hover:opacity-80 transition-colors shrink-0"><DocumentDuplicateIcon className="w-4 h-4"/></button>
                                        </div>
                                     </div>
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs rounded-lg leading-relaxed border border-blue-100 dark:border-blue-800/30"><strong>Note:</strong> Deposits are automatically converted to ARN Tokens (1 USD = 10 ARN).</div>
+                                    <div className="space-y-3">
+                                       <div className="flex flex-col gap-1">
+                                          <div className="flex items-center justify-between pl-1">
+                                              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount ({displayCurrency === 'USD' ? 'USD' : userCurrency})</label>
+                                              <CurrencyToggle />
+                                          </div>
+                                          <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{displayCurrency === 'USD' ? '$' : ''}</span>
+                                              <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} 
+                                                  className={cn(
+                                                      "w-full pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-base text-foreground",
+                                                      displayCurrency === 'USD' ? 'pl-7' : 'pl-3'
+                                                  )}
+                                                  placeholder="0.00"/>
+                                          </div>
+                                          {displayCurrency === 'LOCAL' && amount && !isNaN(parseFloat(amount)) && (
+                                              <div className="mt-0.5 px-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 border-t border-blue-100 dark:border-blue-900/40 pt-0.5">
+                                                  ≈ ${convertToUSD(parseFloat(amount)).toFixed(2)} USD
+                                              </div>
+                                          )}
+                                       </div>
+                                       <div>
+                                           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label>
+                                           <input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/>
+                                       </div>
+                                       <button onClick={handleAction} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Submit Deposit</button>
+                                    </div>
                                  </div>
                               </div>
-                               <div className="space-y-3">
-                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label><input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                  <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Amount (USD)</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-base text-foreground"/></div>{amount && !isNaN(parseFloat(amount)) && <div className="mt-1 px-1 text-xs font-bold text-blue-600 dark:text-blue-400">You receive: {(parseFloat(amount) * 10).toFixed(0)} ARN</div>}</div>
-                                  <button onClick={handleAction} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Submit Deposit</button>
-                               </div>
                            </div>
                         )}
                         {depositMethod === "CARD" && (
@@ -821,10 +1045,35 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        {withdrawalMethod === "TRC20" && (
                             <div className="space-y-4">
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e: any) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Amount to Swap (ARN)</label><div className="relative"><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0" className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-bold text-lg text-foreground"/><span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">ARN</span></div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount ({displayCurrency === 'USD' ? 'USD' : userCurrency})</label>
+                                        <CurrencyToggle />
+                                    </div>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{displayCurrency === 'USD' ? '$' : ''}</span>
+                                        <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} 
+                                            className={cn(
+                                                "w-full pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-purple-500 transition-all bg-card font-bold text-base text-foreground shadow-sm",
+                                                displayCurrency === 'USD' ? 'pl-7' : 'pl-3'
+                                            )}
+                                            placeholder="0.00"/>
+                                    </div>
                                     <div className="flex flex-col gap-1 mt-2 px-1">
-                                        <div className="flex justify-between items-center"><span className="text-xs text-muted-foreground font-medium">Available: {(user.arnBalance || 0).toFixed(2)} ARN</span><span className="text-xs font-bold text-purple-600 dark:text-purple-400">{amount && !isNaN(parseFloat(amount)) ? `You receive: $${(parseFloat(amount) / 10).toFixed(2)}` : 'You receive: $0.00'}</span></div>
-                                        <div className="flex justify-between items-center text-[10px] font-bold"><span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span><span className="text-purple-500/80">Max: ${((balance || 0) * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD</span></div>
+                                        {displayCurrency === 'LOCAL' && amount && !isNaN(parseFloat(amount)) && (
+                                            <div className="text-[10px] font-bold text-muted-foreground border-b border-border pb-1 mb-1">
+                                                ≈ ${convertToUSD(parseFloat(amount)).toFixed(2)} USD
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center text-[10px] font-bold">
+                                            <span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span>
+                                            <div className="text-purple-600 flex gap-2">
+                                                <span>Max: {formatCurrency((balance || 0) * (user.withdrawalLimit || 10) / 100)}</span>
+                                                {displayCurrency === 'LOCAL' && (
+                                                    <span className="text-muted-foreground/60">(${(balance * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD)</span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <button onClick={handleAction} className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">Swap & Withdraw (USD)</button>
@@ -876,7 +1125,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                           <tr key={tx.id || i} className="hover:bg-muted/30 transition-colors">
                               <td className="px-4 py-4"><div className="flex items-center gap-3"><div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-sm">{d.typeDisplay}</div><div className="text-xs text-muted-foreground truncate max-w-[250px] lg:max-w-xs">{tx.description || tx.method || "System Transaction"}</div></div></div></td>
                               <td className="px-4 py-4 whitespace-nowrap"><div className="text-sm text-foreground font-medium" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div><div className="text-[10px] text-muted-foreground uppercase tracking-widest" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div></td>
-                              <td className="px-4 py-4 text-right whitespace-nowrap"><div className={cn("text-sm font-black", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)} USD</div>{tx.arnMinted > 0 && <div className="text-xs font-bold text-blue-500">+{tx.arnMinted.toFixed(2)} ARN</div>}</td>
+                              <td className="px-4 py-4 text-right whitespace-nowrap"><div className={cn("text-sm font-black", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)} USD</div></td>
                               <td className="px-4 py-4 text-right"><span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></td>
                           </tr>
                       ) })}
@@ -892,45 +1141,101 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                       <div key={tx.id || i} className="p-3.5 bg-card hover:bg-muted/20 transition-colors">
                           <div className="flex items-center justify-between gap-2 mb-2">
                               <div className="flex items-center gap-2.5 min-w-0"><div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-xs leading-tight truncate">{d.typeDisplay}</div><div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div></div></div>
-                              <div className="text-right shrink-0"><div className={cn("text-sm font-black leading-tight", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)}</div>{tx.arnMinted > 0 && <div className="text-[9px] font-bold text-blue-500">+{tx.arnMinted.toFixed(2)} ARN</div>}</div>
+                              <div className="text-right shrink-0"><div className={cn("text-sm font-black leading-tight", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)}</div></div>
                           </div>
                           <div className="flex items-center justify-between gap-2"><div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()} ┬╖ {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></div>
                       </div>
                   ) })}
               </div>
-          </div>
-       </div>
+        </div>
+      </div>
 
-       {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ CENTERED MERCHANT MODAL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
-       {merchantModalOpen && (
-        <>
-          <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={closeMerchantModal}/>
-          <div className="fixed inset-0 z-[61] flex items-center justify-center p-4 pointer-events-none">
-            <div className="w-full max-w-[480px] max-h-[90vh] bg-card rounded-3xl shadow-2xl border border-border flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 fade-in duration-300">
-              <div className="flex items-center justify-between p-5 border-b border-border shrink-0 bg-card">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    {[1, 2, 3].map((step: any) => { const cs = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3; return (<div key={step} className={cn("rounded-full transition-all duration-300", step === cs ? "w-6 h-2 bg-green-500" : step < cs ? "w-2 h-2 bg-green-500/50" : "w-2 h-2 bg-muted-foreground/20")}/>) })}
+       {/* ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ PREMIUM CENTERED MERCHANT MODAL ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ */}
+       <AnimatePresence>
+         {merchantModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            {/* Optimized Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeMerchantModal}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md cursor-pointer"
+            />
+            
+            {/* Modal Container with Mobile Bottom Sheet logic */}
+            <motion.div 
+              initial={{ opacity: 0, y: 100, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 100, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={cn(
+                "relative z-[61] w-full bg-card shadow-[0_32px_128px_-16px_rgba(0,0,0,0.5)] border-t sm:border border-border flex flex-col overflow-hidden pointer-events-auto",
+                // Mobile: Full width bottom sheet | Desktop: Centered card
+                "max-h-[95vh] sm:max-h-[90vh] sm:max-w-[520px] rounded-t-[2.5rem] sm:rounded-3xl"
+              )}
+            >
+              {/* Mobile Handle */}
+              <div className="sm:hidden absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-muted-foreground/20 rounded-full z-10"/>
+
+              <div className="flex items-center justify-between p-6 sm:p-8 border-b border-border shrink-0 bg-card/80 backdrop-blur-xl relative">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3].map((step: any) => { 
+                      const cs = !selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3; 
+                      return (
+                        <motion.div 
+                          key={step} 
+                          animate={{ 
+                            width: step === cs ? 32 : 8,
+                            backgroundColor: step <= cs ? '#22c55e' : 'rgba(156, 163, 175, 0.2)'
+                          }}
+                          className="h-2 rounded-full transition-all duration-300"
+                        />
+                      ) 
+                    })}
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{merchantModalType === 'DEPOSIT' ? 'Merchant Deposit' : 'Merchant Withdrawal'}</p>
-                    <h2 className="text-sm font-bold text-foreground">Step {!selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3} of 3</h2>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{merchantModalType === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'} Protocol</p>
+                    <h2 className="text-xs font-black text-foreground uppercase">Phase {!selectedCountry ? 1 : !selectedPaymentMethod ? 2 : 3}</h2>
                   </div>
                 </div>
-                <button onClick={closeMerchantModal} className="w-9 h-9 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors text-muted-foreground hover:text-foreground"><XMarkIcon className="w-5 h-5"/></button>
+                <button 
+                  onClick={closeMerchantModal} 
+                  className="w-12 h-12 rounded-2xl bg-muted hover:bg-red-500/10 hover:text-red-500 flex items-center justify-center transition-all duration-300 active:scale-90"
+                >
+                  <XMarkIcon className="w-6 h-6"/>
+                </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-5 overscroll-contain">
-                {message && (
-                  <div className={cn("p-3 rounded-xl mb-4 text-sm font-bold flex items-center gap-2 animate-in fade-in", message.type === 'success' ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800")}>
-                    {message.type === 'success' ? <CheckIcon className="w-4 h-4 shrink-0"/> : <span className="shrink-0">ΓÜá∩╕Å</span>}{message.text}
-                  </div>
-                )}
-                {renderMerchantContent(merchantModalType)}
+
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 overscroll-contain smooth-scroll touch-pan-y ios-scroll-fix">
+                <AnimatePresence mode="wait">
+                  {message && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className={cn("p-4 rounded-2xl mb-6 text-sm font-bold flex items-center gap-3 overflow-hidden", 
+                        message.type === 'success' ? "bg-green-500/10 text-green-600 border border-green-500/20" : "bg-red-500/10 text-red-600 border border-red-500/20"
+                      )}
+                    >
+                      {message.type === 'success' ? <CheckCircleIcon className="w-5 h-5 shrink-0"/> : <InformationCircleIcon className="w-5 h-5 shrink-0"/>}
+                      {message.text}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                
+                <AnimatePresence mode="wait">
+                  {renderMerchantContent(merchantModalType)}
+                </AnimatePresence>
+                
+                {/* Bottom Spacer for Mobile Keyboard/Safe Area */}
+                <div className="h-10 sm:hidden"/>
               </div>
-            </div>
+            </motion.div>
           </div>
-        </>
-       )}
+         )}
+       </AnimatePresence>
     </div>
   )
 }

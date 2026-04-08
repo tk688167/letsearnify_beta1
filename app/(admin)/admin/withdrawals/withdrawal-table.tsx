@@ -36,7 +36,7 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
     return (
         <div className="space-y-4">
             {message && (
-                <div className={`p-4 rounded-xl text-center font-bold text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                <div className={`p-4 rounded-xl text-center font-bold text-sm shadow-sm border ${message.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}>
                     {message.text}
                 </div>
             )}
@@ -44,25 +44,25 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
                 {requests.length === 0 ? (
-                     <div className="p-8 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">No pending withdrawal requests.</div>
+                     <div className="p-8 text-center text-gray-400 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800">No pending withdrawal requests.</div>
                 ) : (
                     requests.map((req) => (
-                        <div key={req.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+                        <div key={req.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm space-y-4">
                              <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="font-bold text-gray-900 text-sm truncate max-w-[150px]">{req.user.email}</div>
-                                    <div className="text-xs text-gray-400 font-mono">{req.user.id.slice(0, 8)}...</div>
+                                    <div className="font-bold text-gray-900 dark:text-white text-sm truncate max-w-[150px]">{req.user.email}</div>
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{req.method}</div>
                                 </div>
                                 <div className="text-right">
-                                     <div className="font-bold text-gray-900 text-lg">${req.amount.toFixed(2)}</div>
-                                     <div className="text-xs text-gray-400">Bal: ${req.user.balance.toFixed(2)}</div>
+                                     <div className="font-bold text-gray-900 dark:text-white text-lg">${req.amount.toFixed(2)}</div>
+                                     <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bal: ${req.user.balance.toFixed(2)}</div>
                                 </div>
                              </div>
 
-                             <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                <span className="text-xs text-gray-400 font-bold uppercase block mb-1">Destination</span>
-                                <div className="font-mono text-xs break-all text-gray-600">
-                                    {req.destinationAddress || req.description}
+                             <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl border border-gray-100 dark:border-slate-800">
+                                <span className="text-[10px] text-gray-400 font-black uppercase block mb-1 tracking-widest">Destination</span>
+                                <div className="font-mono text-xs break-all text-gray-600 dark:text-slate-300">
+                                    {req.destinationAddress}
                                 </div>
                              </div>
 
@@ -70,7 +70,7 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                 <button
                                     onClick={() => handleAction(req.id, "APPROVE")}
                                     disabled={!!loadingId}
-                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-colors disabled:opacity-50 font-bold text-xs"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 font-bold text-xs shadow-sm shadow-green-200"
                                 >
                                     {loadingId === req.id ? <ClockIcon className="w-4 h-4 animate-spin"/> : <CheckCircleIcon className="w-5 h-5" />}
                                     Approve
@@ -78,7 +78,7 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                 <button
                                     onClick={() => handleAction(req.id, "REJECT")}
                                     disabled={!!loadingId}
-                                    className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 font-bold text-xs"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 font-bold text-xs"
                                 >
                                     {loadingId === req.id ? <ClockIcon className="w-4 h-4 animate-spin"/> : <XCircleIcon className="w-5 h-5" />}
                                     Reject
@@ -90,53 +90,59 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
             </div>
 
             {/* Desktop Table View */}
-            <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
+                        <thead className="bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest">
                             <tr>
                                 <th className="px-6 py-4">User</th>
+                                <th className="px-6 py-4">Type</th>
                                 <th className="px-6 py-4">Balance</th>
                                 <th className="px-6 py-4">Amount</th>
-                                <th className="px-6 py-4">Address (TRC20)</th>
+                                <th className="px-6 py-4">Destination</th>
                                 <th className="px-6 py-4">Date</th>
                                 <th className="px-6 py-4 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                             {requests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
+                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-400 dark:text-slate-500 italic">
                                         No pending withdrawal requests.
                                     </td>
                                 </tr>
                             ) : (
                                 requests.map((req) => (
-                                    <tr key={req.id} className="hover:bg-gray-50/50 transition-colors">
+                                    <tr key={req.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-gray-900">{req.user.email}</div>
-                                            <div className="text-xs text-gray-400 font-mono">{req.user.id.slice(0, 8)}...</div>
+                                            <div className="font-bold text-gray-900 dark:text-white capitalize">{req.user.email?.split('@')[0]}</div>
+                                            <div className="text-[10px] text-gray-400 font-mono tracking-tighter opacity-70">{req.user.email}</div>
                                         </td>
-                                        <td className="px-6 py-4 font-mono text-gray-600">
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${req.type === 'CRYPTO' ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'}`}>
+                                                {req.method}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-gray-600 dark:text-slate-400 text-xs">
                                             ${req.user.balance.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-gray-900">
+                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
                                             ${req.amount.toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-mono text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded w-fit max-w-[200px] truncate" title={req.destinationAddress || req.description}>
-                                                {req.destinationAddress || req.description}
+                                            <div className="font-mono text-[10px] text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg w-fit max-w-[240px] truncate" title={req.destinationAddress}>
+                                                {req.destinationAddress}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                                            {new Date(req.createdAt).toLocaleString()}
+                                        <td className="px-6 py-4 text-gray-500 dark:text-slate-400 whitespace-nowrap text-[10px] font-medium uppercase tracking-tighter">
+                                            {new Date(req.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     onClick={() => handleAction(req.id, "APPROVE")}
                                                     disabled={!!loadingId}
-                                                    className="p-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors disabled:opacity-50"
+                                                    className="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-100 transition-all hover:scale-110 disabled:opacity-50"
                                                     title="Approve"
                                                 >
                                                     {loadingId === req.id ? <ClockIcon className="w-5 h-5 animate-spin"/> : <CheckCircleIcon className="w-5 h-5" />}
@@ -144,7 +150,7 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                                 <button
                                                     onClick={() => handleAction(req.id, "REJECT")}
                                                     disabled={!!loadingId}
-                                                    className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
+                                                    className="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all hover:scale-110 disabled:opacity-50"
                                                     title="Reject"
                                                 >
                                                     {loadingId === req.id ? <ClockIcon className="w-5 h-5 animate-spin"/> : <XCircleIcon className="w-5 h-5" />}

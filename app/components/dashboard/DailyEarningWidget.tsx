@@ -15,17 +15,16 @@ import {
   SparklesIcon
 } from "@heroicons/react/24/outline"
 import { createDailyPool } from "@/app/actions/user/daily-pools"
-import { useCurrency } from "@/app/components/providers/CurrencyProvider"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
 
 export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean }) {
   const { data, error, mutate } = useSWR("/api/user/daily-earning", fetcher)
-  const { formatCurrency, userCurrency } = useCurrency();
+  const { formatCurrency, userCurrency, convertFromUSD, convertToUSD } = useCurrency();
   
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferAmount, setTransferAmount] = useState("")
@@ -73,19 +72,24 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault()
-    setTransferError("")
-    const amount = parseFloat(transferAmount)
+    const amountInUserCurrency = parseFloat(transferAmount)
     
-    if (isNaN(amount) || amount <= 0) return setTransferError("Enter a valid amount.")
+    if (isNaN(amountInUserCurrency) || amountInUserCurrency <= 0) return setTransferError("Enter a valid amount.")
+    
+    // Check limits in user currency
     const limit = transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet
-    if (amount > limit) return setTransferError(`Insufficient ${transferDirection === "MAIN_TO_DAILY" ? 'Main' : 'Daily'} Wallet Balance.`)
+    const limitInUserCurrency = convertFromUSD(limit)
+    if (amountInUserCurrency > limitInUserCurrency) return setTransferError(`Insufficient ${transferDirection === "MAIN_TO_DAILY" ? 'Main' : 'Daily'} Wallet Balance.`)
+
+    // Convert to USD for backend
+    const amountInUSD = convertToUSD(amountInUserCurrency)
 
     setTransferLoader(true)
     try {
       const res = await fetch("/api/user/daily-earning/transfer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount, direction: transferDirection })
+        body: JSON.stringify({ amount: amountInUSD, direction: transferDirection })
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || "Transfer failed")
@@ -102,19 +106,22 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
   const handleInvest = async (e: React.FormEvent) => {
     e.preventDefault()
-    setInvestError("")
-    setInvestSuccess("")
-    const amount = parseFloat(investAmount)
+    const amountInUserCurrency = parseFloat(investAmount)
 
-    if (isNaN(amount) || amount < 1) return setInvestError("Minimum lock amount is $1.00")
-    if (amount > dailyEarningWallet) return setInvestError("Insufficient Daily Earning Wallet balance. Use the Transfer button to move funds from your Main Wallet.")
+    const minAmountInUserCurrency = convertFromUSD(1)
+    if (isNaN(amountInUserCurrency) || amountInUserCurrency < minAmountInUserCurrency) return setInvestError(`Minimum lock amount is ${formatCurrency(1)}`)
+    
+    const dailyWalletInUserCurrency = convertFromUSD(dailyEarningWallet)
+    if (amountInUserCurrency > dailyWalletInUserCurrency) return setInvestError("Insufficient Daily Earning Wallet balance.")
+
+    const amountInUSD = convertToUSD(amountInUserCurrency)
 
     setInvestLoader(true)
     try {
-      const result = await createDailyPool(amount)
+      const result = await createDailyPool(amountInUSD)
       if (result.error) throw new Error(result.error)
 
-      setInvestSuccess(result.message || `Pool of $${amount.toFixed(2)} activated for 30 days.`)
+      setInvestSuccess(result.message || `Pool activated for 30 days.`)
       setInvestAmount("")
       mutate() // Instantly refresh SWR data across both Dashboard and main page
     } catch (err: any) {
@@ -488,7 +495,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                   <form onSubmit={handleTransfer}>
                      <div className="mb-8 relative group">
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground text-xl font-serif font-black">$</span>
+                          <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{userCurrency}</span>
                         </div>
                         <input 
                           type="number"
@@ -498,7 +505,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                           value={transferAmount}
                           onChange={(e: any) => setTransferAmount(e.target.value)}
                           placeholder="0.00"
-                          className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl outline-none shadow-sm transition-all"
+                          className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-14 pr-5 text-foreground font-serif text-2xl outline-none shadow-sm transition-all"
                           required
                         />
                      </div>
@@ -541,7 +548,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                   <form onSubmit={handleInvest}>
                      <div className="mb-6 relative">
                         <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground text-xl font-serif font-black">$</span>
+                          <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{userCurrency}</span>
                         </div>
                         <input 
                           type="number"
@@ -561,11 +568,11 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                         <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
                            <div className="text-center border-r border-indigo-500/10">
                               <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">Expected Daily</p>
-                              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 font-serif">+{formatCurrency(parseFloat(investAmount) * 0.01)}</p>
+                              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}</p>
                            </div>
                            <div className="text-center">
                               <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Return (30d)</p>
-                              <p className="text-base font-black text-emerald-600 dark:text-emerald-400 font-serif">+{formatCurrency(parseFloat(investAmount) * 0.30)}</p>
+                              <p className="text-base font-black text-emerald-600 dark:text-emerald-400 font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}</p>
                            </div>
                         </div>
                      )}
