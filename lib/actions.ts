@@ -269,8 +269,11 @@ export async function deposit(amount: number, method: string, details?: { networ
                     throw new Error("Invalid Receiver Address: funds were not sent to our wallet.");
                 }
             }
+        } else if (details.network === "BINANCE") {
+            // BINANCE is manually verified by Admin using the screenshot URL stored in txId.
+            // No blockchain API verification here.
         } else {
-             throw new Error("Only TRC20 network is supported for crypto deposits.");
+             throw new Error("Only TRC20 and BINANCE networks are supported for crypto deposits.");
         }
 
         // 1. Create Transaction Record
@@ -280,9 +283,11 @@ export async function deposit(amount: number, method: string, details?: { networ
            amount,
            type: "DEPOSIT",
            status: "PENDING", // Wait for Admin Approval
-           method: details.network, // Store just "TRC20" or "BEP20"
-           description: `[VERIFIED_TRON_USDT] ${details.txHash}`, // Tag for UI
-           txId: details.txHash // Save TXID
+           method: details.network, // Store just "TRC20" or "BINANCE"
+           description: details.network === "BINANCE" 
+                         ? `[BINANCE_PAYMENT_PROOF] ${details.txHash}` 
+                         : `[VERIFIED_TRON_USDT] ${details.txHash}`, // Tag for UI
+           txId: details.txHash // Save TXID or Screenshot URL
          }
        })
 

@@ -235,13 +235,12 @@ model Transaction {
   method             String?
   description        String?
   arnMinted          Float    @default(0.0)
-  txId               String?  @unique
+  txId               String?  @db.Text
   destinationAddress String?
   createdAt          DateTime @default(now())
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([txId])
   @@index([type])
 }
 

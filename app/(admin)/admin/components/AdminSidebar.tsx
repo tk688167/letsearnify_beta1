@@ -31,8 +31,7 @@ const navigation = [
   { name: "Freelance Marketplace", href: "/admin/marketplace", icon: BriefcaseIcon },
   { name: "Tasks & Companies", href: "/admin/tasks", icon: ClipboardDocumentListIcon },
   { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
-  { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
-  { name: "Merchant Deposits", href: "/admin/merchant/deposits", icon: BanknotesIcon },
+  { name: "Deposit Management", href: "/admin/deposits", icon: CurrencyDollarIcon },
   { name: "Withdrawal Requests", href: "/admin/withdrawals", icon: ArrowLeftOnRectangleIcon },
   { name: "Manual Unlocks", href: "/admin/unlocks", icon: CheckCircleIcon },
   { name: "Wallet Settings", href: "/admin/wallets", icon: WalletIcon },
@@ -140,9 +139,8 @@ export function AdminSidebar({
           const isChildActive = hasChildren && item.children?.some((child) => pathname === child.href)
 
           let badgeCount = 0
-          if (item.name === "Deposit Approvals") badgeCount = counts.deposits
+          if (item.name === "Deposit Management") badgeCount = counts.deposits + (counts.merchantDeposits || 0)
           if (item.name === "Withdrawal Requests") badgeCount = counts.withdrawals
-          if (item.name === "Merchant Deposits") badgeCount = counts.merchantDeposits
 
           const activeClass = "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
           const inactiveClass = "text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-900 dark:hover:text-slate-100"

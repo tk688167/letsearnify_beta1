@@ -110,8 +110,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
   const [amount, setAmount] = useState("")
   const [displayCurrency, setDisplayCurrency] = useState<"USD" | "LOCAL">(userCurrency !== "USD" ? "LOCAL" : "USD")
-  const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT">("TRC20")
-  const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20">("TRC20")
+  const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT" | "BINANCE">("TRC20")
+  const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20" | "BINANCE">("TRC20")
   const [txHash, setTxHash] = useState("")
   
   const [selectedCountry, setSelectedCountry] = useState<any>(null)
@@ -141,7 +141,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const currentWallet = platformWallets.find((w: any) => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
 
   const [method, setMethod] = useState("TRC20") 
-  const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE">("TRC20") 
+  const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE" | "BINANCE">("TRC20") 
   const [details, setDetails] = useState("")
 
   const [transferSource, setTransferSource] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("WALLET")
@@ -324,9 +324,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         let res: any
         if (activeTab === "deposit") {
            if (depositMethod === "TRC20") { if (!txHash) throw new Error("Please enter the Transaction Hash."); res = await deposit(val, "CRYPTO", { network: "TRC20", txHash }) as any }
+           else if (depositMethod === "BINANCE") { if (!txHash) throw new Error("Please enter your Binance User ID or Pay ID."); if (!screenshot) throw new Error("Please upload Binance payment proof."); res = await deposit(val, "CRYPTO", { network: "BINANCE", txHash: screenshot }) as any }
            else if (depositMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!screenshot) throw new Error("Please upload payment proof."); res = await submitMerchantDeposit({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, screenshot }) }
         } else if (activeTab === "withdraw") {
-           if (withdrawalMethod === "TRC20") { if (!details) throw new Error("Please provide withdrawal destination details."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); res = await submitWithdrawal(formData) }
+           if (withdrawalMethod === "TRC20") { if (!details) throw new Error("Please provide withdrawal destination details."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); formData.append("network", "TRC20"); res = await submitWithdrawal(formData) }
+           else if (withdrawalMethod === "BINANCE") { if (!details) throw new Error("Please provide your Binance User / Pay ID."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); formData.append("network", "BINANCE"); res = await submitWithdrawal(formData) }
            else if (withdrawalMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!accountNumber || !accountName) throw new Error("Please provide your account details."); res = await submitMerchantWithdrawal({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, accountNumber, accountName }) }
         } else if (activeTab === "transfer") { res = await transferFunds(val, transferSource, transferDestination) }
         if (res?.success) { 
@@ -982,9 +984,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                            <div className="flex items-center justify-between pl-1">
                                <label className="text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-widest">Select Deposit Method</label>
                            </div>
-                           <div className="flex flex-col md:grid md:grid-cols-3 gap-2.5">
+                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5">
                                {/* Compact TRC-20 Card */}
-                               <button onClick={() => setDepositMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "TRC20" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 ring-1 ring-blue-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                               <button onClick={() => { setDepositMethod("TRC20"); setCryptoNetwork("TRC20"); }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "TRC20" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/10 ring-1 ring-blue-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
                                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "TRC20" ? "bg-blue-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-blue-500/10 group-hover:text-blue-500")}><QrCodeIcon className="w-5 h-5"/></div>
                                    <div className="flex-1 min-w-0">
                                        <div className="flex items-center justify-between gap-2 mb-0.5">
@@ -994,6 +996,19 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                        <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Automated & global</span>
                                    </div>
                                     {depositMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-blue-500 shrink-0 ml-1" />}
+                               </button>
+
+                               {/* Compact Binance Card */}
+                               <button onClick={() => { setDepositMethod("BINANCE"); setCryptoNetwork("BINANCE"); }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", depositMethod === "BINANCE" ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10 ring-1 ring-yellow-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", depositMethod === "BINANCE" ? "bg-yellow-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-yellow-500/10 group-hover:text-yellow-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5">
+                                           <span className={cn("font-bold text-sm whitespace-nowrap leading-none", depositMethod === "BINANCE" ? "text-yellow-600 dark:text-yellow-400" : "text-foreground")}>Binance Pay</span>
+                                           <span className="shrink-0 text-[8px] font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-yellow-200 dark:border-yellow-800">Easy</span>
+                                       </div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Manual verification</span>
+                                   </div>
+                                    {depositMethod === "BINANCE" && <CheckCircleIcon className="w-4 h-4 text-yellow-500 shrink-0 ml-1" />}
                                </button>
 
                                {/* Compact Merchant Card */}
@@ -1066,6 +1081,83 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                               </div>
                            </div>
                         )}
+                        {depositMethod === "BINANCE" && (
+                           <div className="bg-muted/30 rounded-2xl p-4 md:p-6 border border-border space-y-6">
+                              <div className="flex flex-col md:flex-row gap-5 md:gap-6">
+                                 <div className="mx-auto md:mx-0 shrink-0 w-full max-w-[200px] md:max-w-none md:w-auto"><QRCode network="BINANCE" imagePath={currentWallet.qrCodePath || "/qr-placeholder.png"} /></div>
+                                 <div className="flex-1 space-y-4 min-w-0 w-full overflow-hidden">
+                                    <div className="space-y-2 w-full">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Binance Pay ID</label>
+                                       <div className="flex items-center gap-2 p-1 bg-card border border-border rounded-xl w-full">
+                                          <div className="flex-1 px-3 py-2 font-mono text-xs md:text-sm text-foreground truncate">{currentWallet?.address}</div>
+                                          <button onClick={copyAddress} className="p-2 bg-foreground text-background rounded-lg hover:opacity-80 transition-colors shrink-0"><DocumentDuplicateIcon className="w-4 h-4"/></button>
+                                       </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                       <div className="flex flex-col gap-1">
+                                          <div className="flex items-center justify-between pl-1">
+                                              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount ({displayCurrency === 'USD' ? 'USD' : userCurrency})</label>
+                                              <CurrencyToggle />
+                                          </div>
+                                          <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{displayCurrency === 'USD' ? '$' : ''}</span>
+                                              <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} 
+                                                  className={cn(
+                                                      "w-full pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-yellow-500 transition-all bg-card font-bold text-base text-foreground",
+                                                      displayCurrency === 'USD' ? 'pl-7' : 'pl-3'
+                                                  )}
+                                                  placeholder="0.00"/>
+                                          </div>
+                                          {displayCurrency === 'LOCAL' && amount && !isNaN(parseFloat(amount)) && (
+                                              <div className="mt-0.5 px-1 text-[10px] font-bold text-yellow-600 dark:text-yellow-400 border-t border-yellow-100 dark:border-yellow-900/40 pt-0.5">
+                                                  ≈ ${convertToUSD(parseFloat(amount)).toFixed(2)} USD
+                                              </div>
+                                          )}
+                                       </div>
+                                       <div>
+                                           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Your Binance User ID / Pay ID</label>
+                                           <input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Required for verification..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-yellow-500 transition-all bg-card font-mono text-sm text-foreground"/>
+                                       </div>
+                                       <div>
+                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Payment Proof (Screenshot)</label>
+                                            <div className="relative group">
+                                                <input
+                                                  type="file"
+                                                  accept="image/*"
+                                                  onChange={handleFileUpload}
+                                                  disabled={isUploadingScreenshot}
+                                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20 disabled:cursor-not-allowed"
+                                                />
+                                                <div className={cn(
+                                                  "w-full rounded-xl border transition-all duration-300 flex flex-col items-center justify-center p-3 text-center min-h-[120px]",
+                                                  isUploadingScreenshot ? "border-border bg-muted/30 animate-pulse" :
+                                                  screenshot ? "border-yellow-500 bg-yellow-500/5" :
+                                                  "border-dashed border-border bg-muted/20 hover:border-yellow-500/50"
+                                                )}>
+                                                  {isUploadingScreenshot ? (
+                                                    <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto"/>
+                                                  ) : screenshot ? (
+                                                    <div className="w-full flex items-center gap-3">
+                                                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-yellow-200">
+                                                        <img src={screenshot} alt="Proof" className="w-full h-full object-cover" />
+                                                      </div>
+                                                      <p className="font-bold text-yellow-600 text-xs">Proof Uploaded</p>
+                                                    </div>
+                                                  ) : (
+                                                    <div>
+                                                       <ArrowUpTrayIcon className="w-6 h-6 text-muted-foreground mx-auto mb-2"/>
+                                                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Upload Screenshot</p>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                            </div>
+                                       </div>
+                                       <button onClick={handleAction} disabled={!amount || !txHash || !screenshot || isUploadingScreenshot} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Submit Deposit</button>
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        )}
                         {depositMethod === "CARD" && (
                             <div className="p-8 text-center bg-muted/30 rounded-2xl border border-dashed border-border">
                                 <CreditCardIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3"/><h4 className="font-bold text-foreground">Coming Soon</h4><p className="text-sm text-muted-foreground max-w-xs mx-auto mt-1">Direct card payments are currently under maintenance. Please use TRC-20 or a Merchant.</p>
@@ -1082,15 +1174,24 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                  )}
                  {activeTab === "withdraw" && user.isActiveMember && (
                     <div className="space-y-8 animate-in fade-in">
-                       <div className="flex flex-col md:grid md:grid-cols-2 gap-2.5">
-                           <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
-                               <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "TRC20" ? "bg-purple-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-purple-500/10 group-hover:text-purple-500")}><QrCodeIcon className="w-5 h-5"/></div>
-                               <div className="flex-1 min-w-0">
-                                   <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "TRC20" ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>TRC-20 Crypto</span><span className="shrink-0 text-[8px] font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-purple-200 dark:border-purple-800">Global</span></div>
-                                   <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Fast automated swap</span>
-                               </div>
-                                {withdrawalMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-purple-500 shrink-0 ml-1" />}
-                           </button>
+                           <div className="flex flex-col md:grid md:grid-cols-3 gap-2.5">
+                               <button onClick={() => setWithdrawalMethod("TRC20")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "TRC20" ? "border-purple-500 bg-purple-50 dark:bg-purple-900/10 ring-1 ring-purple-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "TRC20" ? "bg-purple-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-purple-500/10 group-hover:text-purple-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "TRC20" ? "text-purple-600 dark:text-purple-400" : "text-foreground")}>TRC-20 Crypto</span><span className="shrink-0 text-[8px] font-bold bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-purple-200 dark:border-purple-800">Global</span></div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Fast automated swap</span>
+                                   </div>
+                                    {withdrawalMethod === "TRC20" && <CheckCircleIcon className="w-4 h-4 text-purple-500 shrink-0 ml-1" />}
+                               </button>
+
+                               <button onClick={() => setWithdrawalMethod("BINANCE")} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "BINANCE" ? "border-yellow-500 bg-yellow-50 dark:bg-yellow-900/10 ring-1 ring-yellow-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
+                                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "BINANCE" ? "bg-yellow-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-yellow-500/10 group-hover:text-yellow-500")}><QrCodeIcon className="w-5 h-5"/></div>
+                                   <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between gap-2 mb-0.5"><span className={cn("font-bold text-sm truncate leading-none", withdrawalMethod === "BINANCE" ? "text-yellow-600 dark:text-yellow-400" : "text-foreground")}>Binance Pay</span><span className="shrink-0 text-[8px] font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded uppercase tracking-widest border border-yellow-200 dark:border-yellow-800">Easy</span></div>
+                                       <span className="text-[10px] text-muted-foreground font-medium truncate block leading-none">Manual processing</span>
+                                   </div>
+                                    {withdrawalMethod === "BINANCE" && <CheckCircleIcon className="w-4 h-4 text-yellow-500 shrink-0 ml-1" />}
+                               </button>
 
                            <button onClick={() => { setWithdrawalMethod("MERCHANT"); setMerchantModalType('WITHDRAWAL'); setMerchantModalOpen(true) }} className={cn("flex items-center gap-3 p-3 rounded-xl border transition-all w-full text-left group", withdrawalMethod === "MERCHANT" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 ring-1 ring-emerald-500/50 shadow-sm" : "border-border bg-card hover:bg-muted/30")}>
                                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shrink-0 transition-colors", withdrawalMethod === "MERCHANT" ? "bg-emerald-500 text-white shadow-sm" : "bg-muted text-muted-foreground group-hover:bg-emerald-500/10 group-hover:text-emerald-500")}><BanknotesIcon className="w-5 h-5"/></div>
@@ -1136,7 +1237,45 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={handleAction} disabled={isOnCooldown || isPending} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 shadow-gray-900/10")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw (USD)"}</button>
+                                <button onClick={handleAction} disabled={isOnCooldown || isPending || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 shadow-gray-900/10")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw (USD)"}</button>
+                            </div>
+                       )}
+                       {withdrawalMethod === "BINANCE" && (
+                            <div className="space-y-4">
+                                {renderCooldownBanner()}
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Binance ID</label><input type="text" value={details} onChange={(e: any) => setDetails(e.target.value)} placeholder="Enter your Binance Pay ID / User ID..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-yellow-500 focus:ring-4 focus:ring-yellow-50/50 dark:focus:ring-yellow-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount ({displayCurrency === 'USD' ? 'USD' : userCurrency})</label>
+                                        <CurrencyToggle />
+                                    </div>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{displayCurrency === 'USD' ? '$' : ''}</span>
+                                        <input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} 
+                                            className={cn(
+                                                "w-full pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-yellow-500 transition-all bg-card font-bold text-base text-foreground shadow-sm",
+                                                displayCurrency === 'USD' ? 'pl-7' : 'pl-3'
+                                            )}
+                                            placeholder="0.00"/>
+                                    </div>
+                                    <div className="flex flex-col gap-1 mt-2 px-1">
+                                        {displayCurrency === 'LOCAL' && amount && !isNaN(parseFloat(amount)) && (
+                                            <div className="text-[10px] font-bold text-muted-foreground border-b border-border pb-1 mb-1">
+                                                ≈ ${convertToUSD(parseFloat(amount)).toFixed(2)} USD
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center text-[10px] font-bold">
+                                            <span className="text-muted-foreground uppercase tracking-wider">24h Limit: {user.withdrawalLimit || 10}%</span>
+                                            <div className="text-yellow-600 flex gap-2">
+                                                <span>Max: {formatCurrency((balance || 0) * (user.withdrawalLimit || 10) / 100)}</span>
+                                                {displayCurrency === 'LOCAL' && (
+                                                    <span className="text-muted-foreground/60">(${(balance * (user.withdrawalLimit || 10) / 100).toFixed(2)} USD)</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={handleAction} disabled={isOnCooldown || isPending || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/20")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw to Binance"}</button>
                             </div>
                        )}
                     </div>

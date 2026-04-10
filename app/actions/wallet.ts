@@ -15,7 +15,7 @@ import { getTierWithdrawLimit } from "@/lib/mlm"
 
 const depositSchema = z.object({
     amount: z.number().min(1, "Minimum deposit is $1"),
-    network: z.enum(["TRC20"]),
+    network: z.enum(["TRC20", "BINANCE"]),
     txId: z.string().min(5, "Invalid Transaction ID"),
 })
 
@@ -99,9 +99,9 @@ export async function createNowPaymentsInvoice(amount: number, method: "BTC" | "
 
 const withdrawalSchema = z.object({
     amount: z.number().positive("Amount must be positive"),
-    address: z.string().min(10, "Invalid TRC20 Address"),
+    address: z.string().min(5, "Invalid Address"),
+    network: z.enum(["TRC20", "BINANCE"]).default("TRC20"),
 })
-
 export async function submitWithdrawal(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) return { error: "Unauthorized" };
@@ -109,6 +109,7 @@ export async function submitWithdrawal(formData: FormData) {
     const rawData = {
         amount: parseFloat(formData.get("amount") as string),
         address: formData.get("address"),
+        network: formData.get("network") || "TRC20"
     }
 
     const validated = withdrawalSchema.safeParse(rawData);
@@ -117,7 +118,7 @@ export async function submitWithdrawal(formData: FormData) {
         return { error: validated.error.issues[0].message || "Invalid input" };
     }
 
-    const { amount, address } = validated.data;
+    const { amount, address, network } = validated.data;
 
     try {
         // 1. Check for Pending Withdrawals
@@ -187,7 +188,7 @@ export async function submitWithdrawal(formData: FormData) {
                     amount: amount,
                     type: "WITHDRAWAL",
                     status: "PENDING",
-                    method: "TRC20",
+                    method: network,
                     // @ts-ignore
                     destinationAddress: address,
                     description: `Withdrawal to ${address}`

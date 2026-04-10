@@ -32,8 +32,7 @@ const navigation = [
   { name: "Freelance Marketplace", href: "/admin/marketplace", icon: BriefcaseIcon },
   { name: "Tasks & Companies", href: "/admin/tasks", icon: ClipboardDocumentListIcon },
   { name: "Spin Management", href: "/admin/spin", icon: GiftIcon },
-  { name: "Deposit Approvals", href: "/admin/deposits", icon: CurrencyDollarIcon },
-  { name: "Merchant Deposits", href: "/admin/merchant/deposits", icon: BanknotesIcon },
+  { name: "Deposit Management", href: "/admin/deposits", icon: CurrencyDollarIcon },
   { name: "Withdrawal Requests", href: "/admin/withdrawals", icon: ArrowLeftOnRectangleIcon },
   { name: "Wallet Settings", href: "/admin/wallets", icon: WalletIcon },
   { name: "Merchant Settings", href: "/admin/settings/merchant", icon: BanknotesIcon },
@@ -179,7 +178,7 @@ export default function MobileAdminNav({
                 hasChildren && item.children?.some((child) => pathname === child.href)
 
               let badgeCount = 0
-              if (item.name === "Deposit Approvals") badgeCount = counts.deposits
+              if (item.name === "Deposit Management") badgeCount = counts.deposits
               if (item.name === "Withdrawal Requests") badgeCount = counts.withdrawals
 
               return (
