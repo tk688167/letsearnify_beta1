@@ -6,6 +6,7 @@ import { SpinReward } from "@/lib/spin-config"
 import { LockClosedIcon, SparklesIcon } from "@heroicons/react/24/solid"
 import confetti from "canvas-confetti"
 import CountdownTimer from "./CountdownTimer"
+import toast from "react-hot-toast"
 
 interface SpinWheelProps {
     rewards: SpinReward[]
@@ -154,6 +155,20 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
             }
             triggerCelebration(wonReward)
 
+            // Dynamic Clean Toast Broadcast
+            const isWin = wonReward.type !== "TRY_AGAIN" && wonReward.type !== "EMPTY"
+            if (isWin) {
+                toast.success(`Allocated: ${wonReward.label}`, {
+                    duration: 4000, position: 'top-center',
+                    style: { background: type === 'PREMIUM' ? '#0f172a' : '#1e1b4b', color: type === 'PREMIUM' ? '#fcd34d' : '#c7d2fe', border: `1px solid ${type === 'PREMIUM' ? '#d97706' : '#4338ca'}`, fontSize: '13px', fontWeight: 'bold' }
+                })
+            } else {
+                toast.error(`No reward this round.`, {
+                    duration: 3000, position: 'top-center',
+                    style: { background: '#0f172a', color: '#94a3b8', border: '1px solid #334155', fontSize: '13px', fontWeight: 'bold' }
+                })
+            }
+
         } catch (e: any) {
             controls.stop()
             setError(e.message || "Network error. Please try again.")
@@ -256,8 +271,8 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                                 <g key={i} className="cursor-default">
                                     <path
                                         d={pathData}
-                                        fill={reward.color.includes("gradient") ? (type === "PREMIUM" ? "url(#grad_premium)" : "url(#grad_free)") : reward.color}
-                                        stroke={type === "PREMIUM" ? "rgba(251,191,36,0.2)" : "rgba(255,255,255,0.1)"}
+                                        fill={type === "PREMIUM" ? (i % 2 === 0 ? "#1e293b" : "#0f172a") : (i % 2 === 0 ? "#312e81" : "#1e1b4b")}
+                                        stroke={type === "PREMIUM" ? "rgba(251,191,36,0.3)" : "rgba(199,210,254,0.15)"}
                                         strokeWidth="0.3"
                                         filter="url(#inner-glow)"
                                     />
@@ -265,9 +280,9 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                                         <text
                                             x="90"
                                             y="50"
-                                            fill={reward.textColor || "#fff"}
-                                            fontSize={getFontSize(reward.label)}
-                                            fontWeight="900"
+                                            fill={type === "PREMIUM" ? "#fcd34d" : "#c7d2fe"}
+                                            fontSize={(parseFloat(getFontSize(reward.label)) * 0.85).toString()}
+                                            fontWeight="800"
                                             textAnchor="end"
                                             dominantBaseline="central"
                                             alignmentBaseline="central"
@@ -275,7 +290,7 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                                                 pointerEvents: 'none',
                                                 userSelect: 'none',
                                                 letterSpacing: '0.01em',
-                                                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))'
+                                                filter: type === "PREMIUM" ? 'none' : 'drop-shadow(0 1px 1px rgba(255,255,255,0.6))'
                                             }}
                                         >
                                             {reward.label.toUpperCase()}
@@ -329,19 +344,13 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                     onClick={handleSpin}
                     disabled={isSpinning || !!isLocked || isCoolingDown}
                     className={`
-                        relative px-16 py-5 rounded-[2rem] font-black text-xl tracking-[0.15em] uppercase transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-2xl overflow-hidden
+                        relative px-12 py-4 rounded-[1.25rem] font-bold text-lg tracking-wide uppercase transition-all duration-200 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-1 active:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none overflow-hidden
                         ${type === "PREMIUM"
-                            ? "bg-[#0c0c0c] text-amber-400 border-2 border-amber-500/50"
-                            : "bg-indigo-600 text-white border-2 border-indigo-400/50"
+                            ? "bg-[#0c0c0c] text-amber-500 border border-amber-500/30 hover:bg-[#151515]"
+                            : "bg-indigo-600 text-white border border-indigo-500/50 hover:bg-indigo-500"
                         }
                     `}
                 >
-                    {/* Animated Shine Effect */}
-                    <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-                        <div className="absolute top-0 -left-[100%] w-1/2 h-full bg-white/20 skew-x-[45deg] animate-[shine_3s_infinite]"
-                            style={{ animation: 'shine 3s ease-in-out infinite' }} />
-                    </div>
-
                     <span className="relative z-10 flex items-center justify-center gap-3">
                         {isSpinning ? "Spinning..." : isCoolingDown ? "Cooldown" : "Spin Now"}
                     </span>
@@ -362,107 +371,24 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                 )}
             </AnimatePresence>
 
-            {/* ═══ BIG WIN CELEBRATION OVERLAY ═══ */}
+            {/* ═══ INLINE POST-SPIN FEEDBACK ═══ */}
             <AnimatePresence>
                 {showCelebration && result && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 md:p-6"
-                        onClick={dismissCelebration}
+                        initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, height: 'auto', scale: 1 }}
+                        exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                        className="w-full max-w-sm mt-3 overflow-hidden origin-top z-10 relative"
                     >
-                        {/* Background particle glow */}
-                        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] opacity-30 blur-[100px] pointer-events-none rounded-full ${isRealWin ? (type === 'PREMIUM' ? 'bg-amber-600' : 'bg-indigo-600') : 'bg-slate-600'
-                            }`} />
-
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0, y: 100 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 50 }}
-                            className="relative max-w-lg w-full"
-                            onClick={(e: any) => e.stopPropagation()}
-                        >
-                            <div className={`relative rounded-[3rem] overflow-hidden border-4 shadow-[0_0_80px_rgba(0,0,0,0.8)] ${isRealWin
-                                    ? (type === 'PREMIUM' ? 'border-amber-500 bg-[#0a0a0a]' : 'border-indigo-500 bg-white dark:bg-slate-900')
-                                    : 'border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900'
-                                }`}>
-                                <div className="p-8 sm:p-10 md:p-14 text-center">
-                                    {/* Win Badge */}
-                                    <motion.div
-                                        initial={{ y: -50, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.2 }}
-                                        className="mb-8"
-                                    >
-                                        <span className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] ${isRealWin
-                                                ? (type === 'PREMIUM' ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400')
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                            }`}>
-                                            {isRealWin ? "Winning Announcement" : "System Notification"}
-                                        </span>
-                                    </motion.div>
-
-                                    {/* Reward Detail */}
-                                    <div className="mb-10">
-                                        <motion.h2
-                                            initial={{ scale: 0.5, opacity: 0 }}
-                                            animate={{ scale: 1, opacity: 1 }}
-                                            transition={{ type: "spring", damping: 12, delay: 0.4 }}
-                                            className={`text-[clamp(2rem,6vw,4.5rem)] font-black tracking-tighter mb-3 leading-[1.1] break-words ${isRealWin
-                                                    ? (type === 'PREMIUM' ? 'text-white' : 'text-slate-900 dark:text-white')
-                                                    : 'text-slate-400'
-                                                }`}
-                                        >
-                                            {result.label}
-                                        </motion.h2>
-                                        <motion.p
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: 0.5 }}
-                                            className="text-base text-slate-500 dark:text-slate-400 font-medium"
-                                        >
-                                            {isRealWin
-                                                ? `Successfully credited to your ${type === 'PREMIUM' ? 'exclusive' : 'daily'} wallet.`
-                                                : "The wheel didn't land on a reward this time."}
-                                        </motion.p>
-                                    </div>
-
-                                    {/* Visual Elements */}
-                                    {isRealWin && (
-                                        <motion.div
-                                            initial={{ scale: 0, rotate: -180 }}
-                                            animate={{ scale: 1, rotate: 0 }}
-                                            transition={{ type: "spring", damping: 10, delay: 0.6 }}
-                                            className="mb-12 flex justify-center"
-                                        >
-                                            <div className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center text-4xl sm:text-5xl shadow-2xl ${type === 'PREMIUM' ? 'bg-amber-500 shadow-amber-500/20' : 'bg-indigo-600 shadow-indigo-600/20'
-                                                }`}>
-                                                {type === 'PREMIUM' ? "🏆" : "💰"}
-                                            </div>
-                                        </motion.div>
-                                    )}
-
-                                    {/* Action Button */}
-                                    <motion.button
-                                        initial={{ y: 50, opacity: 0 }}
-                                        animate={{ y: 0, opacity: 1 }}
-                                        transition={{ delay: 0.8 }}
-                                        onClick={dismissCelebration}
-                                        className={`w-full py-4 sm:py-5 rounded-[1.25rem] sm:rounded-[1.5rem] font-bold text-base sm:text-lg tracking-tight transition-all active:scale-95 shadow-xl ${isRealWin
-                                                ? (type === 'PREMIUM' ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/20')
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                            }`}
-                                    >
-                                        {isRealWin ? (type === 'PREMIUM' ? "Accept Premium Reward" : "Claim Success") : "Close & Keep Moving"}
-                                    </motion.button>
-
-                                    <p className="mt-6 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                                        {type === 'PREMIUM' ? "Next Spin Available in 24 Hours" : `Next Spin Available in ${rewards.length > 5 ? 48 : 24} Hours`}
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
+                        <div className={`mx-auto px-6 py-3 rounded-full flex flex-col sm:flex-row items-center justify-center gap-2 border shadow-inner ${
+                            isRealWin 
+                                ? (type === 'PREMIUM' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400') 
+                                : 'bg-slate-100 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500'
+                        }`}>
+                            <span className="text-xs sm:text-sm font-bold tracking-wide text-center">
+                                {isRealWin ? `🏆 Reward Captured: ${result.label}` : "💨 Escaped this cycle"}
+                            </span>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>

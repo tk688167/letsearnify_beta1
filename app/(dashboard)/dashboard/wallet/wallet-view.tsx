@@ -31,7 +31,8 @@ import {
   FunnelIcon,
   MagnifyingGlassIcon,
   InformationCircleIcon,
-  CalendarDaysIcon
+  CalendarDaysIcon,
+  ClockIcon
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
@@ -150,6 +151,49 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [isUnlocking, setIsUnlocking] = useState(false)
 
+  const [isOnCooldown, setIsOnCooldown] = useState(false)
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!user?.lastWithdrawalTime) return;
+    const lastTime = new Date(user.lastWithdrawalTime).getTime();
+    const cooldownPeriod = 24 * 60 * 60 * 1000;
+    
+    const updateCooldown = () => {
+      const now = Date.now();
+      const elapsed = now - lastTime;
+      const remaining = cooldownPeriod - elapsed;
+      if (remaining > 0) {
+        setIsOnCooldown(true);
+        const h = Math.floor(remaining / (1000 * 60 * 60));
+        const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((remaining % (1000 * 60)) / 1000);
+        setTimeRemaining(`${h}h ${m}m ${s}s`);
+      } else {
+        setIsOnCooldown(false);
+        setTimeRemaining(null);
+      }
+    };
+    
+    updateCooldown();
+    const intervalId = setInterval(updateCooldown, 1000);
+    return () => clearInterval(intervalId);
+  }, [user?.lastWithdrawalTime]);
+
+  const renderCooldownBanner = () => {
+    if (!isOnCooldown) return null;
+    return (
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center p-6 bg-amber-500/10 border border-amber-500/20 rounded-[1.5rem] text-center mb-6 shadow-sm">
+        <ClockIcon className="w-10 h-10 text-amber-500 mb-2" />
+        <h4 className="text-amber-700 dark:text-amber-400 font-black text-lg">Withdrawal on Cooldown</h4>
+        <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mt-1 mb-4">You can request another withdrawal after 24 hours.</p>
+        <div className="px-5 py-2.5 bg-amber-500 rounded-xl text-white font-black text-2xl tracking-widest shadow-lg shadow-amber-500/20 tabular-nums">
+          {timeRemaining}
+        </div>
+      </motion.div>
+    );
+  };
+
   const [filterRange, setFilterRange] = useState<'7d' | '30d' | 'custom'>('7d')
   const [customStart, setCustomStart] = useState("")
   const [customEnd, setCustomEnd] = useState("")
@@ -169,6 +213,20 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
      setSelectedCountry(null); setSelectedPaymentMethod(null); setScreenshot(null)
      setAccountNumber(""); setAccountName(""); setAmount(""); setMessage(null)
   }, [activeTab, depositMethod, withdrawalMethod])
+
+  useEffect(() => {
+    if (message?.type === 'error') {
+      toast.error(message.text, { duration: 4000, position: 'top-center', id: 'action-error-toast' })
+      setTimeout(() => {
+        if (merchantModalOpen) {
+          const modalScroll = document.getElementById("merchant-modal-scroll")
+          if (modalScroll) modalScroll.scrollTo({ top: 0, behavior: "smooth" })
+        } else {
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        }
+      }, 100)
+    }
+  }, [message, merchantModalOpen])
 
   const copyAddress = () => {
      if (currentWallet.address) {
@@ -703,6 +761,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
           </div>
         ) : (
           <div className="space-y-6">
+            {renderCooldownBanner()}
             <div className="text-center pb-2">
               <div className="w-16 h-16 bg-green-500/10 text-green-600 rounded-3xl flex items-center justify-center mx-auto mb-4">
                 <ArrowUpTrayIcon className="w-8 h-8"/>
@@ -773,9 +832,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               </div>
             </div>
 
-            <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending}
-              className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-[1.5rem] shadow-xl shadow-indigo-600/20 transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:grayscale disabled:scale-100 text-lg uppercase tracking-widest">
-              {isPending ? "Connecting Securely..." : "Request Local Withdrawal"}
+            <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending || isOnCooldown}
+              className={cn("w-full py-5 text-white font-black rounded-[1.5rem] shadow-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:scale-100 text-lg uppercase tracking-widest", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20 disabled:opacity-50 disabled:grayscale")}>
+              {isPending ? "Connecting Securely..." : isOnCooldown ? "Withdrawal Locked" : "Request Local Withdrawal"}
             </button>
           </div>
         )}
@@ -1044,6 +1103,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                        </div>
                        {withdrawalMethod === "TRC20" && (
                             <div className="space-y-4">
+                                {renderCooldownBanner()}
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2">Destination Address</label><input type="text" value={details} onChange={(e: any) => setDetails(e.target.value)} placeholder="Enter USDT TRC-20 address..." className="w-full px-4 py-3.5 rounded-xl border border-input outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-50/50 dark:focus:ring-purple-900/30 transition-all bg-card font-mono text-sm text-foreground"/></div>
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
@@ -1076,7 +1136,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={handleAction} className="w-full py-4 bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 font-bold rounded-xl shadow-lg shadow-gray-900/10 transition-all hover:scale-[1.01] active:scale-[0.98]">Swap & Withdraw (USD)</button>
+                                <button onClick={handleAction} disabled={isOnCooldown || isPending} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 shadow-gray-900/10")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw (USD)"}</button>
                             </div>
                        )}
                     </div>
@@ -1208,7 +1268,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6 sm:p-8 overscroll-contain smooth-scroll touch-pan-y ios-scroll-fix">
+              <div id="merchant-modal-scroll" className="flex-1 overflow-y-auto p-6 sm:p-8 overscroll-contain smooth-scroll touch-pan-y ios-scroll-fix">
                 <AnimatePresence mode="wait">
                   {message && (
                     <motion.div 

@@ -229,33 +229,33 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
         </div>
 
         {/* Right: Earnings Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 sm:p-6 text-white shadow-lg flex flex-col justify-between">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 sm:p-6 text-white shadow-lg flex flex-col justify-between min-w-0">
               <div>
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4">
-                   <CurrencyDollarIcon className="w-6 h-6 text-white" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-xl flex items-center justify-center mb-3 sm:mb-4 shrink-0">
+                   <CurrencyDollarIcon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-widest text-emerald-100">Total Earnings</p>
+                <p className="text-[9px] sm:text-xs font-bold uppercase tracking-widest text-emerald-100 truncate w-full">Total Earnings</p>
               </div>
               <div>
-                <h3 className="text-3xl sm:text-4xl font-black">${stats.totalEarnings.toFixed(2)}</h3>
-                <p className="text-xs font-medium text-emerald-100 mt-1">Lifetime partner revenue</p>
+                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black truncate w-full leading-tight mt-1 sm:mt-0">${stats.totalEarnings.toFixed(2)}</h3>
+                <p className="text-[9px] sm:text-xs font-medium text-emerald-100 mt-1 sm:mt-1 truncate w-full">Lifetime partner revenue</p>
               </div>
             </div>
             
-            <div className="bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col justify-between min-w-0">
               <div>
-                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-100 dark:border-blue-500/20 mb-4">
-                   <ChartPieIcon className="w-6 h-6 text-blue-500" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-50 dark:bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-100 dark:border-blue-500/20 mb-3 sm:mb-4 shrink-0">
+                   <ChartPieIcon className="w-4 h-4 sm:w-6 sm:h-6 text-blue-500" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Today's Profit</p>
+                <p className="text-[9px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate w-full">Today's Profit</p>
               </div>
               <div>
-                <h3 className="text-3xl sm:text-4xl font-black text-foreground">
+                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black text-foreground truncate w-full leading-tight mt-1 sm:mt-0">
                     ${stats.todayEarnings.toFixed(2)}
                 </h3>
-                <p className="text-xs font-medium text-muted-foreground mt-1 flex items-center gap-1">
-                   {stats.todayEarnings > 0 ? <><SparklesIcon className="w-3 h-3 text-emerald-500" /> Great job today!</> : "Keep growing."}
+                <p className="text-[9px] sm:text-xs font-medium text-muted-foreground mt-1 sm:mt-1 flex items-center gap-1 truncate w-full">
+                   {stats.todayEarnings > 0 ? <><SparklesIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" /> <span className="truncate">Great job today!</span></> : <span className="truncate">Keep growing.</span>}
                 </p>
               </div>
             </div>

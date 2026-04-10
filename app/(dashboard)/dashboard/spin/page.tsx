@@ -129,38 +129,14 @@ export default async function SpinPage() {
 
     return (
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 pb-20 select-none">
-         {/* ═══ PREMIUM HEADER ═══ */}
-         <div className="relative py-5 md:py-8 px-6 md:px-12 bg-slate-900 rounded-[2rem] text-white shadow-2xl overflow-hidden border border-white/5 mx-2 md:mx-0">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 via-purple-600/10 to-transparent animate-pulse" />
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.1),transparent_70%)]" />
-            <div 
-              className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.5'/%3E%3C/svg%3E")` }}
-            />
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-white/10 border border-white/10 text-amber-400">
-                  <SparklesIcon className="w-3 h-3" />
-                  Daily Portal
-                </div>
-                <h1 className="text-2xl md:text-3xl font-black tracking-tighter leading-none italic">
-                  DAILY <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-indigo-100">FORTUNE</span>
-                </h1>
-                <p className="text-slate-400 text-[11px] md:text-sm max-w-lg font-medium leading-relaxed">
-                  Win daily rewards every <span className="text-white font-bold">{spinSettings.freeSpinCooldownHours}h</span>.
-                </p>
-              </div>
-              
-              <div className="flex -space-x-3 opacity-60 md:opacity-100">
-                  {[1, 2, 3].map((i) => (
-                      <div key={i} className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center rotate-12">
-                          <StarIcon className={`w-5 h-5 md:w-7 md:h-7 ${i === 2 ? 'text-amber-500' : 'text-slate-600'}`} />
-                      </div>
-                  ))}
-              </div>
-            </div>
+         {/* ═══ MINIMALIST SPIN HEADER ═══ */}
+         <div className="text-center md:text-left mb-6 pt-2">
+             <h1 className="text-3xl sm:text-4xl font-black font-serif italic tracking-tighter uppercase drop-shadow-sm text-slate-900 dark:text-white">
+                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-indigo-300">Reward Spin</span>
+             </h1>
+             <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1 mb-2">
+                 Activate your cycle to win exclusive platform rewards every {spinSettings.freeSpinCooldownHours} hours.
+             </p>
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">

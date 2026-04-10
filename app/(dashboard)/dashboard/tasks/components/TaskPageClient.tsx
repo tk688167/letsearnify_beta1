@@ -149,17 +149,17 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                   </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
+                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center shadow-inner">
                     <div className="text-base sm:text-lg font-black text-emerald-400 leading-none mb-0.5">
                       {Math.floor(Object.values(taskStates).filter((s: any) => s.status === 'APPROVED').length)}
                     </div>
-                    <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">Done</div>
+                    <div className="text-[8px] font-bold text-emerald-400/50 uppercase tracking-wider">Completed</div>
                   </div>
-                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center">
+                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center shadow-inner">
                     <div className="text-base sm:text-lg font-black text-amber-400 leading-none mb-0.5">
-                      {(platformTasks.reduce((sum: number, t: any) => sum + t.reward, 0)).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                      {platformTasks.length}
                     </div>
-                    <div className="text-[8px] font-bold text-white/30 uppercase tracking-wider">ARN</div>
+                    <div className="text-[8px] font-bold text-amber-400/50 uppercase tracking-wider">Total Tasks</div>
                   </div>
                 </div>
               </div>
@@ -250,23 +250,29 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                     )}
 
                                     <div className="flex items-start justify-between mb-3 sm:mb-4">
-                                        <div className="flex items-center gap-2 sm:gap-3">
-                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 font-bold border border-amber-100 dark:border-amber-800/50">
-                                                {task.title.charAt(0)}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wide">Premium Partner</span>
-                                                <span className="text-[8px] sm:text-[10px] text-amber-500 dark:text-amber-400">Verified</span>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            {task.company?.logoUrl ? (
+                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full shadow-sm" />
+                                            ) : (
+                                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-bold border border-amber-200 dark:border-amber-800/50">
+                                                    {task.company?.name?.[0] || 'P'}
+                                                </div>
+                                            )}
+                                            <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                                                {task.company?.name || 'Premium Partner'}
+                                            </span>
                                         </div>
-                                        <span className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
-                                            {task.type}
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400">
+                                            Verified
                                         </span>
                                     </div>
                                     
-                                    <h3 className="font-bold text-foreground text-sm sm:text-lg mb-2 sm:mb-3 leading-tight">
+                                    <h3 className="font-black text-foreground text-base sm:text-lg mb-1.5 leading-tight">
                                         {task.title}
                                     </h3>
+                                    <p className="text-[11px] sm:text-xs text-muted-foreground font-medium line-clamp-2 leading-relaxed mb-4">
+                                        {task.description || "Follow the task instructions closely. Submit valid proof of completion to earn your reward directly to your premium balance."}
+                                    </p>
                                     
                                     <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-amber-100/50 dark:border-amber-800/30">
                                         <div className="flex flex-col">
@@ -325,27 +331,31 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                         isRejected ? 'border-red-200 bg-red-50/20 dark:border-red-800 dark:bg-red-900/10' : 'border-border hover:border-indigo-200 dark:hover:border-indigo-800'
                                     }`}
                                 >
-                                    <div className="flex justify-between items-start mb-3 sm:mb-4">
-                                        <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex items-center gap-2">
                                             {task.company?.logoUrl ? (
-                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full shadow-sm" />
+                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 rounded-full shadow-sm" />
                                             ) : (
-                                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-[10px] sm:text-xs font-bold border border-indigo-100 dark:border-indigo-800/50">
-                                                    {task.company?.name?.[0] || 'L'}
+                                                <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-[10px] font-black border border-indigo-100 dark:border-indigo-800/50">
+                                                    {task.company?.name?.[0] || 'P'}
                                                 </div>
                                             )}
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wide">{task.company?.name || 'Platform'}</span>
-                                                <span className="text-[8px] sm:text-[10px] text-gray-400 dark:text-gray-500">Sponsored</span>
-                                            </div>
+                                            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                                {task.company?.name || 'Platform Network'}
+                                            </span>
                                         </div>
-                                        {isApproved && <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
-                                        {isRejected && <span className="text-[9px] sm:text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded">Failed</span>}
+                                        <div className="flex items-center gap-1">
+                                            {isApproved && <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
+                                            {isRejected && <span className="text-[9px] sm:text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded">Failed</span>}
+                                        </div>
                                     </div>
 
-                                    <h3 className="font-bold text-foreground text-xs sm:text-sm mb-3 sm:mb-4 min-h-[32px] sm:min-h-[40px] line-clamp-2 leading-snug">
+                                    <h3 className="font-black text-foreground text-sm sm:text-base mb-1.5 leading-tight">
                                         {task.title}
                                     </h3>
+                                    <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium line-clamp-2 leading-relaxed mb-4">
+                                        {task.description || "Follow the specified link, complete the exact required actions, and submit your valid proof below."}
+                                    </p>
 
                                     <div className="flex items-center justify-between border-t border-border pt-3 sm:pt-4 mt-auto">
                                         <div className="text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-indigo-100 dark:border-indigo-800/50">

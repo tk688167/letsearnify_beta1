@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import useSWR from "swr"
 import { format } from "date-fns"
@@ -153,49 +153,63 @@ export default function DailyEarningPageContent() {
   return (
     <div className="max-w-6xl mx-auto pb-24 px-4 sm:px-6 pt-10 md:pt-16 font-sans">
       
-      {/* 1. REFINED HEADER SECTION */}
-      <section className="mb-10 flex flex-col items-center text-center md:items-end md:text-left md:flex-row justify-between gap-6">
-        <div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 capitalize">
-             <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">Daily Earning Pool</span>
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg font-medium text-muted-foreground/90 max-w-2xl leading-relaxed mx-auto md:mx-0">
-             Create your pool from {formatCurrency(1)} and earn 1% daily. Funds are locked for 30 days before withdrawal.
-          </p>
-        </div>
+      {/* 1. SPECTACULAR GLASSMORPHISM HEADER SECTION */}
+      <section className="mb-5 md:mb-10 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-[2rem] md:rounded-[3rem] blur-3xl pointer-events-none" />
         
-        {/* STATS SUMMARY (Compact) */}
-        <div className="flex bg-card border border-border p-2 rounded-2xl shadow-sm overflow-hidden">
-           <div className="px-5 py-2 border-r border-border text-center">
-             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Total Invested</p>
-             <p className="font-serif font-black text-foreground text-lg">{formatCurrency(totalPrincipalLocked)}</p>
-           </div>
-           <div className="px-5 py-2 border-r border-border text-center">
-             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-0.5">Active Pools</p>
-             <p className="font-serif font-black text-foreground text-lg">{activeLocks.length}</p>
-           </div>
-           <div className="px-5 py-2 text-center">
-             <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-0.5">Total Earnings</p>
-             <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-lg">+{formatCurrency(totalAccumulatedProfit)}</p>
-           </div>
+        <div className="relative bg-card/40 backdrop-blur-2xl border border-border/50 rounded-3xl md:rounded-[3rem] p-4 sm:p-8 lg:p-12 shadow-2xl flex flex-col xl:flex-row items-center xl:items-start justify-between gap-5 sm:gap-8 xl:gap-10">
+          
+          <div className="text-center xl:text-left flex-1 w-full">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-3 md:mb-6">
+               <SparklesIcon className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" /> Capital Yield Protocol
+            </div>
+            
+            <h1 className="text-[1.6rem] leading-none sm:text-5xl md:text-6xl lg:text-7xl font-black font-serif tracking-tighter mb-2 md:mb-5">
+               Daily Earning <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-500 inline-block">Pool</span>
+            </h1>
+            
+            <p className="text-xs sm:text-base font-medium text-muted-foreground max-w-xl leading-relaxed mx-auto xl:mx-0 mb-4 md:mb-8 px-1 sm:px-0">
+               Deposit a minimum of {formatCurrency(1)} to automatically earn an aggregated 1% daily return. Your initial capital remains secured via our 30-day smart locking period.
+            </p>
+          </div>
+          
+          {/* STATS SUMMARY (Compact Premium) */}
+          <div className="shrink-0 grid grid-cols-2 sm:flex sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+             <div className="bg-background/80 backdrop-blur-xl border border-border/50 p-3 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2rem] flex-1 sm:min-w-[160px] text-center shadow-sm flex flex-col justify-center">
+               <div className="w-8 h-8 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-2 sm:mb-4 shrink-0">
+                 <BanknotesIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+               </div>
+               <p className="text-[8px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 sm:mb-1.5 whitespace-nowrap">Total Invested</p>
+               <p className="font-serif font-black text-foreground text-base sm:text-2xl lg:text-3xl truncate leading-none">{formatCurrency(totalPrincipalLocked)}</p>
+             </div>
+             
+             <div className="bg-background/80 backdrop-blur-xl border border-border/50 p-3 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[2rem] flex-1 sm:min-w-[160px] text-center shadow-sm flex flex-col justify-center">
+               <div className="w-8 h-8 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-2 sm:mb-4 shrink-0">
+                 <ChartBarIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+               </div>
+               <p className="text-[8px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 sm:mb-1.5 whitespace-nowrap">Total Earnings</p>
+               <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-base sm:text-2xl lg:text-3xl truncate leading-none">+{formatCurrency(totalAccumulatedProfit)}</p>
+             </div>
+          </div>
+          
         </div>
       </section>
 
       {/* 2. ACTION SECTION */}
-      <section className="bg-card border border-border rounded-[2.5rem] p-8 md:p-12 mb-12 shadow-xl shadow-indigo-500/5 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 z-10 w-full transform transition-all">
+      <section className="bg-card border border-border rounded-3xl md:rounded-[3rem] p-4 sm:p-8 lg:p-12 mb-6 md:mb-12 shadow-xl shadow-indigo-500/5 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-4 lg:gap-8 z-10 w-full group">
          {/* Decorative Overlay */}
-         <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-150 rotate-12 pointer-events-none">
-            <BanknotesIcon className="w-64 h-64 text-indigo-500" />
+         <div className="absolute top-0 right-0 p-8 opacity-[0.02] scale-150 rotate-12 pointer-events-none group-hover:scale-[1.6] transition-transform duration-1000">
+            <WalletIcon className="w-[400px] h-[400px] text-foreground" />
          </div>
 
-         <div className="relative z-10 w-full md:w-auto text-center md:text-left text-foreground">
-            <p className="text-[10px] sm:text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2">Daily Earning Wallet Balance</p>
-            <div className="flex items-baseline justify-center md:justify-start gap-2 mb-2">
-               <h2 className="text-4xl sm:text-5xl md:text-6xl font-black font-serif tracking-tighter">
+         <div className="relative z-10 w-full lg:w-auto text-center lg:text-left text-foreground">
+            <p className="text-[10px] sm:text-[11px] lg:text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 sm:mb-3">Available Pool Balance</p>
+            <div className="flex items-baseline justify-center lg:justify-start gap-2 mb-3">
+               <h2 className="text-4xl sm:text-6xl md:text-7xl font-black font-serif tracking-tighter drop-shadow-sm leading-none">
                   {formatCurrency(dailyEarningWallet)}
                </h2>
             </div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">Ready to allocate to new pools.</p>
+            <p className="text-xs sm:text-sm font-bold text-muted-foreground bg-muted/50 rounded-xl px-4 py-2 inline-block shadow-inner">Ready to allocate to new pools.</p>
          </div>
 
          <div className="relative z-10 flex flex-col sm:flex-row w-full md:w-auto gap-4">
@@ -369,6 +383,8 @@ export default function DailyEarningPageContent() {
 
 function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: any) {
   const { formatCurrency } = useCurrency();
+  const [poolTimer, setPoolTimer] = useState<string | null>(null);
+
   const now = new Date()
   const startDate = new Date(inv.createdAt)
   const expiryDate = new Date(inv.expiresAt)
@@ -377,6 +393,20 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: an
   const elapsedDays = Math.max(0, Math.min(totalDays, elapsedMs / (1000 * 60 * 60 * 24)))
   const progress = (elapsedDays / totalDays) * 100
   const daysRemaining = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+
+  useEffect(() => {
+    if (isCompleted) return;
+    const interval = setInterval(() => {
+      const cycleMs = 24 * 60 * 60 * 1000;
+      const runningElapsed = Date.now() - startDate.getTime();
+      const remainingMs = cycleMs - (runningElapsed % cycleMs);
+      const h = Math.floor(remainingMs / (1000 * 60 * 60));
+      const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((remainingMs % (1000 * 60)) / 1000);
+      setPoolTimer(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [inv.createdAt, isCompleted]);
 
   return (
     <div className={cn(
@@ -418,10 +448,22 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader }: an
           </div>
        </div>
 
-       {/* Mid Row: Profit So Far */}
-       <div className="mb-5 sm:mb-6 p-4 rounded-xl bg-muted/30 border border-border block w-full sm:inline-block sm:w-auto sm:min-w-[50%]">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Accumulated Profit</p>
-          <h4 className="text-2xl font-black text-emerald-600 dark:text-emerald-500 font-serif leading-none tracking-tighter">+{formatCurrency(inv.profitEarned)}</h4>
+       {/* Mid Row: Profit So Far & Timer */}
+       <div className="mb-5 sm:mb-6 flex flex-col sm:flex-row gap-4">
+           <div className="p-4 rounded-xl bg-muted/30 border border-border flex-1">
+              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Accumulated Profit</p>
+              <h4 className="text-2xl font-black text-emerald-600 dark:text-emerald-500 font-serif leading-none tracking-tighter">+{formatCurrency(inv.profitEarned)}</h4>
+           </div>
+           
+           {!isCompleted && (
+             <div className="p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/10 flex-1 relative overflow-hidden group/timer hover:bg-indigo-500/10 transition-colors">
+                <p className="text-[10px] font-black text-indigo-600/70 dark:text-indigo-400/70 uppercase tracking-widest mb-1.5 whitespace-nowrap">Next 1% Arrival In</p>
+                <h4 className="text-xl sm:text-2xl font-black font-mono tracking-widest text-indigo-600 dark:text-indigo-400 tabular-nums leading-none">
+                  {poolTimer || "00:00:00"}
+                </h4>
+                <ClockIcon className="absolute bottom-2 right-2 w-12 h-12 text-indigo-500/10 group-hover/timer:scale-110 transition-transform" />
+             </div>
+           )}
        </div>
 
        {/* Bottom Row / Actions */}
