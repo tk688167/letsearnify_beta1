@@ -34,7 +34,7 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
   // Search State
   const [query, setQuery] = useState("")
   // const [page, setPage] = useState(1) // Removed client-side page state
-  const [limit] = useState(2000) // Match server limit
+  const [limit] = useState(100) // Match server default limit
 
   const fetchUsers = async (searchQuery: string) => {
     setIsLoading(true)
@@ -46,15 +46,17 @@ export default function UserManagementClient({ initialUsers, initialTotal }: Use
       })
       
       const res = await fetch(`/api/admin/users?${params.toString()}`)
-      if (!res.ok) throw new Error("Failed to fetch")
-      
       const data = await res.json()
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to fetch users")
+      }
+
       setUsers(data.users)
       setTotalUsers(data.total)
       // setPage(data.page)
     } catch (error) {
       console.error("Search error:", error)
-      alert("Failed to fetch users")
+      alert(error instanceof Error ? error.message : "Failed to fetch users")
     } finally {
       setIsLoading(false)
     }

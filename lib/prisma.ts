@@ -1,15 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { neonConfig } from '@neondatabase/serverless';
 import { PrismaNeon } from '@prisma/adapter-neon';
+import { PrismaPg } from '@prisma/adapter-pg';
 import ws from 'ws';
-
-/**
- * 1. Neon Driver Adapter Setup for Serverless
- * Ensure WebSockets are correctly configured for non-browser environments.
- */
-if (typeof window === 'undefined') {
-  neonConfig.webSocketConstructor = ws;
-}
 
 /**
  * 2. Global Instance Pattern to prevent multiple connections in Vercel
@@ -22,24 +15,42 @@ declare global {
 }
 
 /**
- * Creates a singleton instance of the Prisma Client with Neon adapter mapping.
- * Optimized for Prisma 7 standard driver configuration.
+ * Creates a singleton instance of the Prisma Client.
+ * Supports Neon via PrismaNeon adapter and other PostgreSQL providers
+ * (e.g. Supabase) via PrismaPg adapter.
  * 
- * IMPORTANT: This function will throw if DATABASE_URL is missing.
+ * IMPORTANT: This function will throw if neither DATABASE_URL nor DIRECT_URL is defined.
  */
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
   
   if (!connectionString) {
-    throw new Error('DATABASE_URL is not defined in environment variables.');
+    throw new Error('DATABASE_URL or DIRECT_URL must be defined in environment variables.');
   }
 
-  // Use the connection string directly for the adapter instance.
-  const adapter = new PrismaNeon({
-    connectionString,
-  }) as any;
-  
-  return new PrismaClient({ 
+  const isNeon = (() => {
+    try {
+      return new URL(connectionString).hostname.endsWith('.neon.tech');
+    } catch {
+      return false;
+    }
+  })();
+
+  // Neon needs the serverless adapter + websocket constructor.
+  if (isNeon && typeof window === 'undefined') {
+    neonConfig.webSocketConstructor = ws;
+    const adapter = new PrismaNeon({ connectionString }) as any;
+
+    return new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    });
+  }
+
+  // Supabase and other PostgreSQL providers use the generic Postgres adapter.
+  const adapter = new PrismaPg({ connectionString });
+
+  return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
