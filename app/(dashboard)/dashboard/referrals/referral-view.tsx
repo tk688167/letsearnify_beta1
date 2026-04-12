@@ -20,7 +20,7 @@ import {
 } from "@heroicons/react/24/outline"
 
 
-import { TIER_COMMISSIONS } from "@/lib/mlm"
+import { TIER_COMMISSIONS } from "@/lib/mlm-constants"
 import { format, subDays, startOfDay, isAfter } from "date-fns"
 import { calculateTierProgress } from "@/lib/utils"
 
