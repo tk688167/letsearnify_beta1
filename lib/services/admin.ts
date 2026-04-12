@@ -36,6 +36,10 @@ function mapAdminUserFetchError(error: unknown): string {
     return "Database URL is missing. Configure DATABASE_URL in environment variables.";
   }
 
+  if (message.includes("can't reach database server") || message.includes('invalid database host "base"')) {
+    return "Database server is unreachable. Check DATABASE_URL and DIRECT_URL in Vercel.";
+  }
+
   return "Database connection is currently unavailable.";
 }
 

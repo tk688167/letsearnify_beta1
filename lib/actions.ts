@@ -13,6 +13,22 @@ interface TrackingData {
   language?: string
 }
 
+function isRecoverableTrackingError(error: unknown) {
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+
+  return (
+    ["P1000", "P1001", "P1008", "P1017"].includes(code) ||
+    message.includes("can't reach database server") ||
+    message.includes("database_url") ||
+    message.includes('invalid database host "base"')
+  );
+}
+
 export async function trackVisit(clientData?: TrackingData) {
   try {
     const session = await auth()
@@ -91,11 +107,18 @@ export async function trackVisit(clientData?: TrackingData) {
             language: clientData?.language || headersList.get("accept-language")?.split(',')[0],
           }
         })
+      } else if (isRecoverableTrackingError(e)) {
+        console.warn("Visit tracking skipped:", e?.message || e)
       } else {
         throw e
       }
     }
   } catch (error) {
+    if (isRecoverableTrackingError(error)) {
+      console.warn("Tracking temporarily unavailable:", error instanceof Error ? error.message : error)
+      return
+    }
+
     console.error("Tracking error:", error)
   }
 }

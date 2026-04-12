@@ -28,8 +28,8 @@ export default async function SpinPage() {
 
   try {
     // 1. Pre-fetch check for Environment Variables
-    if (!process.env.DATABASE_URL) {
-      throw new Error("Missing DATABASE_URL. Please check Vercel environment variables.");
+    if (!process.env.DATABASE_URL && !process.env.DIRECT_URL) {
+      throw new Error("Missing DATABASE_URL / DIRECT_URL. Please check Vercel environment variables.");
     }
 
     // 2. Data Fetching with individualized error handling potential

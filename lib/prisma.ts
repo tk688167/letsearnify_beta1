@@ -11,7 +11,7 @@ import ws from 'ws';
  */
 declare global {
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var prismaClientSingleton: PrismaClient | undefined;
 }
 
 /**
@@ -21,12 +21,29 @@ declare global {
  * 
  * IMPORTANT: This function will throw if neither DATABASE_URL nor DIRECT_URL is defined.
  */
-function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
-  
+function getConnectionString(): string {
+  const connectionString = process.env.DATABASE_URL?.trim() || process.env.DIRECT_URL?.trim();
+
   if (!connectionString) {
     throw new Error('DATABASE_URL or DIRECT_URL must be defined in environment variables.');
   }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(connectionString);
+  } catch {
+    throw new Error('DATABASE_URL or DIRECT_URL is not a valid PostgreSQL connection string.');
+  }
+
+  if (parsed.hostname.toLowerCase() === 'base') {
+    throw new Error('Invalid database host "base". Check the DATABASE_URL and DIRECT_URL values configured on Vercel.');
+  }
+
+  return connectionString;
+}
+
+function createPrismaClient(): PrismaClient {
+  const connectionString = getConnectionString();
 
   const isNeon = (() => {
     try {
@@ -56,6 +73,28 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
+function getPrismaClient(): PrismaClient {
+  if (typeof window !== 'undefined') {
+    throw new Error('Prisma client cannot be used in the browser.');
+  }
+
+  if (!globalThis.prismaClientSingleton) {
+    globalThis.prismaClientSingleton = createPrismaClient();
+  }
+
+  return globalThis.prismaClientSingleton;
+}
+
+function createPrismaProxy(): PrismaClient {
+  return new Proxy({} as PrismaClient, {
+    get(_target, prop, receiver) {
+      const client = getPrismaClient() as unknown as Record<PropertyKey, unknown>;
+      const value = Reflect.get(client, prop, receiver);
+      return typeof value === "function" ? value.bind(client) : value;
+    },
+  });
+}
+
 /**
  * 3. Environment-Safe Singleton Initialization
  * 
@@ -64,10 +103,5 @@ function createPrismaClient(): PrismaClient {
  * shared utilities (like MLM logic or Auth) might be imported by Client Components.
  */
 export const prisma = typeof window === 'undefined'
-  ? (globalThis.prisma || createPrismaClient())
+  ? createPrismaProxy()
   : (null as unknown as PrismaClient);
-
-// Persist only on the server
-if (typeof window === 'undefined' && process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
-}
