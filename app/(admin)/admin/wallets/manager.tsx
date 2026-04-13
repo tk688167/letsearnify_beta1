@@ -40,8 +40,8 @@ export default function AdminWalletManager({ wallets }: { wallets: any[] }) {
           
           await updatePlatformWallet(network, address, qrPath)
           setMessage(`${network} Wallet updated successfully!`)
-      } catch (error) {
-          setMessage("Failed to update.")
+      } catch (error: any) {
+          setMessage(error.message || "Failed to update.")
       } finally {
           setLoading(false)
       }

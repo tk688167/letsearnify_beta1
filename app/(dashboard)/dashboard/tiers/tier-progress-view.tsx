@@ -14,7 +14,7 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline"
 import { SparklesIcon } from "@heroicons/react/24/solid"
-import { TIER_COMMISSIONS, TIER_ORDER } from "@/lib/mlm"
+import { TIER_COMMISSIONS, TIER_ORDER } from "@/lib/mlm-constants"
 import { cn, calculateTierProgress } from "@/lib/utils"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 import { format, subDays, startOfDay } from "date-fns"

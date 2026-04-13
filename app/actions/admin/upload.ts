@@ -29,18 +29,22 @@ export async function uploadQRCode(formData: FormData) {
         const bytes = await file.arrayBuffer()
         const buffer = Buffer.from(bytes)
 
-        // Ensure directory exists
-        const uploadDir = join(cwd(), "public", "uploads", "qrcodes")
-        await mkdir(uploadDir, { recursive: true })
+        // Validate max size (e.g. 5MB)
+        if (buffer.length > 5 * 1024 * 1024) {
+            return { error: "File too large. Maximum size is 5MB." }
+        }
 
-        const path = join(uploadDir, filename)
-        await writeFile(path, buffer)
+        // Convert the image to a Base64 Data URI to safely store in DB directly.
+        // This avoids read-only filesystem issues on serverless deployments like Vercel.
+        const mimeType = file.type
+        const base64Data = buffer.toString('base64')
+        const dataUri = `data:${mimeType};base64,${base64Data}`
         
-        // Return relative path for DB
-        return { success: true, path: `/uploads/qrcodes/${filename}` }
+        // Return base64 string for DB
+        return { success: true, path: dataUri }
 
     } catch (error: any) {
         console.error("Upload error:", error)
-        return { error: "Failed to save file" }
+        return { error: "Failed to process file" }
     }
 }
