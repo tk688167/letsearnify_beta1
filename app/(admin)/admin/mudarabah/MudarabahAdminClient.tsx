@@ -15,6 +15,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { uploadFileFromClient } from "@/lib/upload-client";
 
 interface MudarabahPool {
   id: string;
@@ -54,11 +55,7 @@ export default function MudarabahAdminClient() {
     if (!file) return;
     setIsUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      if (!res.ok) throw new Error(await res.text());
-      const { url } = await res.json();
+      const { url } = await uploadFileFromClient(file, "pool-image");
       setFormData(prev => ({ ...prev, imageUrl: url }));
       toast.success("Image uploaded!");
     } catch (err: any) {

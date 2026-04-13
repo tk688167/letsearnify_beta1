@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import { uploadFileFromClient } from "@/lib/upload-client"
 import { 
     ChartBarIcon, 
     PhotoIcon, 
@@ -33,6 +34,7 @@ export default function SocialProofClient({ initialStats, initialProofs, activit
         method: "USDT TRC20",
         imageUrl: "" 
     })
+    const [isUploadingProofImage, setIsUploadingProofImage] = useState(false)
 
     // --- HANDLERS ---
 
@@ -71,6 +73,22 @@ export default function SocialProofClient({ initialStats, initialProofs, activit
              await deletePayoutProof(id)
              router.refresh()
         })
+    }
+
+    const handleProofImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploadingProofImage(true)
+        try {
+            const uploaded = await uploadFileFromClient(file, "payout-proof")
+            setNewProof((prev) => ({ ...prev, imageUrl: uploaded.url }))
+        } catch (error: any) {
+            alert(error.message || "Failed to upload image")
+        } finally {
+            setIsUploadingProofImage(false)
+            e.target.value = ""
+        }
     }
 
     // Calculate System Balance
@@ -345,13 +363,24 @@ export default function SocialProofClient({ initialStats, initialProofs, activit
                             </div>
                             <div>
                                 <label className="text-[10px] md:text-xs font-bold text-gray-500 dark:text-slate-400 uppercase tracking-wider">Image URL</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleProofImageUpload}
+                                    className="block w-full mt-1.5 text-xs md:text-sm text-gray-500 dark:text-slate-400
+                                      file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0
+                                      file:text-xs file:font-bold file:bg-blue-50 dark:file:bg-blue-900/30
+                                      file:text-blue-600 dark:file:text-blue-400"
+                                />
                                 <input 
                                     className="w-full px-3 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg mt-1.5 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-gray-400 text-xs md:text-sm transition-colors"
                                     placeholder="https://..."
                                     value={newProof.imageUrl}
                                     onChange={e => setNewProof({...newProof, imageUrl: e.target.value})}
                                 />
-                                <p className="text-[9px] md:text-[10px] text-gray-400 dark:text-slate-500 mt-1.5">Paste a direct link to an image (e.g. from Imgur).</p>
+                                <p className="text-[9px] md:text-[10px] text-gray-400 dark:text-slate-500 mt-1.5">
+                                    {isUploadingProofImage ? "Uploading image to Supabase..." : "Upload an image or paste a direct link."}
+                                </p>
                             </div>
                         </div>
 

@@ -1,9 +1,7 @@
 "use server"
 
 import { auth } from "@/auth"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { cwd } from "process"
+import { uploadFileToSupabase } from "@/lib/supabase-storage"
 
 export async function uploadQRCode(formData: FormData) {
     const session = await auth()
@@ -20,27 +18,17 @@ export async function uploadQRCode(formData: FormData) {
         return { error: "File must be an image" }
     }
 
-    // simplistic: in prod use UUID or safe naming
-    const timestamp = Date.now()
-    const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
-    const filename = `${timestamp}-${safeName}`
-    
     try {
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
+        const uploaded = await uploadFileToSupabase({
+            file,
+            kind: "wallet-qr",
+            userId: session.user.id,
+        })
 
-        // Ensure directory exists
-        const uploadDir = join(cwd(), "public", "uploads", "qrcodes")
-        await mkdir(uploadDir, { recursive: true })
-
-        const path = join(uploadDir, filename)
-        await writeFile(path, buffer)
-        
-        // Return relative path for DB
-        return { success: true, path: `/uploads/qrcodes/${filename}` }
+        return { success: true, path: uploaded.url }
 
     } catch (error: any) {
         console.error("Upload error:", error)
-        return { error: "Failed to save file" }
+        return { error: error.message || "Failed to save file" }
     }
 }
