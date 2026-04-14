@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useTransition, useRef } from "react"
+import { useEffect, useState, useTransition, useRef } from "react"
 import { updateProfile } from "@/lib/actions"
+import { uploadFileFromClient } from "@/lib/upload-client"
 import { User } from "@prisma/client"
 import { 
   UserCircleIcon, 
@@ -31,6 +32,15 @@ export default function EditForm({ user }: EditFormProps) {
   const [isRemoved, setIsRemoved] = useState(false)
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(preview)
+      }
+    }
+  }, [preview])
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -40,16 +50,20 @@ export default function EditForm({ user }: EditFormProps) {
          setMessage({ type: "error", text: "File size exceeds 2MB limit." })
          return
       }
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
+      if (preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(preview)
       }
-      reader.readAsDataURL(file)
+      setSelectedFile(file)
+      setPreview(URL.createObjectURL(file))
     }
   }
 
   const handleRemovePhoto = () => {
+      if (preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(preview)
+      }
       setPreview(null)
+      setSelectedFile(null)
       setIsRemoved(true)
       if (fileInputRef.current) {
           fileInputRef.current.value = ""
@@ -61,8 +75,18 @@ export default function EditForm({ user }: EditFormProps) {
 
     startTransition(async () => {
       try {
+        if (isRemoved) {
+          formData.set("image", "REMOVE")
+        } else if (selectedFile) {
+          const uploaded = await uploadFileFromClient(selectedFile, "profile-image")
+          formData.set("image", uploaded.url)
+        } else {
+          formData.set("image", user?.image || "")
+        }
+
         await updateProfile(formData)
         setMessage({ type: "success", text: "Settings saved successfully!" })
+        setSelectedFile(null)
         router.refresh()
       } catch (error: any) {
         setMessage({ type: "error", text: error.message || "Something went wrong." })
@@ -112,7 +136,6 @@ export default function EditForm({ user }: EditFormProps) {
             
             <div className="text-center sm:text-left flex-1 w-full">
               <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleFileChange} />
-              <input type="hidden" name="image" value={isRemoved ? "REMOVE" : (preview || user?.image || "")} />
               
               <div className="flex flex-col sm:flex-row items-center gap-3 justify-center sm:justify-start">
                   <button type="button" onClick={() => fileInputRef.current?.click()}

@@ -3,11 +3,10 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
-import { approveDeposit, rejectDeposit } from "@/app/actions/admin/deposits"
-import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import ImagePreviewToggle from "./ImagePreviewToggle"
 import { MerchantDepositsClient } from "../merchant/deposits/client"
+import DepositActionButtons from "./DepositActionButtons"
 
 export default async function AdminDepositsPage(props: any) {
     const session = await auth();
@@ -71,6 +70,11 @@ export default async function AdminDepositsPage(props: any) {
     const pending = deposits.filter((d: any) => d.status === "PENDING");
     const history = deposits.filter((d: any) => d.status !== "PENDING");
 
+    const getBinanceId = (description?: string | null) => {
+        const match = description?.match(/Binance ID:\s*(.+)$/i)
+        return match?.[1]?.trim() || null
+    }
+
     const statusClass = (s: string) =>
         s === "COMPLETED" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400";
 
@@ -111,12 +115,12 @@ export default async function AdminDepositsPage(props: any) {
                             <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block">
-                                        {d.method === 'BINANCE' ? 'PROXY URL / BINANCE ID' : 'TXID (TRC20)'}
+                                        {d.method === 'BINANCE' ? 'Proof & Binance ID' : 'TXID (TRC20)'}
                                     </span>
                                     {d.method === 'BINANCE' && <ImagePreviewToggle imageUrl={d.txId} />}
                                 </div>
                                 <div className="font-mono text-xs break-all text-gray-600 dark:text-slate-300">
-                                    {d.method === 'BINANCE' ? "Proof Uploaded" : d.txId}
+                                    {d.method === 'BINANCE' ? `Proof Uploaded${getBinanceId(d.description) ? ` | ${getBinanceId(d.description)}` : ""}` : d.txId}
                                     {d.description?.includes("[VERIFIED") && (
                                         <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400">VERIFIED</span>
                                     )}
@@ -126,6 +130,7 @@ export default async function AdminDepositsPage(props: any) {
                                 <span>{new Date(d.createdAt).toLocaleString()}</span>
                                 <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded font-bold">{d.method}</span>
                             </div>
+<<<<<<< HEAD
                             <div className="flex gap-2">
                                 <form action={async () => { "use server"; await approveDeposit(d.id) }} className="flex-1">
                                     <button className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition">
@@ -138,6 +143,9 @@ export default async function AdminDepositsPage(props: any) {
                                     </button>
                                 </form>
                             </div>
+=======
+                            <DepositActionButtons transactionId={d.id} />
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
                         </div>
                     ))}
                 </div>
@@ -165,9 +173,16 @@ export default async function AdminDepositsPage(props: any) {
                                         <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-md text-xs font-bold">{d.method}</span></td>
                                         <td className="px-6 py-4 font-mono text-xs text-gray-500 dark:text-slate-400 max-w-[200px]">
                                             {d.method === 'BINANCE' ? (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="truncate max-w-[80px]">Binance Proof</span>
-                                                    <ImagePreviewToggle imageUrl={d.txId} />
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="truncate max-w-[80px]">Binance Proof</span>
+                                                        <ImagePreviewToggle imageUrl={d.txId} />
+                                                    </div>
+                                                    {getBinanceId(d.description) && (
+                                                        <span className="block text-[10px] text-gray-500 dark:text-slate-400 truncate" title={getBinanceId(d.description) || ""}>
+                                                            ID: {getBinanceId(d.description)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             ) : (
                                                 <span className="truncate block" title={d.txId || ""}>{d.txId}</span>
@@ -178,6 +193,7 @@ export default async function AdminDepositsPage(props: any) {
                                         </td>
                                         <td className="px-6 py-4 text-gray-500 dark:text-slate-400 text-xs">{new Date(d.createdAt).toLocaleString()}</td>
                                         <td className="px-6 py-4 text-right">
+<<<<<<< HEAD
                                             <div className="flex justify-end gap-2">
                                                 <form action={async () => { "use server"; await approveDeposit(d.id) }}>
                                                     <button className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition">
@@ -190,6 +206,9 @@ export default async function AdminDepositsPage(props: any) {
                                                     </button>
                                                 </form>
                                             </div>
+=======
+                                            <DepositActionButtons transactionId={d.id} compact />
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
                                         </td>
                                     </tr>
                                 ))}

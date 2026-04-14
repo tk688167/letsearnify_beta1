@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { uploadFileFromClient } from "@/lib/upload-client"
 import { deposit, transferFunds } from "@/lib/actions"
 import { submitWithdrawal } from "@/app/actions/wallet"
 
@@ -148,6 +149,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [transferDestination, setTransferDestination] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("MUDARABAH")
 
   const [isPending, startTransition] = useTransition()
+  const [submissionIntent, setSubmissionIntent] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [isUnlocking, setIsUnlocking] = useState(false)
 
@@ -236,7 +238,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
      }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
@@ -248,10 +250,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
       return
     }
 
-    // ΓöÇΓöÇ Validate file size (max 15 MB before compression) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    const MAX_RAW_SIZE_MB = 15
-    if (file.size > MAX_RAW_SIZE_MB * 1024 * 1024) {
-      setMessage({ type: 'error', text: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_RAW_SIZE_MB} MB.` })
+    const MAX_UPLOAD_SIZE_MB = 5
+    if (file.size > MAX_UPLOAD_SIZE_MB * 1024 * 1024) {
+      setMessage({ type: 'error', text: `File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed is ${MAX_UPLOAD_SIZE_MB} MB.` })
       e.target.value = ""
       return
     }
@@ -259,46 +260,15 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setMessage(null)
     setIsUploadingScreenshot(true)
 
-    // ΓöÇΓöÇ Compress to JPEG via canvas (max 1200px, quality 0.75) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const img = new Image()
-      img.onload = () => {
-        try {
-          const MAX_DIM = 1200
-          let { width, height } = img
-          if (width > MAX_DIM || height > MAX_DIM) {
-            if (width > height) { height = Math.round((height * MAX_DIM) / width); width = MAX_DIM }
-            else { width = Math.round((width * MAX_DIM) / height); height = MAX_DIM }
-          }
-          const canvas = document.createElement("canvas")
-          canvas.width = width
-          canvas.height = height
-          const ctx = canvas.getContext("2d")
-          if (!ctx) throw new Error("Canvas not supported")
-          ctx.drawImage(img, 0, 0, width, height)
-          const compressed = canvas.toDataURL("image/jpeg", 0.75)
-          setScreenshot(compressed)
-        } catch {
-          // Fallback: use original as-is (already validated type & size)
-          setScreenshot(reader.result as string)
-        } finally {
-          setIsUploadingScreenshot(false)
-        }
-      }
-      img.onerror = () => {
-        setMessage({ type: 'error', text: "Could not read the image file. Please try a different image." })
-        e.target.value = ""
-        setIsUploadingScreenshot(false)
-      }
-      img.src = reader.result as string
-    }
-    reader.onerror = () => {
-      setMessage({ type: 'error', text: "Failed to read the file. Please try again." })
+    try {
+      const uploaded = await uploadFileFromClient(file, "payment-proof")
+      setScreenshot(uploaded.url)
+    } catch (error: any) {
+      setMessage({ type: 'error', text: error.message || "Failed to upload the image. Please try again." })
       e.target.value = ""
+    } finally {
       setIsUploadingScreenshot(false)
     }
-    reader.readAsDataURL(file)
   }
 
   const handleUnlockAccount = async () => {
@@ -312,6 +282,25 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     finally { setIsUnlocking(false) }
   }
 
+  const resolveSubmissionIntent = () => {
+    if (activeTab === "deposit") {
+      if (depositMethod === "TRC20") return "deposit-trc20"
+      if (depositMethod === "BINANCE") return "deposit-binance"
+      if (depositMethod === "MERCHANT") return "deposit-merchant"
+    }
+
+    if (activeTab === "withdraw") {
+      if (withdrawalMethod === "TRC20") return "withdraw-trc20"
+      if (withdrawalMethod === "BINANCE") return "withdraw-binance"
+      if (withdrawalMethod === "MERCHANT") return "withdraw-merchant"
+    }
+
+    if (activeTab === "transfer") return "transfer"
+    return "action"
+  }
+
+  const isSubmitting = submissionIntent !== null || isPending
+
   const handleAction = () => {
     setMessage(null)
     const rawAmount = parseFloat(amount)
@@ -319,12 +308,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     
     // Convert to USD if in LOCAL mode
     const val = displayCurrency === "LOCAL" ? convertToUSD(rawAmount) : rawAmount
+    const intent = resolveSubmissionIntent()
+    setSubmissionIntent(intent)
     startTransition(async () => {
       try {
         let res: any
         if (activeTab === "deposit") {
            if (depositMethod === "TRC20") { if (!txHash) throw new Error("Please enter the Transaction Hash."); res = await deposit(val, "CRYPTO", { network: "TRC20", txHash }) as any }
-           else if (depositMethod === "BINANCE") { if (!txHash) throw new Error("Please enter your Binance User ID or Pay ID."); if (!screenshot) throw new Error("Please upload Binance payment proof."); res = await deposit(val, "CRYPTO", { network: "BINANCE", txHash: screenshot }) as any }
+           else if (depositMethod === "BINANCE") { if (!txHash) throw new Error("Please enter your Binance User ID or Pay ID."); if (!screenshot) throw new Error("Please upload Binance payment proof."); res = await deposit(val, "CRYPTO", { network: "BINANCE", txHash, proofUrl: screenshot }) as any }
            else if (depositMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!screenshot) throw new Error("Please upload payment proof."); res = await submitMerchantDeposit({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, screenshot }) }
         } else if (activeTab === "withdraw") {
            if (withdrawalMethod === "TRC20") { if (!details) throw new Error("Please provide withdrawal destination details."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); formData.append("network", "TRC20"); res = await submitWithdrawal(formData) }
@@ -336,16 +327,28 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
           if (isMerchant) {
             // Close modal and show toast — balance won't change until admin approves
             closeMerchantModal()
-            toast.success("Payment submitted! Your deposit is pending admin verification.", { duration: 5000, icon: "⏳" })
+            toast.success(
+              activeTab === "deposit"
+                ? "Payment submitted! Your deposit is pending admin verification."
+                : "Withdrawal request submitted and is pending admin review.",
+              { duration: 5000 }
+            )
             router.refresh()
           } else {
+<<<<<<< HEAD
             setMessage({ type: 'success', text: res.message || "Deposit submitted! Pending admin verification — your balance will be credited after approval." })
             setAmount(""); setTxHash(""); setScreenshot(null)
             if (activeTab === "deposit") setBalance((curr: number) => curr + val)
+=======
+            setMessage({ type: 'success', text: res.message || "Transaction successful!" })
+            setAmount(""); setTxHash(""); setScreenshot(null); setDetails("")
+            router.refresh()
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
           }
         }
         else { setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." }) }
       } catch (err: any) { setMessage({ type: 'error', text: err.message || "Transaction failed." }) }
+      finally { setSubmissionIntent(null) }
     })
   }
 
@@ -718,7 +721,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                   {isUploadingScreenshot ? (
                     <div className="space-y-3 py-6">
                       <div className="w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto"/>
-                      <p className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Processing Image</p>
+                      <p className="text-green-600 font-bold uppercase tracking-widest text-[10px]">Uploading Proof</p>
                     </div>
                   ) : screenshot ? (
                     <div className="w-full flex items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl shadow-sm border border-green-200 dark:border-green-900/50">
@@ -749,11 +752,16 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               </div>
             </div>
 
-            <button onClick={handleAction} disabled={!amount || !screenshot || isPending || isUploadingScreenshot}
+            <button onClick={handleAction} disabled={!amount || !screenshot || isSubmitting || isUploadingScreenshot}
               className="group relative w-full py-5 bg-green-600 hover:bg-green-500 disabled:bg-muted disabled:text-muted-foreground text-white font-black rounded-[1.5rem] shadow-xl shadow-green-600/20 transition-all active:scale-[0.98] disabled:scale-100 disabled:shadow-none overflow-hidden">
               <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
               <span className="relative flex items-center justify-center gap-3 text-lg tracking-widest uppercase">
-                {isPending ? "Connecting..." : isUploadingScreenshot ? "Optimizing Proof..." : (
+                {submissionIntent === (merchantModalType === "DEPOSIT" ? "deposit-merchant" : "withdraw-merchant") ? (
+                  <>
+                    <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                    {merchantModalType === "DEPOSIT" ? "Submitting Deposit..." : "Submitting Withdrawal..."}
+                  </>
+                ) : isUploadingScreenshot ? "Uploading Proof..." : (
                   <>
                     Confirm Payment <ChevronRightIcon className="w-6 h-6 group-hover:translate-x-1 transition-transform"/>
                   </>
@@ -834,9 +842,9 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
               </div>
             </div>
 
-            <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isPending || isOnCooldown}
+            <button onClick={handleAction} disabled={!amount || !accountNumber || !accountName || isSubmitting || isOnCooldown}
               className={cn("w-full py-5 text-white font-black rounded-[1.5rem] shadow-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:scale-100 text-lg uppercase tracking-widest", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20 disabled:opacity-50 disabled:grayscale")}>
-              {isPending ? "Connecting Securely..." : isOnCooldown ? "Withdrawal Locked" : "Request Local Withdrawal"}
+              {submissionIntent === "withdraw-merchant" ? "Submitting Withdrawal..." : isOnCooldown ? "Withdrawal Locked" : "Request Local Withdrawal"}
             </button>
           </div>
         )}
@@ -1075,7 +1083,13 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label>
                                            <input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/>
                                        </div>
+<<<<<<< HEAD
                                        <button onClick={handleAction} disabled={isPending || !amount || !txHash} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'TRC20' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : 'Submit Deposit'}</button>
+=======
+                                        <button onClick={handleAction} disabled={!amount || !txHash || isSubmitting} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
+                                          {submissionIntent === "deposit-trc20" ? "Submitting Deposit..." : "Submit Deposit"}
+                                        </button>
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
                                     </div>
                                  </div>
                               </div>
@@ -1152,7 +1166,13 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                                 </div>
                                             </div>
                                        </div>
+<<<<<<< HEAD
                                        <button onClick={handleAction} disabled={isPending || !amount || !txHash || !screenshot || isUploadingScreenshot} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'BINANCE' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : (isUploadingScreenshot ? 'Optimizing Image...' : 'Submit Deposit')}</button>
+=======
+                                        <button onClick={handleAction} disabled={!amount || !txHash || !screenshot || isUploadingScreenshot || isSubmitting} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
+                                          {submissionIntent === "deposit-binance" ? "Submitting Binance Deposit..." : "Submit Deposit"}
+                                        </button>
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
                                     </div>
                                  </div>
                               </div>
@@ -1237,7 +1257,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={handleAction} disabled={isOnCooldown || isPending || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 shadow-gray-900/10")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw (USD)"}</button>
+                                <button onClick={handleAction} disabled={isOnCooldown || isSubmitting || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-100 text-white dark:text-gray-900 shadow-gray-900/10")}>{isOnCooldown ? "Withdrawal Locked" : submissionIntent === "withdraw-trc20" ? "Submitting Withdrawal..." : "Swap & Withdraw (USD)"}</button>
                             </div>
                        )}
                        {withdrawalMethod === "BINANCE" && (
@@ -1275,7 +1295,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                         </div>
                                     </div>
                                 </div>
-                                <button onClick={handleAction} disabled={isOnCooldown || isPending || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/20")}>{isOnCooldown ? "Withdrawal Locked" : isPending ? "Connecting..." : "Swap & Withdraw to Binance"}</button>
+                                <button onClick={handleAction} disabled={isOnCooldown || isSubmitting || !details || !amount} className={cn("w-full py-4 font-bold rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.98]", isOnCooldown ? "bg-muted text-muted-foreground opacity-50 cursor-not-allowed shadow-none" : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-yellow-500/20")}>{isOnCooldown ? "Withdrawal Locked" : submissionIntent === "withdraw-binance" ? "Submitting Binance Withdrawal..." : "Swap & Withdraw to Binance"}</button>
                             </div>
                        )}
                     </div>
@@ -1289,7 +1309,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e: any) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                              </div>
                              <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
-                             <button onClick={handleAction} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">Transfer Funds</button>
+                             <button onClick={handleAction} disabled={!amount || isSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">{submissionIntent === "transfer" ? "Transferring..." : "Transfer Funds"}</button>
                     </div>
                 )}
              </div>

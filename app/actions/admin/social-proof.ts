@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
+import { deleteSupabaseFileByUrl } from "@/lib/supabase-storage"
 
 // --- STATS MANAGEMENT ---
 
@@ -222,9 +223,15 @@ export async function deletePayoutProof(id: string) {
     }
 
     try {
-        await prisma.payoutProof.delete({
+        const proof = await prisma.payoutProof.delete({
             where: { id }
         })
+
+        try {
+            await deleteSupabaseFileByUrl(proof.imageUrl)
+        } catch (error) {
+            console.warn("Failed to delete payout proof image from Supabase storage:", error)
+        }
         
         revalidatePath("/")
         revalidatePath("/dashboard/welcome")

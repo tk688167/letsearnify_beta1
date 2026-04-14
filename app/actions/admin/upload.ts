@@ -1,9 +1,7 @@
 "use server"
 
 import { auth } from "@/auth"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
-import { cwd } from "process"
+import { uploadFileToSupabase } from "@/lib/supabase-storage"
 
 export async function uploadQRCode(formData: FormData) {
     const session = await auth()
@@ -20,15 +18,14 @@ export async function uploadQRCode(formData: FormData) {
         return { error: "File must be an image" }
     }
 
-    // simplistic: in prod use UUID or safe naming
-    const timestamp = Date.now()
-    const safeName = file.name.replace(/[^a-z0-9.]/gi, '_').toLowerCase()
-    const filename = `${timestamp}-${safeName}`
-    
     try {
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
+        const uploaded = await uploadFileToSupabase({
+            file,
+            kind: "wallet-qr",
+            userId: session.user.id,
+        })
 
+<<<<<<< HEAD
         // Validate max size (e.g. 5MB)
         if (buffer.length > 5 * 1024 * 1024) {
             return { error: "File too large. Maximum size is 5MB." }
@@ -46,5 +43,12 @@ export async function uploadQRCode(formData: FormData) {
     } catch (error: any) {
         console.error("Upload error:", error)
         return { error: "Failed to process file" }
+=======
+        return { success: true, path: uploaded.url }
+
+    } catch (error: any) {
+        console.error("Upload error:", error)
+        return { error: error.message || "Failed to save file" }
+>>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
     }
 }

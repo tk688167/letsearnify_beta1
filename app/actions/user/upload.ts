@@ -1,10 +1,10 @@
 "use server"
 
 import { auth } from "@/auth"
+import { uploadFileToSupabase } from "@/lib/supabase-storage"
 
 /**
- * Upload proof image for task completion.
- * Sends to /api/upload/proof which handles file storage.
+ * Upload proof image for task completion to Supabase Storage.
  */
 export async function uploadProof(formData: FormData): Promise<{ error?: string; path?: string }> {
     try {
@@ -29,15 +29,13 @@ export async function uploadProof(formData: FormData): Promise<{ error?: string;
             return { error: "File too large. Max size is 5MB." }
         }
 
-        // Convert to base64 data URL for storage
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
-        const base64 = buffer.toString("base64")
-        const dataUrl = `data:${file.type};base64,${base64}`
+        const uploaded = await uploadFileToSupabase({
+            file,
+            kind: "task-proof",
+            userId: session.user.id,
+        })
 
-        // For Vercel deployment, we store the base64 string directly as proof
-        // The admin can view it directly since browsers render data URLs
-        return { path: dataUrl }
+        return { path: uploaded.url }
 
     } catch (error: any) {
         console.error("Upload proof error:", error)

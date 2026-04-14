@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
+import { deleteSupabaseFileByUrl } from "@/lib/supabase-storage"
 import { headers } from "next/headers"
 import { verifyTronTransaction, base58ToHex } from "./tron"
 
@@ -11,6 +12,22 @@ interface TrackingData {
   referrer?: string
   timezone?: string
   language?: string
+}
+
+function isRecoverableTrackingError(error: unknown) {
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error || "").toLowerCase();
+
+  return (
+    ["P1000", "P1001", "P1008", "P1017"].includes(code) ||
+    message.includes("can't reach database server") ||
+    message.includes("database_url") ||
+    message.includes('invalid database host "base"')
+  );
 }
 
 export async function trackVisit(clientData?: TrackingData) {
@@ -91,11 +108,18 @@ export async function trackVisit(clientData?: TrackingData) {
             language: clientData?.language || headersList.get("accept-language")?.split(',')[0],
           }
         })
+      } else if (isRecoverableTrackingError(e)) {
+        console.warn("Visit tracking skipped:", e?.message || e)
       } else {
         throw e
       }
     }
   } catch (error) {
+    if (isRecoverableTrackingError(error)) {
+      console.warn("Tracking temporarily unavailable:", error instanceof Error ? error.message : error)
+      return
+    }
+
     console.error("Tracking error:", error)
   }
 }
@@ -109,12 +133,6 @@ export async function updateProfile(formData: FormData) {
      throw new Error("Unauthorized")
   }
 
-  const name = formData.get("name") as string
-  const phoneNumber = formData.get("phoneNumber") as string
-  // Email update might require verification, but for this beta we allow direct update or restrict it. 
-  // Requirement says "Email Address" in profile options.
-  const email = formData.get("email") as string
-  
   const currentPassword = formData.get("currentPassword") as string
   const newPassword = formData.get("newPassword") as string
   
@@ -123,6 +141,14 @@ export async function updateProfile(formData: FormData) {
   const language = formData.get("language") as string
   const securityQuestion = formData.get("securityQuestion") as string
   const securityAnswer = formData.get("securityAnswer") as string
+  const existingUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { image: true, password: true }
+  })
+
+  if (!existingUser) {
+      throw new Error("User not found")
+  }
 
   const data: any = {}
   if (formData.has("name")) data.name = formData.get("name") as string;
@@ -131,11 +157,16 @@ export async function updateProfile(formData: FormData) {
   
   // Handle Profile Picture
   const image = formData.get("image") as string
-  if (image) {
-      if (image === "REMOVE") {
-          data.image = null // remove image from DB
-      } else if (image.startsWith("data:image")) {
-          data.image = image
+  let previousImageToDelete: string | null = null
+  if (typeof image === "string") {
+      const trimmedImage = image.trim()
+
+      if (trimmedImage === "REMOVE") {
+          data.image = null
+          previousImageToDelete = existingUser.image
+      } else if (trimmedImage && trimmedImage !== existingUser.image) {
+          data.image = trimmedImage
+          previousImageToDelete = existingUser.image
       }
   }
   
@@ -148,18 +179,14 @@ export async function updateProfile(formData: FormData) {
       if (!currentPassword) {
           throw new Error("Current password is required to set a new one")
       }
-      
-      const user = await prisma.user.findUnique({ 
-          where: { id: session.user.id } 
-      })
-      
-      if (!user || !user.password) {
+
+      if (!existingUser.password) {
            // If user has no password (e.g. OAuth), they might need a different flow, 
            // but assuming strictly credentials for this admin request or handled gracefully.
            throw new Error("Cannot verify current password")
       }
       
-      const isValid = await bcrypt.compare(currentPassword, user.password)
+      const isValid = await bcrypt.compare(currentPassword, existingUser.password)
       if (!isValid) {
           throw new Error("Incorrect current password")
       }
@@ -172,6 +199,14 @@ export async function updateProfile(formData: FormData) {
       where: { id: session.user.id },
       data
   })
+
+  if (previousImageToDelete && previousImageToDelete !== data.image) {
+      try {
+          await deleteSupabaseFileByUrl(previousImageToDelete)
+      } catch (error) {
+          console.warn("Failed to delete previous profile image from Supabase storage:", error)
+      }
+  }
 
   revalidatePath("/dashboard/settings")
   revalidatePath("/dashboard/profile")
@@ -201,7 +236,11 @@ export async function addPaymentMethod(formData: FormData) {
   return { success: true }
 }
 
-export async function deposit(amount: number, method: string, details?: { network?: string, txHash?: string }) {
+export async function deposit(
+  amount: number,
+  method: string,
+  details?: { network?: string; txHash?: string; proofUrl?: string }
+) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
   
@@ -211,10 +250,10 @@ export async function deposit(amount: number, method: string, details?: { networ
 
      // Crypto Deposit Logic
      if (method === "CRYPTO") {
-        if (!details?.txHash) throw new Error("Transaction Hash is required.")
         if (!details?.network) throw new Error("Network is required.")
         
         if (details.network === "TRC20") {
+            if (!details.txHash) throw new Error("Transaction Hash is required.")
             // Check for reuse first
             const existingTx = await prisma.transaction.findFirst({
                 where: { txId: details.txHash }
@@ -270,11 +309,24 @@ export async function deposit(amount: number, method: string, details?: { networ
                 }
             }
         } else if (details.network === "BINANCE") {
-            // BINANCE is manually verified by Admin using the screenshot URL stored in txId.
-            // No blockchain API verification here.
+            if (!details.txHash) {
+                throw new Error("Binance User ID or Pay ID is required.")
+            }
+
+            if (!details.proofUrl) {
+                throw new Error("Binance payment proof is required.")
+            }
         } else {
              throw new Error("Only TRC20 and BINANCE networks are supported for crypto deposits.");
         }
+
+        const transactionIdentifier =
+          details.network === "BINANCE" ? details.proofUrl! : details.txHash!;
+
+        const description =
+          details.network === "BINANCE"
+            ? `[BINANCE_PAYMENT_PROOF] ${transactionIdentifier} | Binance ID: ${details.txHash}`
+            : `[VERIFIED_TRON_USDT] ${details.txHash}`;
 
         // 1. Create Transaction Record
         await prisma.transaction.create({
@@ -284,10 +336,8 @@ export async function deposit(amount: number, method: string, details?: { networ
            type: "DEPOSIT",
            status: "PENDING", // Wait for Admin Approval
            method: details.network, // Store just "TRC20" or "BINANCE"
-           description: details.network === "BINANCE" 
-                         ? `[BINANCE_PAYMENT_PROOF] ${details.txHash}` 
-                         : `[VERIFIED_TRON_USDT] ${details.txHash}`, // Tag for UI
-           txId: details.txHash // Save TXID or Screenshot URL
+           description,
+           txId: transactionIdentifier // Save TXID or Screenshot URL
          }
        })
 
@@ -487,11 +537,24 @@ export async function updatePlatformWallet(network: string, address: string, qrC
   // In real app: check if session.user.role === 'ADMIN'
   if (!session?.user) throw new Error("Unauthorized")
 
+  const existingWallet = await prisma.platformWallet.findUnique({
+      where: { network },
+      select: { qrCodePath: true }
+  })
+
   await prisma.platformWallet.upsert({
       where: { network },
       update: { address, qrCodePath },
       create: { network, address, qrCodePath }
   })
+
+  if (existingWallet?.qrCodePath && existingWallet.qrCodePath !== qrCodePath) {
+      try {
+          await deleteSupabaseFileByUrl(existingWallet.qrCodePath)
+      } catch (error) {
+          console.warn("Failed to delete previous wallet QR from Supabase storage:", error)
+      }
+  }
 
   revalidatePath("/dashboard/wallet") // User View
   revalidatePath("/admin/wallets")    // Admin View
