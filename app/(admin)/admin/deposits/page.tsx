@@ -127,12 +127,12 @@ export default async function AdminDepositsPage(props: any) {
                                 <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded font-bold">{d.method}</span>
                             </div>
                             <div className="flex gap-2">
-                                <form action={async () => { "use server"; await approveDeposit(d.txId!) }} className="flex-1">
+                                <form action={async () => { "use server"; await approveDeposit(d.id) }} className="flex-1">
                                     <button className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition">
                                         <CheckCircleIcon className="w-4 h-4" /> Approve
                                     </button>
                                 </form>
-                                <form action={async () => { "use server"; await rejectDeposit(d.txId!, "Admin Rejected") }} className="flex-1">
+                                <form action={async () => { "use server"; await rejectDeposit(d.id, "Admin Rejected") }} className="flex-1">
                                     <button className="flex items-center justify-center gap-1.5 w-full py-2.5 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 border border-gray-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl text-xs font-bold transition">
                                         <XCircleIcon className="w-4 h-4" /> Reject
                                     </button>
@@ -179,12 +179,12 @@ export default async function AdminDepositsPage(props: any) {
                                         <td className="px-6 py-4 text-gray-500 dark:text-slate-400 text-xs">{new Date(d.createdAt).toLocaleString()}</td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                <form action={async () => { "use server"; await approveDeposit(d.txId!) }}>
+                                                <form action={async () => { "use server"; await approveDeposit(d.id) }}>
                                                     <button className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition">
                                                         <CheckCircleIcon className="w-4 h-4" /> Approve
                                                     </button>
                                                 </form>
-                                                <form action={async () => { "use server"; await rejectDeposit(d.txId!, "Admin Rejected") }}>
+                                                <form action={async () => { "use server"; await rejectDeposit(d.id, "Admin Rejected") }}>
                                                     <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 text-red-600 dark:text-red-400 border border-gray-200 dark:border-slate-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-xs font-bold transition">
                                                         <XCircleIcon className="w-4 h-4" /> Reject
                                                     </button>

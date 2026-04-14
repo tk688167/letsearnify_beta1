@@ -1,7 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { executeSpin } from "@/app/actions/spin"
-import { FREE_REWARDS, PREMIUM_REWARDS } from "@/lib/spin-config"
 import SpinWheel from "./SpinWheel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
 import { LockClosedIcon, StarIcon, SparklesIcon, ArrowRightIcon } from "@heroicons/react/24/solid"
@@ -57,17 +56,17 @@ export default async function SpinPage() {
         getSpinSettings()
     ])
     
-    const freeRewards = freeRewardsDB.length > 0 ? freeRewardsDB.map((r: any) => ({
+    const freeRewards = freeRewardsDB.map((r: any) => ({
         ...r, 
         type: r.type as any, 
         textColor: r.textColor || undefined
-    })) : FREE_REWARDS
+    }))
 
-    const premiumRewards = premiumRewardsDB.length > 0 ? premiumRewardsDB.map((r: any) => ({
+    const premiumRewards = premiumRewardsDB.map((r: any) => ({
         ...r, 
         type: r.type as any, 
         textColor: r.textColor || undefined
-    })) : PREMIUM_REWARDS
+    }))
 
     let currentUser = user;
 

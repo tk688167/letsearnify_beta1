@@ -148,48 +148,63 @@ export async function finalizeDeposit(userId: string, amount: number, txId: stri
         try { await mintArnForDeposit(userId, amount, txId, db); } 
         catch (e) { console.error("[MLM] Token Minting Failed", e); throw e; }
 
-        // --- AUTO-UNLOCK LOGIC ---
-        // If user is NOT active and their total deposit is now >= $1, auto-unlock them.
-        const updatedUser = await db.user.findUnique({
-            where: { id: userId },
-            select: { id: true, isActiveMember: true, totalDeposit: true, balance: true }
-        });
-
-        if (updatedUser && !updatedUser.isActiveMember && (updatedUser.totalDeposit || 0) >= 1.0) {
-            console.log(`[MLM] Auto-unlocking user ${userId} (Deposit Threshold Met)`);
-            
-            // 1. Deduct $1 Activation Fee from Balance
-            if (updatedUser.balance >= 1.0) {
-                await db.user.update({
-                    where: { id: userId },
-                    data: { 
-                        balance: { decrement: 1.0 },
-                        arnBalance: { decrement: 10.0 } // Optional: also deduct tokens if needed, but usually it's a USD fee
-                    }
-                });
-
-                // 2. Log Payment Transaction
-                await db.transaction.create({
-                    data: {
-                        userId: userId,
-                        amount: 1.0,
-                        type: "UNLOCK_FEE",
-                        status: "COMPLETED",
-                        description: "Automated $1.00 activation fee (Deposit Threshold Met)",
-                    }
-                });
-
-                // 3. Trigger actual Unlock logic (Distributions, Tiers, etc.)
-                await unlockUserAccount(userId, db);
-            } else {
-                console.warn(`[MLM] User ${userId} reached $1 deposit but balance is insufficient ($${updatedUser.balance}) for auto-unlock.`);
-            }
-        }
-
-        /* 
-           Referral commissions are no longer triggered by deposits.
-           They are only triggered by the $1 Account Unlock Fee.
-        */
+        // ═══════════════════════════════════════════════════════════════════
+        // AUTO-UNLOCK DISABLED — INTENTIONAL (Do Not Re-enable Without Review)
+        // ═══════════════════════════════════════════════════════════════════
+        // Account activation is a MANUAL action performed exclusively by the
+        // user via POST /api/user/unlock. The manual flow:
+        //   1. Deducts $1.00 from user.balance
+        //   2. Deducts 10 ARN from user.arnBalance
+        //   3. Calls unlockUserAccount() which handles:
+        //        - isActiveMember = true
+        //        - 3-month unlock expiry
+        //        - 2 premium spin rewards
+        //        - Achievement pool allocation (20% = $0.20)
+        //        - Referral/activation commission distribution
+        //        - Tier upgrade checks
+        //        - Full audit logging
+        //
+        // finalizeDeposit() responsibility is strictly limited to:
+        //   ✅ mintArnForDeposit()  — credit ARN + update totalDeposit
+        //   ✅ checkTierUpgrade()   — evaluate tier promotion
+        //
+        // Applies consistently to ALL deposit methods:
+        //   TRC20, Binance Pay, NOWPayments (BTC/Card)
+        // Merchant deposits follow the same rule via approveMerchantTransaction().
+        // ═══════════════════════════════════════════════════════════════════
+        //
+        // const updatedUser = await db.user.findUnique({
+        //     where: { id: userId },
+        //     select: { id: true, isActiveMember: true, totalDeposit: true, balance: true }
+        // });
+        //
+        // if (updatedUser && !updatedUser.isActiveMember && (updatedUser.totalDeposit || 0) >= 1.0) {
+        //     console.log(`[MLM] Auto-unlocking user ${userId} (Deposit Threshold Met)`);
+        //
+        //     if (updatedUser.balance >= 1.0) {
+        //         await db.user.update({
+        //             where: { id: userId },
+        //             data: {
+        //                 balance: { decrement: 1.0 },
+        //                 arnBalance: { decrement: 10.0 }
+        //             }
+        //         });
+        //
+        //         await db.transaction.create({
+        //             data: {
+        //                 userId: userId,
+        //                 amount: 1.0,
+        //                 type: "UNLOCK_FEE",
+        //                 status: "COMPLETED",
+        //                 description: "Automated $1.00 activation fee (Deposit Threshold Met)",
+        //             }
+        //         });
+        //
+        //         await unlockUserAccount(userId, db);
+        //     } else {
+        //         console.warn(`[MLM] User ${userId} reached $1 deposit but balance is insufficient ($${updatedUser.balance}) for auto-unlock.`);
+        //     }
+        // }
     }
     await checkTierUpgrade(userId, db);
 }

@@ -12,7 +12,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { addUserPoints } from "@/lib/mlm"
-import { FREE_REWARDS, PREMIUM_REWARDS, SpinReward } from "@/lib/spin-config"
+import { SpinReward } from "@/lib/spin-config"
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
 import { cookies } from "next/headers"
 
@@ -112,12 +112,12 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
             }
         }
 
-        // 2. Load rewards (DB overrides defaults)
-        let rewards: SpinReward[] = dbRewards.length > 0 ? dbRewards.map((r: any) => ({
+        // 2. Load rewards (DB only)
+        let rewards: SpinReward[] = dbRewards.map((r: any) => ({
             ...r,
             type: r.type as any,
             textColor: r.textColor || undefined
-        })) : (type === "FREE" ? FREE_REWARDS : PREMIUM_REWARDS)
+        }))
         
         if (rewards.length === 0) {
             return { success: false, message: "No active rewards configured for this wheel." }
@@ -210,25 +210,20 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                      data: { premiumBonusSpins: { increment: selectedReward!.value } }
                  })
             } else if (selectedReward!.type === "SURPRISE") {
-                 const giftType = Math.random() > 0.5 ? "ARN" : "MONEY"
-                 const giftValue = giftType === "ARN" ? 25 : 0.50
-                 if (giftType === "ARN") {
-                     earnedArn = giftValue
-                     earnedAmount = giftValue / 10
-                     await tx.user.update({ where: { id: userId }, data: { 
-                         arnBalance: { increment: earnedArn },
-                         balance: { increment: earnedAmount }
-                     }})
-                 } else {
-                     earnedAmount = giftValue
-                     earnedArn = giftValue * 10
-                     await tx.user.update({ where: { id: userId }, data: { 
-                         balance: { increment: earnedAmount },
-                         arnBalance: { increment: earnedArn }
-                     }})
-                 }
-                 logDescription = `Won SURPRISE GIFT (${giftType}: ${giftValue})`
+                 // ── Surprise Bonus: no auto-credit ──────────────────────────────────
+                 // User is added to admin-managed winner list. Admin manually assigns
+                 // the reward (ARN, cash, or custom benefit) via /admin/spin → Surprise Winners.
+                 await tx.surpriseWinner.create({
+                     data: {
+                         userId,
+                         userName: userRecord!.name as string || null,
+                         userEmail: userRecord!.email as string || null,
+                         spinType: type,
+                         status: "PENDING"
+                     }
+                 })
                  await tx.user.update({ where: { id: userId }, data: { lastSurpriseDate: new Date() } })
+                 logDescription = `Selected for Surprise Bonus (${type} Spin) — Pending admin reward assignment`
             }
 
             if (earnedAmount > 0 || earnedArn > 0) {
@@ -276,8 +271,12 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
         
         const cooldownHours = type === "FREE" ? spinSettings.freeSpinCooldownHours : spinSettings.premiumSpinCooldownHours
         const nextSpinTime = now.getTime() + (cooldownHours * 60 * 60 * 1000)
+
+        const returnMessage = selectedReward.type === "SURPRISE"
+            ? "You've been selected for a Surprise Bonus! The admin will assign your reward shortly."
+            : `You won ${selectedReward.label}!`
         
-        return { success: true, reward: selectedReward, message: `You won ${selectedReward.label}!`, nextSpinTime }
+        return { success: true, reward: selectedReward, message: returnMessage, nextSpinTime }
 
     } catch (e: any) {
         console.error("Spin Execution Error:", e)

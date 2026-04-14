@@ -56,18 +56,19 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
 
     const isCoolingDown = !!localNextSpin && localNextSpin.getTime() > Date.now()
 
-    // Dynamic Font Size Calculation — Optimized for 10-segment readability
+    // Dynamic Font Size Calculation — handles 8–14 segments robustly
     const getFontSize = (label: string) => {
         const count = rewards.length
         let baseSize = 4.2
         if (count <= 6) baseSize = 5.2
-        else if (count <= 10) baseSize = 4.2
-        else if (count <= 14) baseSize = 3.6
-        else baseSize = 3.2
+        else if (count <= 8) baseSize = 4.6
+        else if (count <= 11) baseSize = 4.0
+        else if (count <= 14) baseSize = 3.5
+        else baseSize = 3.0
 
-        if (label.length > 15) return (baseSize * 0.75).toString()
-        if (label.length > 10) return (baseSize * 0.85).toString()
-        return baseSize.toString()
+        if (label.length > 15) return (baseSize * 0.75).toFixed(2)
+        if (label.length > 10) return (baseSize * 0.88).toFixed(2)
+        return baseSize.toFixed(2)
     }
 
     const triggerCelebration = (reward: SpinReward) => {
@@ -278,14 +279,13 @@ export default function SpinWheel({ rewards, onSpin, isLocked, cooldownDate, typ
                                     />
                                     <g transform={`rotate(${(i * segmentAngle) + (segmentAngle / 2)}, 50, 50)`}>
                                         <text
-                                            x="90"
+                                            x="88"
                                             y="50"
                                             fill={type === "PREMIUM" ? "#fcd34d" : "#c7d2fe"}
-                                            fontSize={(parseFloat(getFontSize(reward.label)) * 0.85).toString()}
+                                            fontSize={(parseFloat(getFontSize(reward.label)) * 0.85).toFixed(2)}
                                             fontWeight="800"
                                             textAnchor="end"
                                             dominantBaseline="central"
-                                            alignmentBaseline="central"
                                             style={{
                                                 pointerEvents: 'none',
                                                 userSelect: 'none',

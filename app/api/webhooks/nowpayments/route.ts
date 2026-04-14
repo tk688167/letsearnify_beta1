@@ -62,8 +62,9 @@ export async function POST(req: NextRequest) {
                 await tx.user.update({
                     where: { id: transaction.userId },
                     data: {
-                        balance: { increment: price_amount },
-                        dailyEarningWallet: { increment: price_amount }
+                        balance: { increment: price_amount }
+                        // ⚠️ dailyEarningWallet must NOT be auto-credited on deposit.
+                        // Pool funding is a manual user action only (Transfer tab).
                     }
                 });
 

@@ -75,6 +75,7 @@ model User {
   referrals               User[]                   @relation("ReferralTree")
   visits                  Visit[]
   wallets                 Wallet?
+  surpriseWins            SurpriseWinner[]
 
   @@index([email])
   @@index([referralCode])
@@ -562,6 +563,22 @@ model AdminNotification {
   metadata  String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model SurpriseWinner {
+  id              String    @id @default(cuid())
+  userId          String
+  userName        String?
+  userEmail       String?
+  spinType        String    // "FREE" | "PREMIUM"
+  status          String    @default("PENDING") // "PENDING" | "REWARDED" | "DISMISSED"
+  adminRewardNote String?
+  rewardedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
 }
 
 enum Tier {

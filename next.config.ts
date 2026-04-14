@@ -7,7 +7,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [
        { protocol: 'https', hostname: 'lh3.googleusercontent.com' }, // Google Auth Images
        { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
+       { protocol: 'https', hostname: '*.supabase.co' }, // Supabase Storage (QR codes, screenshots, uploads)
        // Add other production external domains here explicitly
+
     ],
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

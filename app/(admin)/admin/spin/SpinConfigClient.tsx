@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { SpinReward } from "@/lib/spin-config"
-import { toggleSpinReward, deleteSpinReward, upsertSpinReward, resetSpinToDefaults } from "@/app/actions/admin/spin-rewards"
+import { toggleSpinReward, deleteSpinReward, upsertSpinReward } from "@/app/actions/admin/spin-rewards"
 import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
 import { useRouter } from "next/navigation"
+import toast from "react-hot-toast"
 
 type RewardFormData = {
     id?: string
@@ -47,14 +48,14 @@ const getAutoStyle = (index: number, spinType: "FREE" | "PREMIUM", rewardType: s
     return palette[index % palette.length];
 };
 
-export default function SpinConfigClient({ initialRewards, spinType }: { initialRewards: any[], spinType: "FREE" | "PREMIUM" }) {
+export default function SpinConfigClient({ initialRewards, spinType }: Props) {
     const [rewards, setRewards] = useState(initialRewards)
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState<RewardFormData | null>(null)
     const router = useRouter()
 
-    const handleEdit = (reward: any) => {
-        setFormData({ ...reward })
+    const handleEdit = (reward: SpinReward) => {
+        setFormData({ ...reward, type: reward.type as any })
         setIsEditing(true)
     }
 
@@ -78,29 +79,19 @@ export default function SpinConfigClient({ initialRewards, spinType }: { initial
 
         const res = await upsertSpinReward(finalData) as { success: boolean, error?: string };
         if (res.success) {
+            toast.success(formData.id ? "✓ Segment updated" : "✓ Segment added")
             setIsEditing(false)
             router.refresh()
         } else {
-            alert("Error: " + (res.error || "Failed to save segment"))
+            toast.error("Failed to save: " + (res.error || "Unknown error"))
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (confirm("Are you sure you want to delete this segment?")) {
-            await deleteSpinReward(id)
-            router.refresh()
-        }
-    }
-
-    const handleReset = async () => {
-        if (confirm(`Are you sure? This will delete ALL current ${spinType} segments and replace them with the recommended balanced layout.`)) {
-            const res = await resetSpinToDefaults(spinType)
-            if (res.success) {
-                router.refresh()
-            } else {
-                alert("Failed to reset: " + res.error)
-            }
-        }
+        if (!confirm("Are you sure you want to delete this segment?")) return
+        await deleteSpinReward(id)
+        toast.success("Segment deleted")
+        router.refresh()
     }
 
     return (
@@ -115,13 +106,6 @@ export default function SpinConfigClient({ initialRewards, spinType }: { initial
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
-                        onClick={handleReset}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-sm font-semibold shadow-sm hover:shadow-md"
-                    >
-                        <ArrowPathIcon className="w-4 h-4" />
-                        Reset Defaults
-                    </button>
-                    <button
                         onClick={handleCreate}
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 dark:bg-indigo-500 text-white rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all text-sm font-bold shadow-lg shadow-indigo-500/20 active:scale-95"
                     >
@@ -134,8 +118,14 @@ export default function SpinConfigClient({ initialRewards, spinType }: { initial
             {/* Mobile Card View */}
             <div className="md:hidden space-y-3">
                 {rewards.length === 0 ? (
-                    <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <p className="text-sm text-slate-400 dark:text-slate-600 italic">No segments found. Start by adding one!</p>
+                    <div className="p-10 text-center bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 space-y-5">
+                        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                            <ArrowPathIcon className="w-8 h-8 text-indigo-500" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-slate-800 dark:text-white text-base">No {spinType === 'FREE' ? 'Basic' : 'Premium'} Spin Segments</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">This wheel currently has no segments configuring its layout. Add segments manually to display them to users.</p>
+                        </div>
                     </div>
                 ) : rewards.map((r) => (
                     <div key={r.id} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4 transition-all active:scale-[0.98]">
@@ -206,7 +196,17 @@ export default function SpinConfigClient({ initialRewards, spinType }: { initial
                         ))}
                         {rewards.length === 0 && (
                             <tr>
-                                <td colSpan={6} className="px-6 py-16 text-center text-slate-400 dark:text-slate-600 italic">No segments found in this wheel.</td>
+                                <td colSpan={6} className="px-6 py-16 text-center">
+                                    <div className="space-y-4 max-w-sm mx-auto">
+                                        <div className="w-16 h-16 mx-auto rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center">
+                                            <ArrowPathIcon className="w-8 h-8 text-indigo-500" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-white">No {spinType === 'FREE' ? 'Basic (Standard)' : 'Premium'} Spin Segments</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">This wheel currently has no segments configuring its layout. Add segments manually to display them to users.</p>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         )}
                     </tbody>

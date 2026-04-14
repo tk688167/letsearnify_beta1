@@ -134,7 +134,7 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
                 } else {
                     await tx.transaction.update({
                         where: { id: transactionId },
-                        data: { status: "APPROVED" }
+                        data: { status: "COMPLETED" } // Normalized to match Merchant withdrawal status
                     });
                 }
 
