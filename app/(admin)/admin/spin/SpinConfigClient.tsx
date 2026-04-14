@@ -48,6 +48,11 @@ const getAutoStyle = (index: number, spinType: "FREE" | "PREMIUM", rewardType: s
     return palette[index % palette.length];
 };
 
+type Props = {
+    initialRewards: SpinReward[]
+    spinType: "FREE" | "PREMIUM"
+}
+
 export default function SpinConfigClient({ initialRewards, spinType }: Props) {
     const [rewards, setRewards] = useState(initialRewards)
     const [isEditing, setIsEditing] = useState(false)
