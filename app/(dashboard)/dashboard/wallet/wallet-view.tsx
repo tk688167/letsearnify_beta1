@@ -335,15 +335,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             )
             router.refresh()
           } else {
-<<<<<<< HEAD
             setMessage({ type: 'success', text: res.message || "Deposit submitted! Pending admin verification — your balance will be credited after approval." })
-            setAmount(""); setTxHash(""); setScreenshot(null)
-            if (activeTab === "deposit") setBalance((curr: number) => curr + val)
-=======
-            setMessage({ type: 'success', text: res.message || "Transaction successful!" })
             setAmount(""); setTxHash(""); setScreenshot(null); setDetails("")
+            if (activeTab === "deposit") setBalance((curr: number) => curr + val)
             router.refresh()
->>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
           }
         }
         else { setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." }) }
@@ -1083,13 +1078,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1 pl-1">Transaction ID (Hash)</label>
                                            <input type="text" value={txHash} onChange={(e: any) => setTxHash(e.target.value)} placeholder="Paste your hash..." className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-mono text-sm text-foreground"/>
                                        </div>
-<<<<<<< HEAD
-                                       <button onClick={handleAction} disabled={isPending || !amount || !txHash} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'TRC20' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : 'Submit Deposit'}</button>
-=======
-                                        <button onClick={handleAction} disabled={!amount || !txHash || isSubmitting} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
-                                          {submissionIntent === "deposit-trc20" ? "Submitting Deposit..." : "Submit Deposit"}
-                                        </button>
->>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
+                                       <button onClick={handleAction} disabled={isPending || isSubmitting || !amount || !txHash} className="w-full py-3 mt-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'TRC20' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : 'Submit Deposit'}</button>
                                     </div>
                                  </div>
                               </div>
@@ -1166,13 +1155,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                                 </div>
                                             </div>
                                        </div>
-<<<<<<< HEAD
-                                       <button onClick={handleAction} disabled={isPending || !amount || !txHash || !screenshot || isUploadingScreenshot} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'BINANCE' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : (isUploadingScreenshot ? 'Optimizing Image...' : 'Submit Deposit')}</button>
-=======
-                                        <button onClick={handleAction} disabled={!amount || !txHash || !screenshot || isUploadingScreenshot || isSubmitting} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
-                                          {submissionIntent === "deposit-binance" ? "Submitting Binance Deposit..." : "Submit Deposit"}
-                                        </button>
->>>>>>> 77e88c235ee4b257f41ca79fc42314bdcb7eb2ec
+                                       <button onClick={handleAction} disabled={isPending || isSubmitting || !amount || !txHash || !screenshot || isUploadingScreenshot} className="w-full py-3 mt-1 bg-yellow-500 hover:bg-yellow-600 disabled:bg-yellow-400 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2">{isPending && depositMethod === 'BINANCE' ? (<><svg className="w-4 h-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg><span>Submitting...</span></>) : (isUploadingScreenshot ? 'Optimizing Image...' : 'Submit Deposit')}</button>
                                     </div>
                                  </div>
                               </div>

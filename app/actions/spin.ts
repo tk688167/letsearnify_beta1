@@ -37,7 +37,9 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                     lastSurpriseDate: true,
                     isActiveMember: true,
                     arnBalance: true,
-                    balance: true
+                    balance: true,
+                    name: true,
+                    email: true
                 }
             }).catch((e: any) => {
                 console.error("User fetch error in executeSpin:", e)
