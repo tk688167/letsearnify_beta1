@@ -6,7 +6,7 @@ export const runtime = "nodejs"
 
 export async function GET(
   req: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
     const session = await auth()
@@ -14,7 +14,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    let { conversationId } = await params
+    const { conversationId } = await params
 
     if (!conversationId || conversationId === "undefined") {
       return NextResponse.json({ error: "Conversation ID is required" }, { status: 400 })
@@ -50,7 +50,7 @@ export async function GET(
 
 export async function POST(
   req: Request,
-  { params }: { params: { conversationId: string } }
+  { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
     const session = await auth()
