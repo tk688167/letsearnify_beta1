@@ -200,7 +200,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
                       <SwatchIcon className="w-4 h-4 text-primary" /> Currency
                   </label>
                   <div className="relative">
-                      <select name="currency" defaultValue={user?.currency || "USD"} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
+                      <select name="currency" defaultValue={user?.currency || "PKR"} className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl font-semibold text-foreground outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer">
                           <option value="USD">USD ($)</option>
                           <option value="PKR">PKR (₨)</option>
                           <option value="INR">INR (₹)</option>

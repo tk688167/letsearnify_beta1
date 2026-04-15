@@ -34,7 +34,7 @@ model User {
   securityQuestion        String?
   securityAnswer          String?
   spendingLimit           Float?
-  currency                String                   @default("USD")
+  currency                String                   @default("PKR")
   language                String                   @default("en")
   country                 String?
   createdAt               DateTime                 @default(now())

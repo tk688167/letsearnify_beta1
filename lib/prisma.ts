@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { neonConfig } from '@neondatabase/serverless';
 import { PrismaNeon } from '@prisma/adapter-neon';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import ws from 'ws';
 
 /**
@@ -12,6 +13,8 @@ import ws from 'ws';
 declare global {
   // eslint-disable-next-line no-var
   var prismaClientSingleton: PrismaClient | undefined;
+  // eslint-disable-next-line no-var
+  var pgPoolSingleton: Pool | undefined;
 }
 
 /**
@@ -65,7 +68,23 @@ function createPrismaClient(): PrismaClient {
   }
 
   // Supabase and other PostgreSQL providers use the generic Postgres adapter.
-  const adapter = new PrismaPg({ connectionString });
+  // We initialize the pg.Pool explicitly to set limits, timeouts, and most importantly,
+  // trap asynchronous DNS resolution errors like getaddrinfo EAI_AGAIN to prevent server crashing.
+  
+  if (!globalThis.pgPoolSingleton) {
+    globalThis.pgPoolSingleton = new Pool({
+      connectionString,
+      max: 15,
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 30000,
+    });
+
+    globalThis.pgPoolSingleton.on('error', (err) => {
+      console.error('Unexpected error on idle client (EAI_AGAIN intercepted)', err);
+    });
+  }
+
+  const adapter = new PrismaPg(globalThis.pgPoolSingleton as any);
 
   return new PrismaClient({
     adapter,

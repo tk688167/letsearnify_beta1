@@ -191,7 +191,7 @@ export default function EditForm({ user }: EditFormProps) {
               <div className="relative">
                 <select 
                   name="currency" 
-                  defaultValue={user?.currency || "USD"}
+                  defaultValue={user?.currency || "PKR"}
                   className="w-full px-4 py-3 sm:px-5 sm:py-4 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-semibold text-foreground hover:border-primary/40 appearance-none"
                 >
                   <option value="USD">USD - United States Dollar</option>

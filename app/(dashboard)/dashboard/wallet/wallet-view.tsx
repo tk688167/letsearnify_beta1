@@ -110,7 +110,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [balance, setBalance] = useState(user.balance)
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
   const [amount, setAmount] = useState("")
-  const [displayCurrency, setDisplayCurrency] = useState<"USD" | "LOCAL">(userCurrency !== "USD" ? "LOCAL" : "USD")
+  const [displayCurrency, setDisplayCurrency] = useState<"USD" | "LOCAL">(userCurrency === "USD" ? "USD" : "LOCAL")
   const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT" | "BINANCE">("TRC20")
   const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20" | "BINANCE">("TRC20")
   const [txHash, setTxHash] = useState("")
@@ -134,7 +134,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     setAccountNumber("")
     setAccountName("")
     setAmount("")
-    setDisplayCurrency("USD")
+    setDisplayCurrency(userCurrency === "USD" ? "USD" : "LOCAL")
     setMessage(null)
     setCountrySearch("")
   }
@@ -460,7 +460,13 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    onClick={() => { if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } setSelectedCountry(country); setMessage(null); setCountrySearch("") }}
+                    onClick={() => { 
+                      if (isComingSoon) { setMessage({ type: 'error', text: `${country.name} is coming soon!` }); return } 
+                      setSelectedCountry(country); 
+                      if (country.code?.toUpperCase() === 'PK') setDisplayCurrency("LOCAL");
+                      setMessage(null); 
+                      setCountrySearch("");
+                    }}
                     className={cn("flex items-center gap-4 p-4 rounded-2xl border transition-all text-left w-full group relative overflow-hidden",
                       isComingSoon
                         ? "bg-muted/20 border-border opacity-50 cursor-not-allowed"
@@ -1291,7 +1297,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e: any) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                                 <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e: any) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                              </div>
-                             <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
+                             <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-[10px] uppercase tracking-wider">{userCurrency}</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-12 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
                              <button onClick={handleAction} disabled={!amount || isSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">{submissionIntent === "transfer" ? "Transferring..." : "Transfer Funds"}</button>
                     </div>
                 )}

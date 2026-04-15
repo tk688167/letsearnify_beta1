@@ -11,7 +11,7 @@ export const ARN_EXCHANGE_RATE = 10;
 export function formatCurrency(amount: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "PKR",
   }).format(amount)
 }
 

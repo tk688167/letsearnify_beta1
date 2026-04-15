@@ -25,8 +25,8 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({
   rates 
 }) => {
   
-  // Safe fallback to USD if currency is completely missing or wrong
-  const activeCurrency = rates[userCurrency] ? userCurrency.toUpperCase() : "USD";
+  // Safe fallback to PKR if currency is completely missing or wrong
+  const activeCurrency = rates[userCurrency] ? userCurrency.toUpperCase() : "PKR";
 
   const convertFromUSD = (usdAmount: number): number => {
     const rate = rates[activeCurrency] || 1;

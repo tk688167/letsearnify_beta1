@@ -161,7 +161,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                 </h2>
                 {!isCompact && (
                   <p className="text-muted-foreground font-medium text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
-                     Create your pool from $1 and earn 1% daily. Funds are locked for 30 days before withdrawal.
+                     Create your pool from {formatCurrency(1)} and earn 1% daily. Funds are locked for 30 days before withdrawal.
                   </p>
                 )}
               </div>

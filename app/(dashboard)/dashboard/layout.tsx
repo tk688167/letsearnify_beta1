@@ -49,7 +49,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         
         {/* Mobile Swipe Container + Children */}
         {/* Responsive Container */}
-        <CurrencyProvider rates={rates} userCurrency={user?.currency || 'USD'}>
+        <CurrencyProvider rates={rates} userCurrency={user?.currency || 'PKR'}>
           <SwipeContainer>
               {children}
           </SwipeContainer>

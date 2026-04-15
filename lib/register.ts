@@ -128,7 +128,7 @@ export async function registerUser(formData: FormData) {
                 activeMembers: 0,
                 totalDeposit: 0.0,
                 isActiveMember: false,
-                currency: "USD"
+                currency: "PKR"
               }
             })
 
