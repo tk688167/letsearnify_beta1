@@ -60,7 +60,7 @@ export default function SpinConfigClient({ initialRewards, spinType }: Props) {
     const router = useRouter()
 
     const handleEdit = (reward: SpinReward) => {
-        setFormData({ ...reward, type: reward.type as any })
+        setFormData({ ...reward, type: reward.type as any, spinType, textColor: reward.textColor ?? "" })
         setIsEditing(true)
     }
 
@@ -148,7 +148,7 @@ export default function SpinConfigClient({ initialRewards, spinType }: Props) {
                             <button onClick={() => handleEdit(r)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                                 <PencilSquareIcon className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDelete(r.id)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                            <button onClick={() => handleDelete(r.id!)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
                                 <TrashIcon className="w-4 h-4" />
                             </button>
                         </div>
@@ -192,7 +192,7 @@ export default function SpinConfigClient({ initialRewards, spinType }: Props) {
                                         <button onClick={() => handleEdit(r)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 transition-all">
                                             <PencilSquareIcon className="w-4 h-4" />
                                         </button>
-                                        <button onClick={() => handleDelete(r.id)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-xl hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 transition-all">
+                                        <button onClick={() => handleDelete(r.id!)} className="p-2 text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 rounded-xl hover:bg-white dark:hover:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 transition-all">
                                             <TrashIcon className="w-4 h-4" />
                                         </button>
                                     </div>

@@ -1,4 +1,5 @@
 export type SpinReward = {
+    id?: string
     label: string
     value: number 
     type: "ARN" | "BONUS_SPIN" | "EMPTY" | "MONEY" | "SURPRISE" | "TRY_AGAIN" | "SERIES_SPIN"
