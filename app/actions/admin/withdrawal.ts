@@ -129,12 +129,12 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
                 if (isMerchant) {
                     await tx.merchantTransaction.update({
                         where: { id: transactionId },
-                        data: { status: "COMPLETED" } // Merchant typically uses COMPLETED/APPROVED
+                        data: { status: "APPROVED" } // Merchant strictly uses APPROVED/REJECTED
                     });
                 } else {
                     await tx.transaction.update({
                         where: { id: transactionId },
-                        data: { status: "COMPLETED" } // Normalized to match Merchant withdrawal status
+                        data: { status: "COMPLETED" } 
                     });
                 }
 

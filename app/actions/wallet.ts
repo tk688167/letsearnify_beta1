@@ -121,16 +121,17 @@ export async function submitWithdrawal(formData: FormData) {
     const { amount, address, network } = validated.data;
 
     try {
-        // 1. Check for Pending Withdrawals
-        const existingPending = await prisma.transaction.findFirst({
-            where: {
-                userId: session.user.id,
-                type: "WITHDRAWAL",
-                status: "PENDING"
-            }
-        });
+        // 1. Check for Pending Withdrawals (Merchant or TRC20)
+        const [pendingMerchant, pendingCrypto] = await Promise.all([
+            prisma.merchantTransaction.findFirst({
+                where: { userId: session.user.id, type: "WITHDRAWAL", status: "PENDING" }
+            }),
+            prisma.transaction.findFirst({
+                where: { userId: session.user.id, type: "WITHDRAWAL", status: "PENDING" }
+            })
+        ]);
 
-        if (existingPending) {
+        if (pendingMerchant || pendingCrypto) {
             return { error: "You already have a pending withdrawal request." };
         }
 

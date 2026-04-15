@@ -249,11 +249,6 @@ export async function approveMerchantTransaction(transactionId: string) {
         
         // WITHDRAWAL
         if (transaction.type === 'WITHDRAWAL') {
-            await tx.user.update({
-                where: { id: transaction.userId },
-                data: { balance: { decrement: transaction.amount } }
-            })
-
             await tx.transaction.create({
                 data: {
                     userId: transaction.userId,
@@ -287,18 +282,37 @@ export async function rejectMerchantTransaction(transactionId: string) {
         return { success: false, error: "Unauthorized" }
     }
 
+    const transaction = await prisma.merchantTransaction.findUnique({
+        where: { id: transactionId }
+    })
+
+    if (!transaction || transaction.status !== 'PENDING') {
+        return { success: false, error: "Transaction not found or already processed" }
+    }
+
     await prisma.$transaction(async (tx: any) => {
         await tx.merchantTransaction.update({
             where: { id: transactionId },
             data: { status: 'REJECTED' }
         })
 
+        if (transaction.type === 'WITHDRAWAL') {
+            const arnToRefund = transaction.amount * 10;
+            await tx.user.update({
+                where: { id: transaction.userId },
+                data: {
+                    balance: { increment: transaction.amount },
+                    arnBalance: { increment: arnToRefund }
+                }
+            })
+        }
+
         await tx.adminLog.create({
             data: {
                 adminId: session.user.id || "SYSTEM",
-                targetUserId: transactionId, // Or find the actual user id if needed
+                targetUserId: transaction.userId,
                 actionType: "MERCHANT_REJECTION",
-                details: `Rejected merchant transaction ID: ${transactionId}`
+                details: `Rejected merchant ${transaction.type.toLowerCase()} ID: ${transactionId}`
             }
         })
     })
