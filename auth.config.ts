@@ -6,6 +6,8 @@ export const authConfig = {
     // Add error page to prevent redirect loops
     error: "/login",
   },
+  session: { strategy: "jwt", maxAge: 48 * 60 * 60 },
+  trustHost: true,
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user

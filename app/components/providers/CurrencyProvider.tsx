@@ -19,39 +19,46 @@ interface CurrencyProviderProps {
   rates: ExchangeRates;
 }
 
+
+const FALLBACK_RATES: ExchangeRates = {
+  "USD": 1,
+  "PKR": 278.50,
+  "INR": 83.20,
+  "AED": 3.67,
+  "BDT": 109.70
+};
+
 export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({ 
   children, 
   userCurrency, 
   rates 
 }) => {
-  
   // Safe fallback to PKR if currency is completely missing or wrong
-  const activeCurrency = rates[userCurrency] ? userCurrency.toUpperCase() : "PKR";
+  const activeCurrency = (rates[userCurrency] || FALLBACK_RATES[userCurrency]) ? userCurrency.toUpperCase() : "PKR";
+  const activeRates = useMemo(() => ({ ...FALLBACK_RATES, ...rates }), [rates]);
 
   const convertFromUSD = (usdAmount: number): number => {
-    const rate = rates[activeCurrency] || 1;
+    const rate = activeRates[activeCurrency] || 1;
     return usdAmount * rate;
   };
   
   const convertToUSD = (userAmount: number): number => {
-    const rate = rates[activeCurrency] || 1;
-    // userAmount in PKR / rate PKR per USD = USD amount
+    const rate = activeRates[activeCurrency] || 1;
     return userAmount / rate;
   };
 
   const getLocales = (currency: string) => {
-      switch (currency) {
-          case 'PKR': return 'en-PK';
-          case 'INR': return 'en-IN';
-          case 'AED': return 'en-AE';
-          case 'BDT': return 'en-BD';
-          default: return 'en-US';
-      }
+    switch (currency) {
+      case 'PKR': return 'en-PK';
+      case 'INR': return 'en-IN';
+      case 'AED': return 'en-AE';
+      case 'BDT': return 'en-BD';
+      default: return 'en-US';
+    }
   }
 
   const formatCurrency = (usdAmount: number): string => {
     const convertedAmount = convertFromUSD(usdAmount);
-    
     return new Intl.NumberFormat(getLocales(activeCurrency), {
       style: "currency",
       currency: activeCurrency,
@@ -62,11 +69,11 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({
 
   const value = useMemo(() => ({
     userCurrency: activeCurrency,
-    rates,
+    rates: activeRates,
     formatCurrency,
     convertFromUSD,
     convertToUSD
-  }), [activeCurrency, rates]);
+  }), [activeCurrency, activeRates]);
 
   return (
     <CurrencyContext.Provider value={value}>
@@ -77,8 +84,36 @@ export const CurrencyProvider: React.FC<CurrencyProviderProps> = ({
 
 export const useCurrency = (): CurrencyContextProps => {
   const context = useContext(CurrencyContext);
+  
+  // Anti-Gravity Fix: If context is missing (SSR edge case), return a resilient fallback
   if (!context) {
-    throw new Error('useCurrency must be used within a CurrencyProvider');
+    const defaultCurrency = "PKR";
+    const defaultRate = FALLBACK_RATES[defaultCurrency];
+    const getLocales = (currency: string) => {
+        switch (currency) {
+            case 'PKR': return 'en-PK';
+            case 'INR': return 'en-IN';
+            case 'AED': return 'en-AE';
+            case 'BDT': return 'en-BD';
+            default: return 'en-US';
+        }
+    }
+
+    return {
+      userCurrency: defaultCurrency,
+      rates: FALLBACK_RATES,
+      convertFromUSD: (usd: number) => usd * defaultRate,
+      convertToUSD: (user: number) => user / defaultRate,
+      formatCurrency: (usd: number) => {
+          const converted = usd * defaultRate;
+          return new Intl.NumberFormat(getLocales(defaultCurrency), {
+              style: "currency",
+              currency: defaultCurrency,
+              minimumFractionDigits: 2
+          }).format(converted);
+      }
+    };
   }
+  
   return context;
 };

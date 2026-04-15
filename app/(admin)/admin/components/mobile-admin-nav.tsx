@@ -20,6 +20,7 @@ import {
   ArrowTopRightOnSquareIcon,
   ClipboardDocumentListIcon,
   BriefcaseIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -67,13 +68,21 @@ const navigation = [
       { name: "Mudarabah Pools", href: "/admin/mudarabah", icon: "📈" },
     ],
   },
+  {
+    name: "Support & Help",
+    href: "#",
+    icon: ChatBubbleLeftRightIcon,
+    children: [
+      { name: "Live Chat", href: "/admin/live-chat", icon: "💬" },
+    ],
+  },
   { name: "Visitor Logs", href: "/admin/visits", icon: GlobeAltIcon },
 ]
 
 export default function MobileAdminNav({
-  counts = { deposits: 0, withdrawals: 0 },
+  counts = { deposits: 0, withdrawals: 0, merchantDeposits: 0 },
 }: {
-  counts?: { deposits: number; withdrawals: number }
+  counts?: { deposits: number; withdrawals: number; merchantDeposits: number }
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
@@ -110,7 +119,7 @@ export default function MobileAdminNav({
             aria-label="Open menu"
           >
             <Bars3Icon className="w-6 h-6" />
-            {(counts.deposits > 0 || counts.withdrawals > 0) && (
+            {(counts.deposits > 0 || counts.withdrawals > 0 || (counts.merchantDeposits || 0) > 0) && (
               <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-slate-950" />
             )}
           </button>
@@ -153,7 +162,7 @@ export default function MobileAdminNav({
               <Logo size="md" />
               <div className="mt-1.5 flex items-center gap-2">
                 <span className="text-[10px] font-bold text-white bg-blue-600 dark:bg-blue-500 px-2 py-0.5 rounded-md tracking-widest uppercase">
-                  Admin
+                   Admin
                 </span>
                 <span className="text-[10px] text-gray-400 dark:text-slate-600 font-medium">Portal</span>
               </div>
@@ -178,43 +187,43 @@ export default function MobileAdminNav({
                 hasChildren && item.children?.some((child) => pathname === child.href)
 
               let badgeCount = 0
-              if (item.name === "Deposit Management") badgeCount = counts.deposits
-              if (item.name === "Withdrawal Requests") badgeCount = counts.withdrawals
+              if (item.name === "Deposit Management") {
+                  badgeCount = counts.deposits + (counts.merchantDeposits || 0)
+              }
+              if (item.name === "Withdrawal Requests") {
+                  badgeCount = counts.withdrawals
+              }
 
               return (
                 <div key={item.name}>
-                  {hasChildren ? (
-                    <button
-                      onClick={() => toggleMenu(item.name)}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 w-full text-left ${
-                        isActive || isChildActive ? activeClass : inactiveClass
-                      }`}
-                    >
-                      <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
-                      <span className="flex-1">{item.name}</span>
-                      {isOpenSub ? (
+                  <Link
+                    href={item.href}
+                    onClick={(e) => {
+                      if (hasChildren) {
+                        e.preventDefault()
+                        toggleMenu(item.name)
+                      } else {
+                        closeMenu()
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 w-full text-left outline-none ${
+                      isActive || isChildActive ? activeClass : inactiveClass
+                    }`}
+                  >
+                    <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
+                    <span className="flex-1 capitalize">{item.name}</span>
+                    {hasChildren ? (
+                      isOpenSub ? (
                         <ChevronUpIcon className="w-3.5 h-3.5 opacity-60" />
                       ) : (
                         <ChevronDownIcon className="w-3.5 h-3.5 opacity-60" />
-                      )}
-                    </button>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      onClick={closeMenu}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
-                        isActive ? activeClass : inactiveClass
-                      }`}
-                    >
-                      <item.icon className="w-4.5 h-4.5 flex-shrink-0" />
-                      <span className="flex-1">{item.name}</span>
-                      {badgeCount > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
-                          {badgeCount}
-                        </span>
-                      )}
-                    </Link>
-                  )}
+                      )
+                    ) : badgeCount > 0 ? (
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full animate-pulse">
+                        {badgeCount}
+                      </span>
+                    ) : null}
+                  </Link>
 
                   <AnimatePresence>
                     {hasChildren && isOpenSub && (

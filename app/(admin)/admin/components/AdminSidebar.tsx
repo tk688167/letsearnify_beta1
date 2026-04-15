@@ -18,6 +18,7 @@ import {
   ArrowTopRightOnSquareIcon,
   BriefcaseIcon,
   ChartBarIcon,
+  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/outline"
 import { signOut } from "next-auth/react"
 import { useEffect, useState } from "react"
@@ -67,6 +68,14 @@ const navigation = [
     ],
   },
   { name: "Mudarabah Pool", href: "/admin/mudarabah", icon: ChartBarIcon },
+  {
+    name: "Support & Help",
+    href: "#",
+    icon: ChatBubbleLeftRightIcon,
+    children: [
+      { name: "Live Chat", href: "/admin/live-chat", icon: "💬" },
+    ],
+  },
   { name: "Visitor Logs", href: "/admin/visits", icon: GlobeAltIcon },
 ]
 

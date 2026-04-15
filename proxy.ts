@@ -21,7 +21,7 @@ export async function proxy(req: NextRequest) {
   // ─────────────────────────────────────────────────────────────
   // 1. SECURITY HEADERS
   // ─────────────────────────────────────────────────────────────
-  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const nonce = btoa(crypto.randomUUID())
   
   const cspHeader = `
     default-src 'self';

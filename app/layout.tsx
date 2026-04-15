@@ -9,6 +9,8 @@ import CookieConsent from "./components/ui/CookieConsent";
 import { ThemeProvider } from "./components/theme-provider";
 import { Suspense } from "react";
 import RouteLoader from "./components/RouteLoader";
+import SupportWidget from "./components/layout/SupportWidget";
+import NextAuthProvider from "./components/providers/NextAuthProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -126,26 +128,29 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Suspense fallback={null}>
-            <RouteLoader />
-          </Suspense>
-          <ScrollToTop />
-          <BackButton />
-          <Toaster position="top-center" />
-          {/* <CookieConsent /> */}
-          {children}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-          />
-          <Tracker />
-        </ThemeProvider>
+        <NextAuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Suspense fallback={null}>
+              <RouteLoader />
+            </Suspense>
+            <ScrollToTop />
+            <BackButton />
+            <SupportWidget />
+            <Toaster position="top-center" />
+            {/* <CookieConsent /> */}
+            {children}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <Tracker />
+          </ThemeProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

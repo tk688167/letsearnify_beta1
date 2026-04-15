@@ -25,6 +25,7 @@ const TYPE_STYLES: Record<string, { bg: string, icon: string, label: string }> =
   merchant_deposit: { bg: "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400", icon: "🏦", label: "Merchant" },
   task_submission: { bg: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400", icon: "✅", label: "Task" },
   unlock: { bg: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400", icon: "🔓", label: "Unlock" },
+  support_message: { bg: "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400", icon: "💬", label: "Live Chat" },
 }
 
 export function AdminNotificationBell() {

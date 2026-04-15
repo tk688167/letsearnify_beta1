@@ -55,8 +55,6 @@ function CustomPrismaAdapter(p: typeof prisma) {
 export const { auth, handlers, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: CustomPrismaAdapter(prisma) as any,
-  session: { strategy: "jwt", maxAge: 48 * 60 * 60 },
-  trustHost: true,
   providers: [
     Credentials({
       async authorize(credentials) {
