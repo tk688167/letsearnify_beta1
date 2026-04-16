@@ -49,6 +49,7 @@ export default async function AdminDepositsPage(props: any) {
     const rawDeposits: any[] = await prisma.$queryRaw`
         SELECT 
             t.id, t.amount, t."txId", t.status, t.method, t."description", t."createdAt", t."userId",
+            t."convertedAmount", t."exchangeRate", t."currency",
             u.name as "userName", u.email as "userEmail"
         FROM "Transaction" t
         JOIN "User" u ON t."userId" = u.id
@@ -64,7 +65,12 @@ export default async function AdminDepositsPage(props: any) {
         method: d.method,
         description: d.description,
         createdAt: new Date(d.createdAt),
-        user: { name: d.userName, email: d.userEmail }
+        user: { name: d.userName, email: d.userEmail },
+        
+        // Unified Currency fields
+        convertedAmount: d.convertedAmount,
+        exchangeRate: d.exchangeRate,
+        currency: d.currency
     }));
 
     const pending = deposits.filter((d: any) => d.status === "PENDING");
@@ -110,7 +116,14 @@ export default async function AdminDepositsPage(props: any) {
                                     <div className="font-bold text-gray-900 dark:text-white text-sm">{d.user.name}</div>
                                     <div className="text-xs text-gray-400 dark:text-slate-500">{d.user.email}</div>
                                 </div>
-                                <div className="text-green-600 dark:text-green-400 font-bold text-sm">${d.amount.toFixed(2)}</div>
+                                <div className="text-right">
+                                    <div className="text-green-600 dark:text-green-400 font-bold text-sm">${d.amount.toFixed(2)}</div>
+                                    {d.convertedAmount && (
+                                        <div className="text-[10px] text-gray-500 dark:text-slate-500 font-medium">
+                                            {d.convertedAmount.toLocaleString()} {d.currency}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                             <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-xl">
                                 <div className="flex items-center justify-between mb-1">
@@ -156,7 +169,21 @@ export default async function AdminDepositsPage(props: any) {
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
                                             {d.user.name}<br /><span className="text-xs text-gray-400 dark:text-slate-500 font-normal">{d.user.email}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-green-600 dark:text-green-400 font-bold">${d.amount.toFixed(2)}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-green-600 dark:text-green-400 font-bold">${d.amount.toFixed(2)}</span>
+                                                {d.convertedAmount && (
+                                                    <span className="text-[10px] text-gray-500 dark:text-slate-500 font-medium">
+                                                        {d.convertedAmount.toLocaleString()} {d.currency}
+                                                    </span>
+                                                )}
+                                                {d.exchangeRate && (
+                                                    <span className="text-[9px] text-gray-400 dark:text-slate-600 leading-tight">
+                                                        Rate: 1 USD = {d.exchangeRate}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4"><span className="px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-md text-xs font-bold">{d.method}</span></td>
                                         <td className="px-6 py-4 font-mono text-xs text-gray-500 dark:text-slate-400 max-w-[200px]">
                                             {d.method === 'BINANCE' ? (

@@ -55,6 +55,11 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                 </div>
                                 <div className="text-right">
                                      <div className="font-bold text-gray-900 dark:text-white text-lg">${req.amount.toFixed(2)}</div>
+                                     {req.convertedAmount && (
+                                         <div className="text-[11px] text-gray-500 dark:text-slate-500 font-medium">
+                                             {req.convertedAmount.toLocaleString()} {req.currency}
+                                         </div>
+                                     )}
                                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bal: ${req.user.balance.toFixed(2)}</div>
                                 </div>
                              </div>
@@ -126,8 +131,20 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                         <td className="px-6 py-4 font-mono text-gray-600 dark:text-slate-400 text-xs">
                                             ${req.user.balance.toFixed(2)}
                                         </td>
-                                        <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">
-                                            ${req.amount.toFixed(2)}
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="text-gray-900 dark:text-white font-bold">${req.amount.toFixed(2)}</span>
+                                                {req.convertedAmount && (
+                                                    <span className="text-[10px] text-gray-500 dark:text-slate-500 font-medium leading-none mt-1">
+                                                        {req.convertedAmount.toLocaleString()} {req.currency}
+                                                    </span>
+                                                )}
+                                                {req.exchangeRate && (
+                                                    <span className="text-[9px] text-gray-400 dark:text-slate-600 leading-tight mt-0.5">
+                                                        @ {req.exchangeRate}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-mono text-[10px] text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-800 px-2.5 py-1.5 rounded-lg w-fit max-w-[240px] truncate" title={req.destinationAddress}>

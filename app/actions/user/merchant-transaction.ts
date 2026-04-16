@@ -9,6 +9,8 @@ const depositSchema = z.object({
   countryCode: z.string(),
   paymentMethodId: z.string(),
   amount: z.number().positive(),
+  localAmount: z.number().optional(),
+  currency: z.string().optional(),
   screenshot: z.string(), // Base64 or file path
   note: z.string().optional()
 })
@@ -17,6 +19,8 @@ const withdrawalSchema = z.object({
   countryCode: z.string(),
   paymentMethodId: z.string(),
   amount: z.number().positive(),
+  localAmount: z.number().optional(),
+  currency: z.string().optional(),
   accountNumber: z.string().min(1, "Account number is required"),
   accountName: z.string().min(1, "Account name is required"),
   note: z.string().optional()
@@ -36,10 +40,12 @@ export async function submitMerchantDeposit(data: z.infer<typeof depositSchema>)
         where: { code: validated.countryCode }
     })
     
-    // Apply fixed PKR rule or use dynamic rate
-    const finalRate = country?.currency === 'PKR' ? 300 : (country?.exchangeRate || 1.0)
-    const convertedAmount = validated.amount * finalRate
-    const currency = country?.currency || 'USD'
+    // Unified Rate Logic: Use country setting or default to 1.0
+    const finalRate = country?.exchangeRate || 1.0
+    const currency = country?.currency || validated.currency || 'USD'
+    
+    // Identity Local Amount: Prefer the raw amount passed from frontend to avoid drift
+    const convertedAmount = validated.localAmount || (validated.amount * finalRate)
 
     // Create merchant transaction
     const transaction = await prisma.merchantTransaction.create({
@@ -48,9 +54,9 @@ export async function submitMerchantDeposit(data: z.infer<typeof depositSchema>)
         countryCode: validated.countryCode,
         paymentMethodId: validated.paymentMethodId,
         type: "DEPOSIT",
-        amount: validated.amount,
+        amount: validated.amount, // USD value
         
-        // Save currency info
+        // Save currency info & snapshot rate
         currency,
         exchangeRate: finalRate,
         convertedAmount,
@@ -142,10 +148,12 @@ export async function submitMerchantWithdrawal(data: z.infer<typeof withdrawalSc
         where: { code: validated.countryCode }
     })
     
-    // Apply fixed PKR rule (300) or use dynamic rate
-    const finalRate = country?.currency === 'PKR' ? 300 : (country?.exchangeRate || 1.0)
-    const convertedAmount = validated.amount * finalRate
-    const currency = country?.currency || 'USD'
+    // Unified Rate Logic: Use country setting or default to 1.0
+    const finalRate = country?.exchangeRate || 1.0
+    const currency = country?.currency || validated.currency || 'USD'
+    
+    // Identity Local Amount: Prefer raw amount from frontend
+    const convertedAmount = validated.localAmount || (validated.amount * finalRate)
 
     // 7. Perform Transaction
     const transaction = await prisma.$transaction(async (tx) => {

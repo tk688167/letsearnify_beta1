@@ -270,6 +270,12 @@ model Transaction {
   arnMinted          Float    @default(0.0)
   txId               String?  @db.Text
   destinationAddress String?
+
+  // Snapshot fields for unified currency consistency
+  convertedAmount    Float?
+  exchangeRate       Float?
+  currency           String?
+
   createdAt          DateTime @default(now())
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

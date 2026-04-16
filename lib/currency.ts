@@ -25,6 +25,20 @@ export async function getExchangeRates(): Promise<ExchangeRates> {
     const data = await response.json();
     if (data && data.rates) {
       cachedRates = data.rates;
+      
+      // UNIFIED LOGIC: Merge in rates from Merchant Countries (Single Source of Truth)
+      try {
+          const { prisma } = await import("@/lib/prisma");
+          const countries = await prisma.merchantCountry.findMany({ select: { currency: true, exchangeRate: true } });
+          countries.forEach(c => {
+              if (c.currency && c.exchangeRate && cachedRates) {
+                  cachedRates[c.currency.toUpperCase()] = c.exchangeRate;
+              }
+          });
+      } catch (err) {
+          console.warn("Could not sync Merchant Rates into cache:", err);
+      }
+
       lastFetchTime = now;
       return cachedRates!;
     }

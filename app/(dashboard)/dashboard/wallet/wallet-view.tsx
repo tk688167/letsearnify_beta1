@@ -306,22 +306,102 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     const rawAmount = parseFloat(amount)
     if (isNaN(rawAmount) || rawAmount <= 0) { setMessage({ type: 'error', text: "Please enter a valid amount." }); return }
     
-    // Convert to USD if in LOCAL mode
-    const val = displayCurrency === "LOCAL" ? convertToUSD(rawAmount) : rawAmount
+    // Unified amount handling
+    const isMerchant = (activeTab === "deposit" && depositMethod === "MERCHANT") || (activeTab === "withdraw" && withdrawalMethod === "MERCHANT")
+    
+    // Single Source of Truth for Rate: Priority to MerchantCountry rate, fallback to global rate
+    const merchantRate = selectedCountry?.exchangeRate;
+    const currentRate = merchantRate || (convertFromUSD(1)); // global rate from CurrencyProvider
+    
+    // Core Logic: Convert input to USD balance (val) and Local Amount (localVal)
+    let val: number;
+    let localVal: number;
+
+    if (displayCurrency === "LOCAL") {
+        val = rawAmount / currentRate;
+        localVal = rawAmount;
+    } else {
+        val = rawAmount;
+        localVal = rawAmount * currentRate;
+    }
+
     const intent = resolveSubmissionIntent()
     setSubmissionIntent(intent)
     startTransition(async () => {
       try {
         let res: any
         if (activeTab === "deposit") {
-           if (depositMethod === "TRC20") { if (!txHash) throw new Error("Please enter the Transaction Hash."); res = await deposit(val, "CRYPTO", { network: "TRC20", txHash }) as any }
-           else if (depositMethod === "BINANCE") { if (!txHash) throw new Error("Please enter your Binance User ID or Pay ID."); if (!screenshot) throw new Error("Please upload Binance payment proof."); res = await deposit(val, "CRYPTO", { network: "BINANCE", txHash, proofUrl: screenshot }) as any }
-           else if (depositMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!screenshot) throw new Error("Please upload payment proof."); res = await submitMerchantDeposit({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, screenshot }) }
+           if (depositMethod === "TRC20") { 
+               if (!txHash) throw new Error("Please enter the Transaction Hash."); 
+               // For external payments, we pass snapshot info to maintain transparency
+               res = await deposit(val, "CRYPTO", { 
+                   network: "TRC20", 
+                   txHash,
+                   localAmount: localVal,
+                   currency: userCurrency,
+                   exchangeRate: currentRate
+               }) as any 
+           }
+           else if (depositMethod === "BINANCE") { 
+               if (!txHash) throw new Error("Please enter your Binance User ID or Pay ID."); 
+               if (!screenshot) throw new Error("Please upload Binance payment proof."); 
+               res = await deposit(val, "CRYPTO", { 
+                   network: "BINANCE", 
+                   txHash, 
+                   proofUrl: screenshot,
+                   localAmount: localVal,
+                   currency: userCurrency,
+                   exchangeRate: currentRate
+               }) as any 
+           }
+           else if (depositMethod === "MERCHANT") { 
+               if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); 
+               if (!screenshot) throw new Error("Please upload payment proof."); 
+               res = await submitMerchantDeposit({ 
+                   countryCode: selectedCountry.code, 
+                   paymentMethodId: selectedPaymentMethod.id, 
+                   amount: val, 
+                   localAmount: localVal,
+                   currency: selectedCountry.currency,
+                   screenshot 
+               }) 
+           }
         } else if (activeTab === "withdraw") {
-           if (withdrawalMethod === "TRC20") { if (!details) throw new Error("Please provide withdrawal destination details."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); formData.append("network", "TRC20"); res = await submitWithdrawal(formData) }
-           else if (withdrawalMethod === "BINANCE") { if (!details) throw new Error("Please provide your Binance User / Pay ID."); const formData = new FormData(); formData.append("amount", val.toString()); formData.append("address", details); formData.append("network", "BINANCE"); res = await submitWithdrawal(formData) }
-           else if (withdrawalMethod === "MERCHANT") { if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); if (!accountNumber || !accountName) throw new Error("Please provide your account details."); res = await submitMerchantWithdrawal({ countryCode: selectedCountry.code, paymentMethodId: selectedPaymentMethod.id, amount: val, accountNumber, accountName }) }
-        } else if (activeTab === "transfer") { res = await transferFunds(val, transferSource, transferDestination) }
+           if (withdrawalMethod === "TRC20") { 
+               if (!details) throw new Error("Please provide withdrawal destination details."); 
+               const formData = new FormData(); 
+               formData.append("amount", val.toString()); 
+               formData.append("address", details); 
+               formData.append("network", "TRC20"); 
+               formData.append("localAmount", localVal.toString());
+               formData.append("currency", userCurrency);
+               formData.append("exchangeRate", currentRate.toString());
+               res = await submitWithdrawal(formData) 
+           }
+           else if (withdrawalMethod === "BINANCE") { 
+               if (!details) throw new Error("Please provide your Binance User / Pay ID."); 
+               const formData = new FormData(); 
+               formData.append("amount", val.toString()); 
+               formData.append("address", details); 
+               formData.append("network", "BINANCE"); 
+               formData.append("localAmount", localVal.toString());
+               formData.append("currency", userCurrency);
+               formData.append("exchangeRate", currentRate.toString());
+               res = await submitWithdrawal(formData) 
+           }
+           else if (withdrawalMethod === "MERCHANT") { 
+               if (!selectedCountry || !selectedPaymentMethod) throw new Error("Please select country and payment method."); 
+               if (!accountNumber || !accountName) throw new Error("Please provide your account details."); 
+               res = await submitMerchantWithdrawal({ 
+                   countryCode: selectedCountry.code, 
+                   paymentMethodId: selectedPaymentMethod.id, 
+                   amount: val, 
+                   localAmount: localVal,
+                   currency: selectedCountry.currency,
+                   accountNumber, 
+                   accountName 
+               }) 
+           }
         if (res?.success) { 
           const isMerchant = (activeTab === "deposit" && depositMethod === "MERCHANT") || (activeTab === "withdraw" && withdrawalMethod === "MERCHANT")
           if (isMerchant) {

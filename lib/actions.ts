@@ -239,7 +239,14 @@ export async function addPaymentMethod(formData: FormData) {
 export async function deposit(
   amount: number,
   method: string,
-  details?: { network?: string; txHash?: string; proofUrl?: string }
+  details?: { 
+    network?: string; 
+    txHash?: string; 
+    proofUrl?: string;
+    localAmount?: number;
+    currency?: string;
+    exchangeRate?: number;
+  }
 ) {
   const session = await auth()
   if (!session?.user?.id) throw new Error("Unauthorized")
@@ -337,7 +344,12 @@ export async function deposit(
            status: "PENDING", // Wait for Admin Approval
            method: details.network, // Store just "TRC20" or "BINANCE"
            description,
-           txId: transactionIdentifier // Save TXID or Screenshot URL
+           txId: transactionIdentifier, // Save TXID or Screenshot URL
+           
+           // Snapshot metadata for unified currency parity
+           convertedAmount: details.localAmount,
+           exchangeRate: details.exchangeRate,
+           currency: details.currency || "USD"
          }
        })
 

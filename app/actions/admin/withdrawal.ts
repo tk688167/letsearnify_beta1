@@ -34,7 +34,11 @@ export async function getWithdrawalRequests() {
                 destinationAddress: r.destinationAddress,
                 method: r.method || "TRC20",
                 createdAt: r.createdAt,
-                user: r.user
+                user: r.user,
+                // Snapshots
+                convertedAmount: r.convertedAmount,
+                exchangeRate: r.exchangeRate,
+                currency: r.currency
             })),
             ...merchantRequests.map(r => ({
                 id: r.id,
@@ -45,7 +49,11 @@ export async function getWithdrawalRequests() {
                 destinationAddress: `${r.accountName} (${r.accountNumber}) - ${r.currency}`,
                 method: `Merchant (${r.countryCode})`,
                 createdAt: r.createdAt,
-                user: r.user
+                user: r.user,
+                // Snapshots
+                convertedAmount: r.convertedAmount,
+                exchangeRate: r.exchangeRate,
+                currency: r.currency
             }))
         ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 

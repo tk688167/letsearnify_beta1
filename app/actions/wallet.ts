@@ -40,7 +40,17 @@ export async function submitDeposit(formData: FormData) {
     try {
         console.log(`[SubmitDeposit] Processing for User: ${session.user.id}, TXID: ${txId}, Amount: ${amount}`);
         
-        const result = await deposit(amount, "CRYPTO", { network, txHash: txId });
+        const localAmount = formData.get("localAmount") ? parseFloat(formData.get("localAmount") as string) : undefined;
+        const currency = formData.get("currency") as string;
+        const exchangeRate = formData.get("exchangeRate") ? parseFloat(formData.get("exchangeRate") as string) : undefined;
+
+        const result = await deposit(amount, "CRYPTO", { 
+            network, 
+            txHash: txId,
+            localAmount,
+            currency,
+            exchangeRate
+        });
         
         if (result.success) {
              revalidatePath("/dashboard/wallet");
@@ -181,6 +191,10 @@ export async function submitWithdrawal(formData: FormData) {
             }
         }
 
+        const localAmount = formData.get("localAmount") ? parseFloat(formData.get("localAmount") as string) : undefined;
+        const cur = (formData.get("currency") as string) || "USD";
+        const rate = formData.get("exchangeRate") ? parseFloat(formData.get("exchangeRate") as string) : 1.0;
+
         // 3. Create Withdrawal Request & Update Timer
         await prisma.$transaction([
             prisma.transaction.create({
@@ -192,7 +206,12 @@ export async function submitWithdrawal(formData: FormData) {
                     method: network,
                     // @ts-ignore
                     destinationAddress: address,
-                    description: `Withdrawal to ${address}`
+                    description: `Withdrawal to ${address}`,
+
+                    // Snapshot metadata for unified parity
+                    convertedAmount: localAmount,
+                    exchangeRate: rate,
+                    currency: cur
                 }
             }),
             prisma.user.update({
