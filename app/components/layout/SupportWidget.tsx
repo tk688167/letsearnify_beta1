@@ -49,7 +49,7 @@ export default function SupportWidget() {
   }
 
   const handleEmail = () => {
-    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=Support Request&body=Hi Support Team,`
+    window.open(`mailto:${SUPPORT_EMAIL}?subject=Support Request&body=Hi Support Team,`, '_self')
   }
 
   const { data: inboxData, mutate: mutateInbox } = useSWR(isOpen && session ? "/api/support/chat/conversations" : null, fetcher)
