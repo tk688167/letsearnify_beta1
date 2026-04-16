@@ -247,20 +247,23 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
              className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-4 text-white shadow-lg shadow-blue-500/20"
           >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none"></div>
-              <div className="relative z-10 flex justify-between items-start">
-                  <div>
-                      <h3 className="text-blue-200 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 mb-1">
-                          <StarIcon className="w-3 h-3"/> Total ARN Balance
-                      </h3>
-                      <div className="text-3xl font-bold font-serif tracking-tight leading-none mb-1">
-                          {((user?.balance || 0) * 10).toFixed(2)} <span className="text-sm text-blue-200 font-sans">ARN</span>
-                      </div>
-                      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded-lg border border-white/10 backdrop-blur-sm">
-                          <span className="text-[10px] font-bold text-blue-100">≈ {formatCurrency(user?.balance || 0)}</span>
-                      </div>
+              <div className="relative z-10 flex flex-col items-center text-center py-2">
+                  <div className="p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 mb-4 shadow-inner">
+                      <SparklesIcon className="w-6 h-6 text-yellow-300 animate-pulse"/>
                   </div>
-                  <div className="p-1.5 bg-white/10 rounded-lg backdrop-blur-sm border border-white/10">
-                      <SparklesIcon className="w-4 h-4 text-yellow-300"/>
+                  
+                  <h3 className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
+                      <StarIcon className="w-4 h-4 text-blue-300"/> Total ARN Balance
+                  </h3>
+                  
+                  <div className="text-4xl sm:text-5xl font-black font-serif tracking-tighter leading-none mb-4 text-white drop-shadow-sm">
+                      {((user?.balance || 0) * 10).toFixed(2)} <span className="text-lg text-blue-200/80 font-sans font-black tracking-normal">ARN</span>
+                  </div>
+                  
+                  <div className="inline-flex flex-col items-center gap-1 px-8 py-3.5 bg-white/10 rounded-[2rem] border border-white/20 backdrop-blur-xl shadow-2xl relative group overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                      <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest opacity-60">Estimated {userCurrency} Value</span>
+                      <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">≈ {formatCurrency(user?.balance || 0)}</span>
                   </div>
               </div>
           </motion.div>
