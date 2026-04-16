@@ -1418,7 +1418,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                           <tr key={tx.id || i} className="hover:bg-muted/30 transition-colors">
                               <td className="px-4 py-4"><div className="flex items-center gap-3"><div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-sm">{d.typeDisplay}</div><div className="text-xs text-muted-foreground truncate max-w-[250px] lg:max-w-xs">{tx.description || tx.method || "System Transaction"}</div></div></div></td>
                               <td className="px-4 py-4 whitespace-nowrap"><div className="text-sm text-foreground font-medium" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()}</div><div className="text-[10px] text-muted-foreground uppercase tracking-widest" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleTimeString()}</div></td>
-                              <td className="px-4 py-4 text-right whitespace-nowrap"><div className={cn("text-sm font-black", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)} USD</div></td>
+                              <td className="px-4 py-4 text-right whitespace-nowrap">
+                                  <div className={cn("text-sm font-black", d.amountColor)}>
+                                      {d.prefix}{((tx.amount || 0) * (rates['PKR'] || 1)).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-[10px]">PKR</span>
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground font-bold opacity-60">
+                                      ≈ ${(tx.amount || 0).toFixed(2)}
+                                  </div>
+                              </td>
                               <td className="px-4 py-4 text-right"><span className={cn("inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></td>
                           </tr>
                       ) })}
@@ -1434,7 +1441,14 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                       <div key={tx.id || i} className="p-3.5 bg-card hover:bg-muted/20 transition-colors">
                           <div className="flex items-center justify-between gap-2 mb-2">
                               <div className="flex items-center gap-2.5 min-w-0"><div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", d.iconBg)}>{d.icon}</div><div className="min-w-0"><div className="font-bold text-foreground text-xs leading-tight truncate">{d.typeDisplay}</div><div className="text-[10px] text-muted-foreground leading-tight line-clamp-1">{tx.description || tx.method || "System Transaction"}</div></div></div>
-                              <div className="text-right shrink-0"><div className={cn("text-sm font-black leading-tight", d.amountColor)}>{d.prefix}${(tx.amount || 0).toFixed(2)}</div></div>
+                              <div className="text-right shrink-0">
+                                  <div className={cn("text-xs sm:text-sm font-black leading-tight", d.amountColor)}>
+                                      {d.prefix}{((tx.amount || 0) * (rates['PKR'] || 1)).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PKR
+                                  </div>
+                                  <div className="text-[9px] text-muted-foreground font-bold opacity-60 leading-none mt-0.5">
+                                      ≈ ${(tx.amount || 0).toFixed(2)}
+                                  </div>
+                              </div>
                           </div>
                           <div className="flex items-center justify-between gap-2"><div className="text-[10px] text-muted-foreground" suppressHydrationWarning>{new Date(tx.createdAt).toLocaleDateString()} ┬╖ {new Date(tx.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div><span className={cn("inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border", tx.status === 'COMPLETED' ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800" : tx.status === 'FAILED' ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800")}>{tx.status}</span></div>
                       </div>
