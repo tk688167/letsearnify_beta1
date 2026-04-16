@@ -350,7 +350,7 @@ export async function deposit(
            convertedAmount: details.localAmount,
            exchangeRate: details.exchangeRate,
            currency: details.currency || "USD"
-         }
+         } as any
        })
 
     // Remove Automatic Balance Update

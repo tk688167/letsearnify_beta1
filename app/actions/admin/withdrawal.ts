@@ -25,7 +25,7 @@ export async function getWithdrawalRequests() {
 
         // Map to a common format
         const unified = [
-            ...cryptoRequests.map(r => ({
+            ...cryptoRequests.map((r: any) => ({
                 id: r.id,
                 userId: r.userId,
                 amount: r.amount,
@@ -40,7 +40,7 @@ export async function getWithdrawalRequests() {
                 exchangeRate: r.exchangeRate,
                 currency: r.currency
             })),
-            ...merchantRequests.map(r => ({
+            ...merchantRequests.map((r: any) => ({
                 id: r.id,
                 userId: r.userId,
                 amount: r.amount,

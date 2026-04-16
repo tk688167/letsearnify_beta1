@@ -402,10 +402,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                    accountName 
                }) 
            }
+        }
+
         if (res?.success) { 
           const isMerchant = (activeTab === "deposit" && depositMethod === "MERCHANT") || (activeTab === "withdraw" && withdrawalMethod === "MERCHANT")
           if (isMerchant) {
-            // Close modal and show toast — balance won't change until admin approves
             closeMerchantModal()
             toast.success(
               activeTab === "deposit"
@@ -415,15 +416,19 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
             )
             router.refresh()
           } else {
-            setMessage({ type: 'success', text: res.message || "Deposit submitted! Pending admin verification — your balance will be credited after approval." })
+            setMessage({ type: 'success', text: res.message || "Deposit/Withdrawal submitted! Pending admin verification." })
             setAmount(""); setTxHash(""); setScreenshot(null); setDetails("")
-            if (activeTab === "deposit") setBalance((curr: number) => curr + val)
             router.refresh()
           }
+        } else {
+            setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." })
         }
-        else { setMessage({ type: 'error', text: res?.message || res?.error || "Transaction failed." }) }
-      } catch (err: any) { setMessage({ type: 'error', text: err.message || "Transaction failed." }) }
-      finally { setSubmissionIntent(null) }
+      } catch (err: any) {
+        console.error("Wallet Action Error:", err);
+        setMessage({ type: 'error', text: err.message || "Transaction failed." })
+      } finally {
+        setSubmissionIntent(null)
+      }
     })
   }
 

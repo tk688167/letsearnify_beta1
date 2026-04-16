@@ -212,7 +212,7 @@ export async function submitWithdrawal(formData: FormData) {
                     convertedAmount: localAmount,
                     exchangeRate: rate,
                     currency: cur
-                }
+                } as any
             }),
             prisma.user.update({
                 where: { id: session.user.id },
