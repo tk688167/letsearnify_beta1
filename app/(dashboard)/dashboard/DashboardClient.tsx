@@ -152,7 +152,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   const tierColor = TIER_COLORS[nextTier] || "from-indigo-500 to-purple-500";
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-10 pb-24">
+    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-4 md:space-y-10 pb-24">
       
       {/* ═══ DASHBOARD HERO HEADER ═══ */}
       <motion.div
@@ -168,9 +168,9 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
 
-        <div className="relative z-10 px-5 sm:px-10 py-6 sm:py-10 text-center">
+        <div className="relative z-10 px-5 sm:px-10 py-4 sm:py-10 text-center">
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[9px] sm:text-xs font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-3 sm:mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[9px] sm:text-xs font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-2 sm:mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             Dashboard · Active
           </div>
@@ -179,13 +179,13 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
             Welcome back
           </p>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-4 sm:mb-5">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-2 sm:mb-5">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-blue-300">
               {user?.name || "Partner"}
             </span>
           </h1>
 
-          <div className="w-12 h-px bg-white/10 mx-auto mb-4" />
+          <div className="w-12 h-px bg-white/10 mx-auto mb-3 sm:mb-4" />
 
           <div className="flex items-center justify-center gap-1.5 flex-wrap">
             <div className={cn(
@@ -244,26 +244,26 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           <motion.div 
              initial={{ opacity: 0, y: 10 }}
              animate={{ opacity: 1, y: 0 }}
-             className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-4 text-white shadow-lg shadow-blue-500/20"
+             className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-3 sm:p-4 text-white shadow-lg shadow-blue-500/20"
           >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none"></div>
-              <div className="relative z-10 flex flex-col items-center text-center py-2">
-                  <div className="p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 mb-4 shadow-inner">
-                      <SparklesIcon className="w-6 h-6 text-yellow-300 animate-pulse"/>
+              <div className="relative z-10 flex flex-col items-center text-center py-1 sm:py-2">
+                  <div className="p-1.5 sm:p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 mb-2 sm:mb-4 shadow-inner">
+                      <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse"/>
                   </div>
                   
-                  <h3 className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mb-3">
-                      <StarIcon className="w-4 h-4 text-blue-300"/> Total ARN Balance
+                  <h3 className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mb-1.5 sm:mb-3">
+                      <StarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300"/> Total ARN Balance
                   </h3>
                   
-                  <div className="text-4xl sm:text-5xl font-black font-serif tracking-tighter leading-none mb-4 text-white drop-shadow-sm">
-                      {((user?.balance || 0) * 10).toFixed(2)} <span className="text-lg text-blue-200/80 font-sans font-black tracking-normal">ARN</span>
+                  <div className="text-3xl sm:text-5xl font-black font-serif tracking-tighter leading-none mb-3 sm:mb-4 text-white drop-shadow-sm">
+                      {((user?.balance || 0) * 10).toFixed(2)} <span className="text-base sm:text-lg text-blue-200/80 font-sans font-black tracking-normal">ARN</span>
                   </div>
                   
-                  <div className="inline-flex flex-col items-center gap-1 px-8 py-3.5 bg-white/10 rounded-[2rem] border border-white/20 backdrop-blur-xl shadow-2xl relative group overflow-hidden">
+                  <div className="inline-flex flex-col items-center gap-0.5 sm:gap-1 px-6 sm:px-8 py-2 sm:py-3.5 bg-white/10 rounded-[2rem] border border-white/20 backdrop-blur-xl shadow-2xl relative group overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest opacity-60">Estimated {userCurrency} Value</span>
-                      <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">≈ {formatCurrency(user?.balance || 0)}</span>
+                      <span className="text-[9px] sm:text-[10px] font-black text-blue-200 uppercase tracking-widest opacity-60">Estimated {userCurrency} Value</span>
+                      <span className="text-xl sm:text-3xl font-black text-white tracking-tight">≈ {formatCurrency(user?.balance || 0)}</span>
                   </div>
               </div>
           </motion.div>
