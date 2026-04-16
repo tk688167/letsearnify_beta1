@@ -68,11 +68,15 @@ export default function SupportWidget() {
     setView('CHAT')
   }
 
-  // Visibility Logic: Hide on Landing Page, Admin Portal, and for Guests
+  // Visibility Logic: Hide on Landing Page, Admin Portal, Auth Pages, and for Guests
   const isPublicPage = pathname === "/"
   const isAdminPage = pathname.startsWith("/admin")
+  const isAuthPage = pathname.startsWith("/login") || 
+                   pathname.startsWith("/signup") || 
+                   pathname.startsWith("/forgot-password") || 
+                   pathname.startsWith("/verify-email")
 
-  if (!session || isPublicPage || isAdminPage) {
+  if (!session || isPublicPage || isAdminPage || isAuthPage) {
     return null
   }
 
