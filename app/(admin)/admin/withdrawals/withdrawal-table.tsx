@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { processWithdrawal } from "@/app/actions/admin/withdrawal"
 import { CheckCircleIcon, XCircleIcon, ClockIcon } from "@heroicons/react/24/outline"
+import { formatCurrency } from "@/lib/utils"
 
 export default function WithdrawalTable({ requests }: { requests: any[] }) {
     const [isPending, startTransition] = useTransition()
@@ -54,13 +55,13 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                     <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{req.method}</div>
                                 </div>
                                 <div className="text-right">
-                                     <div className="font-bold text-gray-900 dark:text-white text-lg">${req.amount.toFixed(2)}</div>
+                                     <div className="font-bold text-gray-900 dark:text-white text-lg">{formatCurrency(req.amount)}</div>
                                      {req.convertedAmount && (
                                          <div className="text-[11px] text-gray-500 dark:text-slate-500 font-medium">
-                                             {req.convertedAmount.toLocaleString()} {req.currency}
+                                             {formatCurrency(req.convertedAmount, req.currency)}
                                          </div>
                                      )}
-                                     <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bal: ${req.user.balance.toFixed(2)}</div>
+                                     <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Bal: {formatCurrency(req.user.balance)}</div>
                                 </div>
                              </div>
 
@@ -129,14 +130,14 @@ export default function WithdrawalTable({ requests }: { requests: any[] }) {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 font-mono text-gray-600 dark:text-slate-400 text-xs">
-                                            ${req.user.balance.toFixed(2)}
+                                            {formatCurrency(req.user.balance)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-gray-900 dark:text-white font-bold">${req.amount.toFixed(2)}</span>
+                                                <span className="text-gray-900 dark:text-white font-bold">{formatCurrency(req.amount)}</span>
                                                 {req.convertedAmount && (
                                                     <span className="text-[10px] text-gray-500 dark:text-slate-500 font-medium leading-none mt-1">
-                                                        {req.convertedAmount.toLocaleString()} {req.currency}
+                                                        {formatCurrency(req.convertedAmount, req.currency)}
                                                     </span>
                                                 )}
                                                 {req.exchangeRate && (

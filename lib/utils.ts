@@ -8,10 +8,22 @@ export function cn(...inputs: ClassValue[]) {
 export const ARN_EXCHANGE_RATE = 10;
 
 
-export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+export function formatCurrency(amount: number, currency: string = "USD") {
+  const getLocales = (cur: string) => {
+    switch (cur.toUpperCase()) {
+      case 'PKR': return 'en-PK';
+      case 'INR': return 'en-IN';
+      case 'AED': return 'en-AE';
+      case 'BDT': return 'en-BD';
+      default: return 'en-US';
+    }
+  }
+
+  return new Intl.NumberFormat(getLocales(currency), {
     style: "currency",
-    currency: "PKR",
+    currency: currency.toUpperCase(),
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(amount)
 }
 

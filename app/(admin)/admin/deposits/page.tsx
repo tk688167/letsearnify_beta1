@@ -7,6 +7,7 @@ import Link from "next/link"
 import ImagePreviewToggle from "./ImagePreviewToggle"
 import { MerchantDepositsClient } from "../merchant/deposits/client"
 import DepositActionButtons from "./DepositActionButtons"
+import { formatCurrency } from "@/lib/utils"
 
 export default async function AdminDepositsPage(props: any) {
     const session = await auth();
@@ -117,10 +118,10 @@ export default async function AdminDepositsPage(props: any) {
                                     <div className="text-xs text-gray-400 dark:text-slate-500">{d.user.email}</div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-green-600 dark:text-green-400 font-bold text-sm">${d.amount.toFixed(2)}</div>
+                                    <div className="text-green-600 dark:text-green-400 font-bold text-sm">{formatCurrency(d.amount)}</div>
                                     {d.convertedAmount && (
                                         <div className="text-[10px] text-gray-500 dark:text-slate-500 font-medium">
-                                            {d.convertedAmount.toLocaleString()} {d.currency}
+                                            {formatCurrency(d.convertedAmount, d.currency)}
                                         </div>
                                     )}
                                 </div>
@@ -171,10 +172,10 @@ export default async function AdminDepositsPage(props: any) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-green-600 dark:text-green-400 font-bold">${d.amount.toFixed(2)}</span>
+                                                <span className="text-green-600 dark:text-green-400 font-bold">{formatCurrency(d.amount)}</span>
                                                 {d.convertedAmount && (
                                                     <span className="text-[10px] text-gray-500 dark:text-slate-500 font-medium">
-                                                        {d.convertedAmount.toLocaleString()} {d.currency}
+                                                        {formatCurrency(d.convertedAmount, d.currency)}
                                                     </span>
                                                 )}
                                                 {d.exchangeRate && (

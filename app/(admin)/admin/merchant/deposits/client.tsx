@@ -153,7 +153,7 @@ export function MerchantDepositsClient({ transactions }: { transactions: any[] }
                         </div>
                         {tx.convertedAmount && (
                           <div className="text-xs text-muted-foreground font-mono" suppressHydrationWarning>
-                            {tx.convertedAmount.toLocaleString()} {tx.currency}
+                            {formatCurrency(tx.convertedAmount, tx.currency)}
                           </div>
                         )}
                       </div>
