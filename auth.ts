@@ -148,7 +148,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
                         activeMembers: 0,
                         totalDeposit: 0.0,
                         isActiveMember: false,
-                        currency: "USD",
+                        currency: "PKR",
                         role: "USER"
                     }
                 })
