@@ -23,6 +23,7 @@ import {
 import { TIER_COMMISSIONS } from "@/lib/mlm-constants"
 import { format, subDays, startOfDay, isAfter } from "date-fns"
 import { calculateTierProgress } from "@/lib/utils"
+import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
 // --- TYPES ---
 type ReferralNode = {
@@ -83,6 +84,7 @@ type ReferralViewProps = {
 type TimeFilter = 'TODAY' | '7D' | '1M' | 'CUSTOM'
 
 export default function ReferralView({ user, stats, referralTree, commissions, tierConfig }: ReferralViewProps) {
+  const { formatCurrency } = useCurrency()
   const [copiedLink, setCopiedLink] = useState(false)
   const [copiedCode, setCopiedCode] = useState(false)
   const [activeLevelTab, setActiveLevelTab] = useState<number | 'ALL'>('ALL')
@@ -238,7 +240,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                 <p className="text-[9px] sm:text-xs font-bold uppercase tracking-widest text-emerald-100 truncate w-full">Total Earnings</p>
               </div>
               <div>
-                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black truncate w-full leading-tight mt-1 sm:mt-0">${stats.totalEarnings.toFixed(2)}</h3>
+                <h3 className="text-xl sm:text-3xl lg:text-4xl font-black truncate w-full leading-tight mt-1 sm:mt-0">{formatCurrency(stats.totalEarnings)}</h3>
                 <p className="text-[9px] sm:text-xs font-medium text-emerald-100 mt-1 sm:mt-1 truncate w-full">Lifetime partner revenue</p>
               </div>
             </div>
@@ -252,7 +254,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
               </div>
               <div>
                 <h3 className="text-xl sm:text-3xl lg:text-4xl font-black text-foreground truncate w-full leading-tight mt-1 sm:mt-0">
-                    ${stats.todayEarnings.toFixed(2)}
+                    {formatCurrency(stats.todayEarnings)}
                 </h3>
                 <p className="text-[9px] sm:text-xs font-medium text-muted-foreground mt-1 sm:mt-1 flex items-center gap-1 truncate w-full">
                    {stats.todayEarnings > 0 ? <><SparklesIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-500 shrink-0" /> <span className="truncate">Great job today!</span></> : <span className="truncate">Keep growing.</span>}
@@ -309,7 +311,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-bold flex items-center gap-2"><UserGroupIcon className="w-4 h-4 text-purple-500" /> Active Network</h3>
               <div className="px-2 py-1 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black rounded-lg border border-purple-100 dark:border-purple-500/20">
-                 ${totalCommissionAmount.toFixed(2)} Total
+                 {formatCurrency(totalCommissionAmount)} Total
               </div>
             </div>
             
@@ -325,7 +327,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                          <div className={`w-2 h-2 rounded-full ${lvl.bg} shadow-[0_0_8px_rgba(0,0,0,0.2)]`} />
                          <div>
                             <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">{lvl.label}</p>
-                            <p className={`text-sm font-black ${lvl.text}`}>${lvl.earned.toFixed(2)} Earned</p>
+                             <p className={`text-sm font-black ${lvl.text}`}>{formatCurrency(lvl.earned)} Earned</p>
                          </div>
                        </div>
                        <div className="text-right pl-3 border-l border-border/60">
@@ -453,7 +455,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              </div>
                              {(partner.isActiveMember || partner.lastUnlockAt) ? (
                                 <p className="text-xs sm:text-sm font-black text-foreground mt-1">
-                                  Earned: <span className="text-emerald-500">+${commissions.filter((c: any) => c.sourceUser?.id === partner.id).reduce((sum: number, c: any) => sum + c.amount, 0).toFixed(2)}</span>
+                                  Earned: <span className="text-emerald-500">+{formatCurrency(commissions.filter((c: any) => c.sourceUser?.id === partner.id).reduce((sum: number, c: any) => sum + c.amount, 0))}</span>
                                 </p>
                              ) : (
                                 <p className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">
@@ -547,7 +549,7 @@ export default function ReferralView({ user, stats, referralTree, commissions, t
                              <div className="w-px h-6 bg-border" />
                              <div className="flex flex-col items-center">
                                  <span className="text-[9px] uppercase tracking-wider">Earned</span>
-                                 <span className="font-bold text-emerald-500">${commissions.filter((c: any) => c.sourceUser?.id === selectedPartner.id).reduce((sum: number, c: any) => sum + c.amount, 0).toFixed(2)}</span>
+                                 <span className="font-bold text-emerald-500">{formatCurrency(commissions.filter((c: any) => c.sourceUser?.id === selectedPartner.id).reduce((sum: number, c: any) => sum + c.amount, 0))}</span>
                              </div>
                          </div>
                      </div>
