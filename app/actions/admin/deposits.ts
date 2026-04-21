@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { finalizeDeposit } from "@/lib/mlm"
+import { createNotification } from "@/lib/notifications"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // approveDeposit — looks up by transaction UUID (id), NOT by txId.
@@ -88,6 +89,15 @@ export async function approveDeposit(transactionId: string) {
                 }
             });
             console.log("[ApproveDeposit] Admin log created");
+
+            // 5. Notify User
+            await createNotification(
+                tx.userId,
+                "Deposit Approved",
+                `Your ${tx.method} deposit of $${depositAmount.toFixed(2)} has been successfully credited to your main wallet.`,
+                "TRANSACTION"
+            );
+
         }, { maxWait: 5000, timeout: 15000 });
 
         revalidatePath("/admin/deposits")
@@ -158,6 +168,14 @@ export async function rejectDeposit(transactionId: string, reason: string) {
                 }
             });
             console.log("[RejectDeposit] Rejection logged and transaction updated.");
+
+            await createNotification(
+                tx.userId,
+                "Deposit Rejected",
+                `Your ${tx.method} deposit of $${tx.amount.toFixed(2)} was rejected. Reason: ${reason}`,
+                "TRANSACTION"
+            );
+
         }, { maxWait: 5000, timeout: 15000 });
 
         revalidatePath("/admin/deposits")

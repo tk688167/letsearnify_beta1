@@ -15,6 +15,7 @@ import { addUserPoints } from "@/lib/mlm"
 import { SpinReward } from "@/lib/spin-config"
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
 import { cookies } from "next/headers"
+import { createNotification } from "@/lib/notifications"
 
 export async function executeSpin(type: "FREE" | "PREMIUM") {
     try {
@@ -265,6 +266,16 @@ export async function executeSpin(type: "FREE" | "PREMIUM") {
                     description: logDescription
                 }
             })
+
+            // Trigger Notification for Wins
+            if (selectedReward!.type !== "EMPTY" && selectedReward!.type !== "TRY_AGAIN") {
+                await createNotification(
+                    userId,
+                    "Spin Reward Incoming! 🎁",
+                    logDescription,
+                    "REWARD"
+                );
+            }
         })
 
         revalidatePath("/dashboard/spin")

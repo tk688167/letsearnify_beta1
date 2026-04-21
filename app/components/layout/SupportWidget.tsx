@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
   XMarkIcon, 
@@ -36,6 +36,7 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
 export default function SupportWidget() {
   const { data: session } = useSession()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(false)
   const [view, setView] = useState<'MENU' | 'INBOX' | 'CHAT'>('MENU')
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
@@ -75,8 +76,9 @@ export default function SupportWidget() {
                    pathname.startsWith("/signup") || 
                    pathname.startsWith("/forgot-password") || 
                    pathname.startsWith("/verify-email")
+  const isAgentContext = searchParams.get("agent") === "true"
 
-  if (!session || isPublicPage || isAdminPage || isAuthPage) {
+  if (!session || isPublicPage || isAdminPage || isAuthPage || isAgentContext) {
     return null
   }
 

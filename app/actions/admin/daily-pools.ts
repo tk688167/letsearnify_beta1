@@ -1,14 +1,13 @@
 "use server"
 
 import { auth } from "@/auth"
-import { executeDailyPoolDistribution } from "@/lib/daily-pool"
+import { executeForwardAdjustment, executeReverseAdjustment } from "@/lib/daily-pool"
 import { revalidatePath } from "next/cache"
 
 /**
- * Server Action for Admins to manually trigger the Daily Pool Profit Distribution.
- * This skips the CRON_SECRET check as it's protected by Admin session.
+ * Server Action for Admins to safely simulate a +1 Day Forward Adjustment.
  */
-export async function triggerDailyPoolDistribution() {
+export async function triggerForwardAdjustment() {
     try {
         const session = await auth()
         
@@ -17,10 +16,10 @@ export async function triggerDailyPoolDistribution() {
             return { success: false, message: "Unauthorized. Admin access required." }
         }
 
-        console.log(`[Admin Action] Manual Daily Pool Distribution triggered by ${session.user.email}`);
+        console.log(`[Admin Action] FORWARD ADJUSTMENT (+1 Day) triggered by ${session.user.email}`);
 
-        // 2. Execute Shared Logic
-        const result = await executeDailyPoolDistribution()
+        // 2. Execute Logic
+        const result = await executeForwardAdjustment()
 
         // 3. Revalidate Admin and User pages
         revalidatePath("/admin/daily-pools")
@@ -29,21 +28,20 @@ export async function triggerDailyPoolDistribution() {
 
         return { 
             success: true, 
-            message: `Successfully processed ${result.calculatedCount} pools and ${result.expiredCount} expiries. Total profit distributed: $${result.totalProfitDistributed.toFixed(2)}`,
+            message: `Forward Adjustment (+1 Day) successful. Processed ${result.calculatedCount} pools. Total distributed: $${result.totalProfitDistributed.toFixed(2)}`,
             data: result
         }
 
     } catch (error: any) {
-        console.error("Admin Action Error (Daily Pool):", error)
-        return { success: false, message: error.message || "Failed to execute distribution." }
+        console.error("Admin Action Error (Forward Adjustment):", error)
+        return { success: false, message: error.message || "Failed to execute forward adjustment." }
     }
 }
 
 /**
- * Server Action for Admins to forcefully synchronize and backfill Daily Profits.
- * Ignores the 24h cooldown and correctly credits all missed days in one batch.
+ * Server Action for Admins to safely simulate a -1 Day Reverse Rollback.
  */
-export async function triggerDailyPoolBackfill() {
+export async function triggerReverseAdjustment() {
     try {
         const session = await auth()
         
@@ -52,10 +50,10 @@ export async function triggerDailyPoolBackfill() {
             return { success: false, message: "Unauthorized. Admin access required." }
         }
 
-        console.log(`[Admin Action] PROFIT BACKFILL triggered by ${session.user.email}`);
+        console.log(`[Admin Action] REVERSE ADJUSTMENT (-1 Day) triggered by ${session.user.email}`);
 
-        // 2. Execute with Force Mode
-        const result = await executeDailyPoolDistribution({ force: true })
+        // 2. Execute Logic
+        const result = await executeReverseAdjustment()
 
         // 3. Revalidate Admin and User pages
         revalidatePath("/admin/daily-pools")
@@ -64,12 +62,12 @@ export async function triggerDailyPoolBackfill() {
 
         return { 
             success: true, 
-            message: `Synchronization complete. Backfilled ${result.calculatedCount} pools. Total Profit Credited: $${result.totalProfitDistributed.toFixed(2)}`,
+            message: result.message,
             data: result
         }
 
     } catch (error: any) {
-        console.error("Admin Backfill Error:", error)
-        return { success: false, message: error.message || "Failed to execute backfill." }
+        console.error("Admin Reverse Error:", error)
+        return { success: false, message: error.message || "Failed to execute reverse adjustment." }
     }
 }

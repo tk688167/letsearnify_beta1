@@ -12,7 +12,13 @@ export async function GET() {
     const [user, activeInvestments] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { balance: true, dailyEarningWallet: true }
+        select: { 
+            balance: true, 
+            dailyEarningWallet: true,
+            referrer: {
+                select: { referralCode: true }
+            }
+        }
       }),
       prisma.dailyEarningInvestment.findMany({
         where: { userId: session.user.id },
@@ -23,7 +29,8 @@ export async function GET() {
     return NextResponse.json({ 
       walletBalance: user?.balance || 0,
       dailyEarningWallet: user?.dailyEarningWallet || 0,
-       activeInvestments 
+      isUnattached: !user?.referrer || user.referrer.referralCode === "COMPANY",
+      activeInvestments 
     })
   } catch (error) {
     console.error("Fetch Daily Earning Error:", error)

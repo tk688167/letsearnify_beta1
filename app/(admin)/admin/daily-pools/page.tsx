@@ -11,15 +11,35 @@ export default async function DailyPoolsAdminPage() {
         include: {
             user: {
                 select: {
+                    id: true,
                     name: true,
                     email: true,
                     memberId: true,
                     image: true,
+                    poolInvestorShare: true,
+                    poolReferrerShare: true,
+                    referrer: {
+                        select: {
+                            name: true,
+                            email: true,
+                            referralCode: true
+                        }
+                    }
                 }
             }
         },
         orderBy: { createdAt: 'desc' }
     })
+
+    // Fetch separate Company Referral Earnings
+    const companyEarningsAgg = await prisma.referralCommission.aggregate({
+        where: {
+            earner: { referralCode: 'COMPANY' },
+            category: "DAILY_POOL"
+        },
+        _sum: { amount: true }
+    })
+    const companyEarnings = companyEarningsAgg._sum.amount || 0
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
@@ -37,7 +57,7 @@ export default async function DailyPoolsAdminPage() {
                 </div>
             </div>
 
-            <DailyPoolsAdminClient pools={pools} />
+            <DailyPoolsAdminClient pools={pools} companyEarnings={companyEarnings} />
         </div>
     )
 }

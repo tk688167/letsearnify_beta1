@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect, Suspense, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 
-import { useSearchParams, useRouter } from "next/navigation"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { uploadFileFromClient } from "@/lib/upload-client"
@@ -102,6 +102,7 @@ export default function WalletClient({ user, transactions, platformWallets, merc
 
 function WalletContent({ user, transactions, platformWallets, merchantSettings }: { user: any, transactions: any[], platformWallets: any[], merchantSettings: any[] }) {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get("tab")
   
@@ -152,6 +153,22 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [submissionIntent, setSubmissionIntent] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [isUnlocking, setIsUnlocking] = useState(false)
+
+  // Context-Aware Visibility Logic: Sync "Local Agent" state with URL
+  useEffect(() => {
+    const isAgentActive = merchantModalOpen || depositMethod === "MERCHANT" || withdrawalMethod === "MERCHANT";
+    const currentParams = new URLSearchParams(searchParams.toString());
+    const hasAgentParam = currentParams.get("agent") === "true";
+
+    if (isAgentActive && !hasAgentParam) {
+      currentParams.set("agent", "true");
+      router.replace(`${pathname}?${currentParams.toString()}`, { scroll: false });
+    } else if (!isAgentActive && hasAgentParam) {
+      currentParams.delete("agent");
+      const newQuery = currentParams.toString();
+      router.replace(`${pathname}${newQuery ? `?${newQuery}` : ""}`, { scroll: false });
+    }
+  }, [merchantModalOpen, depositMethod, withdrawalMethod, pathname, router, searchParams]);
 
   const [isOnCooldown, setIsOnCooldown] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null)

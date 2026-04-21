@@ -269,8 +269,9 @@ export async function distributeCommissions(sourceUserId: string, amount: number
             await db.referralCommission.create({
                 data: {
                     earnerId: uplineId, sourceUserId: sourceUserId,
-                    amount: commissionUSD, level: level, percentage: rate
-                }
+                    amount: commissionUSD, level: level, percentage: rate,
+                    category: "MLM"
+                } as any
             });
 
             await db.transaction.create({
@@ -350,8 +351,9 @@ export async function distributeActivationCommissions(sourceUserId: string, db: 
             await db.referralCommission.create({
                 data: {
                     earnerId: uplineId, sourceUserId: sourceUserId,
-                    amount: amountUSD, level: level, percentage: rate
-                }
+                    amount: amountUSD, level: level, percentage: rate,
+                    category: "MLM"
+                } as any
             });
 
             await db.transaction.create({

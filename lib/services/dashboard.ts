@@ -45,6 +45,7 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
               activeMembers: true,
               unlockExpiry: true,
               lastActivityAt: true,
+              createdAt: true,
             }
           }),
           prisma.pool.findMany(),

@@ -26,6 +26,7 @@ import {
 import { Session } from "next-auth"
 import { signOut } from "next-auth/react"
 import Logo from "@/app/components/ui/Logo" 
+import NotificationBell from "./NotificationBell"
 
 export default function MobileNav({ session, isActiveMember }: { session: Session | null, isActiveMember: boolean }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -81,8 +82,8 @@ export default function MobileNav({ session, isActiveMember }: { session: Sessio
       {/* Mobile Header - Refined */}
       <header className="sticky top-0 z-[60] bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex justify-between items-center md:hidden h-[64px] transition-colors duration-300 relative">
          
-         {/* Left Side: Menu Trigger */}
-         <div className="flex items-center z-10">
+         {/* Left Side: Menu Trigger + Theme Toggle */}
+         <div className="flex items-center gap-2 z-10">
             {/* Modern Menu Trigger */}
             <button 
               onClick={toggleMenu}
@@ -90,6 +91,9 @@ export default function MobileNav({ session, isActiveMember }: { session: Sessio
             >
                <Bars3BottomLeftIcon className="w-5 h-5" />
             </button>
+            <div className="scale-[0.70] origin-left">
+               <ThemeToggle />
+            </div>
          </div>
 
          {/* Center: Logo (Absolutely positioned for perfect visual centering) */}
@@ -97,11 +101,10 @@ export default function MobileNav({ session, isActiveMember }: { session: Sessio
             <Logo size="md" />
          </div>
 
-         {/* Right Side: Theme Toggle + Interactive Profile Icon */}
-         <div className="flex items-center gap-2 z-10">
-            <div className="scale-[0.8] origin-right">
-               <ThemeToggle />
-            </div>
+         {/* Right Side: Interactive Profile Icon & Notifications */}
+         <div className="flex items-center gap-1.5 z-10">
+
+            <NotificationBell />
 
             <div className="relative" ref={profileRef}>
                <button 

@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { createNotification } from "@/lib/notifications"
 
 export async function getWithdrawalRequests() {
     const session = await auth();
@@ -127,6 +128,13 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
                 });
             });
 
+            await createNotification(
+                userId,
+                "Withdrawal Rejected",
+                `Your withdrawal request of $${amount.toFixed(2)} was rejected. The USD balance and ARN tokens have been fully refunded.`,
+                "TRANSACTION"
+            );
+
             revalidatePath("/admin/withdrawals");
             return { success: true };
         }
@@ -156,6 +164,13 @@ export async function processWithdrawal(transactionId: string, action: "APPROVE"
                     }
                 });
             });
+
+            await createNotification(
+                userId,
+                "Withdrawal Approved",
+                `Your withdrawal of $${amount.toFixed(2)} was successfully processed to your ${isMerchant ? 'Local Agent' : 'Crypto'} account.`,
+                "TRANSACTION"
+            );
 
             revalidatePath("/admin/withdrawals");
             return { success: true };

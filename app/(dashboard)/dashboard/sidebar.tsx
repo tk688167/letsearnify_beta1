@@ -20,6 +20,7 @@ import {
 import { formatUserId } from "@/lib/utils"
 import Logo from "@/app/components/ui/Logo"
 import { SidebarNav } from "./SidebarNav"
+import NotificationBell from "./NotificationBell"
 
 export async function Sidebar({ session }: { session: any }) {
   let isActiveMember = false;
@@ -45,7 +46,10 @@ export async function Sidebar({ session }: { session: any }) {
         <div className="-ml-2">
           <Logo size="lg" />
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+           <NotificationBell />
+           <ThemeToggle />
+        </div>
       </div>
       <div className="px-8 -mt-2 mb-4">
         <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Beta Release</p>

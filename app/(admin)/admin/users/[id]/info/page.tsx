@@ -5,7 +5,7 @@ import Link from "next/link"
 import { 
   ArrowLeftIcon, BanknotesIcon, UserGroupIcon, 
   WalletIcon, DocumentTextIcon, CheckBadgeIcon,
-  ShoppingCartIcon, ArrowPathIcon, TrophyIcon, StarIcon, ShieldCheckIcon
+  ShoppingCartIcon, ArrowPathIcon, TrophyIcon, StarIcon, ShieldCheckIcon, Cog6ToothIcon
 } from "@heroicons/react/24/outline"
 import { format } from "date-fns"
 
@@ -160,6 +160,38 @@ export default async function AdminUserInfoPage({ params }: { params: Promise<{ 
              Joined: {format(user.createdAt, 'MMM d, yyyy')}
            </div>
         </div>
+      </div>
+      
+      {/* ----------------- SECTION 1.5: POOL SHARING SETTINGS (NEW) ----------------- */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border border-gray-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+            <Cog6ToothIcon className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Pool Profit Sharing</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Controls the 80/20 split between this investor and their referrer.</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-8 px-6 py-3 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border border-gray-100 dark:border-slate-800">
+          <div className="flex flex-col items-center">
+             <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">Investor Share</span>
+             <span className="text-xl font-black text-gray-900 dark:text-white">{user.poolInvestorShare ?? 80}%</span>
+          </div>
+          <div className="w-px h-10 bg-gray-200 dark:bg-slate-700" />
+          <div className="flex flex-col items-center">
+             <span className="text-[10px] font-bold text-purple-500 uppercase tracking-widest mb-1">Referrer Share</span>
+             <span className="text-xl font-black text-gray-900 dark:text-white">{user.poolReferrerShare ?? 20}%</span>
+          </div>
+        </div>
+
+        <Link 
+          href="/admin/daily-pools"
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition-all active:scale-95"
+        >
+          Manage in Daily Pools
+        </Link>
       </div>
 
       {/* ----------------- SECTION 2: FINANCIAL BALANCES ----------------- */}

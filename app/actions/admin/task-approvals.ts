@@ -4,6 +4,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { checkTierUpgrade } from "@/lib/mlm"
+import { createNotification } from "@/lib/notifications"
 
 export async function getPendingCompletions() {
     const session = await auth()
@@ -86,6 +87,13 @@ export async function approveTaskCompletion(completionId: string, remarks?: stri
         // Check tier upgrade (task ARN counts toward progress)
         await checkTierUpgrade(completion.userId)
 
+        await createNotification(
+            completion.userId,
+            "Task Approved! 🎉",
+            `Your submission for "${completion.task.title}" was approved. You earned ${(reward / 10).toFixed(2)} USD and ${reward} ARN.`,
+            "TASK"
+        )
+
         revalidatePath("/admin/tasks/approvals")
         revalidatePath("/dashboard")
         revalidatePath("/dashboard/tasks")
@@ -109,6 +117,20 @@ export async function rejectTaskCompletion(completionId: string, remarks?: strin
                 remarks: remarks || "Rejected by Admin"
             }
         })
+
+        const completion = await prisma.taskCompletion.findUnique({
+            where: { id: completionId },
+            include: { task: true }
+        })
+
+        if (completion) {
+            await createNotification(
+                completion.userId,
+                "Task Rejected",
+                `Your submission for "${completion.task.title}" was rejected. Remarks: ${remarks || "No remarks provided."}`,
+                "TASK"
+            )
+        }
 
         revalidatePath("/admin/tasks/approvals")
         revalidatePath("/dashboard/tasks")

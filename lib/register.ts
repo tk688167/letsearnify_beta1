@@ -63,25 +63,36 @@ export async function registerUser(formData: FormData) {
       }
     }
 
-    // Fallback to COMPANY
+    // Fallback to COMPANY (Strict Requirement)
     if (!validReferrer) {
         let companyReferrer = await prisma.user.findUnique({
             where: { referralCode: 'COMPANY' }
         })
         if (!companyReferrer) {
+            // First time initialization if needed
             try {
                 companyReferrer = await prisma.user.create({
                     data: {
-                        memberId: "0000000", name: "LetsEarnify Company",
+                        memberId: "0000000",
+                        name: "LetsEarnify Company",
                         email: "system@letsearnify.com",
                         password: await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin123", 10),
-                        referralCode: "COMPANY", role: "ADMIN", isActiveMember: true,
-                        tier: "EMERALD", tierStatus: "CURRENT", arnBalance: 0,
-                        activeMembers: 0, totalDeposit: 0.0, emailVerified: new Date(),
+                        referralCode: "COMPANY",
+                        role: "ADMIN",
+                        isActiveMember: true,
+                        tier: "EMERALD",
+                        tierStatus: "CURRENT",
+                        arnBalance: 0,
+                        activeMembers: 0,
+                        totalDeposit: 0.0,
+                        emailVerified: new Date(),
                     }
                 })
-            } catch (e) { console.error("[Register] COMPANY user create failed:", e) }
+            } catch (e) {
+                console.error("[Register] COMPANY user create failed:", e)
+            }
         }
+        
         if (companyReferrer) {
             validReferrer = companyReferrer
             validReferredByCode = 'COMPANY'

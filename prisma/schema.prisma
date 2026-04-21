@@ -51,9 +51,13 @@ model User {
   lastActivityAt          DateTime                 @default(now())
   lastLoginAt             DateTime?
   lockedBalance           Float                    @default(0.0)
+  poolInvestorShare       Float                    @default(80.0)
+  poolReferrerShare       Float                    @default(20.0)
   accounts                Account[]
   adminLogs               AdminLog[]               @relation("AdminTarget")
   cbspContributions       CbspContribution[]
+  chatConversations       ChatConversation[]
+  chatMessages            ChatMessage[]
   dailyEarningInvestments DailyEarningInvestment[]
   emailVerificationTokens EmailVerificationToken[]
   investments             Investment[]
@@ -68,6 +72,7 @@ model User {
   referralTree            ReferralTree?
   royaltyContributions    RoyaltyContribution[]
   sessions                Session[]
+  surpriseWins            SurpriseWinner[]
   tasks                   TaskCompletion[]
   transactions            Transaction[]
   unlockActivations       UnlockActivation[]
@@ -75,39 +80,50 @@ model User {
   referrals               User[]                   @relation("ReferralTree")
   visits                  Visit[]
   wallets                 Wallet?
-  surpriseWins            SurpriseWinner[]
-  chatMessages            ChatMessage[]
-  chatConversations       ChatConversation[]
+  notifications           UserNotification[]
 
   @@index([email])
   @@index([referralCode])
 }
 
-model ChatConversation {
-  id               String   @id @default(cuid())
-  userId           String
-  title            String   // Automated naming
-  status           String   @default("OPEN") // "OPEN" | "CLOSED"
-  unreadCountAdmin Int      @default(0)
-  unreadCountUser  Int      @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+model UserNotification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("GENERAL")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  ChatMessage[]
+
+  @@index([userId])
+}
+
+model ChatConversation {
+  id               String        @id @default(cuid())
+  userId           String
+  title            String
+  status           String        @default("OPEN")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  unreadCountAdmin Int           @default(0)
+  unreadCountUser  Int           @default(0)
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages         ChatMessage[]
 
   @@index([userId])
 }
 
 model ChatMessage {
-  id             String   @id @default(cuid())
-  conversationId String?
+  id             String            @id @default(cuid())
   userId         String?
-  message        String   @db.Text
-  sender         String   // "USER" | "ADMIN"
-  status         String   @default("UNREAD") // "UNREAD" | "READ"
-  createdAt      DateTime @default(now())
+  message        String
+  sender         String
+  status         String            @default("UNREAD")
+  createdAt      DateTime          @default(now())
+  conversationId String?
   conversation   ChatConversation? @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([userId])
@@ -268,15 +284,12 @@ model Transaction {
   method             String?
   description        String?
   arnMinted          Float    @default(0.0)
-  txId               String?  @db.Text
+  txId               String?
   destinationAddress String?
-
-  // Snapshot fields for unified currency consistency
-  convertedAmount    Float?
-  exchangeRate       Float?
-  currency           String?
-
   createdAt          DateTime @default(now())
+  convertedAmount    Float?
+  currency           String?
+  exchangeRate       Float?
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -372,6 +385,7 @@ model ReferralCommission {
   level        Int
   percentage   Float
   createdAt    DateTime @default(now())
+  category     String   @default("MLM")
   earner       User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
   sourceUser   User     @relation("CommissionSource", fields: [sourceUserId], references: [id], onDelete: Cascade)
 }
@@ -608,8 +622,8 @@ model SurpriseWinner {
   userId          String
   userName        String?
   userEmail       String?
-  spinType        String    // "FREE" | "PREMIUM"
-  status          String    @default("PENDING") // "PENDING" | "REWARDED" | "DISMISSED"
+  spinType        String
+  status          String    @default("PENDING")
   adminRewardNote String?
   rewardedAt      DateTime?
   createdAt       DateTime  @default(now())

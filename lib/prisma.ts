@@ -5,6 +5,11 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import ws from 'ws';
 
+// Anti-Gravity: Force-extend types to resolve stale IDE caching of generated Prisma client
+interface ExtendedPrismaClient extends PrismaClient {
+  userNotification: any;
+}
+
 /**
  * 2. Global Instance Pattern to prevent multiple connections in Vercel
  * In development, we persist the PrismaClient instance globally to prevent the 
@@ -12,7 +17,7 @@ import ws from 'ws';
  */
 declare global {
   // eslint-disable-next-line no-var
-  var prismaClientSingleton: PrismaClient | undefined;
+  var prismaClientSingleton: ExtendedPrismaClient | undefined;
   // eslint-disable-next-line no-var
   var pgPoolSingleton: Pool | undefined;
 }
@@ -45,7 +50,7 @@ function getConnectionString(): string {
   return connectionString;
 }
 
-function createPrismaClient(): PrismaClient {
+function createPrismaClient(): ExtendedPrismaClient {
   const connectionString = getConnectionString();
 
   const isNeon = (() => {
@@ -64,7 +69,7 @@ function createPrismaClient(): PrismaClient {
     return new PrismaClient({
       adapter,
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    });
+    }) as any;
   }
 
   // Supabase and other PostgreSQL providers use the generic Postgres adapter.
@@ -89,10 +94,10 @@ function createPrismaClient(): PrismaClient {
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+  }) as any;
 }
 
-function getPrismaClient(): PrismaClient {
+function getPrismaClient(): ExtendedPrismaClient {
   if (typeof window !== 'undefined') {
     throw new Error('Prisma client cannot be used in the browser.');
   }
@@ -104,8 +109,8 @@ function getPrismaClient(): PrismaClient {
   return globalThis.prismaClientSingleton;
 }
 
-function createPrismaProxy(): PrismaClient {
-  return new Proxy({} as PrismaClient, {
+function createPrismaProxy(): ExtendedPrismaClient {
+  return new Proxy({} as ExtendedPrismaClient, {
     get(_target, prop, receiver) {
       const client = getPrismaClient() as unknown as Record<PropertyKey, unknown>;
       const value = Reflect.get(client, prop, receiver);
@@ -123,4 +128,4 @@ function createPrismaProxy(): PrismaClient {
  */
 export const prisma = typeof window === 'undefined'
   ? createPrismaProxy()
-  : (null as unknown as PrismaClient);
+  : (null as unknown as ExtendedPrismaClient);

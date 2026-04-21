@@ -4,7 +4,8 @@ import { registerUser } from "@/lib/register"
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline"
+import { EyeIcon, EyeSlashIcon, MagnifyingGlassIcon, CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline"
+import { motion, AnimatePresence } from "framer-motion"
 import { signIn, signOut } from "next-auth/react"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
@@ -33,6 +34,10 @@ const strengthMeta = [
   { label: "Strong", color: "#10b981" },
 ]
 
+const COUNTRIES = [
+  ["AF","Afghanistan"],["AL","Albania"],["DZ","Algeria"],["AR","Argentina"],["AM","Armenia"],["AU","Australia"],["AT","Austria"],["AZ","Azerbaijan"],["BH","Bahrain"],["BD","Bangladesh"],["BE","Belgium"],["BR","Brazil"],["BG","Bulgaria"],["CA","Canada"],["CL","Chile"],["CN","China"],["CO","Colombia"],["HR","Croatia"],["CY","Cyprus"],["CZ","Czech Republic"],["DK","Denmark"],["EG","Egypt"],["FI","Finland"],["FR","France"],["DE","Germany"],["GR","Greece"],["HK","Hong Kong"],["HU","Hungary"],["IN","India"],["ID","Indonesia"],["IR","Iran"],["IQ","Iraq"],["IE","Ireland"],["IT","Italy"],["JP","Japan"],["JO","Jordan"],["KZ","Kazakhstan"],["KW","Kuwait"],["LB","Lebanon"],["MY","Malaysia"],["MX","Mexico"],["MA","Morocco"],["NL","Netherlands"],["NZ","New Zealand"],["NO","Norway"],["OM","Oman"],["PK","Pakistan"],["PS","Palestine"],["PH","Philippines"],["PL","Poland"],["PT","Portugal"],["QA","Qatar"],["RO","Romania"],["RU","Russia"],["SA","Saudi Arabia"],["SG","Singapore"],["ZA","South Africa"],["KR","South Korea"],["ES","Spain"],["LK","Sri Lanka"],["SE","Sweden"],["CH","Switzerland"],["TH","Thailand"],["TR","Turkey"],["UA","Ukraine"],["AE","United Arab Emirates"],["UK","United Kingdom"],["US","United States"],["VN","Vietnam"],["YE","Yemen"]
+]
+
 export default function SignupForm({ referralCode = "", isModal = false }: SignupFormProps) {
   const [showPwd, setShowPwd] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -43,6 +48,14 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
   const [googleLoading, setGoogleLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [refCode, setRefCode] = useState((referralCode || "").toUpperCase())
+  
+  const [selectedCountry, setSelectedCountry] = useState("")
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false)
+  const [countrySearch, setCountrySearch] = useState("")
+
+  const filteredCountries = useMemo(() => {
+    return COUNTRIES.filter(c => c[1].toLowerCase().includes(countrySearch.toLowerCase()))
+  }, [countrySearch])
   const router = useRouter()
 
   const { theme, resolvedTheme } = useTheme()
@@ -119,10 +132,10 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     try {
       const ref = document.querySelector('input[name="referralCode"]') as HTMLInputElement
       if (ref?.value) document.cookie = "referral_code=" + ref.value + "; path=/; max-age=3600"
-      
+
       // Clear any existing session first to prevent logging into referrer's account
       await signOut({ redirect: false })
-      
+
       await signIn("google", { callbackUrl: "/dashboard" })
     } catch {
       setError("Google sign-in failed.")
@@ -158,20 +171,85 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
         {/* Row 2: Country */}
         <div>
           <label htmlFor="country" className={labelClass}>Country</label>
+          <input type="hidden" name="country" value={selectedCountry} required />
           <div className="relative">
-            <select id="country" name="country" required
-              style={{ ...inputStyle, appearance: "none", paddingRight: "32px" }}
-              onFocus={focusOn} onBlur={focusOff}
+            <button
+              type="button"
+              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+              className="flex items-center justify-between text-left"
+              style={{ ...inputStyle, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(15,23,42,0.03)" }}
             >
-              <option value="" style={selectOptionStyle}>Select country</option>
-              {[["AF","Afghanistan"],["AL","Albania"],["DZ","Algeria"],["AR","Argentina"],["AM","Armenia"],["AU","Australia"],["AT","Austria"],["AZ","Azerbaijan"],["BH","Bahrain"],["BD","Bangladesh"],["BE","Belgium"],["BR","Brazil"],["BG","Bulgaria"],["CA","Canada"],["CL","Chile"],["CN","China"],["CO","Colombia"],["HR","Croatia"],["CY","Cyprus"],["CZ","Czech Republic"],["DK","Denmark"],["EG","Egypt"],["FI","Finland"],["FR","France"],["DE","Germany"],["GR","Greece"],["HK","Hong Kong"],["HU","Hungary"],["IN","India"],["ID","Indonesia"],["IR","Iran"],["IQ","Iraq"],["IE","Ireland"],["IT","Italy"],["JP","Japan"],["JO","Jordan"],["KZ","Kazakhstan"],["KW","Kuwait"],["LB","Lebanon"],["MY","Malaysia"],["MX","Mexico"],["MA","Morocco"],["NL","Netherlands"],["NZ","New Zealand"],["NO","Norway"],["OM","Oman"],["PK","Pakistan"],["PS","Palestine"],["PH","Philippines"],["PL","Poland"],["PT","Portugal"],["QA","Qatar"],["RO","Romania"],["RU","Russia"],["SA","Saudi Arabia"],["SG","Singapore"],["ZA","South Africa"],["KR","South Korea"],["ES","Spain"],["LK","Sri Lanka"],["SE","Sweden"],["CH","Switzerland"],["TH","Thailand"],["TR","Turkey"],["UA","Ukraine"],["AE","United Arab Emirates"],["UK","United Kingdom"],["US","United States"],["VN","Vietnam"],["YE","Yemen"]]
-                .map(([val, name]) => <option key={val} value={val} style={selectOptionStyle}>{name}</option>)}
-            </select>
-            <div className="absolute inset-y-0 right-2.5 flex items-center pointer-events-none">
-              <svg className={cn("w-3.5 h-3.5", isDark ? "text-slate-500" : "text-black")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+              <span className={cn("truncate font-medium", !selectedCountry && "opacity-50")}>
+                {selectedCountry ? COUNTRIES.find(c => c[0] === selectedCountry)?.[1] : "Select country"}
+              </span>
+              <ChevronUpDownIcon className={cn("w-4 h-4 shrink-0 opacity-50", isDark ? "text-slate-400" : "text-slate-600")} />
+            </button>
+            <AnimatePresence>
+              {countryDropdownOpen && (
+                <>
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm md:hidden" 
+                    onClick={() => setCountryDropdownOpen(false)} 
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className={cn(
+                      "fixed md:absolute z-[70] overflow-hidden flex flex-col shadow-2xl backdrop-blur-2xl border",
+                      "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm max-h-[350px] rounded-2xl",
+                      "md:top-[calc(100%+8px)] md:left-0 md:translate-x-0 md:translate-y-0 md:w-full md:max-h-[300px] md:shadow-[0_20px_60px_rgba(0,0,0,0.3)]",
+                      isDark ? "bg-slate-900/95 border-white/10" : "bg-white/95 border-gray-200"
+                    )}
+                  >
+                    <div className="shrink-0 p-3 sm:p-4 border-b mix-blend-normal relative z-10" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}}>
+                       <div className="relative">
+                          <MagnifyingGlassIcon className={cn("w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 opacity-50 flex shrink-0", isDark ? "text-white" : "text-black")} />
+                          <input 
+                             autoFocus 
+                             className="w-full pl-9 pr-4 py-3 sm:py-2 text-sm rounded-xl outline-none transition-colors border focus:border-indigo-500/50"
+                             style={{ 
+                               background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", 
+                               color: isDark ? "#fff" : "#000",
+                               borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"
+                             }}
+                             placeholder="Search country..."
+                             value={countrySearch}
+                             onChange={e => setCountrySearch(e.target.value)}
+                          />
+                       </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-2 sm:p-3 custom-scrollbar">
+                       {filteredCountries.length === 0 ? (
+                         <div className="p-8 text-center text-xs font-bold uppercase tracking-widest opacity-40">No country found</div>
+                       ) : (
+                         filteredCountries.map(([code, name]) => (
+                           <button
+                             key={code}
+                             type="button"
+                             onClick={() => { setSelectedCountry(code); setCountryDropdownOpen(false); setCountrySearch(""); }}
+                             className={cn(
+                               "w-full text-left px-4 py-3.5 sm:py-2.5 rounded-xl text-sm font-medium flex items-center justify-between transition-all",
+                               selectedCountry === code 
+                                 ? (isDark ? "bg-indigo-500/20 text-indigo-400" : "bg-indigo-50 text-indigo-600 font-bold")
+                                 : (isDark ? "hover:bg-white/5 active:bg-white/10" : "hover:bg-slate-50 active:bg-slate-100")
+                             )}
+                           >
+                             {name}
+                             {selectedCountry === code && <CheckIcon className="w-5 h-5 sm:w-4 sm:h-4 shrink-0" />}
+                           </button>
+                         ))
+                       )}
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
@@ -194,7 +272,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
             {pwd.length > 0 && (
               <div className="mt-1.5">
                 <div className="flex gap-0.5">
-                  {[1,2,3,4].map((l: any) => (
+                  {[1, 2, 3, 4].map((l: any) => (
                     <div key={l} className="h-0.5 flex-1 rounded-full transition-all duration-300"
                       style={{ background: strength >= l ? strengthMeta[strength].color : "rgba(255,255,255,0.08)" }} />
                   ))}
