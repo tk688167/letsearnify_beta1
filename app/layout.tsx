@@ -140,7 +140,9 @@ export default function RootLayout({
             </Suspense>
             <ScrollToTop />
             <BackButton />
-            <SupportWidget />
+            <Suspense fallback={null}>
+              <SupportWidget />
+            </Suspense>
             <Toaster position="top-center" />
             {/* <CookieConsent /> */}
             {children}
