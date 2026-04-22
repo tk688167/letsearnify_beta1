@@ -5,7 +5,6 @@ export const dynamic = "force-dynamic";
 
 import DashboardClient from "./DashboardClient"
 import { getDashboardData } from "@/lib/services/dashboard"
-import EligibilityBanner from "./EligibilityBanner"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -48,7 +47,6 @@ export default async function DashboardPage() {
                 ⚠️ <strong>Offline Mode Active:</strong> Dashboard features are limited due to database connectivity.
             </div>
         )}
-        <EligibilityBanner user={displayUser} />
         <DashboardClient 
             user={displayUser} 
             pools={pools} 

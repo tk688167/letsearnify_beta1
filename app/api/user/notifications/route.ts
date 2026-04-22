@@ -24,11 +24,22 @@ export async function PATCH(req: Request) {
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     try {
-        const { id } = await req.json()
-        await prisma.userNotification.update({
-            where: { id, userId: session.user.id },
-            data: { isRead: true }
-        })
+        const body = await req.json()
+
+        if (body.markAll === true) {
+            // Mark every unread notification for this user as read in one query
+            await prisma.userNotification.updateMany({
+                where: { userId: session.user.id, isRead: false },
+                data: { isRead: true }
+            })
+        } else {
+            // Mark a single notification as read
+            await prisma.userNotification.update({
+                where: { id: body.id, userId: session.user.id },
+                data: { isRead: true }
+            })
+        }
+
         return NextResponse.json({ success: true })
     } catch (error) {
         return NextResponse.json({ error: "Failed to update notification" }, { status: 500 })

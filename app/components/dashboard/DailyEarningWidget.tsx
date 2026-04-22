@@ -288,13 +288,13 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                     >
                        <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-rose-400 to-rose-600"></div>
                        <div className="mb-6 md:mb-0 pl-4">
-                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
-                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 flex items-center gap-2 truncate">
+                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
                              Principal Ready to be Collected
                           </p>
-                          <div className="flex items-baseline gap-3">
-                             <p className="text-3xl font-serif font-black text-foreground">{formatCurrency(inv.amount)}</p>
-                             <div className="flex items-center gap-1 text-emerald-500 font-bold text-sm bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                          <div className="flex flex-wrap items-baseline gap-3">
+                             <p className="text-2xl sm:text-3xl font-serif font-black text-foreground truncate max-w-full">{formatCurrency(inv.amount)}</p>
+                             <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs sm:text-sm bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 whitespace-nowrap">
                                 <PlusIcon className="w-3 h-3" />
                                 {formatCurrency(inv.profitEarned)}
                              </div>
@@ -378,29 +378,29 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
                                   <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
                                </div>
-                               <div>
-                                  <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">Total Locked Principal</p>
-                                  <div className="flex items-baseline gap-2">
-                                     <p className={cn("font-serif font-black text-foreground tracking-tighter", isCompact ? "text-xl sm:text-2xl" : "text-2xl sm:text-3xl")}>{formatCurrency(inv.amount)}</p>
-                                     <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20">
+                               <div className="flex-1 min-w-0">
+                                  <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 truncate">Total Locked Principal</p>
+                                  <div className="flex flex-wrap items-baseline gap-2">
+                                     <p className={cn("font-serif font-black text-foreground tracking-tighter truncate max-w-full", isCompact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl lg:text-3xl")}>{formatCurrency(inv.amount)}</p>
+                                     <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap">
                                         +{formatCurrency(inv.amount * 0.01)}/day
                                      </div>
                                   </div>
                                </div>
                             </div>
 
-                            <div className={cn("flex flex-col sm:flex-row gap-3 sm:gap-6", isCompact ? "w-full sm:w-auto" : "w-full sm:w-auto")}>
-                               <div className="bg-emerald-500/5 p-3 rounded-xl border border-emerald-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px]">
-                                  <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1">
-                                    <SparklesIcon className="w-3 h-3" /> Profit
+                            <div className={cn("flex flex-row gap-2 sm:gap-6", isCompact ? "w-full sm:w-auto" : "w-full sm:w-auto")}>
+                               <div className="bg-emerald-500/5 p-2 sm:p-3 rounded-xl border border-emerald-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0">
+                                  <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
+                                    <SparklesIcon className="w-3 h-3 shrink-0" /> Profit
                                   </p>
-                                  <p className={cn("font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter", isCompact ? "text-lg" : "text-xl")}>+{formatCurrency(inv.profitEarned)}</p>
+                                  <p className={cn("font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>+{formatCurrency(inv.profitEarned)}</p>
                                </div>
-                               <div className="bg-orange-500/5 p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px]">
-                                  <p className="text-[9px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1">
-                                    <LockClosedIcon className="w-3 h-3" /> Locked
+                               <div className="bg-orange-500/5 p-2 sm:p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0">
+                                  <p className="text-[9px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
+                                    <LockClosedIcon className="w-3 h-3 shrink-0" /> Locked
                                   </p>
-                                  <p className={cn("font-black text-foreground tabular-nums", isCompact ? "text-lg" : "text-xl")}>
+                                  <p className={cn("font-black text-foreground tabular-nums truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
                                      {daysRemaining} <span className="text-[9px] sm:text-[10px] text-muted-foreground">DAYS</span>
                                   </p>
                                </div>
@@ -623,7 +623,7 @@ function StatBox({ label, value, icon: Icon, color, isCompact }: any) {
                 <Icon className={cn(isCompact ? "w-4 h-4" : "w-6 h-6")} />
             </div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-foreground/70 transition-colors truncate">{label}</p>
-            <p className={cn("font-serif font-black text-foreground truncate", isCompact ? "text-lg" : "text-2xl sm:text-3xl")}>{value}</p>
+            <p className={cn("font-serif font-black text-foreground truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-xl sm:text-2xl lg:text-3xl")}>{value}</p>
         </div>
     )
 }

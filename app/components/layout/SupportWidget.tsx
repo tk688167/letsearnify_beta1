@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
@@ -40,6 +40,11 @@ export default function SupportWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [view, setView] = useState<'MENU' | 'INBOX' | 'CHAT'>('MENU')
   const [selectedConvId, setSelectedConvId] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const WHATSAPP_NUMBER = "923192939169"
   const SUPPORT_EMAIL = "letsearnify@gmail.com"
@@ -77,6 +82,11 @@ export default function SupportWidget() {
                    pathname.startsWith("/forgot-password") || 
                    pathname.startsWith("/verify-email")
   const isAgentContext = searchParams.get("agent") === "true"
+
+  // Suppress rendering entirely until client has mounted to prevent hydration mismatch.
+  // useSession() returns null on the server but a real value on the client, which
+  // causes React's SSR HTML to differ from the first client render.
+  if (!mounted) return null
 
   if (!session || isPublicPage || isAdminPage || isAuthPage || isAgentContext) {
     return null

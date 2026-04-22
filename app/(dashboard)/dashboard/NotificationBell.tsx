@@ -96,6 +96,18 @@ export default function NotificationBell() {
         } catch (error) {}
     }
 
+    async function markAllAsRead() {
+        try {
+            await fetch("/api/user/notifications", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ markAll: true })
+            })
+            // Optimistically mark all as read in local state
+            setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+        } catch (error) {}
+    }
+
     return (
         <div className="relative" ref={dropdownRef}>
             <button 
@@ -130,12 +142,22 @@ export default function NotificationBell() {
                                 </span>
                             )}
                         </div>
-                        <button 
-                            onClick={clearAllRead} 
-                            className="text-[10px] uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
-                        >
-                            Clear Read
-                        </button>
+                        <div className="flex items-center gap-3">
+                            {notifications.length > 0 && (
+                                <button
+                                    onClick={markAllAsRead}
+                                    className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors"
+                                >
+                                    Mark All as Read
+                                </button>
+                            )}
+                            <button 
+                                onClick={clearAllRead} 
+                                className="text-[10px] uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
+                            >
+                                Mark All as Read
+                            </button>
+                        </div>
                     </div>
 
                     <div className="max-h-[400px] overflow-y-auto custom-scrollbar">

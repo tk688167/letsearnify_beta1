@@ -207,20 +207,20 @@ export default function DailyEarningPageContent() {
           </div>
           
           <div className="shrink-0 grid grid-cols-2 lg:flex lg:flex-row gap-3 sm:gap-4 w-full xl:w-auto">
-             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-indigo-500/30">
+             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] min-w-0 text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-indigo-500/30">
                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-3 sm:mb-4 shrink-0">
                  <BanknotesIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                </div>
                <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 whitespace-nowrap">Total Invested</p>
-               <p className="font-serif font-black text-foreground text-xl sm:text-2xl lg:text-3xl truncate leading-none">{formatCurrency(totalPrincipalLocked)}</p>
+               <p className="font-serif font-black text-foreground text-base sm:text-xl lg:text-2xl truncate max-w-full leading-none">{formatCurrency(totalPrincipalLocked)}</p>
              </div>
              
-             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-emerald-500/30">
+             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] min-w-0 text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-emerald-500/30">
                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-3 sm:mb-4 shrink-0">
                  <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                </div>
                <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 whitespace-nowrap">Total Earnings</p>
-               <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-xl sm:text-2xl lg:text-3xl truncate leading-none">+{formatCurrency(totalAccumulatedProfit)}</p>
+               <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-base sm:text-xl lg:text-2xl truncate max-w-full leading-none">+{formatCurrency(totalAccumulatedProfit)}</p>
              </div>
           </div>
           
