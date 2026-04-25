@@ -18,22 +18,20 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
       })
       
       if (user) {
-          const [platformWallets, systemTransactions, merchantTransactions, merchantCountries] = await Promise.all([
-             prisma.platformWallet.findMany(),
-             prisma.transaction.findMany({
+          const platformWallets = await prisma.platformWallet.findMany();
+          const systemTransactions = await prisma.transaction.findMany({
                   where: { userId: user.id },
                   orderBy: { createdAt: "desc" }
-              }),
-             // Fetch merchant transactions (deposits & withdrawals) for this user
-             prisma.merchantTransaction.findMany({
+          });
+          // Fetch merchant transactions (deposits & withdrawals) for this user
+          const merchantTransactions = await prisma.merchantTransaction.findMany({
                   where: { userId: user.id },
                   orderBy: { createdAt: "desc" }
-             }),
-             prisma.merchantCountry.findMany({
+          });
+          const merchantCountries = await prisma.merchantCountry.findMany({
                   include: { methods: true, contacts: true },
                   orderBy: { createdAt: 'asc' }
-              })
-          ]);
+          });
 
           wallets = platformWallets;
           merchantSettings = merchantCountries;

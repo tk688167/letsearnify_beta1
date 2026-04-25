@@ -33,7 +33,8 @@ import {
   MagnifyingGlassIcon,
   InformationCircleIcon,
   CalendarDaysIcon,
-  ClockIcon
+  ClockIcon,
+  WrenchScrewdriverIcon
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon } from "@heroicons/react/24/solid"
 import { QRCode } from "./qr-code"
@@ -112,7 +113,7 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const [activeTab, setActiveTab] = useState(initialTab && ["deposit", "withdraw", "transfer"].includes(initialTab) ? initialTab : "deposit")
   const [amount, setAmount] = useState("")
   const [displayCurrency, setDisplayCurrency] = useState<"USD" | "LOCAL">(userCurrency === "USD" ? "USD" : "LOCAL")
-  const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT" | "BINANCE">("TRC20")
+  const [depositMethod, setDepositMethod] = useState<"TRC20" | "CARD" | "MERCHANT" | "BINANCE" | null>(null)
   const [cryptoNetwork, setCryptoNetwork] = useState<"TRC20" | "BINANCE">("TRC20")
   const [txHash, setTxHash] = useState("")
   
@@ -143,11 +144,11 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   const currentWallet = platformWallets.find((w: any) => w.network === cryptoNetwork) || { address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", qrCodePath: "" }
 
   const [method, setMethod] = useState("TRC20") 
-  const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE" | "BINANCE">("TRC20") 
+  const [withdrawalMethod, setWithdrawalMethod] = useState<"TRC20" | "MERCHANT" | "STRIPE" | "BINANCE" | null>(null)
   const [details, setDetails] = useState("")
 
   const [transferSource, setTransferSource] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("WALLET")
-  const [transferDestination, setTransferDestination] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">("MUDARABAH")
+  const [transferDestination, setTransferDestination] = useState<"WALLET" | "MUDARABAH" | "DAILY_EARNING">(user?.isActiveMember ? "MUDARABAH" : "DAILY_EARNING")
 
   const [isPending, startTransition] = useTransition()
   const [submissionIntent, setSubmissionIntent] = useState<string | null>(null)
@@ -177,8 +178,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
     if (!user?.lastWithdrawalTime) return;
     const lastTime = new Date(user.lastWithdrawalTime).getTime();
     const cooldownPeriod = 24 * 60 * 60 * 1000;
-    
+    let isMounted = true;
+
     const updateCooldown = () => {
+      if (!isMounted) return;
       const now = Date.now();
       const elapsed = now - lastTime;
       const remaining = cooldownPeriod - elapsed;
@@ -193,10 +196,10 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
         setTimeRemaining(null);
       }
     };
-    
+
     updateCooldown();
     const intervalId = setInterval(updateCooldown, 1000);
-    return () => clearInterval(intervalId);
+    return () => { isMounted = false; clearInterval(intervalId); };
   }, [user?.lastWithdrawalTime]);
 
   const renderCooldownBanner = () => {
@@ -231,7 +234,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   useEffect(() => {
      setSelectedCountry(null); setSelectedPaymentMethod(null); setScreenshot(null)
      setAccountNumber(""); setAccountName(""); setAmount(""); setMessage(null)
-  }, [activeTab, depositMethod, withdrawalMethod])
+     setDepositMethod(null); setWithdrawalMethod(null);
+  }, [activeTab])
 
   useEffect(() => {
     if (message?.type === 'error') {
@@ -419,6 +423,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                    accountName 
                }) 
            }
+        } else if (activeTab === "transfer") {
+           res = await transferFunds(val, transferSource, transferDestination)
         }
 
         if (res?.success) { 
@@ -1003,10 +1009,17 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
 
                {/* Minor Balances Grid */}
                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
-                       <div className="flex items-center gap-2 mb-2">
-                           <div className="p-1.5 bg-emerald-500/10 rounded-md shrink-0"><ChartPieIcon className="w-4 h-4 text-emerald-500" /></div>
-                           <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Mudarabah Pool</span>
+                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm relative overflow-hidden">
+                       <div className="flex items-center justify-between gap-2 mb-2">
+                           <div className="flex items-center gap-2">
+                               <div className="p-1.5 bg-emerald-500/10 rounded-md shrink-0"><ChartPieIcon className="w-4 h-4 text-emerald-500" /></div>
+                               <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Mudarabah Pool</span>
+                           </div>
+                           {!user?.isActiveMember ? (
+                               <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[8px] xl:text-[9px] font-bold uppercase tracking-wider rounded-md border border-red-500/20"><LockClosedIcon className="w-2.5 h-2.5"/> Locked</span>
+                           ) : (
+                               <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 text-indigo-500 text-[8px] xl:text-[9px] font-bold uppercase tracking-wider rounded-md border border-indigo-500/20"><WrenchScrewdriverIcon className="w-2.5 h-2.5"/> Dev Mode</span>
+                           )}
                        </div>
                        <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.mudarabahBalance || 0)}</span>
                    </div>
@@ -1396,8 +1409,8 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                 {activeTab === "transfer" && (
                     <div className="space-y-4 animate-in fade-in">
                              <div className="flex flex-col sm:grid sm:grid-cols-2 gap-3">
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e: any) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
-                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e: any) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "MUDARABAH" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH">Mudarabah Pool</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">From (Source)</label><select value={transferSource} onChange={(e: any) => { const v = e.target.value as any; setTransferSource(v); if (v === transferDestination) setTransferDestination(v === "WALLET" ? "DAILY_EARNING" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH" disabled={!user?.isActiveMember}>Mudarabah Pool {!user?.isActiveMember ? "(🔒 Locked)" : "(🔧 Dev Mode)"}</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferSource === "WALLET" ? (user.balance || 0) : transferSource === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
+                                <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">To (Destination)</label><select value={transferDestination} onChange={(e: any) => { const v = e.target.value as any; setTransferDestination(v); if (v === transferSource) setTransferSource(v === "WALLET" ? "DAILY_EARNING" : "WALLET"); }} className="w-full px-3 py-2.5 rounded-xl border border-input outline-none focus:border-green-500 transition-all bg-card font-bold text-sm text-foreground appearance-none cursor-pointer"><option value="WALLET">Main Wallet</option><option value="MUDARABAH" disabled={!user?.isActiveMember}>Mudarabah Pool {!user?.isActiveMember ? "(🔒 Locked)" : "(🔧 Dev Mode)"}</option><option value="DAILY_EARNING">Daily Earning Pool</option></select><div className="mt-1 px-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-right">Balance: <span className="text-foreground">{formatCurrency(transferDestination === "WALLET" ? (user.balance || 0) : transferDestination === "MUDARABAH" ? (user.mudarabahBalance || 0) : ((user as any).dailyEarningWallet || 0))}</span></div></div>
                              </div>
                              <div><label className="block text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 pl-1">Amount</label><div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-[10px] uppercase tracking-wider">{userCurrency}</span><input type="number" value={amount} onChange={(e: any) => setAmount(e.target.value)} placeholder="0.00" className="w-full pl-12 pr-3 py-2.5 rounded-xl border border-input outline-none focus:border-blue-500 focus:bg-card transition-all bg-muted/30 font-bold text-base text-foreground"/></div></div>
                              <button onClick={handleAction} disabled={!amount || isSubmitting} className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">{submissionIntent === "transfer" ? "Transferring..." : "Transfer Funds"}</button>

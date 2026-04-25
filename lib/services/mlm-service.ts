@@ -79,35 +79,33 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
             },
         } as const;
 
-        const [treeRows, withNested] = await Promise.all([
-            prisma.referralTree.findMany({
-                where: {
-                    OR: [
-                        { advisorId: userId },
-                        { supervisorId: userId },
-                        { managerId: userId },
-                    ],
-                },
-                include: {
-                    user: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                            tier: true,
-                            arnBalance: true,
-                            isActiveMember: true,
-                            lastUnlockAt: true,
-                            createdAt: true,
-                        },
+        const treeRows = await prisma.referralTree.findMany({
+            where: {
+                OR: [
+                    { advisorId: userId },
+                    { supervisorId: userId },
+                    { managerId: userId },
+                ],
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        tier: true,
+                        arnBalance: true,
+                        isActiveMember: true,
+                        lastUnlockAt: true,
+                        createdAt: true,
                     },
                 },
-            }),
-            prisma.user.findUnique({
-                where: { id: userId },
-                select: nestedSelect,
-            }),
-        ]);
+            },
+        });
+        const withNested = await prisma.user.findUnique({
+            where: { id: userId },
+            select: nestedSelect,
+        });
 
         const fromTree = treeRows.map((row) => {
             const u = row.user;
@@ -277,20 +275,18 @@ export async function getMlmData(userId: string): Promise<MlmDataResult> {
         }));
 
         // Stats
-        const [totalEarningsAgg, todayEarningsAgg, qualifiedArn] = await Promise.all([
-            prisma.referralCommission.aggregate({
-                where: { earnerId: userId },
-                _sum: { amount: true }
-            }),
-            prisma.referralCommission.aggregate({
-                where: { 
-                    earnerId: userId,
-                    createdAt: { gte: startOfDay(new Date()) }
-                },
-                _sum: { amount: true }
-            }),
-            calculateQualifiedTierArn(userId, prisma)
-        ]);
+        const totalEarningsAgg = await prisma.referralCommission.aggregate({
+            where: { earnerId: userId },
+            _sum: { amount: true }
+        });
+        const todayEarningsAgg = await prisma.referralCommission.aggregate({
+            where: { 
+                earnerId: userId,
+                createdAt: { gte: startOfDay(new Date()) }
+            },
+            _sum: { amount: true }
+        });
+        const qualifiedArn = await calculateQualifiedTierArn(userId, prisma);
 
         // Count direct signups (L1 only)
         const totalSignups = await prisma.user.count({

@@ -13,59 +13,59 @@ export async function getDashboardData(userId: string): Promise<DashboardDataRes
     try {
         await checkAccountLock(userId);
 
-        const [
-          user, 
-          pools, 
-          tierRules,
-          cryptoPendingDeposits,
-          cryptoPendingWithdrawals,
-          cryptoCompletedWithdrawals,
-          merchantPendingDeposits,
-          merchantPendingWithdrawals,
-          merchantCompletedWithdrawals,
-          referralEarningsAgg,
-          taskEarningsAgg,
-          systemConfigMarketplace,
-          systemConfigMudarabah,
-          qualifiedArn
-        ] = await Promise.all([
-          prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              balance: true,
-              tier: true,
-              arnBalance: true,
-              memberId: true, 
-              referralCode: true,
-              isActiveMember: true,
-              totalDeposit: true,
-              activeMembers: true,
-              unlockExpiry: true,
-              lastActivityAt: true,
-              createdAt: true,
-            }
-          }),
-          prisma.pool.findMany(),
-          getTierRequirements(prisma),
-          prisma.transaction.aggregate({ where: { userId, type: "DEPOSIT", status: "PENDING" }, _sum: { amount: true } }),
-          prisma.transaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "PENDING" }, _sum: { amount: true } }),
-          prisma.transaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "COMPLETED" }, _sum: { amount: true } }),
-          prisma.merchantTransaction.aggregate({ where: { userId, type: "DEPOSIT", status: "PENDING" }, _sum: { amount: true } }),
-          prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "PENDING" }, _sum: { amount: true } }),
-          prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: { in: ["APPROVED", "COMPLETED"] } }, _sum: { amount: true } }),
-          prisma.referralCommission.aggregate({ where: { earnerId: userId }, _sum: { amount: true } }),
-          prisma.transaction.aggregate({ where: { userId, type: "TASK_REWARD", status: "COMPLETED" }, _sum: { amount: true } }),
-          prisma.systemConfig.findUnique({ where: { key: "MARKETPLACE_MODE" } }),
-          prisma.systemConfig.findUnique({ where: { key: "MUDARABAH_CONFIG" } }),
-          calculateQualifiedTierArn(userId, prisma)
-        ]);
+        // Batch 1: Fetch user first
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            balance: true,
+            tier: true,
+            arnBalance: true,
+            memberId: true, 
+            referralCode: true,
+            isActiveMember: true,
+            totalDeposit: true,
+            activeMembers: true,
+            unlockExpiry: true,
+            lastActivityAt: true,
+            createdAt: true,
+          }
+        });
 
         if (!user) {
             return { user: null, pools: [], isOffline: false, isMarketplaceLive: false, isMudarabahLive: false };
         }
+
+        // Batch 2: Global stats
+        const [pools, tierRules, qualifiedArn] = await Promise.all([
+          prisma.pool.findMany(),
+          getTierRequirements(prisma),
+          calculateQualifiedTierArn(userId, prisma)
+        ]);
+
+        // Batch 3: Crypto aggregations
+        const [cryptoPendingDeposits, cryptoPendingWithdrawals, cryptoCompletedWithdrawals] = await Promise.all([
+          prisma.transaction.aggregate({ where: { userId, type: "DEPOSIT", status: "PENDING" }, _sum: { amount: true } }),
+          prisma.transaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "PENDING" }, _sum: { amount: true } }),
+          prisma.transaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "COMPLETED" }, _sum: { amount: true } }),
+        ]);
+
+        // Batch 4: Merchant aggregations
+        const [merchantPendingDeposits, merchantPendingWithdrawals, merchantCompletedWithdrawals] = await Promise.all([
+          prisma.merchantTransaction.aggregate({ where: { userId, type: "DEPOSIT", status: "PENDING" }, _sum: { amount: true } }),
+          prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: "PENDING" }, _sum: { amount: true } }),
+          prisma.merchantTransaction.aggregate({ where: { userId, type: "WITHDRAWAL", status: { in: ["APPROVED", "COMPLETED"] } }, _sum: { amount: true } }),
+        ]);
+
+        // Batch 5: Misc stats
+        const [referralEarningsAgg, taskEarningsAgg, systemConfigMarketplace, systemConfigMudarabah] = await Promise.all([
+          prisma.referralCommission.aggregate({ where: { earnerId: userId }, _sum: { amount: true } }),
+          prisma.transaction.aggregate({ where: { userId, type: "TASK_REWARD", status: "COMPLETED" }, _sum: { amount: true } }),
+          prisma.systemConfig.findUnique({ where: { key: "MARKETPLACE_MODE" } }),
+          prisma.systemConfig.findUnique({ where: { key: "MUDARABAH_CONFIG" } }),
+        ]);
 
         // Count total signups AFTER we have user.referralCode
         const totalSignups = user.referralCode 

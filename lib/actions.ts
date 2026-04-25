@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { deleteSupabaseFileByUrl } from "@/lib/supabase-storage"
 import { headers } from "next/headers"
 import { verifyTronTransaction, base58ToHex } from "./tron"
+import { getExchangeRates } from "./currency"
 
 interface TrackingData {
   path: string
@@ -442,15 +443,26 @@ export async function transferFunds(
   const usdAmount = typeof usdAmountVal === 'string' ? parseFloat(usdAmountVal) : usdAmountVal;
 
   if (isNaN(usdAmount) || usdAmount < 1) {
-    throw new Error("Minimum transfer amount is $1.00");
+    const rates = await getExchangeRates();
+    const pkrRate = rates["PKR"] || 278.50;
+    const minPkr = (1 * pkrRate).toFixed(2);
+    return { success: false, error: `Minimum transfer amount is ${minPkr} PKR` };
   }
 
   if (source === destination) {
-    throw new Error("Source and destination must be different");
+    return { success: false, error: "Source and destination must be different" };
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-  if (!user) throw new Error("User not found");
+  if (!user) return { success: false, error: "User not found" };
+
+  if (source === "MUDARABAH" || destination === "MUDARABAH") {
+    if (!user.isActiveMember) {
+      return { success: false, error: "Cannot transfer funds: Account must be unlocked to access Mudarabah." };
+    } else {
+      return { success: false, error: "Cannot transfer funds: Mudarabah is currently in Development Mode. Please try again later." };
+    }
+  }
 
   // Format Helpers
   const getName = (type: string) => 
@@ -461,17 +473,17 @@ export async function transferFunds(
   if (source === "WALLET") {
      const arnRequired = usdAmount * 10;
      if (user.arnBalance < arnRequired) {
-       throw new Error(`Insufficient ARN tokens. You need ${arnRequired} ARN ($${usdAmount.toFixed(2)}) in your Main Wallet.`);
+       return { success: false, error: `Insufficient ARN tokens. You need ${arnRequired} ARN ($${usdAmount.toFixed(2)}) in your Main Wallet.` };
      }
   } else if (source === "DAILY_EARNING") {
      const bal = (user as any).dailyEarningWallet || 0;
      if (bal < usdAmount) {
-       throw new Error(`Insufficient funds. Your Daily Earning Pool has $${bal.toFixed(2)}.`);
+       return { success: false, error: `Insufficient funds. Your Daily Earning Pool has $${bal.toFixed(2)}.` };
      }
   } else if (source === "MUDARABAH") {
      const bal = (user as any).mudarabahBalance || 0;
      if (bal < usdAmount) {
-       throw new Error(`Insufficient funds. Your Mudarabah Pool has $${bal.toFixed(2)}.`);
+       return { success: false, error: `Insufficient funds. Your Mudarabah Pool has $${bal.toFixed(2)}.` };
      }
   }
 

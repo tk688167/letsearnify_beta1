@@ -1,36 +1,28 @@
 import { prisma } from "@/lib/prisma"
 import { createNotification, cleanupNotifications } from "./notifications"
 
+const CYCLE_MS = 24 * 60 * 60 * 1000         // 24 hours in milliseconds
+const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000  // 24-hour new-user grace period
+
 /**
  * Core logic to distribute daily 1% yields for all active pools.
- * Includes catch-up logic for missed days and a force-mode for manual backfills.
+ * Uses a per-pool 24-hour cycle timer (nextCycleAt) instead of NY Midnight batching.
+ * Includes catch-up logic: if multiple cycles are overdue they are all credited in one run.
  * @param {object} options - Configuration for distribution
- * @param {boolean} options.force - If true, ignores the 24h cooldown and calculates all pending profits.
+ * @param {boolean} options.force - If true, ignores nextCycleAt check and processes all active pools.
  * @returns Summary results of processed pools
  */
 export async function executeDailyPoolDistribution(options: { force?: boolean } = {}) {
-    const { force = false } = options;
-    const now = new Date();
-    const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000; // 24 Hours
-    
-    // Helper to get Midnight NY Time for a given date
-    const getMidnightNY = (date: Date) => {
-        const nyDate = new Intl.DateTimeFormat("en-US", {
-            timeZone: "America/New_York",
-            year: "numeric", month: "numeric", day: "numeric"
-        }).format(date);
-        return new Date(nyDate);
-    };
+    const { force = false } = options
+    const now = new Date()
 
-    const nowNY = getMidnightNY(now);
+    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()} (Force: ${force})`)
 
-    console.log(`[Daily Pool] Distribution Started at ${now.toISOString()} (NY Midnight: ${nowNY.toISOString()}) (Force: ${force})`);
-
-    // 1. Calculate Daily Earnings (1%) with Catch-up logic
-    const activePools = await prisma.dailyEarningInvestment.findMany({
+    // 1. Fetch all ACTIVE pools whose next cycle is due (nextCycleAt <= now)
+    const duePools = await prisma.dailyEarningInvestment.findMany({
         where: {
             status: "ACTIVE",
-            ...(force ? {} : { lastCalculatedDate: { lt: nowNY } })
+            ...(force ? {} : { nextCycleAt: { lte: now } })
         },
         include: {
             user: {
@@ -57,59 +49,66 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                 }
             }
         }
-    });
+    })
 
     const companyUser = await prisma.user.findUnique({
-        where: { referralCode: 'COMPANY' }
-    });
+        where: { referralCode: "COMPANY" }
+    })
 
-    const companyModel = await prisma.pool.findUnique({
-        where: { name: "COMPANY" }
-    });
+    let processedProfitCount = 0
+    let totalProfitDistributed = 0
 
-    let processedProfitCount = 0;
-    let totalProfitDistributed = 0;
+    for (const pool of duePools) {
+        // --- Catch-up: count how many full 24h cycles have elapsed since nextCycleAt ---
+        let cycleTime = new Date(pool.nextCycleAt)
+        let pendingCycles = 0
+        while (cycleTime <= now) {
+            pendingCycles++
+            cycleTime = new Date(cycleTime.getTime() + CYCLE_MS)
+        }
 
-    for (const pool of activePools) {
-        const lastNY = getMidnightNY(pool.lastCalculatedDate);
-        
-        // Count how many "midnights" have passed
-        const diffTime = nowNY.getTime() - lastNY.getTime();
-        const daysToProcess = Math.floor(diffTime / (24 * 60 * 60 * 1000));
-        
-        // Skip if we already credited today
-        if (daysToProcess < 1) continue;
+        if (pendingCycles < 1) continue
 
-        const totalDailyYield = pool.amount * 0.01;
-        const totalProfitToSplit = totalDailyYield * daysToProcess;
-        
-        // Referral Split Logic
-        const investorSharePerCent = pool.user.poolInvestorShare ?? 80;
-        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20;
+        // cycleTime is now the first future cycle time (after all due cycles are processed)
+        const finalNextCycleAt = cycleTime
+        const lastProcessedCycleAt = new Date(finalNextCycleAt.getTime() - CYCLE_MS)
 
-        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100;
-        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100;
+        // --- Profit Calculation ---
+        const totalDailyYield = pool.amount * 0.01
+        const totalProfitToSplit = totalDailyYield * pendingCycles
 
-        const referrer = pool.user.referrer;
-        
-        // --- ELIGIBILITY CHECKS ---
-        const isInvestorEligible = pool.user.isActiveMember || (now.getTime() - new Date(pool.user.createdAt).getTime() < GRACE_PERIOD_MS);
-        const isReferrerEligible = !referrer || referrer.isActiveMember || (now.getTime() - new Date(referrer.createdAt).getTime() < GRACE_PERIOD_MS);
+        const investorSharePerCent = pool.user.poolInvestorShare ?? 80
+        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20
 
-        // Set lastCalculatedDate to exactly today's midnight (New York Time)
-        const finalCalculatedDate = nowNY;
+        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100
+        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100
 
+        const referrer = pool.user.referrer
+
+        // --- Eligibility Checks (evaluated at current processing time) ---
+        const isInvestorEligible =
+            pool.user.isActiveMember ||
+            now.getTime() - new Date(pool.user.createdAt).getTime() < GRACE_PERIOD_MS
+
+        const isReferrerEligible =
+            !referrer ||
+            referrer.isActiveMember ||
+            now.getTime() - new Date(referrer.createdAt).getTime() < GRACE_PERIOD_MS
+
+        // Build atomic operation list
         const operations: any[] = [
+            // Always advance timer and accumulate profit on the pool record
             prisma.dailyEarningInvestment.update({
                 where: { id: pool.id },
                 data: {
-                    profitEarned: { increment: totalProfitToSplit }, 
-                    lastCalculatedDate: finalCalculatedDate
+                    profitEarned: { increment: totalProfitToSplit },
+                    lastCalculatedDate: lastProcessedCycleAt,
+                    nextCycleAt: finalNextCycleAt
                 }
             })
-        ];
+        ]
 
-        // 1. Credit Investor Share or Forfeit
+        // --- 1. Investor Share: Credit or Forfeit ---
         if (isInvestorEligible) {
             operations.push(
                 prisma.user.update({
@@ -122,7 +121,7 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         amount: investorProfit,
                         type: "REWARD",
                         status: "COMPLETED",
-                        description: `Daily 1% earning (Your ${investorSharePerCent}% share) from pool $${pool.amount.toFixed(2)}.`
+                        description: `Daily 1% earning (Your ${investorSharePerCent}% share) from pool $${pool.amount.toFixed(2)} — ${pendingCycles} cycle(s).`
                     }
                 }),
                 prisma.mLMLog.create({
@@ -130,12 +129,12 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         userId: pool.userId,
                         type: "POOL_EARNING",
                         amount: investorProfit,
-                        description: `Received ${investorSharePerCent}% share of daily 1% profit for ${daysToProcess} day(s).`
+                        description: `Received ${investorSharePerCent}% share of daily 1% profit for ${pendingCycles} cycle(s).`
                     }
                 })
-            );
+            )
         } else {
-            // Forfeit Investor Share to Company
+            // Forfeit investor share to Company
             operations.push(
                 prisma.pool.upsert({
                     where: { name: "COMPANY" },
@@ -148,7 +147,7 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         amount: 0,
                         type: "FORFEITED_EARNING",
                         status: "FAILED",
-                        description: `Daily Earning Forfeited ($${investorProfit.toFixed(2)}): Activation required within 24 hours of registration.`
+                        description: `Daily Earning Forfeited ($${investorProfit.toFixed(2)}): Account activation required.`
                     }
                 }),
                 prisma.mLMLog.create({
@@ -156,26 +155,19 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         userId: pool.userId,
                         type: "FORFEITED_EARNING",
                         amount: 0,
-                        description: `Daily 1% yield ($${investorProfit.toFixed(2)}) was forfeited to company due to missing account activation.`
+                        description: `Daily 1% yield ($${investorProfit.toFixed(2)}) forfeited to company — account not active.`
                     }
                 })
-            );
-            // Create User Notification for Forfeiture
-            await createNotification(
-                pool.userId,
-                "Daily Earning Forfeited",
-                `You did not complete activation within 24 hours, so your Daily Earning Pool reward of $${investorProfit.toFixed(2)} was forfeited.`,
-                "FORFEITURE"
-            );
+            )
         }
 
-        // 2. Referral/Company Commission Handling (Level 1 Only)
-        const isManuallyReferred = referrer && referrer.referralCode !== 'COMPANY';
-        const earnerId = isManuallyReferred ? referrer.id : (companyUser?.id || null);
+        // --- 2. Referral / Company Commission Handling (Level 1 Only) ---
+        const isManuallyReferred = referrer && referrer.referralCode !== "COMPANY"
+        const earnerId = isManuallyReferred ? referrer.id : (companyUser?.id || null)
 
         if (earnerId && referrerProfit > 0) {
             if (isManuallyReferred && isReferrerEligible) {
-                // Manually Referred & Eligible: Credit User Wallet
+                // Manually referred & eligible → credit referrer
                 operations.push(
                     prisma.user.update({
                         where: { id: earnerId },
@@ -198,9 +190,9 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                             description: `Earned ${referrerSharePerCent}% referral share from member's daily pool yield.`
                         }
                     })
-                );
+                )
             } else {
-                // Ineligible Referrer or Company Referral: Credit Company Revenue Pool
+                // Ineligible referrer or company referral → credit Company pool
                 operations.push(
                     prisma.pool.upsert({
                         where: { name: "COMPANY" },
@@ -211,15 +203,14 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         data: {
                             adminId: "SYSTEM",
                             actionType: "COMPANY_REVENUE",
-                            details: isManuallyReferred 
+                            details: isManuallyReferred
                                 ? `Forfeited ${referrerSharePerCent}% referral profit ($${referrerProfit.toFixed(2)}) from inactive referrer ${referrer.email}.`
                                 : `Received ${referrerSharePerCent}% referral profit ($${referrerProfit.toFixed(2)}) from un-referred user ${pool.user.email}.`
                         }
                     })
-                );
-                
+                )
+
                 if (isManuallyReferred && !isReferrerEligible) {
-                    // Log forfeiture for the referrer
                     operations.push(
                         prisma.transaction.create({
                             data: {
@@ -235,21 +226,21 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                                 userId: earnerId,
                                 type: "FORFEITED_COMMISSION",
                                 amount: 0,
-                                description: `Referral commission ($${referrerProfit.toFixed(2)}) from member's yield was forfeited due to inactive status.`
+                                description: `Referral commission ($${referrerProfit.toFixed(2)}) forfeited due to inactive account.`
                             }
                         })
-                    );
-                    // Notify Referrer
+                    )
+                    // Notify referrer of forfeited commission
                     await createNotification(
                         earnerId,
                         "Referral Commission Forfeited",
-                        `Your referral commission of $${referrerProfit.toFixed(2)} was forfeited because your account is not active.`,
+                        "Your referral commission was forfeited because your account is not active.",
                         "FORFEITURE"
-                    );
+                    )
                 }
             }
 
-            // Always create a ReferralCommission entry for tracking (even if zero/forfeited for transparency in some reports, though here we only track actuals)
+            // Always record ReferralCommission entry for transparency
             if (isReferrerEligible || !isManuallyReferred) {
                 operations.push(
                     prisma.referralCommission.create({
@@ -257,34 +248,51 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                             earnerId: earnerId,
                             sourceUserId: pool.userId,
                             amount: isReferrerEligible ? referrerProfit : 0,
-                            level: 1, 
+                            level: 1,
                             percentage: referrerSharePerCent,
                             category: "DAILY_POOL"
                         }
                     })
-                );
+                )
             }
         }
 
-        await prisma.$transaction(operations);
-        
-        processedProfitCount++;
-        totalProfitDistributed += totalProfitToSplit;
+        // Execute all DB writes atomically
+        await prisma.$transaction(operations)
+
+        // --- Post-transaction Notifications (no amounts per approved spec) ---
+        if (isInvestorEligible) {
+            await createNotification(
+                pool.userId,
+                "Daily Earning Credited",
+                "Your Daily Earning Pool profit has been successfully credited.",
+                "REWARD"
+            )
+        } else {
+            await createNotification(
+                pool.userId,
+                "Daily Earning Not Credited",
+                "Your Daily Earning Pool profit was not credited due to inactivity during the 24-hour cycle.",
+                "FORFEITURE"
+            )
+        }
+
+        processedProfitCount++
+        totalProfitDistributed += totalProfitToSplit
     }
 
-    // 2. Handle Expiry (30 Days) -> Return Principal
-    // We only process expiry when force=false to prevent accidental early returns
+    // 2. Handle Expiry (30 Days) → Return Principal
     const expiredPools = await prisma.dailyEarningInvestment.findMany({
         where: {
             status: "ACTIVE",
             expiresAt: { lte: now }
         }
-    });
+    })
 
-    let processedExpiry = 0;
+    let processedExpiry = 0
     for (const pool of expiredPools) {
-        const returnPrincipal = pool.amount;
-        
+        const returnPrincipal = pool.amount
+
         await prisma.$transaction([
             prisma.dailyEarningInvestment.update({
                 where: { id: pool.id },
@@ -303,27 +311,26 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                     description: `Daily Earnings Pool completed. Returned principal $${pool.amount.toFixed(2)} to Daily Wallet.`
                 }
             })
-        ]);
-        processedExpiry++;
+        ])
+        processedExpiry++
     }
 
     // 3. Cleanup old notifications (>30 days)
-    await cleanupNotifications();
+    await cleanupNotifications()
 
-    console.log(`[Daily Pool] Finished. Profits Updated: ${processedProfitCount}, Expiries: ${processedExpiry}, Total: $${totalProfitDistributed.toFixed(2)}`);
+    console.log(`[Daily Pool] Finished. Pools Processed: ${processedProfitCount}, Expiries: ${processedExpiry}, Total: $${totalProfitDistributed.toFixed(2)}`)
 
-    return { 
-        success: true, 
-        calculatedCount: processedProfitCount, 
+    return {
+        success: true,
+        calculatedCount: processedProfitCount,
         expiredCount: processedExpiry,
         totalProfitDistributed
-    };
+    }
 }
 
 /**
  * Admin utility: Safely pushes 1 day of profit distribution forward.
- * Ignores actual time elapsed, forcefully calculates 1 day of 80/20 split,
- * and increments internal tracking dates logically.
+ * Advances nextCycleAt by exactly 24h and credits 1 day of profit.
  */
 export async function executeForwardAdjustment() {
     const activePools = await prisma.dailyEarningInvestment.findMany({
@@ -331,45 +338,46 @@ export async function executeForwardAdjustment() {
         include: {
             user: {
                 select: {
-                    id: true, name: true, email: true, poolInvestorShare: true, poolReferrerShare: true, isActiveMember: true, createdAt: true,
-                    referrer: { select: { id: true, name: true, email: true, referralCode: true, isActiveMember: true, createdAt: true } }
+                    id: true, name: true, email: true,
+                    poolInvestorShare: true, poolReferrerShare: true,
+                    isActiveMember: true, createdAt: true,
+                    referrer: {
+                        select: { id: true, name: true, email: true, referralCode: true, isActiveMember: true, createdAt: true }
+                    }
                 }
             }
         }
-    });
+    })
 
-    const companyUser = await prisma.user.findUnique({ where: { referralCode: 'COMPANY' } });
-    let processedProfitCount = 0;
-    let totalProfitDistributed = 0;
+    const companyUser = await prisma.user.findUnique({ where: { referralCode: "COMPANY" } })
+    let processedProfitCount = 0
+    let totalProfitDistributed = 0
 
     for (const pool of activePools) {
-        // Strict exactly 1 day push
-        const totalProfitToSplit = pool.amount * 0.01;
-        const investorSharePerCent = pool.user.poolInvestorShare ?? 80;
-        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20;
+        const totalProfitToSplit = pool.amount * 0.01
+        const investorSharePerCent = pool.user.poolInvestorShare ?? 80
+        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20
+        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100
+        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100
 
-        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100;
-        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100;
+        const referrer = pool.user.referrer
+        const isManuallyReferred = referrer && referrer.referralCode !== "COMPANY"
+        const earnerId = isManuallyReferred ? referrer.id : (companyUser?.id || null)
 
-        const referrer = pool.user.referrer;
-        const isManuallyReferred = referrer && referrer.referralCode !== 'COMPANY';
-        const earnerId = isManuallyReferred ? referrer.id : (companyUser?.id || null);
-
-        // Strict 24 increment logic
-        const finalCalculatedDate = new Date(pool.lastCalculatedDate.getTime() + 24 * 60 * 60 * 1000);
+        // Advance both timer fields by exactly 24 hours
+        const newNextCycleAt = new Date(pool.nextCycleAt.getTime() + CYCLE_MS)
+        const newLastCalculatedDate = new Date(pool.lastCalculatedDate.getTime() + CYCLE_MS)
 
         const operations: any[] = [
             prisma.dailyEarningInvestment.update({
                 where: { id: pool.id },
                 data: {
-                    profitEarned: { increment: totalProfitToSplit }, 
-                    lastCalculatedDate: finalCalculatedDate
+                    profitEarned: { increment: totalProfitToSplit },
+                    lastCalculatedDate: newLastCalculatedDate,
+                    nextCycleAt: newNextCycleAt
                 }
-            })
-        ];
-
-        // 1. Credit Investor Share
-        operations.push(
+            }),
+            // Force-credit always ignores eligibility (admin intent)
             prisma.user.update({
                 where: { id: pool.userId },
                 data: { dailyEarningWallet: { increment: investorProfit } }
@@ -391,9 +399,8 @@ export async function executeForwardAdjustment() {
                     description: `[Manual Sync] Received ${investorSharePerCent}% share for 1 forced day.`
                 }
             })
-        );
+        ]
 
-        // 2. Credit Referrer / System
         if (earnerId && referrerProfit > 0) {
             if (isManuallyReferred) {
                 operations.push(
@@ -410,7 +417,7 @@ export async function executeForwardAdjustment() {
                             description: `Admin Forward Sync: Manual referral credit from ${pool.user.email} pool.`
                         }
                     })
-                );
+                )
             } else {
                 operations.push(
                     prisma.pool.upsert({
@@ -425,74 +432,74 @@ export async function executeForwardAdjustment() {
                             details: `Admin Forward Sync: Credited un-referred profit from ${pool.user.email}.`
                         }
                     })
-                );
+                )
             }
         }
 
-        await prisma.$transaction(operations);
-        processedProfitCount++;
-        totalProfitDistributed += totalProfitToSplit;
+        await prisma.$transaction(operations)
+        processedProfitCount++
+        totalProfitDistributed += totalProfitToSplit
     }
 
-    return { 
-        success: true, 
-        calculatedCount: processedProfitCount, 
+    return {
+        success: true,
+        calculatedCount: processedProfitCount,
         totalProfitDistributed
-    };
+    }
 }
 
 /**
  * Admin utility: Reverses 1 day of profit distribution strictly for ACTIVE pools.
  * Clamps wallet deductions to zero to prevent negative debt.
+ * Decrements nextCycleAt by exactly 24h to keep timer in sync.
  */
 export async function executeReverseAdjustment() {
-    // ONLY pull ACTIVE pools. Reversing a completed pool breaks immutability.
     const activePools = await prisma.dailyEarningInvestment.findMany({
         where: { status: "ACTIVE" },
         include: {
             user: {
                 select: {
-                    id: true, email: true, poolInvestorShare: true, poolReferrerShare: true, dailyEarningWallet: true,
+                    id: true, email: true,
+                    poolInvestorShare: true, poolReferrerShare: true, dailyEarningWallet: true,
                     referrer: { select: { id: true, email: true, referralCode: true, dailyEarningWallet: true } }
                 }
             }
         }
-    });
+    })
 
-    const companyUser = await prisma.user.findUnique({ where: { referralCode: 'COMPANY' } });
-    let rollbackCount = 0;
+    const companyUser = await prisma.user.findUnique({ where: { referralCode: "COMPANY" } })
+    let rollbackCount = 0
 
     for (const pool of activePools) {
-        const totalProfitToSplit = pool.amount * 0.01;
-        const investorSharePerCent = pool.user.poolInvestorShare ?? 80;
-        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20;
+        const totalProfitToSplit = pool.amount * 0.01
+        const investorSharePerCent = pool.user.poolInvestorShare ?? 80
+        const referrerSharePerCent = pool.user.poolReferrerShare ?? 20
+        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100
+        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100
 
-        const investorProfit = (totalProfitToSplit * investorSharePerCent) / 100;
-        const referrerProfit = (totalProfitToSplit * referrerSharePerCent) / 100;
-        
         // Prevent decrementing below zero
-        const safeInvestorDeduction = Math.min(pool.user.dailyEarningWallet, investorProfit);
-        
-        const referrer = pool.user.referrer;
-        const isManuallyReferred = referrer && referrer.referralCode !== 'COMPANY';
-        const safeReferrerDeduction = isManuallyReferred && referrer ? Math.min(referrer.dailyEarningWallet, referrerProfit) : referrerProfit;
-        const earnerId = isManuallyReferred && referrer ? referrer.id : (companyUser?.id || null);
+        const safeInvestorDeduction = Math.min(pool.user.dailyEarningWallet, investorProfit)
 
-        // Strict 24h decrement logic
-        const finalCalculatedDate = new Date(pool.lastCalculatedDate.getTime() - 24 * 60 * 60 * 1000);
+        const referrer = pool.user.referrer
+        const isManuallyReferred = referrer && referrer.referralCode !== "COMPANY"
+        const safeReferrerDeduction = isManuallyReferred && referrer
+            ? Math.min(referrer.dailyEarningWallet, referrerProfit)
+            : referrerProfit
+        const earnerId = isManuallyReferred && referrer ? referrer.id : (companyUser?.id || null)
+
+        // Decrement both timer fields by exactly 24 hours
+        const newNextCycleAt = new Date(pool.nextCycleAt.getTime() - CYCLE_MS)
+        const newLastCalculatedDate = new Date(pool.lastCalculatedDate.getTime() - CYCLE_MS)
 
         const operations: any[] = [
             prisma.dailyEarningInvestment.update({
                 where: { id: pool.id },
                 data: {
-                    profitEarned: { decrement: totalProfitToSplit }, 
-                    lastCalculatedDate: finalCalculatedDate
+                    profitEarned: { decrement: totalProfitToSplit },
+                    lastCalculatedDate: newLastCalculatedDate,
+                    nextCycleAt: newNextCycleAt
                 }
-            })
-        ];
-
-        // 1. Deduct Safety-Clamped Investor Share
-        operations.push(
+            }),
             prisma.user.update({
                 where: { id: pool.userId },
                 data: { dailyEarningWallet: { decrement: safeInvestorDeduction } }
@@ -501,14 +508,13 @@ export async function executeReverseAdjustment() {
                 data: {
                     userId: pool.userId,
                     amount: safeInvestorDeduction,
-                    type: "REWARD", // Keeping REWARD type so it filters properly, but logically a rollback
+                    type: "REWARD",
                     status: "FAILED",
                     description: `Admin Rollback (-1 Day): Reversing daily yield. Capped at $${safeInvestorDeduction.toFixed(2)}.`
                 }
             })
-        );
+        ]
 
-        // 2. Deduct Safety-Clamped Referrer / System Share
         if (earnerId && referrerProfit > 0) {
             if (isManuallyReferred && referrer) {
                 operations.push(
@@ -525,7 +531,7 @@ export async function executeReverseAdjustment() {
                             description: `Admin Rollback (-1 Day): Reversed referral credit from ${pool.user.email}.`
                         }
                     })
-                );
+                )
             } else {
                 operations.push(
                     prisma.pool.upsert({
@@ -533,17 +539,17 @@ export async function executeReverseAdjustment() {
                         update: { balance: { decrement: safeReferrerDeduction } },
                         create: { name: "COMPANY", balance: 0, percentage: 0 }
                     })
-                );
+                )
             }
         }
 
-        await prisma.$transaction(operations);
-        rollbackCount++;
+        await prisma.$transaction(operations)
+        rollbackCount++
     }
 
-    return { 
-        success: true, 
+    return {
+        success: true,
         rollbackCount,
         message: `Successfully executed rollback (-1 Day) across ${rollbackCount} active pools.`
-    };
+    }
 }

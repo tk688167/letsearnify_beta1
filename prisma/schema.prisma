@@ -600,11 +600,13 @@ model DailyEarningInvestment {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   lastCalculatedDate DateTime @default(now())
+  nextCycleAt        DateTime @default(now())
   expiresAt          DateTime
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
+  @@index([nextCycleAt])
 }
 
 model AdminNotification {

@@ -133,30 +133,32 @@ export default function NotificationBell() {
                 
                 {/* Modal / Dropdown */}
                 <div className="fixed inset-x-4 top-[70px] md:absolute md:inset-auto md:right-0 md:mt-3 md:w-[380px] bg-card border border-border rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-200 md:origin-top-right">
-                    <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
-                        <div className="flex items-center gap-2">
+                    <div className="p-3 sm:p-4 border-b border-border flex items-center justify-between bg-muted/30 gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                             <h3 className="font-bold text-foreground">Notifications</h3>
                             {unreadCount > 0 && (
-                                <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-bold">
+                                <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full font-bold shrink-0">
                                     {unreadCount} NEW
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-3">
-                            {notifications.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                            {unreadCount > 0 && (
                                 <button
                                     onClick={markAllAsRead}
-                                    className="text-[10px] uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors"
+                                    className="text-[9px] sm:text-[10px] px-2 py-1 rounded bg-emerald-500/10 uppercase tracking-wider font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all shrink-0"
                                 >
                                     Mark All as Read
                                 </button>
                             )}
-                            <button 
-                                onClick={clearAllRead} 
-                                className="text-[10px] uppercase tracking-wider font-bold text-primary hover:text-primary/80 transition-colors"
-                            >
-                                Mark All as Read
-                            </button>
+                            {notifications.length > unreadCount && (
+                                <button 
+                                    onClick={clearAllRead} 
+                                    className="text-[9px] sm:text-[10px] px-2 py-1 rounded bg-primary/10 uppercase tracking-wider font-bold text-primary hover:bg-primary/20 transition-all shrink-0"
+                                >
+                                    Clear Read
+                                </button>
+                            )}
                         </div>
                     </div>
 

@@ -111,16 +111,66 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.addEventListener('unhandledrejection', function(event) {
-                if (event.reason && event.reason.message && event.reason.message.includes('MetaMask')) {
-                  event.preventDefault();
-                }
-              });
-              window.addEventListener('error', function(event) {
-                if (event.message && typeof event.message === 'string' && event.message.includes('MetaMask')) {
-                  event.preventDefault();
-                }
-              });
+              (function() {
+                // ─── Layer 1: Freeze window.ethereum before MetaMask can inject ───────────
+                // Object.defineProperty runs before any extension content-script can
+                // overwrite the property because this script is synchronous and inline.
+                try {
+                  Object.defineProperty(window, 'ethereum', {
+                    get: function() { return undefined; },
+                    set: function() { /* ignore any provider injection */ },
+                    configurable: false
+                  });
+                } catch(e) { /* property already defined — safe to ignore */ }
+
+                // ─── Layer 2: Drop EIP-6963 multi-wallet provider announcements ───────────
+                // MetaMask (and other wallets) fire 'eip6963:announceProvider' events.
+                // Override addEventListener to silently swallow those events.
+                var _origAddEventListener = EventTarget.prototype.addEventListener;
+                EventTarget.prototype.addEventListener = function(type) {
+                  if (type === 'eip6963:announceProvider') return;
+                  return _origAddEventListener.apply(this, arguments);
+                };
+
+                // ─── Layer 3: Filter extension-originated console noise ───────────────────
+                var BLOCKED_PATTERNS = [
+                  'MetaMask', 'metamask', 'chrome-extension', 'Failed to connect',
+                  'ethereum', 'window.ethereum', 'provider', 'inpage.js'
+                ];
+                var _origConsoleError = console.error;
+                console.error = function() {
+                  var msg = Array.prototype.join.call(arguments, ' ');
+                  for (var i = 0; i < BLOCKED_PATTERNS.length; i++) {
+                    if (msg.indexOf(BLOCKED_PATTERNS[i]) !== -1) return;
+                  }
+                  return _origConsoleError.apply(console, arguments);
+                };
+                var _origConsoleWarn = console.warn;
+                console.warn = function() {
+                  var msg = Array.prototype.join.call(arguments, ' ');
+                  for (var i = 0; i < BLOCKED_PATTERNS.length; i++) {
+                    if (msg.indexOf(BLOCKED_PATTERNS[i]) !== -1) return;
+                  }
+                  return _origConsoleWarn.apply(console, arguments);
+                };
+
+                // ─── Layer 4: Suppress unhandledrejection / error events ─────────────────
+                window.addEventListener('unhandledrejection', function(event) {
+                  var msg = (event.reason && event.reason.message) ? event.reason.message : String(event.reason);
+                  if (msg.indexOf('MetaMask') !== -1 || msg.indexOf('ethereum') !== -1 || msg.indexOf('provider') !== -1) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                  }
+                }, true);
+                window.addEventListener('error', function(event) {
+                  var src = (event.filename || '');
+                  var msg = (event.message || '');
+                  if (src.indexOf('chrome-extension') !== -1 || msg.indexOf('MetaMask') !== -1) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                  }
+                }, true);
+              })();
             `
           }}
         />

@@ -38,10 +38,9 @@ export async function POST(req: Request) {
       )
     }
 
-    // 2. Perform the exact 30-day lock transaction
     const now = new Date()
-    const expiresAt = new Date()
-    expiresAt.setDate(now.getDate() + 30) // Exactly 30 days from now
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    const nextCycleAt = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
     // Execute atomically to prevent race conditions during checkout
     const result = await prisma.$transaction(async (tx: any) => {
@@ -59,7 +58,8 @@ export async function POST(req: Request) {
           status: "ACTIVE",
           profitEarned: 0,
           expiresAt: expiresAt,
-          lastCalculatedDate: new Date(new Date().setHours(0, 0, 0, 0)) // Start of day to catch first reset
+          lastCalculatedDate: now,
+          nextCycleAt: nextCycleAt
         }
       })
 

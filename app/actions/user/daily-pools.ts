@@ -20,17 +20,9 @@ export async function createDailyPool(amount: number) {
             return { error: "Insufficient balance in Daily Earnings Wallet" }
         }
 
-        // Get current Midnight in New York for consistent 12:00 AM logic
-        const getMidnightNY = (date: Date) => {
-            const nyDate = new Intl.DateTimeFormat("en-US", {
-                timeZone: "America/New_York",
-                year: "numeric", month: "numeric", day: "numeric"
-            }).format(date);
-            return new Date(nyDate);
-        };
-
-        const nowNY = getMidnightNY(new Date());
-        const expiresAt = new Date(nowNY.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const nextCycleAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
         await prisma.$transaction(async (tx: any) => {
             await tx.user.update({
@@ -44,7 +36,8 @@ export async function createDailyPool(amount: number) {
                     amount: amount,
                     status: "ACTIVE",
                     expiresAt: expiresAt,
-                    lastCalculatedDate: nowNY
+                    lastCalculatedDate: now,
+                    nextCycleAt: nextCycleAt
                 }
             })
 
