@@ -1,7 +1,7 @@
 "use client"
 
 import { registerUser } from "@/lib/register"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { EyeIcon, EyeSlashIcon, MagnifyingGlassIcon, CheckIcon, ChevronUpDownIcon } from "@heroicons/react/24/outline"
@@ -57,6 +57,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
     return COUNTRIES.filter(c => c[1].toLowerCase().includes(countrySearch.toLowerCase()))
   }, [countrySearch])
   const router = useRouter()
+  const [isPending, startTransition] = useTransition()
 
   const { theme, resolvedTheme } = useTheme()
 
@@ -119,10 +120,19 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
         const userEmail = res?.email || formData.get("email") as string
         const pwdEncoded = encodeURIComponent(formData.get("password") as string)
         document.cookie = "_signup_pwd=" + pwdEncoded + "; path=/; max-age=300; SameSite=Strict"
-        router.push("/verify-email?email=" + encodeURIComponent(userEmail))
+        
+        startTransition(() => {
+            try {
+                router.push("/verify-email?email=" + encodeURIComponent(userEmail))
+            } catch (navError) {
+                console.error("Navigation error:", navError)
+                window.location.href = "/verify-email?email=" + encodeURIComponent(userEmail)
+            }
+        })
       }
-    } catch {
-      setError("An unexpected error occurred.")
+    } catch (err: any) {
+      console.error("Signup Submission Error:", err)
+      setError("An unexpected error occurred. Please try again.")
       setLoading(false)
     }
   }

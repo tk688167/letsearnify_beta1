@@ -197,7 +197,9 @@ export async function registerUser(formData: FormData) {
             await prisma.emailVerificationToken.create({
               data: { userId: newUser.id, token: otp, expiresAt }
             })
-            await sendVerificationEmail(email, otp)
+            
+            // Fire and forget email delivery to prevent SMTP timeouts from blocking signup
+            sendVerificationEmail(email, otp).catch(e => console.error("[Register] Email delivery non-blocking failure:", e))
 
             console.log(`✅ Registered: ${email} | Ref: ${validReferredByCode} | Bonus applied`)
             return { error: null, success: true, email }
@@ -205,11 +207,14 @@ export async function registerUser(formData: FormData) {
         } catch (err: any) {
             if (err.code === 'P2002') {
                 const target = err.meta?.target
-                if (target && (target === 'User_email_key' || target.includes('email'))) {
-                    return { error: 'Email already exists', success: false }
-                }
-                if (target && (target.includes('referralCode') || target.includes('memberId'))) {
-                     continue
+                if (target) {
+                    const targetStr = Array.isArray(target) ? target.join(',') : String(target);
+                    if (targetStr === 'User_email_key' || targetStr.includes('email')) {
+                        return { error: 'Email already exists', success: false }
+                    }
+                    if (targetStr.includes('referralCode') || targetStr.includes('memberId')) {
+                         continue
+                    }
                 }
             }
             console.error("Registration Error:", err)
