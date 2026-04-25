@@ -1007,32 +1007,82 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
                   </div>
                </div>
 
-               {/* Minor Balances Grid */}
-               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm relative overflow-hidden">
-                       <div className="flex items-center justify-between gap-2 mb-2">
-                           <div className="flex items-center gap-2">
-                               <div className="p-1.5 bg-emerald-500/10 rounded-md shrink-0"><ChartPieIcon className="w-4 h-4 text-emerald-500" /></div>
-                               <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Mudarabah Pool</span>
+               {/* Pool Balance Cards */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                   {/* Mudarabah Pool Card */}
+                   <div className={cn(
+                       "relative overflow-hidden rounded-2xl border p-4 flex flex-col gap-3 shadow-sm transition-all",
+                       !user?.isActiveMember
+                           ? "bg-red-500/5 border-red-500/20"
+                           : "bg-indigo-500/5 border-indigo-500/20"
+                   )}>
+                       {/* Header row */}
+                       <div className="flex items-center justify-between gap-2">
+                           <div className="flex items-center gap-2 min-w-0">
+                               <div className={cn(
+                                   "p-2 rounded-xl shrink-0",
+                                   !user?.isActiveMember ? "bg-red-500/10" : "bg-indigo-500/10"
+                               )}>
+                                   <ChartPieIcon className={cn("w-4 h-4", !user?.isActiveMember ? "text-red-500" : "text-indigo-500")} />
+                               </div>
+                               <span className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap">Mudarabah Pool</span>
                            </div>
+
+                           {/* Status badge — prominent on all screen sizes */}
                            {!user?.isActiveMember ? (
-                               <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-500/10 text-red-500 text-[8px] xl:text-[9px] font-bold uppercase tracking-wider rounded-md border border-red-500/20"><LockClosedIcon className="w-2.5 h-2.5"/> Locked</span>
+                               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg border border-red-500/25 shrink-0 whitespace-nowrap">
+                                   <LockClosedIcon className="w-3 h-3"/>Locked
+                               </span>
                            ) : (
-                               <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 text-indigo-500 text-[8px] xl:text-[9px] font-bold uppercase tracking-wider rounded-md border border-indigo-500/20"><WrenchScrewdriverIcon className="w-2.5 h-2.5"/> Dev Mode</span>
+                               <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg border border-indigo-500/25 shrink-0 whitespace-nowrap">
+                                   <WrenchScrewdriverIcon className="w-3 h-3"/>Dev Mode
+                               </span>
                            )}
                        </div>
-                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.mudarabahBalance || 0)}</span>
+
+                       {/* Balance */}
+                       <div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Balance</p>
+                           <span className="text-xl sm:text-2xl font-black text-foreground leading-none tabular-nums">
+                               {formatCurrency(user.mudarabahBalance || 0)}
+                           </span>
+                       </div>
+
+                       {/* Locked state helper text */}
+                       {!user?.isActiveMember && (
+                           <p className="text-[10px] font-medium text-red-500/80 leading-snug">
+                               Activate your account to access this pool.
+                           </p>
+                       )}
                    </div>
 
-                   <div className="bg-card border border-border rounded-2xl p-4 flex flex-col shadow-sm">
-                       <div className="flex items-center gap-2 mb-2">
-                           <div className="p-1.5 bg-blue-500/10 rounded-md shrink-0"><BanknotesIcon className="w-4 h-4 text-blue-500" /></div>
-                           <span className="text-[10px] xl:text-xs font-bold uppercase tracking-widest text-muted-foreground truncate">Daily Earning Pool</span>
+                   {/* Daily Earning Pool Card */}
+                   <div className="relative overflow-hidden rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 flex flex-col gap-3 shadow-sm">
+                       {/* Header row */}
+                       <div className="flex items-center justify-between gap-2">
+                           <div className="flex items-center gap-2 min-w-0">
+                               <div className="p-2 rounded-xl bg-blue-500/10 shrink-0">
+                                   <BanknotesIcon className="w-4 h-4 text-blue-500" />
+                               </div>
+                               <span className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap">Daily Earning Pool</span>
+                           </div>
+                           <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg border border-blue-500/25 shrink-0 whitespace-nowrap">
+                               <CheckCircleIcon className="w-3 h-3"/>Active
+                           </span>
                        </div>
-                       <span className="text-lg md:text-xl font-bold text-foreground leading-none">{formatCurrency(user.dailyEarningWallet || 0)}</span>
+
+                       {/* Balance */}
+                       <div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Balance</p>
+                           <span className="text-xl sm:text-2xl font-black text-foreground leading-none tabular-nums">
+                               {formatCurrency(user.dailyEarningWallet || 0)}
+                           </span>
+                       </div>
                    </div>
 
                </div>
+
 
                {/* Unlock Section */}
                {!user.isActiveMember && (
