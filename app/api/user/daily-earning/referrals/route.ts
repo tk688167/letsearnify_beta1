@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { ADMIN_USER_OBJECT } from "@/lib/admin-credentials"
 
 export async function GET() {
   try {
@@ -10,6 +11,14 @@ export async function GET() {
     }
 
     const userId = session.user.id
+
+    // Handle synthetic admin user who doesn't exist in the DB
+    if (userId === ADMIN_USER_OBJECT.id) {
+        return NextResponse.json({
+            totalReferralEarnings: 0,
+            referrals: []
+        })
+    }
 
     // 1. Get total referral earnings from DAILY_POOL category
     const totalEarningsResult = await prisma.referralCommission.aggregate({
@@ -96,8 +105,12 @@ export async function GET() {
       referrals: referralStats
     })
 
-  } catch (error) {
-    console.error("Fetch Daily Earning Referrals Error:", error)
+  } catch (error: any) {
+    console.error("Fetch Daily Earning Referrals Error:", {
+      message: error.message,
+      stack: error.stack,
+      userId: (await auth())?.user?.id
+    })
     return NextResponse.json({ error: "Failed to fetch referral data" }, { status: 500 })
   }
 }

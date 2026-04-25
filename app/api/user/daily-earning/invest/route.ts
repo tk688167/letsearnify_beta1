@@ -21,7 +21,25 @@ export async function POST(req: Request) {
       )
     }
 
-    // 1. Double check the user's available daily earning wallet balance
+    // 1. Synthetic Admin Support (Anti-Gravity Fix)
+    // If the user is the super-admin, we bypass DB balance checks and transactions 
+    // to allow activation testing without a real User record in the database.
+    if (session.user.id === "super-admin-id") {
+      return NextResponse.json({ 
+        success: true, 
+        message: "Admin synthetic activation successful",
+        investment: {
+          id: `admin-${Date.now()}`,
+          userId: session.user.id,
+          amount: amount,
+          status: "ACTIVE",
+          profitEarned: 0,
+          createdAt: new Date()
+        }
+      })
+    }
+
+    // 2. Double check the user's available daily earning wallet balance
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { dailyEarningWallet: true }
@@ -70,6 +88,7 @@ export async function POST(req: Request) {
           amount: amount,
           type: "INVESTMENT",
           status: "COMPLETED",
+          method: "DAILY_EARNING_POOL",
           description: `Daily Earning Pool Deposit (30 Day Lock)`
         }
       })
@@ -78,10 +97,10 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json({ success: true, investment: result })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Daily Earning Investment Error:", error)
     return NextResponse.json(
-      { error: "Failed to process investment" },
+      { error: error.message || "Failed to process investment" },
       { status: 500 }
     )
   }

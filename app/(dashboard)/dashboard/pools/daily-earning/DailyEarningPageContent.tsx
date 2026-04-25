@@ -30,14 +30,22 @@ import {
 import { createDailyPool } from "@/app/actions/user/daily-pools"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = async (url: string) => {
+  const r = await fetch(url)
+  const data = await r.json()
+  if (!r.ok) {
+    console.error(`[API Error] ${url}:`, data)
+    throw new Error(data.error || `API error: ${r.status}`)
+  }
+  return data
+}
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
 export default function DailyEarningPageContent() {
-  const { data, mutate } = useSWR("/api/user/daily-earning", fetcher)
+  const { data, mutate, isLoading, error } = useSWR("/api/user/daily-earning", fetcher)
   const { data: referralData, mutate: mutateReferrals } = useSWR("/api/user/daily-earning/referrals", fetcher)
   const { formatCurrency, userCurrency, convertFromUSD, convertToUSD } = useCurrency();
   
@@ -94,18 +102,21 @@ export default function DailyEarningPageContent() {
   
   const [actionLoader, setActionLoader] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
-  const handleCompletionAction = async (investmentId: string, action: "REINVEST" | "WITHDRAW_TO_WALLET") => {
+  const handleCompletionAction = async (investmentId: string) => {
      setActionError(null)
+     setActionSuccess(null)
      setActionLoader(investmentId)
      try {
        const res = await fetch("/api/user/daily-earning/complete", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ investmentId, action })
+         body: JSON.stringify({ investmentId })
        })
        const result = await res.json()
        if (!res.ok) throw new Error(result.error || "Execution failed")
+       setActionSuccess(result.message || "Congrats, your pool is complete")
        mutate()
      } catch(err: any) {
        setActionError(err.message)
@@ -182,6 +193,96 @@ export default function DailyEarningPageContent() {
     } finally {
       setInvestLoader(false)
     }
+  }
+
+  // --- Error Logging ---
+  useEffect(() => {
+    if (error) {
+      console.error("[DEP] Data Fetching Error:", error);
+    }
+  }, [error]);
+
+  // --- Loading State ---
+  if (isLoading) {
+    return (
+      <div className="max-w-6xl mx-auto pb-24 px-4 sm:px-6 pt-10 md:pt-16 font-sans">
+        <div className="animate-pulse space-y-6">
+          {/* Hero skeleton */}
+          <div className="bg-card/40 border border-border/50 rounded-[3rem] p-8 lg:p-12 flex flex-col xl:flex-row items-center gap-8">
+            <div className="flex-1 w-full space-y-4">
+              <div className="h-4 bg-muted rounded-full w-40" />
+              <div className="h-14 bg-muted rounded-2xl w-3/4" />
+              <div className="h-4 bg-muted rounded-full w-full max-w-md" />
+            </div>
+            <div className="grid grid-cols-2 gap-4 w-full xl:w-auto">
+              <div className="h-32 bg-muted rounded-[2rem]" />
+              <div className="h-32 bg-muted rounded-[2rem]" />
+            </div>
+          </div>
+          {/* Action section skeleton */}
+          <div className="bg-card border-2 border-border/60 rounded-[3rem] p-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="space-y-3 w-full lg:w-1/2">
+              <div className="h-3 bg-muted rounded-full w-32" />
+              <div className="h-20 bg-muted rounded-2xl w-64" />
+            </div>
+            <div className="flex gap-4 w-full lg:w-auto">
+              <div className="h-14 bg-muted rounded-2xl flex-1 lg:w-40" />
+              <div className="h-14 bg-muted rounded-2xl flex-1 lg:w-48" />
+            </div>
+          </div>
+          {/* Pool cards skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-64 bg-muted/40 border border-border/40 rounded-[2rem]" />
+            <div className="h-64 bg-muted/40 border border-border/40 rounded-[2rem]" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // --- Error State ---
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto pb-24 px-4 sm:px-6 pt-10 md:pt-16 font-sans">
+        {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+          <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight mb-2 uppercase italic flex items-center gap-3">
+            Daily <span className="text-primary">Earning</span> Pool
+          </h1>
+          <p className="text-muted-foreground font-medium">Maximize your returns with daily automated growth.</p>
+        </div>
+
+        {/* Debug Info (Only if there are partial errors) */}
+        {(data?._debug?.userError || data?._debug?.investmentsError) && (
+          <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-3">
+            <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
+            <div className="text-xs text-amber-200">
+              {data._debug.userError && <p>Profile error: {data._debug.userError}</p>}
+              {data._debug.investmentsError && <p>Investment error: {data._debug.investmentsError}</p>}
+            </div>
+          </div>
+        )}
+      </div>
+
+        <div className="flex flex-col items-center justify-center py-32 text-center border-2 border-dashed border-rose-500/30 rounded-[3rem] bg-rose-500/[0.02]">
+          <div className="w-20 h-20 bg-rose-500/10 border-2 border-rose-500/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <ExclamationTriangleIcon className="w-10 h-10 text-rose-500" />
+          </div>
+          <h2 className="text-2xl font-black text-foreground tracking-tight mb-2">Failed to Load Pool Data</h2>
+          <p className="text-sm font-medium text-muted-foreground max-w-sm mb-8 leading-relaxed">
+            There was an error connecting to the server. Your pool data is safe — please try again.
+          </p>
+          <button
+            onClick={() => mutate()}
+            className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all active:scale-95"
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            Retry
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -324,6 +425,7 @@ export default function DailyEarningPageContent() {
                        <PoolCard key={inv.id} inv={inv} isCompleted={true} actionLoader={actionLoader} handleCompletionAction={handleCompletionAction} isUnattached={data?.isUnattached} />
                      ))}
                      {actionError && <p className="text-xs text-rose-500 font-black text-center mt-4 bg-rose-500/5 py-4 rounded-2xl border border-rose-500/10 px-6 uppercase tracking-widest">{actionError}</p>}
+                     {actionSuccess && <p className="text-xs text-emerald-500 font-black text-center mt-4 bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10 px-6 uppercase tracking-widest">{actionSuccess}</p>}
                   </div>
                )}
 
@@ -834,22 +936,14 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader, isUn
         {/* Control & Reward Center */}
         <div className="mt-auto pt-6 border-t border-border/60">
            {isCompleted ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex justify-center w-full">
                  <button 
-                   onClick={() => handleCompletionAction(inv.id, "REINVEST")}
+                   onClick={() => handleCompletionAction(inv.id)}
                    disabled={actionLoader === inv.id}
-                   className="relative group py-4 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black uppercase tracking-[0.15em] text-[10px] rounded-2xl hover:shadow-[0_15px_30px_rgba(79,70,229,0.3)] transition-all flex items-center justify-center gap-2 overflow-hidden active:scale-95"
+                   className="w-full relative group py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black uppercase tracking-[0.15em] text-[12px] rounded-2xl hover:shadow-[0_15px_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 overflow-hidden active:scale-95"
                  >
-                    {actionLoader === inv.id ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <ArrowPathIcon className="w-4 h-4" />}
-                    Rollover Deposit
-                 </button>
-                 <button 
-                   onClick={() => handleCompletionAction(inv.id, "WITHDRAW_TO_WALLET")}
-                   disabled={actionLoader === inv.id}
-                   className="group py-4 px-6 bg-background border-2 border-border/60 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-foreground font-black uppercase tracking-[0.15em] text-[10px] rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
-                 >
-                    {actionLoader === inv.id ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <WalletIcon className="w-4 h-4 group-hover:text-emerald-500" />}
-                    Claim to Wallet
+                    {actionLoader === inv.id ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <CheckCircleIcon className="w-5 h-5" />}
+                    Complete Pool
                  </button>
               </div>
            ) : (
@@ -858,7 +952,7 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader, isUn
                     <ClockIcon className="w-5 h-5 text-indigo-500" />
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Profit Cycle</span>
                  </div>
-                 <span className="font-serif font-black text-base text-foreground tabular-nums tracking-tighter bg-card px-4 py-2 rounded-xl shadow-lg border border-border">
+                 <span className="font-mono font-medium text-sm text-muted-foreground tabular-nums tracking-wide bg-card px-4 py-2 rounded-xl shadow-sm border border-border">
                     {poolTimer || "Evaluating..."}
                  </span>
               </div>

@@ -12,18 +12,23 @@ import {
   XMarkIcon,
   CurrencyDollarIcon,
   PlusIcon,
-  SparklesIcon
+  SparklesIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline"
 import { createDailyPool } from "@/app/actions/user/daily-pools"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-const fetcher = (url: string) => fetch(url).then(r => r.json())
+const fetcher = async (url: string) => {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`API error: ${r.status}`)
+  return r.json()
+}
 
 
 export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean }) {
-  const { data, error, mutate } = useSWR("/api/user/daily-earning", fetcher)
+  const { data, error, isLoading, mutate } = useSWR("/api/user/daily-earning", fetcher)
   const { formatCurrency, userCurrency, convertFromUSD, convertToUSD } = useCurrency();
   
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
@@ -48,20 +53,50 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
   const expiredLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
   const totalPrincipalLocked = activeLocks.reduce((sum: any, inv: any) => sum + inv.amount, 0)
   const totalAccumulatedProfit = activeLocks.reduce((sum: any, inv: any) => sum + inv.profitEarned, 0)
+
+  if (isLoading) {
+    return (
+      <div className={cn("bg-card border border-border rounded-[2.5rem] p-8 animate-pulse", isCompact ? "h-64" : "h-96")}>
+         <div className="h-8 bg-muted rounded-full w-1/2 mb-8" />
+         <div className="grid grid-cols-2 gap-4">
+            <div className="h-32 bg-muted rounded-2xl" />
+            <div className="h-32 bg-muted rounded-2xl" />
+         </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className={cn("bg-card border border-rose-500/20 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center", isCompact ? "h-64" : "h-96")}>
+         <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center mb-4">
+            <ExclamationTriangleIcon className="w-6 h-6 text-rose-500" />
+         </div>
+         <h3 className="font-black text-foreground mb-2">Protocol Link Failed</h3>
+         <p className="text-xs text-muted-foreground mb-6 max-w-[200px]">We couldn't connect to your earning node. Please try refreshing.</p>
+         <button onClick={() => mutate()} className="px-6 py-2.5 bg-foreground text-background text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95">
+            Retry Connection
+         </button>
+      </div>
+    )
+  }
   const [actionLoader, setActionLoader] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
-  const handleCompletionAction = async (investmentId: string, action: "REINVEST" | "WITHDRAW_TO_WALLET") => {
+  const handleCompletionAction = async (investmentId: string) => {
      setActionError(null)
+     setActionSuccess(null)
      setActionLoader(investmentId)
      try {
        const res = await fetch("/api/user/daily-earning/complete", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ investmentId, action })
+         body: JSON.stringify({ investmentId })
        })
        const result = await res.json()
        if (!res.ok) throw new Error(result.error || "Action failed")
+       setActionSuccess(result.message || "Congrats, your pool is complete")
        mutate()
      } catch(err: any) {
        setActionError(err.message)
@@ -274,6 +309,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
             </div>
               
               {actionError && <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold rounded-2xl">{actionError}</div>}
+              {actionSuccess && <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold rounded-2xl">{actionSuccess}</div>}
 
               <div className="grid grid-cols-1 gap-4">
                  {expiredLocks.map((inv: any) => (
@@ -303,18 +339,11 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                        
                        <div className="flex flex-col sm:flex-row gap-3">
                           <button 
-                            type="button" onClick={() => handleCompletionAction(inv.id, "REINVEST")}
+                            type="button" onClick={() => handleCompletionAction(inv.id)}
                             disabled={actionLoader === inv.id}
-                            className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 shadow-md shadow-indigo-500/25 active:scale-95"
+                            className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 shadow-md shadow-emerald-500/25 active:scale-95"
                           >
-                            {actionLoader === inv.id ? "Working..." : "Reinvest All"}
-                          </button>
-                          <button 
-                            type="button" onClick={() => handleCompletionAction(inv.id, "WITHDRAW_TO_WALLET")}
-                            disabled={actionLoader === inv.id}
-                            className="px-6 py-3.5 bg-card hover:bg-muted text-foreground text-xs font-black uppercase tracking-widest rounded-xl border border-border transition-all disabled:opacity-50 active:scale-95"
-                          >
-                             Collect To Main
+                            {actionLoader === inv.id ? "Working..." : "Complete Pool"}
                           </button>
                        </div>
                     </motion.div>
