@@ -8,7 +8,7 @@ import AdminWalletManager from "./manager"
 
 export default async function AdminWalletsPage() {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") redirect("/dashboard");
+    if (session?.user?.role !== "ADMIN") redirect("/admin");
 
     // Fetch only TRC20 wallet or all and let manager filter, but better to just fetch all
     let wallets: any[] = [];

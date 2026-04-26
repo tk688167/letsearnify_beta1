@@ -43,6 +43,10 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
   const [investError, setInvestError] = useState("")
   const [investSuccess, setInvestSuccess] = useState("")
 
+  const [actionLoader, setActionLoader] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
+
   const walletBalance = data?.walletBalance || 0
   const dailyEarningWallet = data?.dailyEarningWallet || 0
   const activeInvestments: any[] = data?.activeInvestments || []
@@ -80,9 +84,6 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
       </div>
     )
   }
-  const [actionLoader, setActionLoader] = useState<string | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
   const handleCompletionAction = async (investmentId: string) => {
      setActionError(null)

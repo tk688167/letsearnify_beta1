@@ -39,18 +39,50 @@ export default function UserActions({ user, onUpdated }: UserActionsProps) {
   useEffect(() => { setMounted(true) }, [])
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
+
+  const handleToggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!isDropdownOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      const left = Math.max(10, rect.right - 176) // 176px is w-44
+      setDropdownPos({
+        top: rect.bottom + 6,
+        left
+      })
+    }
+    setIsDropdownOpen(!isDropdownOpen)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        isDropdownOpen &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false)
       }
     }
+    const handleScrollOrResize = (event: Event) => {
+      if (dropdownRef.current && dropdownRef.current.contains(event.target as Node)) return;
+      setIsDropdownOpen(false)
+    }
+
     if (isDropdownOpen) {
       document.addEventListener("mousedown", handleClickOutside)
+      window.addEventListener("scroll", handleScrollOrResize, true)
+      window.addEventListener("resize", handleScrollOrResize)
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      window.removeEventListener("scroll", handleScrollOrResize, true)
+      window.removeEventListener("resize", handleScrollOrResize)
+    }
   }, [isDropdownOpen])
 
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -168,82 +200,17 @@ export default function UserActions({ user, onUpdated }: UserActionsProps) {
 
   return (
     <>
-      {/* Dropdown Action Menu */}
-      <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-        >
-          Actions
-          <svg className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-
-        {isDropdownOpen && (
-          <div className="absolute right-0 mt-1.5 w-44 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 py-1.5 z-50 text-left">
-            {user.role === "ADMIN" && (
-              <button
-                onClick={() => { setIsDropdownOpen(false); handleImpersonate(); }}
-                disabled={impersonateLoading}
-                className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2"
-              >
-                <EyeIcon className={`w-4 h-4 ${impersonateLoading ? "animate-pulse" : ""}`} />
-                Log in as Admin
-              </button>
-            )}
-            <Link
-              href={`/admin/users/${user.id}/info`}
-              className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2"
-            >
-              <InformationCircleIcon className="w-4 h-4" />
-              Info
-            </Link>
-            <Link
-              href={`/admin/users/${user.id}/tree`}
-              className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-2"
-            >
-              <UserGroupIcon className="w-4 h-4" />
-              Refer Tree
-            </Link>
-            <button
-              onClick={() => { setIsDropdownOpen(false); handleToggleLock(); }}
-              disabled={toggleLockLoading}
-              className={`w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2 ${
-                user.isActiveMember 
-                  ? "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
-                  : "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
-              }`}
-            >
-              {toggleLockLoading ? (
-                <ArrowPathIcon className="w-4 h-4 animate-spin" />
-              ) : user.isActiveMember ? (
-                <LockClosedIcon className="w-4 h-4" />
-              ) : (
-                <LockOpenIcon className="w-4 h-4" />
-              )}
-              {user.isActiveMember ? "Lock Account" : "Unlock Account"}
-            </button>
-            <button
-              onClick={() => { setIsDropdownOpen(false); setIsEditOpen(true); }}
-              className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2"
-            >
-              <PencilSquareIcon className="w-4 h-4" />
-              Edit User
-            </button>
-            
-            <div className="h-px bg-gray-100 dark:bg-slate-700 my-1 font-mono mx-2"></div>
-
-            <button
-              onClick={() => { setIsDropdownOpen(false); setIsDeleteOpen(true); }}
-              className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2"
-            >
-              <TrashIcon className="w-4 h-4" />
-              Delete User
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Dropdown Action Menu Button */}
+      <button
+        ref={buttonRef}
+        onClick={handleToggleDropdown}
+        className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+      >
+        Actions
+        <svg className={`w-3.5 h-3.5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
       {/* Portaled Modals & Toast */}
       {mounted && createPortal(
@@ -255,6 +222,75 @@ export default function UserActions({ user, onUpdated }: UserActionsProps) {
             }`}>
               {toast.type === "success" ? <CheckCircleIcon className="w-4 h-4 shrink-0" /> : <ExclamationTriangleIcon className="w-4 h-4 shrink-0" />}
               {toast.text}
+            </div>
+          )}
+
+          {/* ── DROPDOWN PORTAL ──────────────────────────── */}
+          {isDropdownOpen && (
+            <div
+              ref={dropdownRef}
+              style={{ top: dropdownPos.top, left: dropdownPos.left }}
+              className="fixed w-44 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 py-1.5 z-[99999] text-left animate-in fade-in zoom-in-95 duration-100"
+            >
+              {user.role === "ADMIN" && (
+                <button
+                  onClick={() => { setIsDropdownOpen(false); handleImpersonate(); }}
+                  disabled={impersonateLoading}
+                  className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-2"
+                >
+                  <EyeIcon className={`w-4 h-4 ${impersonateLoading ? "animate-pulse" : ""}`} />
+                  Log in as Admin
+                </button>
+              )}
+              <Link
+                href={`/admin/users/${user.id}/info`}
+                className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2"
+              >
+                <InformationCircleIcon className="w-4 h-4" />
+                Info
+              </Link>
+              <Link
+                href={`/admin/users/${user.id}/tree`}
+                className="px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-2"
+              >
+                <UserGroupIcon className="w-4 h-4" />
+                Refer Tree
+              </Link>
+              <button
+                onClick={() => { setIsDropdownOpen(false); handleToggleLock(); }}
+                disabled={toggleLockLoading}
+                className={`w-full text-left px-3.5 py-2 text-xs font-bold flex items-center gap-2 ${
+                  user.isActiveMember 
+                    ? "text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20" 
+                    : "text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                }`}
+              >
+                {toggleLockLoading ? (
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                ) : user.isActiveMember ? (
+                  <LockClosedIcon className="w-4 h-4" />
+                ) : (
+                  <LockOpenIcon className="w-4 h-4" />
+                )}
+                {user.isActiveMember ? "Lock Account" : "Unlock Account"}
+              </button>
+              <button
+                onClick={() => { setIsDropdownOpen(false); setIsEditOpen(true); }}
+                className="w-full text-left px-3.5 py-2 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2"
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+                Edit User
+              </button>
+              
+              <div className="h-px bg-gray-100 dark:bg-slate-700 my-1 font-mono mx-2"></div>
+
+              <button
+                onClick={() => { setIsDropdownOpen(false); setIsDeleteOpen(true); }}
+                className="w-full text-left px-3.5 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 flex items-center gap-2"
+              >
+                <TrashIcon className="w-4 h-4" />
+                Delete User
+              </button>
             </div>
           )}
 

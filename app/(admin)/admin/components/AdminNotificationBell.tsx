@@ -26,6 +26,20 @@ const TYPE_STYLES: Record<string, { bg: string, icon: string, label: string }> =
   task_submission: { bg: "bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400", icon: "✅", label: "Task" },
   unlock: { bg: "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400", icon: "🔓", label: "Unlock" },
   support_message: { bg: "bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400", icon: "💬", label: "Live Chat" },
+  daily_earning: { bg: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400", icon: "📈", label: "Daily Pool" },
+  spin_wheel: { bg: "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400", icon: "🎰", label: "Spin Wheel" },
+}
+
+const CATEGORY_MAP: Record<string, { title: string, order: number }> = {
+  'signup': { title: 'New User Sign-ups', order: 1 },
+  'task_submission': { title: 'Task Approvals', order: 2 },
+  'deposit': { title: 'Deposits & Withdrawals', order: 3 },
+  'withdrawal': { title: 'Deposits & Withdrawals', order: 3 },
+  'merchant_deposit': { title: 'Deposits & Withdrawals', order: 3 },
+  'daily_earning': { title: 'Daily Earning Pool', order: 4 },
+  'spin_wheel': { title: 'Spin Wheel Activities', order: 5 },
+  'unlock': { title: 'Account Actions', order: 6 },
+  'support_message': { title: 'Live Chat', order: 7 }
 }
 
 export function AdminNotificationBell() {
@@ -33,6 +47,7 @@ export function AdminNotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState("")
+  const [activeTab, setActiveTab] = useState<string>('All')
   const [dateFilter, setDateFilter] = useState<'today' | '7d' | '30d' | 'custom'>('7d')
   const [customDate, setCustomDate] = useState("")
   const [isMounted, setIsMounted] = useState(false)
@@ -98,6 +113,53 @@ export function AdminNotificationBell() {
     return true
   })
 
+  const groupedNotifications = filteredNotifications.reduce((acc: any, n: any) => {
+    const category = CATEGORY_MAP[n.type]?.title || 'Other Activity'
+    const order = CATEGORY_MAP[n.type]?.order || 99
+    if (!acc[category]) {
+      acc[category] = { title: category, order, items: [] }
+    }
+    acc[category].items.push(n)
+    return acc
+  }, {})
+
+  const sortedCategories = Object.values(groupedNotifications).sort((a: any, b: any) => a.order - b.order)
+
+  const renderItem = (n: any) => {
+    const style = TYPE_STYLES[n.type] || TYPE_STYLES.deposit
+    return (
+      <Link
+        key={n.id}
+        href={n.href}
+        onClick={() => setIsOpen(false)}
+        className={cn(
+          "group relative flex items-center gap-5 p-5 bg-white dark:bg-slate-800/40 border border-transparent rounded-[30px] transition-all hover:bg-gray-50 dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-none hover:border-blue-500/20",
+          !n.read && "bg-blue-50/30 dark:bg-blue-950/10 border-blue-100 dark:border-blue-500/20 ring-1 ring-inset ring-blue-500/10"
+        )}
+      >
+        <div className={cn("w-14 h-14 rounded-[22px] flex items-center justify-center shrink-0 text-2xl shadow-sm", style.bg)}>
+          {style.icon}
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 uppercase tracking-widest">{style.label}</span>
+            <span className="text-[10px] font-bold text-gray-300 dark:text-slate-600">•</span>
+            <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase">{n.time}</span>
+          </div>
+          <h4 className={cn("text-base font-black tracking-tight", n.read ? "text-gray-700 dark:text-slate-200" : "text-gray-900 dark:text-white")}>
+            {n.title}
+          </h4>
+          <p className="text-sm text-gray-500 dark:text-slate-500 mt-0.5 font-medium line-clamp-1 group-hover:line-clamp-none transition-all">
+            {n.description}
+          </p>
+        </div>
+
+        {!n.read && <div className="absolute top-6 right-6 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-500/20" />}
+      </Link>
+    )
+  }
+
   // THE FULL SCREEN CENTER CONTENT
   const FullScreenOverlay = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center animate-in fade-in duration-300">
@@ -158,8 +220,6 @@ export function AdminNotificationBell() {
                    )}
                  >
                    {f === 'today' ? 'Today' : f === '7d' ? '7 Days' : '30 Days'}
-                   {f === '7d' ? '7 Days' : ''}
-                   {f === '30d' ? '30 Days' : ''}
                  </button>
                ))}
                
@@ -201,48 +261,87 @@ export function AdminNotificationBell() {
               <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tighter">No Events Found</h3>
               <p className="text-sm text-gray-500 dark:text-slate-500 max-w-xs mt-2 font-medium">We couldn't find any notifications matching your current filters or search query.</p>
               <button 
-                onClick={() => { setSearchTerm(""); setDateFilter("30d"); }}
+                onClick={() => { setSearchTerm(""); setDateFilter("30d"); setActiveTab("All"); }}
                 className="mt-6 px-6 py-3 bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-300 rounded-[20px] text-xs font-black uppercase hover:bg-gray-200 transition-all"
               >
                 Clear All Filters
               </button>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {filteredNotifications.map((n: any) => {
-                const style = TYPE_STYLES[n.type] || TYPE_STYLES.deposit
-                return (
-                  <Link
-                    key={n.id}
-                    href={n.href}
-                    onClick={() => setIsOpen(false)}
-                    className={cn(
-                      "group relative flex items-center gap-5 p-5 bg-white dark:bg-slate-800/40 border border-transparent rounded-[30px] transition-all hover:bg-gray-50 dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-none hover:border-blue-500/20",
-                      !n.read && "bg-blue-50/30 dark:bg-blue-950/10 border-blue-100 dark:border-blue-500/20 ring-1 ring-inset ring-blue-500/10"
-                    )}
-                  >
-                    <div className={cn("w-14 h-14 rounded-[22px] flex items-center justify-center shrink-0 text-2xl shadow-sm", style.bg)}>
-                      {style.icon}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-400 dark:text-slate-500 uppercase tracking-widest">{style.label}</span>
-                        <span className="text-[10px] font-bold text-gray-300 dark:text-slate-600">•</span>
-                        <span className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase">{n.time}</span>
-                      </div>
-                      <h4 className={cn("text-base font-black tracking-tight", n.read ? "text-gray-700 dark:text-slate-200" : "text-gray-900 dark:text-white")}>
-                        {n.title}
-                      </h4>
-                      <p className="text-sm text-gray-500 dark:text-slate-500 mt-0.5 font-medium line-clamp-1 group-hover:line-clamp-none transition-all">
-                        {n.description}
-                      </p>
-                    </div>
+            <div className="flex flex-col gap-4">
+              {/* HORIZONTAL CATEGORY TABS */}
+              <div className="flex flex-wrap gap-2 pb-2">
+                <button
+                  onClick={() => setActiveTab('All')}
+                  className={cn(
+                    "px-4 py-2.5 rounded-[16px] text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border border-transparent",
+                    activeTab === 'All' 
+                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                      : "bg-gray-100 dark:bg-slate-800/60 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  All Events
+                </button>
+                {sortedCategories.map((group: any) => {
+                  const unreadCount = group.items.filter((n: any) => !n.read).length;
+                  return (
+                    <button
+                      key={group.title}
+                      onClick={() => setActiveTab(group.title)}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2.5 rounded-[16px] text-[11px] font-black uppercase tracking-widest whitespace-nowrap transition-all border border-transparent",
+                        activeTab === group.title 
+                          ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" 
+                          : "bg-gray-100 dark:bg-slate-800/60 text-gray-500 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-white"
+                      )}
+                    >
+                      {group.title}
+                      {unreadCount > 0 && (
+                        <span className={cn(
+                          "px-1.5 py-0.5 rounded-md text-[10px]",
+                          activeTab === group.title ? "bg-white/20 text-white" : "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                        )}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
 
-                    {!n.read && <div className="absolute top-6 right-6 w-3 h-3 bg-blue-500 rounded-full ring-4 ring-blue-500/20" />}
-                  </Link>
-                )
-              })}
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {(() => {
+                  const currentItems = activeTab === 'All' ? filteredNotifications : (sortedCategories as any[]).find((g: any) => g.title === activeTab)?.items || [];
+                  const unreadItems = currentItems.filter((n: any) => !n.read);
+                  const readItems = currentItems.filter((n: any) => n.read);
+                  
+                  return (
+                    <div className="space-y-6">
+                      {unreadItems.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-black text-gray-500 dark:text-slate-400 uppercase tracking-widest pl-2 border-l-[3px] border-blue-500">Unread Alerts</h4>
+                          <div className="grid gap-4">
+                            {unreadItems.map(renderItem)}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {readItems.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest pl-2 border-l-[3px] border-gray-300 dark:border-slate-700 mt-4">Earlier</h4>
+                          <div className="grid gap-4 opacity-75 hover:opacity-100 transition-opacity">
+                            {readItems.map(renderItem)}
+                          </div>
+                        </div>
+                      )}
+
+                      {unreadItems.length === 0 && readItems.length === 0 && (
+                        <div className="text-center py-10 text-sm font-medium text-gray-500">No events found in this category.</div>
+                      )}
+                    </div>
+                  )
+                })()}
+              </div>
             </div>
           )}
         </div>

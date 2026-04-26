@@ -11,7 +11,7 @@ import { format } from "date-fns"
 
 export default async function AdminUserInfoPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
-  if (!session?.user?.email || session.user.role !== "ADMIN") redirect("/dashboard")
+  if (!session?.user?.email || session.user.role !== "ADMIN") redirect("/admin")
 
   const { id } = await params
   

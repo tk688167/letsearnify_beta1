@@ -1,27 +1,16 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 export const dynamic = "force-dynamic";
 
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { redirect, notFound } from "next/navigation"
-import ReferralView from "@/app/(dashboard)/dashboard/referrals/referral-view"
-import { getTierRules, calculateQualifiedTierArn } from "@/lib/mlm"
+import AdminTreeClient from "./AdminTreeClient"
 import { startOfDay } from "date-fns"
 
 export default async function AdminUserTreePage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const session = await auth()
+  // Admin layout already enforces role — just guard against unauthenticated requests
   if (!session?.user?.id) redirect("/login")
-
-  // Verify Admin Role
-  const admin = await prisma.user.findUnique({ 
-     where: { id: session.user.id },
-     select: { role: true }
-  })
-
-  if (admin?.role !== "ADMIN") {
-      redirect("/dashboard")
-  }
 
   // Fetch Target User with Deeply Nested Referrals (3 Levels)
   const user = await prisma.user.findUnique({
@@ -38,15 +27,6 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
             }
           }
         }
-      },
-      referralsMade: { // Commissions Earned
-         orderBy: { createdAt: 'desc' },
-         take: 50,
-         include: {
-            sourceUser: {
-               select: { name: true, email: true }
-            }
-         }
       }
     }
   })
@@ -98,34 +78,17 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
   })
   const todayEarnings = todayEarningsAgg._sum.amount || 0
 
-  const tierRules = await getTierRules()
-
-  const qArn = await calculateQualifiedTierArn(user.id, prisma)
-
   return (
     <div className="p-6 md:p-10 min-h-screen bg-gray-50/50">
-       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-             <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 font-bold rounded text-xs uppercase">Admin View</span>
-             </div>
-             <h1 className="text-3xl font-serif font-bold text-gray-900">Tree for {user.name}</h1>
-             <p className="text-gray-500 mt-1">Viewing referral structure for {user.email}</p>
-          </div>
-       </div>
-
-        <ReferralView 
-           user={{
-              name: user.name,
-              tier: user.tier,
-              arnBalance: user.arnBalance,
-              qualifiedArn: qArn,
-              referralCode: user.referralCode,
-              balance: user.balance,
-              totalSignups: user.referrals?.length || 0,
-              referrerName: user.referrer?.name,
-              referrerCode: user.referrer?.referralCode
-           }}
+       <AdminTreeClient 
+          user={{
+             id: user.id,
+             name: user.name,
+             email: user.email,
+             referralCode: user.referralCode,
+             referrerName: user.referrer?.name,
+             referrerCode: user.referrer?.referralCode
+          }}
           stats={{
              teamSize,
              totalEarnings,
@@ -140,14 +103,6 @@ export default async function AdminUserTreePage(props: { params: Promise<{ id: s
              createdAt: n.createdAt,
              level: n.level
           }))}
-          commissions={user.referralsMade ? user.referralsMade.map((c: any) => ({
-             id: c.id,
-             amount: c.amount,
-             level: c.level,
-             sourceUser: c.sourceUser,
-             createdAt: c.createdAt
-          })) : []}
-          tierConfig={tierRules}
        />
     </div>
   )

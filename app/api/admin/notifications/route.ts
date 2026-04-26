@@ -24,7 +24,7 @@ export async function GET() {
     since.setDate(since.getDate() - 30) // last 30 days
 
     // Fetch recent events in parallel
-    const [pendingMerchantDeposits, pendingWithdrawals, recentSignups, recentUnlocks, pendingTaskApprovals] = await Promise.all([
+    const [pendingMerchantDeposits, pendingWithdrawals, recentSignups, recentUnlocks, pendingTaskApprovals, recentDailyInvestments, recentSpinRewards] = await Promise.all([
       prisma.merchantTransaction.findMany({
         where: { createdAt: { gte: since } }, // Get all in range for detailed panel
         include: { user: { select: { name: true, email: true } } },
@@ -51,6 +51,18 @@ export async function GET() {
       }),
       prisma.taskCompletion.findMany({
         where: { createdAt: { gte: since } },
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 50
+      }),
+      prisma.dailyEarningInvestment.findMany({
+        where: { createdAt: { gte: since } },
+        include: { user: { select: { name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 50
+      }),
+      prisma.mLMLog.findMany({
+        where: { type: "SPIN_REWARD", createdAt: { gte: since } },
         include: { user: { select: { name: true, email: true } } },
         orderBy: { createdAt: "desc" },
         take: 50
@@ -126,6 +138,34 @@ export async function GET() {
         time: formatTimeAgo(tc.createdAt),
         read: new Date(tc.createdAt) < lastReadAt,
         sortDate: tc.createdAt
+      })
+    }
+
+    // Daily Earning Pool investments
+    for (const inv of recentDailyInvestments) {
+      notifications.push({
+        id: `daily-inv-${inv.id}`,
+        type: 'daily_earning',
+        title: "Daily Pool Investment",
+        description: `${inv.user?.name || 'User'} invested $${inv.amount.toFixed(2)} in the Daily Pool`,
+        href: "/admin/daily-earning",
+        time: formatTimeAgo(inv.createdAt),
+        read: new Date(inv.createdAt) < lastReadAt,
+        sortDate: inv.createdAt
+      })
+    }
+
+    // Spin Wheel Activities
+    for (const spin of recentSpinRewards) {
+      notifications.push({
+        id: `spin-${spin.id}`,
+        type: 'spin_wheel',
+        title: "Spin Reward Won",
+        description: `${spin.user?.name || 'User'} ${spin.description.toLowerCase()}`,
+        href: "/admin/spin-timers",
+        time: formatTimeAgo(spin.createdAt),
+        read: new Date(spin.createdAt) < lastReadAt,
+        sortDate: spin.createdAt
       })
     }
 

@@ -34,6 +34,7 @@ export default function SurpriseWinnersClient({ initialWinners }: Props) {
     const [winners, setWinners] = useState<Winner[]>(initialWinners)
     const [filter, setFilter] = useState<"ALL" | "PENDING" | "REWARDED" | "DISMISSED">("PENDING")
     const [rewardNotes, setRewardNotes] = useState<Record<string, string>>({})
+    const [rewardAmounts, setRewardAmounts] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState<Record<string, boolean>>({})
     const router = useRouter()
 
@@ -42,19 +43,24 @@ export default function SurpriseWinnersClient({ initialWinners }: Props) {
     const pendingCount = winners.filter(w => w.status === "PENDING").length
 
     const handleReward = async (id: string) => {
-        const note = rewardNotes[id]?.trim()
-        if (!note) {
-            toast.error("Please enter a reward note before confirming")
+        const note = rewardNotes[id]?.trim() || "Spin Reward"
+        const amountStr = rewardAmounts[id]?.trim()
+        const amount = parseFloat(amountStr || "0")
+
+        if (!amountStr || isNaN(amount) || amount <= 0) {
+            toast.error("Please enter a valid reward amount (ARN)")
             return
         }
+        
         setLoading(prev => ({ ...prev, [id]: true }))
-        const res = await rewardSurpriseWinner(id, note)
+        const res = await rewardSurpriseWinner(id, amount, note)
         if (res.success) {
-            toast.success("Reward assigned successfully!")
+            toast.success(`Success! ${amount} ARN credited to user.`)
             router.refresh()
             setWinners(prev => prev.map(w => w.id === id ? { ...w, status: "REWARDED", adminRewardNote: note, rewardedAt: new Date() } : w))
         } else {
-            toast.error("Failed to assign reward: " + res.error)
+            const errorMsg = (res as any).error || "Unknown error"
+            toast.error("Failed to assign reward: " + errorMsg)
         }
         setLoading(prev => ({ ...prev, [id]: false }))
     }
@@ -161,13 +167,22 @@ export default function SurpriseWinnersClient({ initialWinners }: Props) {
                         )}
                         {winner.status === "PENDING" && (
                             <div className="space-y-2">
-                                <input
-                                    type="text"
-                                    placeholder="Enter reward (e.g. 50 ARN added manually)"
-                                    className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-pink-500 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
-                                    value={rewardNotes[winner.id] || ""}
-                                    onChange={e => setRewardNotes(prev => ({ ...prev, [winner.id]: e.target.value }))}
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="Amount (ARN)"
+                                        className="w-24 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-pink-500 text-slate-900 dark:text-white"
+                                        value={rewardAmounts[winner.id] || ""}
+                                        onChange={e => setRewardAmounts(prev => ({ ...prev, [winner.id]: e.target.value }))}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Note (optional)"
+                                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-pink-500 text-slate-900 dark:text-white"
+                                        value={rewardNotes[winner.id] || ""}
+                                        onChange={e => setRewardNotes(prev => ({ ...prev, [winner.id]: e.target.value }))}
+                                    />
+                                </div>
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleReward(winner.id)}
@@ -253,10 +268,17 @@ export default function SurpriseWinnersClient({ initialWinners }: Props) {
                                             <span className="text-xs text-slate-400 dark:text-slate-500 italic">Dismissed</span>
                                         )}
                                         {winner.status === "PENDING" && (
-                                            <div className="flex items-center gap-2 min-w-[300px]">
+                                            <div className="flex items-center gap-2 min-w-[350px]">
+                                                <input
+                                                    type="number"
+                                                    placeholder="Amount"
+                                                    className="w-20 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-pink-500 text-slate-900 dark:text-white transition-all"
+                                                    value={rewardAmounts[winner.id] || ""}
+                                                    onChange={e => setRewardAmounts(prev => ({ ...prev, [winner.id]: e.target.value }))}
+                                                />
                                                 <input
                                                     type="text"
-                                                    placeholder="e.g. 50 ARN credited manually"
+                                                    placeholder="e.g. 50 ARN bonus"
                                                     className="flex-1 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-pink-500 text-slate-900 dark:text-white placeholder:text-slate-400 transition-all"
                                                     value={rewardNotes[winner.id] || ""}
                                                     onChange={e => setRewardNotes(prev => ({ ...prev, [winner.id]: e.target.value }))}

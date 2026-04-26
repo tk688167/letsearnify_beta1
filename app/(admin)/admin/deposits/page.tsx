@@ -11,7 +11,7 @@ import { formatCurrency } from "@/lib/utils"
 
 export default async function AdminDepositsPage(props: any) {
     const session = await auth();
-    if (session?.user?.role !== "ADMIN") redirect("/dashboard");
+    if (session?.user?.role !== "ADMIN") redirect("/admin");
 
     const searchParams = await props.searchParams;
     const tab = (searchParams?.tab || "trc20").toLowerCase();
