@@ -111,17 +111,17 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
         // --- 1. Investor Share: Credit or Forfeit ---
         if (isInvestorEligible) {
             operations.push(
-                prisma.user.update({
-                    where: { id: pool.userId },
-                    data: { dailyEarningWallet: { increment: investorProfit } }
+                prisma.dailyEarningInvestment.update({
+                    where: { id: pool.id },
+                    data: { pendingInvestorProfit: { increment: investorProfit } }
                 }),
                 prisma.transaction.create({
                     data: {
                         userId: pool.userId,
                         amount: investorProfit,
                         type: "REWARD",
-                        status: "COMPLETED",
-                        description: `Daily 1% earning (Your ${investorSharePerCent}% share) from pool $${pool.amount.toFixed(2)} — ${pendingCycles} cycle(s).`
+                        status: "PENDING",
+                        description: `Pending 1% earning (Your ${investorSharePerCent}% share) from pool $${pool.amount.toFixed(2)} — ${pendingCycles} cycle(s).`
                     }
                 }),
                 prisma.mLMLog.create({
@@ -129,7 +129,7 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         userId: pool.userId,
                         type: "POOL_EARNING",
                         amount: investorProfit,
-                        description: `Received ${investorSharePerCent}% share of daily 1% profit for ${pendingCycles} cycle(s).`
+                        description: `Earned ${investorSharePerCent}% pending share of daily 1% profit for ${pendingCycles} cycle(s).`
                     }
                 })
             )
@@ -167,19 +167,19 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
 
         if (earnerId && referrerProfit > 0) {
             if (isManuallyReferred && isReferrerEligible) {
-                // Manually referred & eligible → credit referrer
+                // Manually referred & eligible → credit referrer's pending wallet
                 operations.push(
                     prisma.user.update({
                         where: { id: earnerId },
-                        data: { dailyEarningWallet: { increment: referrerProfit } }
+                        data: { pendingReferralWallet: { increment: referrerProfit } }
                     }),
                     prisma.transaction.create({
                         data: {
                             userId: earnerId,
                             amount: referrerProfit,
                             type: "COMMISSION",
-                            status: "COMPLETED",
-                            description: `Referral Earning (${referrerSharePerCent}% share) from ${pool.user.name || pool.user.id.slice(-5)}'s Daily Pool.`
+                            status: "PENDING",
+                            description: `Pending Referral Earning (${referrerSharePerCent}% share) from ${pool.user.name || pool.user.id.slice(-5)}'s Daily Pool. Will settle on pool completion.`
                         }
                     }),
                     prisma.mLMLog.create({
@@ -187,7 +187,7 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                             userId: earnerId,
                             type: "REFERRAL_EARNING",
                             amount: referrerProfit,
-                            description: `Earned ${referrerSharePerCent}% referral share from member's daily pool yield.`
+                            description: `Earned ${referrerSharePerCent}% pending referral share from member's daily pool yield.`
                         }
                     })
                 )
@@ -247,9 +247,11 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
                         data: {
                             earnerId: earnerId,
                             sourceUserId: pool.userId,
+                            poolId: pool.id,
                             amount: isReferrerEligible ? referrerProfit : 0,
                             level: 1,
                             percentage: referrerSharePerCent,
+                            status: "PENDING",
                             category: "DAILY_POOL"
                         }
                     })
@@ -291,27 +293,70 @@ export async function executeDailyPoolDistribution(options: { force?: boolean } 
 
     let processedExpiry = 0
     for (const pool of expiredPools) {
-        const returnPrincipal = pool.amount
-
-        await prisma.$transaction([
+        const finalPayout = pool.amount + pool.pendingInvestorProfit
+        const operations: any[] = [
             prisma.dailyEarningInvestment.update({
                 where: { id: pool.id },
-                data: { status: "COMPLETED" }
+                data: { status: "COMPLETED", pendingInvestorProfit: 0 }
             }),
             prisma.user.update({
                 where: { id: pool.userId },
-                data: { dailyEarningWallet: { increment: returnPrincipal } }
+                data: { dailyEarningWallet: { increment: finalPayout } }
             }),
             prisma.transaction.create({
                 data: {
                     userId: pool.userId,
-                    amount: returnPrincipal,
+                    amount: finalPayout,
                     type: "REWARD",
                     status: "COMPLETED",
-                    description: `Daily Earnings Pool completed. Returned principal $${pool.amount.toFixed(2)} to Daily Wallet.`
+                    description: `Daily Pool Completed. Returned Principal ($${pool.amount.toFixed(2)}) + Pending Profit ($${pool.pendingInvestorProfit.toFixed(2)}).`
                 }
             })
-        ])
+        ]
+
+        // --- Handle Pending Referral Settlement ---
+        const pendingCommissions = await prisma.referralCommission.findMany({
+            where: { poolId: pool.id, status: "PENDING" }
+        })
+
+        if (pendingCommissions.length > 0) {
+            const totalsByEarner = pendingCommissions.reduce((acc: any, curr) => {
+                acc[curr.earnerId] = (acc[curr.earnerId] || 0) + curr.amount;
+                return acc;
+            }, {})
+
+            for (const [earnerId, totalAmount] of Object.entries(totalsByEarner)) {
+                if ((totalAmount as number) > 0) {
+                    operations.push(
+                        prisma.user.update({
+                            where: { id: earnerId },
+                            data: {
+                                pendingReferralWallet: { decrement: totalAmount as number },
+                                dailyEarningWallet: { increment: totalAmount as number }
+                            }
+                        }),
+                        prisma.transaction.create({
+                            data: {
+                                userId: earnerId,
+                                amount: totalAmount as number,
+                                type: "COMMISSION",
+                                status: "COMPLETED",
+                                description: `Final Settlement: 30-Day Referral Earnings from pool completion.`
+                            }
+                        })
+                    )
+                }
+            }
+
+            operations.push(
+                prisma.referralCommission.updateMany({
+                    where: { poolId: pool.id, status: "PENDING" },
+                    data: { status: "SETTLED" }
+                })
+            )
+        }
+
+        await prisma.$transaction(operations)
         processedExpiry++
     }
 
@@ -373,22 +418,18 @@ export async function executeForwardAdjustment() {
                 where: { id: pool.id },
                 data: {
                     profitEarned: { increment: totalProfitToSplit },
+                    pendingInvestorProfit: { increment: investorProfit },
                     lastCalculatedDate: newLastCalculatedDate,
                     nextCycleAt: newNextCycleAt
                 }
-            }),
-            // Force-credit always ignores eligibility (admin intent)
-            prisma.user.update({
-                where: { id: pool.userId },
-                data: { dailyEarningWallet: { increment: investorProfit } }
             }),
             prisma.transaction.create({
                 data: {
                     userId: pool.userId,
                     amount: investorProfit,
                     type: "REWARD",
-                    status: "COMPLETED",
-                    description: `Admin Forward Sync: Added 1 day profit (${investorSharePerCent}% share).`
+                    status: "PENDING",
+                    description: `Admin Forward Sync: Added 1 day pending profit (${investorSharePerCent}% share).`
                 }
             }),
             prisma.mLMLog.create({
@@ -396,7 +437,7 @@ export async function executeForwardAdjustment() {
                     userId: pool.userId,
                     type: "POOL_EARNING",
                     amount: investorProfit,
-                    description: `[Manual Sync] Received ${investorSharePerCent}% share for 1 forced day.`
+                    description: `[Manual Sync] Earned ${investorSharePerCent}% pending share for 1 forced day.`
                 }
             })
         ]
@@ -406,15 +447,15 @@ export async function executeForwardAdjustment() {
                 operations.push(
                     prisma.user.update({
                         where: { id: earnerId },
-                        data: { dailyEarningWallet: { increment: referrerProfit } }
+                        data: { pendingReferralWallet: { increment: referrerProfit } }
                     }),
                     prisma.transaction.create({
                         data: {
                             userId: earnerId,
                             amount: referrerProfit,
                             type: "COMMISSION",
-                            status: "COMPLETED",
-                            description: `Admin Forward Sync: Manual referral credit from ${pool.user.email} pool.`
+                            status: "PENDING",
+                            description: `Admin Forward Sync: Manual pending referral credit from ${pool.user.email} pool.`
                         }
                     })
                 )

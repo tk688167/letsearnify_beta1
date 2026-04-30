@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { auth } from "@/auth"
-import type { SpinReward } from "@/lib/spin-config"
+import { SpinReward, getStandardSegments } from "@/lib/spin-config"
 
 // Type checking usually via Zod, but keeping simple for this request as per user preference for speed
 export async function getSpinRewards(type: "FREE" | "PREMIUM"): Promise<SpinReward[]> {
@@ -15,13 +15,7 @@ export async function getSpinRewards(type: "FREE" | "PREMIUM"): Promise<SpinRewa
         orderBy: { order: "asc" }
     })
 
-    // Prisma returns `type` as `string`; cast it to the strict union since only
-    // valid enum values are ever written to the DB via upsertSpinReward.
-    return rewards.map((r) => ({
-        ...r,
-        type: r.type as SpinReward["type"],
-        textColor: r.textColor ?? undefined,
-    }))
+    return getStandardSegments(rewards, type) as SpinReward[];
 }
 
 
@@ -38,7 +32,9 @@ export async function upsertSpinReward(data: {
     const session = await auth()
     if (!session?.user?.id) throw new Error("Unauthorized")
 
-    if (data.id) {
+    const isNew = !data.id || data.id.startsWith("default-")
+
+    if (!isNew) {
         await prisma.spinReward.update({
             where: { id: data.id },
             data: {

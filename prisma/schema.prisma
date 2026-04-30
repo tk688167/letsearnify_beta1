@@ -29,6 +29,7 @@ model User {
   totalDeposit            Float                    @default(0.0)
   mudarabahBalance        Float                    @default(0.0)
   dailyEarningWallet      Float                    @default(0.0)
+  pendingReferralWallet   Float                    @default(0.0)
   kycStatus               String                   @default("NOT_VERIFIED")
   kycDocument             String?
   securityQuestion        String?
@@ -381,9 +382,11 @@ model ReferralCommission {
   id           String   @id @default(cuid())
   earnerId     String
   sourceUserId String
+  poolId       String?
   amount       Float
   level        Int
   percentage   Float
+  status       String   @default("PENDING")
   createdAt    DateTime @default(now())
   category     String   @default("MLM")
   earner       User     @relation("CommissionEarner", fields: [earnerId], references: [id], onDelete: Cascade)
@@ -597,6 +600,7 @@ model DailyEarningInvestment {
   amount             Float
   status             String   @default("ACTIVE")
   profitEarned       Float    @default(0.0)
+  pendingInvestorProfit Float @default(0.0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   lastCalculatedDate DateTime @default(now())

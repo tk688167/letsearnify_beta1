@@ -41,6 +41,11 @@ export default function NotificationBell() {
     async function fetchNotifications() {
         try {
             const res = await fetch("/api/user/notifications")
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                console.warn(`Notifications API returned ${res.status}:`, errorData.error || "Unknown error");
+                return;
+            }
             const data = await res.json()
             if (data.notifications) {
                 setNotifications(data.notifications)
@@ -62,7 +67,7 @@ export default function NotificationBell() {
                 }
             }
         } catch (error) {
-            console.error("Failed to fetch notifications")
+            console.error("Notification Fetch Error:", error)
         } finally {
             setLoading(false)
         }

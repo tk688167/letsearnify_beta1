@@ -11,6 +11,7 @@ import { ClockIcon } from "@heroicons/react/24/outline"
 import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
 import { cookies } from "next/headers"
 import PremiumLockedOverlay from "./PremiumLockedOverlay"
+import { getStandardSegments } from "@/lib/spin-config"
 
 export default async function SpinPage() {
   const session = await auth()
@@ -56,17 +57,8 @@ export default async function SpinPage() {
         getSpinSettings()
     ])
     
-    const freeRewards = freeRewardsDB.map((r: any) => ({
-        ...r, 
-        type: r.type as any, 
-        textColor: r.textColor || undefined
-    }))
-
-    const premiumRewards = premiumRewardsDB.map((r: any) => ({
-        ...r, 
-        type: r.type as any, 
-        textColor: r.textColor || undefined
-    }))
+    const freeRewards = getStandardSegments(freeRewardsDB, "FREE");
+    const premiumRewards = getStandardSegments(premiumRewardsDB, "PREMIUM");
 
     let currentUser = user;
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SpinReward } from "@/lib/spin-config"
 import { toggleSpinReward, deleteSpinReward, upsertSpinReward } from "@/app/actions/admin/spin-rewards"
 import { PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
@@ -59,6 +59,11 @@ export default function SpinConfigClient({ initialRewards, spinType }: Props) {
     const [formData, setFormData] = useState<RewardFormData | null>(null)
     const router = useRouter()
 
+    // Sync state with server data after router.refresh()
+    useEffect(() => {
+        setRewards(initialRewards)
+    }, [initialRewards])
+
     const handleEdit = (reward: SpinReward) => {
         setFormData({ ...reward, type: reward.type as any, spinType, textColor: reward.textColor ?? "" })
         setIsEditing(true)
@@ -73,19 +78,24 @@ export default function SpinConfigClient({ initialRewards, spinType }: Props) {
         if (!formData) return
         
         // Auto-assign styles if it's a new segment or manual override is removed
-        const index = formData.id ? rewards.findIndex(r => r.id === formData.id) : rewards.length;
+        // Safety: Ensure index is never negative. If editing a new segment without a DB ID, default to the current rewards length.
+        const dbIndex = formData.id ? rewards.findIndex(r => r.id === formData.id) : -1;
+        const index = dbIndex >= 0 ? dbIndex : rewards.length;
+        
         const autoStyle = getAutoStyle(index, spinType, formData.type);
         
         const finalData = {
             ...formData,
-            color: autoStyle.color,
-            textColor: autoStyle.textColor
+            color: autoStyle?.color || (spinType === "PREMIUM" ? "#0f172a" : "#1e1b4b"),
+            textColor: autoStyle?.textColor || (spinType === "PREMIUM" ? "#fcd34d" : "#c7d2fe")
         };
 
         const res = await upsertSpinReward(finalData) as { success: boolean, error?: string };
         if (res.success) {
-            toast.success(formData.id ? "✓ Segment updated" : "✓ Segment added")
+            toast.success(formData.id && !formData.id.startsWith("default-") ? "✓ Segment updated" : "✓ Segment saved to database")
             setIsEditing(false)
+            
+            // Force refresh the server components to show the newly persistent data
             router.refresh()
         } else {
             toast.error("Failed to save: " + (res.error || "Unknown error"))

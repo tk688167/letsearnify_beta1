@@ -67,9 +67,12 @@ export async function GET() {
         }, { status: 500 });
     }
 
+    const totalPendingProfit = activeInvestments.reduce((sum, inv) => sum + (inv.pendingInvestorProfit || 0), 0)
+
     return NextResponse.json({ 
       walletBalance: user?.balance || 0,
       dailyEarningWallet: user?.dailyEarningWallet || 0,
+      totalPendingProfit,
       isUnattached: !user?.referrer || user?.referrer?.referralCode === "COMPANY",
       activeInvestments,
       _debug: { userError, investmentsError }

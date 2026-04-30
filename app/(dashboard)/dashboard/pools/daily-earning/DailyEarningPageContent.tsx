@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import useSWR from "swr"
 import { format } from "date-fns"
 import Link from "next/link"
+import Image from "next/image"
 import { 
   ChartBarIcon, 
   WalletIcon, 
@@ -25,7 +26,9 @@ import {
   EnvelopeIcon,
   ChevronRightIcon,
   CurrencyDollarIcon,
-  UsersIcon
+  UsersIcon,
+  HomeModernIcon,
+  BriefcaseIcon
 } from "@heroicons/react/24/outline"
 import { createDailyPool } from "@/app/actions/user/daily-pools"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
@@ -42,6 +45,89 @@ const fetcher = async (url: string) => {
 
 function cn(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
+}
+
+function InvestmentSlider() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const slides = [
+    {
+      image: "/slider/stock.png",
+      title: "Stock Market Growth",
+      description: "Earn daily returns similar to top-performing stocks.",
+      color: "border-emerald-500/20 bg-emerald-500/5",
+      titleColor: "text-emerald-700 dark:text-emerald-400"
+    },
+    {
+      image: "/slider/real_estate.png",
+      title: "Real Estate Stability",
+      description: "Stable, consistent growth like prime real estate.",
+      color: "border-blue-500/20 bg-blue-500/5",
+      titleColor: "text-blue-700 dark:text-blue-400"
+    },
+    {
+      image: "/slider/business.png",
+      title: "Business Assets",
+      description: "Hold a stake and share in continuous business profits.",
+      color: "border-indigo-500/20 bg-indigo-500/5",
+      titleColor: "text-indigo-700 dark:text-indigo-400"
+    }
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  return (
+    <div className="mb-6 md:mb-8 w-full">
+      <div className="relative h-[100px] sm:h-[120px] w-full overflow-hidden rounded-[2rem]">
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={cn(
+              "absolute inset-0 p-4 sm:p-6 flex items-center gap-4 sm:gap-6 border rounded-[2rem] transition-opacity duration-500 ease-in-out overflow-hidden",
+              slide.color,
+              index === currentSlide ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
+            )}
+          >
+            {/* Background Image Accent */}
+            <div className="absolute right-0 top-0 bottom-0 w-2/3 pointer-events-none">
+               <Image src={slide.image} alt="" fill className="object-cover object-right opacity-10 dark:opacity-20" />
+               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
+            </div>
+
+            <div className="shrink-0 w-12 h-12 sm:w-16 sm:h-16 relative rounded-xl border border-border shadow-sm overflow-hidden z-10 bg-background">
+              <Image src={slide.image} alt={slide.title} fill className="object-cover" />
+            </div>
+            <div className="z-10 relative">
+              <h3 className={cn("font-black font-sans text-base sm:text-lg md:text-xl tracking-tight mb-0.5 sm:mb-1", slide.titleColor)}>
+                {slide.title}
+              </h3>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground max-w-[200px] sm:max-w-none">
+                {slide.description}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-center gap-2 mt-3">
+        {slides.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => setCurrentSlide(index)}
+            className={cn(
+              "w-2 h-2 rounded-full transition-colors",
+              index === currentSlide ? "bg-muted-foreground" : "bg-border"
+            )}
+            aria-label={`Go to slide ${index + 1}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function DailyEarningPageContent() {
@@ -76,6 +162,7 @@ export default function DailyEarningPageContent() {
 
   const walletBalance = data?.walletBalance || 0
   const dailyEarningWallet = data?.dailyEarningWallet || 0
+  const totalPendingInvestorProfit = data?.totalPendingProfit || 0
   const activeInvestments: any[] = data?.activeInvestments || []
 
   // Reactive error clearing: if wallet balance updates and is now sufficient, remove the error
@@ -288,163 +375,198 @@ export default function DailyEarningPageContent() {
   return (
     <div className="max-w-6xl mx-auto pb-24 px-4 sm:px-6 pt-10 md:pt-16 font-sans">
       
-      <section className="mb-5 md:mb-10 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-[2rem] md:rounded-[3rem] blur-3xl pointer-events-none" />
-        
-        <div className="relative bg-card/40 backdrop-blur-2xl border border-border/50 rounded-3xl md:rounded-[3rem] p-4 sm:p-8 lg:p-12 shadow-2xl flex flex-col xl:flex-row items-center xl:items-start justify-between gap-5 sm:gap-8 xl:gap-10">
-          
-          <div className="text-center xl:text-left flex-1 w-full">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] rounded-full mb-4 md:mb-6 shadow-sm">
-               <SparklesIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> Capital Yield Protocol
-            </div>
-            
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-serif tracking-tighter mb-4 md:mb-5 lg:-ml-1">
-               Daily Earning <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-purple-500 inline-block">Pool</span>
-            </h1>
-            
-            <p className="text-sm sm:text-base md:text-lg font-medium text-muted-foreground/80 max-w-xl leading-relaxed mx-auto xl:mx-0 mb-6 md:mb-8 px-1 sm:px-0">
-               Secure your financial growth with exactly 1% guaranteed daily returns. Your capital is protected via our institutional-grade 30-day liquidity lock.
-            </p>
-          </div>
-          
-          <div className="shrink-0 grid grid-cols-2 lg:flex lg:flex-row gap-3 sm:gap-4 w-full xl:w-auto">
-             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] min-w-0 text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-indigo-500/30">
-               <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-3 sm:mb-4 shrink-0">
-                 <BanknotesIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-               </div>
-               <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 whitespace-nowrap">Total Invested</p>
-               <p className="font-serif font-black text-foreground text-base sm:text-xl lg:text-2xl truncate max-w-full leading-none">{formatCurrency(totalPrincipalLocked)}</p>
-             </div>
-             
-             <div className="bg-card/60 backdrop-blur-xl border border-border/50 p-5 sm:p-6 lg:p-8 rounded-[1.5rem] sm:rounded-[2rem] flex-1 sm:min-w-[180px] min-w-0 text-center shadow-lg shadow-black/5 flex flex-col justify-center transition-all hover:border-emerald-500/30">
-               <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-3 sm:mb-4 shrink-0">
-                 <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-               </div>
-               <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1.5 whitespace-nowrap">Total Earnings</p>
-               <p className="font-serif font-black text-emerald-600 dark:text-emerald-400 text-base sm:text-xl lg:text-2xl truncate max-w-full leading-none">+{formatCurrency(totalAccumulatedProfit)}</p>
-             </div>
-          </div>
-          
-        </div>
-      </section>
+      <InvestmentSlider />
 
-      <div className="flex items-center gap-2 mb-8 bg-muted/30 p-1.5 rounded-2xl border border-border/40 w-fit mx-auto lg:mx-0">
-        <button 
+      {/* ── Tab Navigation (directly under slider) ── */}
+      <div className="flex items-center gap-2 mb-6 md:mb-8 bg-muted/30 p-1.5 rounded-2xl border border-border/40 w-full sm:w-fit">
+        <button
           onClick={() => setActiveTab("dashboard")}
           className={cn(
-            "flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+            "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
             activeTab === "dashboard" ? "bg-card text-foreground shadow-lg shadow-black/5" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <BoltIcon className="w-4 h-4" />
+          <BoltIcon className="w-4 h-4 shrink-0" />
           Dashboard
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab("referrals")}
           className={cn(
-            "flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
+            "flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
             activeTab === "referrals" ? "bg-card text-foreground shadow-lg shadow-black/5" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <UserGroupIcon className="w-4 h-4" />
+          <UserGroupIcon className="w-4 h-4 shrink-0" />
           Partner Network
         </button>
       </div>
 
       <AnimatePresence mode="wait">
         {activeTab === "dashboard" ? (
-          <motion.div 
+          <motion.div
             key="dashboard"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
+            className="space-y-6"
           >
-            {/* 2. ACTION SECTION */}
-            <section className="bg-card border-2 border-border/60 rounded-[2.5rem] md:rounded-[3rem] p-6 sm:p-10 lg:p-12 mb-8 md:mb-16 shadow-2xl shadow-indigo-500/5 relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8 sm:gap-10 z-10 w-full group">
-               {/* Decorative Overlay */}
-               <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-150 rotate-12 pointer-events-none group-hover:scale-[1.6] transition-transform duration-1000">
-                  <WalletIcon className="w-[400px] h-[400px] text-foreground" />
-               </div>
+            {/* ── Portfolio Summary (Dashboard-only) ── */}
+            <section>
+              <div className="bg-card border border-border rounded-2xl md:rounded-3xl p-4 sm:p-5 lg:p-6 flex flex-col lg:flex-row items-start justify-between gap-5">
 
-               <div className="relative z-10 w-full lg:w-auto text-center lg:text-left text-foreground">
-                  <p className="text-[11px] sm:text-xs font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.25em] mb-3 md:mb-4">Available Allocation</p>
-                  <div className="flex items-baseline justify-center lg:justify-start gap-2 mb-4">
-                     <h2 className="text-5xl sm:text-7xl md:text-8xl font-black font-serif tracking-tighter drop-shadow-sm leading-none">
-                        {formatCurrency(dailyEarningWallet)}
-                     </h2>
+                {/* Heading */}
+                <div className="text-center lg:text-left w-full lg:flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-full mb-3">
+                     <SparklesIcon className="w-3.5 h-3.5 shrink-0" /> 1% Daily Return
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-muted-foreground/80 bg-muted/50 rounded-2xl px-5 py-2.5 inline-block shadow-inner backdrop-blur-sm">Ready to initialize new yield contracts.</p>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-sans tracking-tight mb-2 text-foreground">
+                     Portfolio <span className="text-emerald-600 dark:text-emerald-500">Summary</span>
+                  </h1>
+                  <p className="text-sm font-medium text-muted-foreground max-w-md mx-auto lg:mx-0 mb-2 px-1 sm:px-0">
+                     Secure investments with fixed daily returns.
+                  </p>
+                </div>
+
+                {/* Metrics */}
+                <div className="w-full lg:w-auto lg:shrink-0 flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/30 border border-border p-3 rounded-xl text-center flex flex-col items-center justify-center overflow-hidden">
+                      <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center mb-1.5 shrink-0">
+                        <BanknotesIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 shrink-0">Active Stake</p>
+                      <p className="font-sans font-black text-foreground leading-none tabular-nums whitespace-nowrap w-full text-center" style={{ fontSize: "clamp(11px, 3.5vw, 18px)" }}>
+                        {formatCurrency(totalPrincipalLocked)}
+                      </p>
+                    </div>
+                    <div className="bg-emerald-500/5 border border-emerald-500/20 p-3 rounded-xl text-center flex flex-col items-center justify-center overflow-hidden">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-1.5 shrink-0">
+                        <CurrencyDollarIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 shrink-0">Settled Wallet</p>
+                      <p className="font-sans font-black text-emerald-600 dark:text-emerald-500 leading-none tabular-nums whitespace-nowrap w-full text-center" style={{ fontSize: "clamp(11px, 3.5vw, 18px)" }}>
+                        {formatCurrency(dailyEarningWallet)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-amber-500/5 border border-amber-500/20 p-3 rounded-xl flex items-center justify-between gap-3 overflow-hidden">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                        <ChartBarIcon className="w-3.5 h-3.5" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest whitespace-nowrap">Pending Profit</p>
+                        <p className="text-[9px] font-medium text-muted-foreground/60 mt-0.5 whitespace-nowrap">Settles at 30-day completion</p>
+                      </div>
+                    </div>
+                    <p className="font-sans font-black text-amber-600 dark:text-amber-500 leading-none tabular-nums whitespace-nowrap shrink-0" style={{ fontSize: "clamp(11px, 3.5vw, 18px)" }}>
+                      +{formatCurrency(totalPendingInvestorProfit)}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            {/* ── Action Section ── */}
+            <section className="bg-card border border-border rounded-[2rem] p-5 sm:p-8 mb-8 md:mb-12 flex flex-col lg:flex-row items-center justify-between gap-6 w-full">
+               <div className="w-full lg:w-auto text-center lg:text-left text-foreground">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] mb-2">Wallet Balance Available to Invest</p>
+                  <h2
+                    className="font-black font-sans tracking-tight leading-none whitespace-nowrap"
+                    style={{ fontSize: "clamp(28px, 8vw, 56px)" }}
+                  >
+                    {formatCurrency(dailyEarningWallet)}
+                  </h2>
                </div>
 
-               <div className="relative z-10 flex flex-col sm:flex-row w-full lg:w-auto gap-4 sm:gap-5">
+               <div className="grid grid-cols-2 lg:flex lg:flex-row w-full lg:w-auto gap-3">
                   <button 
                     onClick={() => setIsTransferModalOpen(true)}
-                    className="w-full sm:w-auto group relative flex items-center justify-center gap-3 px-10 py-6 bg-background border-2 border-border/60 hover:border-indigo-500/30 hover:bg-muted text-foreground font-black uppercase tracking-widest text-xs rounded-2xl transition-all shadow-sm active:scale-95 overflow-hidden"
+                    className="flex items-center justify-center gap-2 px-5 py-4 bg-muted border border-border hover:bg-muted/80 text-foreground font-black uppercase tracking-widest text-[10px] rounded-xl transition-colors"
                   >
-                    <ArrowDownTrayIcon className="w-5 h-5 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
-                    Deposit Funds
+                    <ArrowDownTrayIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                    Add Money
                   </button>
                   <button 
                     onClick={() => setIsInvestModalOpen(true)}
-                    className="w-full sm:w-auto group relative flex items-center justify-center gap-3 px-12 py-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl hover:shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:-translate-y-0.5 transition-all active:scale-95 overflow-hidden"
+                    className="flex items-center justify-center gap-2 px-5 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[10px] rounded-xl transition-colors"
                   >
-                    <PlusIcon className="w-5 h-5" />
-                    Start New Pool
+                    <PlusIcon className="w-4 h-4 shrink-0" />
+                    Invest Now
                   </button>
                </div>
             </section>
 
             {/* 3. POOL CARDS SECTION */}
-            <section className="mb-20">
-               <div className="flex items-center gap-4 mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border-2 border-indigo-500/20 flex items-center justify-center shadow-lg shadow-indigo-500/5">
-                     <BoltIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-foreground font-serif tracking-tight">Active Yield Contracts</h2>
-                    <p className="text-xs font-bold text-muted-foreground/60 uppercase tracking-widest mt-1">Institutional Proof of Stake</p>
-                  </div>
-                  <div className="ml-auto">
-                    <button 
-                      onClick={() => setIsHistoryModalOpen(true)} 
-                      className="group flex flex-col sm:flex-row items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-muted/30 border border-border/50 hover:bg-muted/50 hover:border-indigo-500/20 rounded-2xl transition-all shadow-sm active:scale-95"
-                    >
-                      <ClockIcon className="w-5 h-5 text-indigo-500 group-hover:rotate-12 transition-transform duration-500" />
-                      <div className="flex flex-col items-center sm:items-start text-center sm:text-left">
-                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-foreground">Pool History</span>
-                      </div>
-                    </button>
-                  </div>
-               </div>
+            <section className="space-y-6 mb-20">
 
-               {/* Expired Pools (Completed Status) */}
-               {expiredLocks.length > 0 && (
-                  <div className="space-y-8 mb-12">
-                     {expiredLocks.map((inv: any) => (
-                       <PoolCard key={inv.id} inv={inv} isCompleted={true} actionLoader={actionLoader} handleCompletionAction={handleCompletionAction} isUnattached={data?.isUnattached} />
-                     ))}
-                     {actionError && <p className="text-xs text-rose-500 font-black text-center mt-4 bg-rose-500/5 py-4 rounded-2xl border border-rose-500/10 px-6 uppercase tracking-widest">{actionError}</p>}
-                     {actionSuccess && <p className="text-xs text-emerald-500 font-black text-center mt-4 bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10 px-6 uppercase tracking-widest">{actionSuccess}</p>}
-                  </div>
-               )}
-
-               {/* Active Pools Grid */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                  {activeLocks.length === 0 ? (
-                    <div className="col-span-1 md:col-span-2 py-32 text-center border-2 border-dashed border-border rounded-[3rem] bg-muted/10 relative overflow-hidden group">
-                       <div className="w-20 h-20 bg-card rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl border border-border group-hover:scale-110 transition-transform duration-500">
-                          <ClockIcon className="w-10 h-10 text-muted-foreground/40" />
-                       </div>
-                       <p className="text-foreground font-black text-xl tracking-tight">No active yield cycles detected</p>
-                       <p className="text-sm font-bold text-muted-foreground mt-2 max-w-xs mx-auto opacity-70">Initialize a new pool contract to begin generating institutional-grade returns.</p>
-                       <div className="absolute inset-0 bg-indigo-500/[0.02] pointer-events-none" />
+               {/* PRIMARY: Active Investments */}
+               <div className="bg-card border border-border rounded-2xl overflow-hidden">
+                  {/* Section header */}
+                  <div className="flex items-center gap-3 px-5 py-4 border-b border-border bg-muted/20">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                       <BriefcaseIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                  ) : (
-                    activeLocks.map((inv: any) => <PoolCard key={inv.id} inv={inv} isCompleted={false} isUnattached={data?.isUnattached} />)
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-sm sm:text-base font-black text-foreground font-sans tracking-tight leading-none">Your Active Investments</h2>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Tracking Your Money</p>
+                    </div>
+                  </div>
+
+                  {/* Expired / ready to collect pools */}
+                  {expiredLocks.length > 0 && (
+                     <div className="p-4 space-y-4 border-b border-border">
+                        <p className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block" />
+                          Ready to Collect
+                        </p>
+                        {expiredLocks.map((inv: any) => (
+                          <PoolCard key={inv.id} inv={inv} isCompleted={true} actionLoader={actionLoader} handleCompletionAction={handleCompletionAction} isUnattached={data?.isUnattached} />
+                        ))}
+                        {actionError && <p className="text-xs text-rose-500 font-black text-center py-3 bg-rose-500/5 rounded-xl border border-rose-500/10 px-4 uppercase tracking-widest">{actionError}</p>}
+                        {actionSuccess && <p className="text-xs text-emerald-500 font-black text-center py-3 bg-emerald-500/5 rounded-xl border border-emerald-500/10 px-4 uppercase tracking-widest">{actionSuccess}</p>}
+                     </div>
                   )}
+
+                  {/* Active Pools */}
+                  <div className="p-4">
+                    {activeLocks.length === 0 ? (
+                      <div className="py-16 text-center border border-dashed border-border rounded-xl bg-muted/10">
+                         <div className="w-12 h-12 bg-card rounded-xl flex items-center justify-center mx-auto mb-4 border border-border">
+                            <DocumentTextIcon className="w-6 h-6 text-muted-foreground/40" />
+                         </div>
+                         <p className="text-foreground font-black text-base tracking-tight">No active investments</p>
+                         <p className="text-xs font-medium text-muted-foreground mt-1.5 max-w-xs mx-auto">Tap "Invest Now" above to start growing your money daily.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                        {activeLocks.map((inv: any) => <PoolCard key={inv.id} inv={inv} isCompleted={false} isUnattached={data?.isUnattached} />)}
+                      </div>
+                    )}
+                  </div>
                </div>
+
+               {/* SECONDARY: Past Investments — clearly smaller, visually separated */}
+               <div className="border border-border/50 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setIsHistoryModalOpen(true)}
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-muted/30 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ClockIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div className="text-left">
+                        <p className="text-xs font-black text-foreground uppercase tracking-widest leading-none">Past Investments</p>
+                        <p className="text-[9px] font-medium text-muted-foreground mt-0.5">View completed pool history</p>
+                      </div>
+                    </div>
+                    <ChevronRightIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </button>
+               </div>
+
             </section>
+
           </motion.div>
         ) : (
           <motion.div 
@@ -456,87 +578,131 @@ export default function DailyEarningPageContent() {
             className="space-y-8"
           >
             {/* Referral Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="bg-card border-2 border-border/60 p-8 rounded-[2rem] shadow-xl shadow-black/5 relative overflow-hidden group transition-all hover:border-indigo-500/30">
-                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none rotate-12 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
-                     <CurrencyDollarIcon className="w-32 h-32 text-emerald-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div className="bg-card border-2 border-emerald-500/20 p-5 sm:p-7 rounded-2xl shadow-lg relative overflow-hidden group transition-all hover:border-emerald-500/40">
+                  <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none rotate-12 group-hover:scale-110 transition-all duration-700">
+                     <CurrencyDollarIcon className="w-24 h-24 text-emerald-500" />
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
-                    <SparklesIcon className="w-4 h-4" /> Referral Yield Generated
+                  <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <SparklesIcon className="w-3.5 h-3.5 shrink-0" /> Total Settled Earnings
                   </p>
-                  <h3 className="text-4xl sm:text-5xl font-black text-foreground font-serif tracking-tighter tabular-nums drop-shadow-sm">
-                    {formatCurrency(totalReferralEarnings)}
-                  </h3>
-                  <p className="text-xs font-bold text-muted-foreground/60 mt-3 uppercase tracking-wider">Lifetime commission network</p>
+                  <p
+                    className="font-black text-foreground font-sans tabular-nums whitespace-nowrap leading-none mt-1"
+                    style={{ fontSize: "clamp(22px, 6vw, 40px)" }}
+                  >
+                    {formatCurrency(data?.totalSettledEarnings || 0)}
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-wider">Already credited to wallet</p>
                </div>
 
-               <div className="bg-card border-2 border-border/60 p-8 rounded-[2rem] shadow-xl shadow-black/5 relative overflow-hidden group transition-all hover:border-indigo-500/30">
-                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none -rotate-12 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700">
-                     <UsersIcon className="w-32 h-32 text-indigo-500" />
+               <div className="bg-card border-2 border-amber-500/20 p-5 sm:p-7 rounded-2xl shadow-lg relative overflow-hidden group transition-all hover:border-amber-500/40">
+                  <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none -rotate-12 group-hover:scale-110 transition-all duration-700">
+                     <CurrencyDollarIcon className="w-24 h-24 text-amber-500" />
                   </div>
-                  <p className="text-[10px] sm:text-[11px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
-                    <UserGroupIcon className="w-4 h-4" /> Active Partner Network
+                  <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <SparklesIcon className="w-3.5 h-3.5 shrink-0" /> Total Pending Earnings
                   </p>
-                  <h3 className="text-4xl sm:text-5xl font-black text-foreground font-serif tracking-tighter tabular-nums drop-shadow-sm">
+                  <p
+                    className="font-black text-foreground font-sans tabular-nums whitespace-nowrap leading-none mt-1"
+                    style={{ fontSize: "clamp(22px, 6vw, 40px)" }}
+                  >
+                    {formatCurrency(data?.totalPendingEarnings || 0)}
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-wider">Settles at 30-day expiry</p>
+               </div>
+
+               <div className="bg-card border-2 border-border/60 p-5 sm:p-7 rounded-2xl shadow-lg relative overflow-hidden group transition-all hover:border-indigo-500/30 sm:col-span-2 md:col-span-1">
+                  <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none -rotate-12 group-hover:scale-110 transition-all duration-700">
+                     <UsersIcon className="w-24 h-24 text-indigo-500" />
+                  </div>
+                  <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <UserGroupIcon className="w-3.5 h-3.5 shrink-0" /> Active Partner Network
+                  </p>
+                  <p className="text-4xl font-black text-foreground font-sans tabular-nums leading-none mt-1">
                     {referralList.filter((r: any) => r.totalInvested > 0).length}
-                  </h3>
-                  <p className="text-xs font-bold text-muted-foreground/60 mt-3 uppercase tracking-wider">Verified yielding members</p>
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground/60 mt-2 uppercase tracking-wider">Verified yielding members</p>
                </div>
             </div>
 
             {/* Referred Members Section */}
-            <div className="bg-card border-2 border-border/60 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl shadow-black/5 overflow-hidden transition-all hover:border-border">
-               <div className="p-8 sm:p-12 border-b border-border/60 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                  <div>
-                    <h2 className="text-2xl font-black text-foreground font-serif tracking-tight">Direct Partners Hierarchy</h2>
-                    <p className="text-sm font-bold text-muted-foreground/70 mt-2 max-w-md">Comprehensive visualization of your direct downline, active capital allocations, and generated yields.</p>
+            <div className="bg-card border-2 border-border/60 rounded-2xl overflow-hidden">
+               <div className="px-5 py-4 sm:px-8 sm:py-6 border-b border-border/60 bg-muted/20 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="text-base sm:text-xl font-black text-foreground tracking-tight">Your Referral Earnings Overview</h2>
+                    <p className="text-[10px] sm:text-xs font-medium text-muted-foreground/70 mt-0.5">People you invited and earnings they generated.</p>
                   </div>
-                  <button onClick={() => mutateReferrals()} className="w-fit p-4 rounded-2xl bg-background border-2 border-border/60 hover:border-indigo-500/40 hover:bg-muted transition-all active:scale-90 text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 shadow-sm group">
-                    <ArrowPathIcon className="w-6 h-6 group-hover:rotate-180 transition-transform duration-700" />
+                  <button onClick={() => mutateReferrals()} className="p-2.5 rounded-xl bg-background border border-border/60 hover:border-indigo-500/40 hover:bg-muted transition-all active:scale-90 text-muted-foreground hover:text-indigo-600 shrink-0 group">
+                    <ArrowPathIcon className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
                   </button>
                </div>
 
                {/* Mobile View: Card Based */}
-               <div className="block lg:hidden divide-y-2 divide-border/40 bg-muted/5">
+               <div className="block lg:hidden divide-y divide-border/40">
                   {referralList.length === 0 ? (
-                    <div className="px-8 py-24 text-center">
-                       <div className="w-20 h-20 bg-background rounded-3xl flex items-center justify-center mx-auto mb-6 border-2 border-border/60 shadow-xl">
-                         <UserGroupIcon className="w-10 h-10 text-muted-foreground/20" />
+                    <div className="px-5 py-16 text-center">
+                       <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-4 border border-border/60">
+                         <UserGroupIcon className="w-8 h-8 text-muted-foreground/20" />
                        </div>
-                       <p className="text-foreground font-black text-lg tracking-tight">Network is currently empty</p>
-                       <p className="text-xs font-bold text-muted-foreground mt-2 uppercase tracking-widest opacity-60">Share your referral link to begin</p>
+                       <p className="text-foreground font-black text-base tracking-tight">Network is currently empty</p>
+                       <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-widest opacity-60">Share your referral link to begin</p>
                     </div>
                   ) : (
-                    referralList.map((ref: any) => (
-                      <div key={ref.id} className="p-8 space-y-6 group hover:bg-indigo-500/[0.02] transition-colors relative">
-                         <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-xl shadow-indigo-600/20">
+                    referralList.map((ref: any) => {
+                      const dailyGeneration = ref.totalInvested * 0.01 * 0.20;
+                      return (
+                      <div key={ref.id} className="p-4 space-y-3">
+
+                         {/* Identity row — 3 elements, each properly constrained */}
+                         <div className="flex items-center gap-3">
+                            {/* Avatar */}
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-sm shadow-lg shrink-0">
                                {ref.name ? ref.name[0].toUpperCase() : "?"}
                             </div>
-                            <div className="flex-1 min-w-0">
-                               <p className="font-black text-foreground text-lg truncate tracking-tight">{ref.name || "Anonymous Member"}</p>
-                               <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.15em] truncate opacity-70 mt-0.5">{ref.email}</p>
+                            {/* Name + email — overflow-safe, min-w-0 required for truncate to work */}
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                               <p className="font-black text-foreground text-sm leading-tight truncate">{ref.name || "Anonymous Member"}</p>
+                               <p className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest truncate mt-0.5 opacity-70">{ref.email}</p>
                             </div>
+                            {/* Status badge — shrink-0 prevents it compressing name */}
                             {ref.totalInvested > 0 ? (
-                              <div className="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Active</span>
+                              <div className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                                 <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest whitespace-nowrap">Active</span>
                               </div>
                             ) : null}
                          </div>
 
-                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 rounded-[1.5rem] bg-background border border-border/60 shadow-sm">
-                               <p className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest mb-2">Deployed Capital</p>
-                               <p className="font-black text-foreground font-serif text-xl leading-none tracking-tighter tabular-nums">{formatCurrency(ref.totalInvested)}</p>
+                         {/* Stats mini-cards — fluid font to prevent overflow */}
+                         <div className="grid grid-cols-2 gap-2">
+                            <div className="p-3 rounded-xl bg-muted/30 border border-border/60 overflow-hidden">
+                               <p className="text-[8px] font-black text-muted-foreground/60 uppercase tracking-widest mb-1">Deployed Capital</p>
+                               <p
+                                 className="font-black text-foreground leading-none tabular-nums whitespace-nowrap"
+                                 style={{ fontSize: "clamp(11px, 3.5vw, 16px)" }}
+                               >{formatCurrency(ref.totalInvested)}</p>
                             </div>
-                            <div className="p-5 rounded-[1.5rem] bg-emerald-500/5 border border-emerald-500/10 shadow-sm transition-all group-hover:bg-emerald-500/10">
-                               <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-2">Your Yield Share</p>
-                               <p className="font-black text-emerald-600 dark:text-emerald-500 font-serif text-xl leading-none tracking-tighter tabular-nums">+{formatCurrency(ref.earningsGenerated)}</p>
+                            <div className="p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/20 overflow-hidden">
+                               <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-500 uppercase tracking-widest mb-1">Total Earnings</p>
+                               <p
+                                 className="font-black text-indigo-600 dark:text-indigo-500 leading-none tabular-nums whitespace-nowrap"
+                                 style={{ fontSize: "clamp(11px, 3.5vw, 16px)" }}
+                               >+{formatCurrency(ref.earningsGenerated)}</p>
                             </div>
                          </div>
+
+                         {/* Daily rate — full-width strip, never compresses */}
+                         {ref.totalInvested > 0 && (
+                           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                             <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 whitespace-nowrap">
+                               Generating <span className="tabular-nums">+{formatCurrency(dailyGeneration)}</span>/day for you
+                             </p>
+                           </div>
+                         )}
+
                       </div>
-                    ))
+                      )})
                   )}
                </div>
 
@@ -547,8 +713,8 @@ export default function DailyEarningPageContent() {
                         <tr className="bg-muted/40 text-[11px] font-black text-muted-foreground/50 uppercase tracking-[0.25em] border-b border-border/60">
                            <th className="px-12 py-7">Partner Identity</th>
                            <th className="px-12 py-7">Capital Allocation</th>
-                           <th className="px-12 py-7">Aggregated Share (20%)</th>
-                           <th className="px-12 py-7 text-right">Protocol Status</th>
+                           <th className="px-12 py-7">Accumulated Pending Earnings</th>
+                           <th className="px-12 py-7 text-right">Daily Generation Status</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y-2 divide-border/30">
@@ -559,7 +725,9 @@ export default function DailyEarningPageContent() {
                               </td>
                            </tr>
                         ) : (
-                           referralList.map((ref: any) => (
+                           referralList.map((ref: any) => {
+                               const dailyGeneration = ref.totalInvested * 0.01 * 0.20;
+                               return (
                               <tr key={ref.id} className="group hover:bg-indigo-500/[0.03] transition-all duration-300">
                                  <td className="px-12 py-8">
                                    <div className="flex items-center gap-5">
@@ -569,7 +737,10 @@ export default function DailyEarningPageContent() {
                                          </div>
                                       </div>
                                       <div>
-                                         <p className="font-black text-foreground text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight">{ref.name || "Anonymous Member"}</p>
+                                         <div className="flex items-center gap-2">
+                                             <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Source:</p>
+                                             <p className="font-black text-foreground text-base group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors tracking-tight">{ref.name || "Anonymous Member"}</p>
+                                          </div>
                                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black tracking-[0.1em] uppercase opacity-50 mt-1">
                                            {ref.email}
                                          </div>
@@ -598,7 +769,7 @@ export default function DailyEarningPageContent() {
                                    )}
                                  </td>
                               </tr>
-                           ))
+                           )})
                         )}
                      </tbody>
                   </table>
@@ -606,38 +777,36 @@ export default function DailyEarningPageContent() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-
-      {/* 4. PREMIUM DEPOSIT MODAL */}
+      </AnimatePresence>      {/* 4. ADD MONEY MODAL */}
       <AnimatePresence>
          {isTransferModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-               <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" onClick={() => !transferLoader && setIsTransferModalOpen(false)} />
-               <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.95 }} className="bg-card border-2 border-border/60 w-full max-w-md rounded-[2.5rem] p-10 sm:p-12 relative z-10 shadow-[0_30px_100px_rgba(0,0,0,0.3)]">
-                  <button onClick={() => !transferLoader && setIsTransferModalOpen(false)} className="absolute top-8 right-8 p-2.5 text-muted-foreground hover:text-foreground transition-all bg-muted hover:bg-muted/80 rounded-2xl active:scale-90 border border-border/50">
+               <div className="absolute inset-0 bg-background/90" onClick={() => !transferLoader && setIsTransferModalOpen(false)} />
+               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-card border border-border w-full max-w-md rounded-[2rem] p-8 sm:p-10 relative z-10">
+                  <button onClick={() => !transferLoader && setIsTransferModalOpen(false)} className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-foreground bg-muted rounded-xl">
                      <XMarkIcon className="w-5 h-5" />
                   </button>
 
-                  <h3 className="text-3xl font-black text-foreground tracking-tight mb-3 font-serif">Deposit to Pool</h3>
-                  <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Securely transfer liquid capital from your Main Wallet to the Daily Earning Protocol.</p>
+                  <h3 className="text-2xl font-black text-foreground tracking-tight mb-2">Add Money</h3>
+                  <p className="text-muted-foreground text-sm mb-6">Transfer money from your Main Wallet to invest it.</p>
 
-                  <div className="flex justify-between items-center mb-8 pb-5 border-b border-border/60">
-                     <span className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Source: Main Wallet</span>
-                     <span className="text-2xl font-black text-foreground font-serif tracking-tighter">{formatCurrency(walletBalance)}</span>
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
+                     <span className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">Main Wallet Balance</span>
+                     <span className="text-xl font-black text-foreground font-sans">{formatCurrency(walletBalance)}</span>
                   </div>
 
                   <form onSubmit={handleTransfer}>
-                     <div className="mb-8 relative group">
+                     <div className="mb-6 relative group">
                         <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                          <span className="text-indigo-500/40 font-black font-mono text-sm uppercase group-focus-within:text-indigo-500 transition-colors">{userCurrency}</span>
+                          <span className="text-muted-foreground font-black text-sm uppercase">{userCurrency}</span>
                         </div>
-                        <input type="number" step="0.01" value={transferAmount} onChange={(e: any) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-muted/30 border-2 border-border/60 rounded-3xl py-6 pl-16 pr-6 text-foreground font-serif text-3xl focus:outline-none focus:border-indigo-500 shadow-inner transition-all placeholder:opacity-20" required />
+                        <input type="number" step="0.01" value={transferAmount} onChange={(e: any) => setTransferAmount(e.target.value)} placeholder="0.00" className="w-full bg-muted border border-border rounded-2xl py-4 pl-16 pr-6 text-foreground font-sans text-2xl focus:outline-none focus:border-indigo-500 transition-colors" required />
                      </div>
 
-                     {transferError && <p className="text-rose-500 text-[11px] font-black mb-8 uppercase tracking-[0.1em] text-center bg-rose-500/5 py-3 rounded-xl border border-rose-500/10 px-4">{transferError}</p>}
+                     {transferError && <p className="text-rose-500 text-xs font-black mb-6 uppercase tracking-wider text-center bg-rose-500/10 py-3 rounded-xl">{transferError}</p>}
 
-                     <button type="submit" disabled={transferLoader || !transferAmount} className="w-full py-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black tracking-[0.25em] uppercase text-xs rounded-[1.5rem] transition-all shadow-2xl shadow-indigo-500/30 disabled:opacity-50 active:scale-95">
-                        {transferLoader ? "Synchronizing Asset..." : "Confirm Deposit"}
+                     <button type="submit" disabled={transferLoader || !transferAmount} className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-widest text-xs rounded-xl transition-colors disabled:opacity-50">
+                        {transferLoader ? "Processing..." : "Confirm"}
                      </button>
                   </form>
                </motion.div>
@@ -645,73 +814,71 @@ export default function DailyEarningPageContent() {
          )}
       </AnimatePresence>
 
-      {/* 5. CREATE POOL MODAL */}
+      {/* 5. INVEST MODAL */}
       <AnimatePresence>
          {isInvestModalOpen && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-               <div className="absolute inset-0 bg-background/80 backdrop-blur-xl" onClick={() => !investLoader && setIsInvestModalOpen(false)} />
-               <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="bg-card border-2 border-border/60 w-full max-w-md rounded-[3rem] p-10 sm:p-14 relative z-10 shadow-[0_40px_120px_rgba(0,0,0,0.4)]">
-                  <button onClick={() => !investLoader && setIsInvestModalOpen(false)} className="absolute top-10 right-10 p-2.5 text-muted-foreground hover:text-foreground transition-all bg-muted hover:bg-muted/80 rounded-2xl border border-border/50">
+               <div className="absolute inset-0 bg-background/90" onClick={() => !investLoader && setIsInvestModalOpen(false)} />
+               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-card border border-border w-full max-w-md rounded-[2rem] p-8 sm:p-10 relative z-10">
+                  <button onClick={() => !investLoader && setIsInvestModalOpen(false)} className="absolute top-6 right-6 p-2 text-muted-foreground hover:text-foreground bg-muted rounded-xl">
                      <XMarkIcon className="w-5 h-5" />
                   </button>
 
-                  <h3 className="text-3xl font-black text-foreground tracking-tight mb-3 font-serif">Initiate Pool</h3>
-                  <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Allocate capital to earn an aggregated 1% daily yield. Your assets will be locked for exactly 30 days.</p>
+                  <h3 className="text-2xl font-black text-foreground tracking-tight mb-2">Invest Now</h3>
+                  <p className="text-muted-foreground text-sm mb-6">Invest your money to earn 1% profit every day for 30 days.</p>
 
-                  <div className="flex justify-between items-center mb-8 pb-5 border-b border-border/60">
-                     <span className="text-[11px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Ready Allocation</span>
-                     <span className="text-2xl font-black text-foreground font-serif tracking-tighter">{formatCurrency(dailyEarningWallet)}</span>
+                  <div className="flex justify-between items-center mb-6 pb-4 border-b border-border">
+                     <span className="text-[11px] font-black text-muted-foreground uppercase tracking-wider">Available to Invest</span>
+                     <span className="text-xl font-black text-foreground font-sans">{formatCurrency(dailyEarningWallet)}</span>
                   </div>
 
                   <form onSubmit={handleInvest}>
-                     <div className="mb-8 relative group">
+                     <div className="mb-6 relative group">
                         <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                          <span className="text-indigo-500/40 font-black font-mono text-sm uppercase group-focus-within:text-indigo-500 transition-colors">{userCurrency}</span>
+                          <span className="text-muted-foreground font-black text-sm uppercase">{userCurrency}</span>
                         </div>
-                        <input type="number" step="0.01" value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-muted/30 border-2 border-border/60 rounded-3xl py-6 pl-16 pr-6 text-foreground font-serif text-3xl focus:outline-none focus:border-indigo-500 shadow-inner transition-all placeholder:opacity-20" required />
+                        <input type="number" step="0.01" value={investAmount} onChange={(e: any) => setInvestAmount(e.target.value)} placeholder="0.00" className="w-full bg-muted border border-border rounded-2xl py-4 pl-16 pr-6 text-foreground font-sans text-2xl focus:outline-none focus:border-emerald-500 transition-colors" required />
                      </div>
 
-                     {/* ERROR STATE: Insufficient Assets */}
                      {investError === "INSUFFICIENT" ? (
-                       <div className="mb-10 p-6 bg-rose-500/5 border-2 border-rose-500/20 rounded-[2rem]">
-                          <p className="text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-[0.1em] mb-5 leading-relaxed text-center">
-                             Allocation Failure: Insufficient capital detected in Daily Wallet.
+                       <div className="mb-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                          <p className="text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider mb-4 text-center">
+                             Not enough money in wallet.
                           </p>
                           <button 
                             type="button"
                             onClick={() => { setIsInvestModalOpen(false); setIsTransferModalOpen(true); }}
-                            className="flex items-center justify-center gap-3 w-full py-5 bg-rose-500 text-white shadow-2xl shadow-rose-500/30 text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all hover:bg-rose-600 hover:-translate-y-0.5 active:translate-y-0"
+                            className="flex items-center justify-center gap-2 w-full py-4 bg-rose-500 text-white text-[11px] font-black uppercase tracking-wider rounded-xl transition-colors hover:bg-rose-600"
                           >
-                             Allocate Funds <ArrowRightIcon className="w-5 h-5" />
+                             Add Money First <ArrowRightIcon className="w-4 h-4" />
                           </button>
                        </div>
                      ) : investError && (
-                       <p className="text-rose-500 text-[11px] font-black mb-8 uppercase tracking-[0.1em] text-center bg-rose-500/5 py-4 rounded-2xl border border-rose-500/10">{investError}</p>
+                       <p className="text-rose-500 text-xs font-black mb-6 uppercase tracking-wider text-center bg-rose-500/10 py-3 rounded-xl">{investError}</p>
                      )}
 
-                     {investSuccess && <p className="text-emerald-600 dark:text-emerald-400 text-[11px] font-extrabold mb-8 uppercase tracking-[0.2em] font-mono text-center bg-emerald-500/5 py-4 rounded-2xl border border-emerald-500/10">✓ {investSuccess}</p>}
+                     {investSuccess && <p className="text-emerald-600 dark:text-emerald-500 text-xs font-bold mb-6 uppercase tracking-wider text-center bg-emerald-500/10 py-3 rounded-xl">✓ {investSuccess}</p>}
                      
-                     {/* Preview Box */}
                      {investAmount && !isNaN(parseFloat(investAmount)) && parseFloat(investAmount) >= convertFromUSD(1) && !investError && (
-                        <div className="mb-10 grid grid-cols-2 gap-5 p-6 rounded-[2rem] bg-indigo-500/5 border-2 border-border/40 shadow-inner backdrop-blur-sm">
-                           <div className="text-center border-r-2 border-border/40">
-                              <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-2">Daily Profit</p>
-                              <p className="text-xl font-black text-foreground font-serif tracking-tighter tabular-nums drop-shadow-sm">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}</p>
+                        <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                           <div className="text-center border-r border-border/50">
+                              <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1">Daily Profit</p>
+                              <p className="text-lg font-black text-foreground font-sans">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}</p>
                            </div>
                            <div className="text-center">
-                              <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-2">30-Day Return</p>
-                              <p className="text-xl font-black text-foreground font-serif tracking-tighter tabular-nums drop-shadow-sm">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}</p>
+                              <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1">Total in 30 Days</p>
+                              <p className="text-lg font-black text-foreground font-sans">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}</p>
                            </div>
                         </div>
                      )}
 
-                     <div className="mb-10 p-6 rounded-[2rem] bg-orange-500/5 border-2 border-orange-500/20 text-orange-700 dark:text-orange-400 text-xs font-bold leading-relaxed flex gap-4 shadow-sm items-center">
-                        <LockClosedIcon className="w-6 h-6 shrink-0 opacity-80" />
-                        <span>Capital protocol: Assets are strictly locked for 30 cycles. No early termination permitted.</span>
+                     <div className="mb-6 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-400 text-xs font-bold flex gap-3 items-center">
+                        <LockClosedIcon className="w-5 h-5 shrink-0" />
+                        <span>Investment locked for 30 days. Cannot be cancelled early.</span>
                      </div>
 
-                     <button type="submit" disabled={investLoader || investError === "INSUFFICIENT"} className="w-full py-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black tracking-[0.25em] uppercase text-xs rounded-[1.5rem] transition-all shadow-2xl shadow-indigo-500/40 disabled:opacity-50 active:scale-95">
-                        {investLoader ? "Enabling Protocol..." : "Start Yield Cycle"}
+                     <button type="submit" disabled={investLoader || investError === "INSUFFICIENT"} className="w-full py-5 bg-emerald-600 hover:bg-emerald-500 text-white font-black tracking-widest uppercase text-xs rounded-xl transition-colors disabled:opacity-50">
+                        {investLoader ? "Investing..." : "Confirm Investment"}
                      </button>
                   </form>
                </motion.div>
@@ -812,148 +979,107 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader, isUn
 
   return (
     <div className={cn(
-      "bg-card group relative p-6 sm:p-8 rounded-[2rem] border transition-all duration-500 overflow-hidden",
+      "bg-card p-6 sm:p-8 rounded-[1.5rem] border overflow-hidden",
       isCompleted 
-        ? "border-emerald-500/30 shadow-[0_20px_50px_rgba(16,185,129,0.05)] bg-emerald-500/[0.01]" 
-        : "border-border shadow-2xl shadow-black/5 hover:border-indigo-500/30 hover:shadow-indigo-500/5 hover:-translate-y-1"
+        ? "border-emerald-500/30 bg-emerald-500/5" 
+        : "border-border"
     )}>
-      <div className="relative z-10 flex flex-col h-full">
+      <div className="flex flex-col h-full">
         {/* Header: Identity & Status */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-           <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+           <div className="flex items-center gap-3">
               <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 duration-500",
-                isCompleted ? "bg-emerald-500/10 text-emerald-500" : "bg-indigo-500/10 text-indigo-500"
+                "w-10 h-10 rounded-xl flex items-center justify-center",
+                isCompleted ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500" : "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
               )}>
-                 <BoltIcon className="w-6 h-6" />
+                 <BriefcaseIcon className="w-5 h-5" />
               </div>
               <div>
-                 <p className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] mb-0.5">Pool Reference</p>
-                 <p className="font-mono font-black text-lg text-foreground truncate max-w-[150px] sm:max-w-none">#{inv.id.slice(-6).toUpperCase()}</p>
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Investment ID</p>
+                 <p className="font-sans font-black text-sm text-foreground">#{inv.id.slice(-6).toUpperCase()}</p>
               </div>
            </div>
            
            <div className={cn(
-              "px-4 py-2 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest self-start sm:self-center shadow-sm",
+              "px-3 py-1.5 rounded-lg flex items-center gap-2 text-[10px] font-black uppercase tracking-widest self-start sm:self-center",
               isCompleted 
-                ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400" 
-                : "bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400"
+                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" 
+                : "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400"
            )}>
               <div className={cn("w-1.5 h-1.5 rounded-full", isCompleted ? "bg-emerald-500" : "bg-indigo-500 animate-pulse")} />
-              {isCompleted ? "Mature & Liquid" : "Generating Proof"}
+              {isCompleted ? "Completed" : "Active"}
            </div>
         </div>
 
-        {/* Financial High-Density 2x2 Grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
-           <div className="p-4 sm:p-5 rounded-2xl bg-muted/30 border border-border/50 group-hover:bg-muted/50 transition-colors flex flex-col justify-center">
-              <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground/60 uppercase tracking-widest mb-2 truncate">
-                 Principal
+        {/* Financial Simple Grid */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                 Invested Amount
               </p>
-              <p className="font-serif font-black text-lg sm:text-2xl md:text-3xl text-foreground tracking-tighter tabular-nums leading-none truncate">
+              <p className="font-sans font-black text-xl text-foreground">
                  {formatCurrency(inv.amount)}
               </p>
            </div>
            
-           <div className="p-4 sm:p-5 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 group-hover:bg-indigo-500/10 transition-colors flex flex-col justify-center">
-              <p className="text-[9px] sm:text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2 truncate">
-                 Investor (80%)
+           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col justify-center">
+              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-500 uppercase tracking-widest mb-1">
+                 Total Expected Return
               </p>
-              <p className="font-serif font-black text-lg sm:text-2xl md:text-3xl text-indigo-600 dark:text-indigo-400 tracking-tighter tabular-nums leading-none truncate">
-                 +{formatCurrency((inv.amount * 0.01) * 0.8)}
-              </p>
-           </div>
-
-           <div className={cn(
-             "p-4 sm:p-5 rounded-2xl border transition-colors flex flex-col justify-center",
-             isUnattached 
-                ? "bg-rose-500/5 border-rose-500/10 group-hover:bg-rose-500/10" 
-                : "bg-purple-500/5 border-purple-500/10 group-hover:bg-purple-500/10"
-           )}>
-              <p className={cn(
-                "text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-2 leading-tight truncate",
-                isUnattached ? "text-rose-600 dark:text-rose-400" : "text-purple-600 dark:text-purple-400"
-              )}>
-                 {isUnattached ? "20% Donation" : "Referrer (20%)"}
-              </p>
-              <p className={cn(
-                "font-serif font-black text-lg sm:text-2xl md:text-3xl tracking-tighter tabular-nums leading-none truncate",
-                isUnattached ? "text-rose-600 dark:text-rose-400" : "text-purple-600 dark:text-purple-400"
-              )}>
-                 +{formatCurrency((inv.amount * 0.01) * 0.2)}
-              </p>
-           </div>
-           
-           <div className="p-4 sm:p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 group-hover:bg-emerald-500/10 transition-colors flex flex-col justify-center">
-              <p className="text-[9px] sm:text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-2 truncate">
-                 30-Day Return
-              </p>
-              <p className="font-serif font-black text-lg sm:text-2xl md:text-3xl text-emerald-600 dark:text-emerald-500 tracking-tighter tabular-nums leading-none truncate">
+              <p className="font-sans font-black text-xl text-emerald-700 dark:text-emerald-500">
                  +{formatCurrency(inv.amount * 0.30)}
               </p>
            </div>
         </div>
 
         {/* Current Accumulated Profit */}
-        <div className="mb-8 p-5 sm:p-6 rounded-[1.5rem] bg-indigo-500/5 border border-indigo-500/20 group-hover:bg-indigo-500/10 transition-colors flex flex-col sm:flex-row items-center sm:justify-between gap-4">
-           <div className="text-center sm:text-left w-full sm:w-auto">
-              <p className="text-[10px] sm:text-xs font-black text-indigo-500 uppercase tracking-widest mb-1 flex items-center justify-center sm:justify-start gap-1">
-                 <svg className="w-4 h-4 animate-pulse fill-indigo-500" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                 Your Accumulated Profit
+        <div className="mb-6 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between gap-4">
+           <div>
+              <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-0.5">
+                 Profit Earned So Far
               </p>
-              <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Live 80% share credited to wallet</p>
+              <p className="text-[9px] text-muted-foreground uppercase">(Your 80% Share)</p>
            </div>
-           <div className="text-center sm:text-right w-full sm:w-auto">
-              <p className="font-serif font-black text-3xl sm:text-4xl text-indigo-600 dark:text-indigo-400 tracking-tighter tabular-nums leading-none">
+           <div className="text-right">
+              <p className="font-sans font-black text-2xl text-indigo-600 dark:text-indigo-400">
                  +{formatCurrency(inv.profitEarned * 0.8)}
               </p>
            </div>
         </div>
 
-        {/* Institutional Lifecycle Bar */}
-        <div className="mb-8 p-6 rounded-[1.5rem] bg-muted/20 border border-border/40 relative overflow-hidden group/progress">
-           <div className="flex items-center justify-between gap-4 mb-4 text-[10px] font-black uppercase tracking-[0.15em]">
-              <span className="text-muted-foreground/60">{format(startDate, "MMM dd, yyyy")}</span>
-              <span className={cn("px-2 py-0.5 rounded-lg border", isCompleted ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500" : "bg-indigo-500/5 border-indigo-500/20 text-indigo-500")}>
-                 {Math.round(progress)}% Progress
-              </span>
-              <span className="text-muted-foreground/60 text-right">{format(expiryDate, "MMM dd, yyyy")}</span>
+        {/* Progress Bar (Pure CSS) */}
+        <div className="mb-6">
+           <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
+              <span>{format(startDate, "MMM dd, yyyy")}</span>
+              <span>{Math.round(progress)}% Completed</span>
+              <span>{format(expiryDate, "MMM dd, yyyy")}</span>
            </div>
-           
-           <div className="h-4 bg-muted border border-border/60 rounded-full overflow-hidden shadow-inner p-1">
-              <motion.div 
-                 initial={{ width: 0 }} 
-                 animate={{ width: `${progress}%` }} 
-                 transition={{ duration: 1.5, ease: "easeOut" }}
-                 className={cn(
-                   "h-full rounded-full shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all",
-                   isCompleted ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-indigo-500 to-purple-500"
-                 )}
+           <div className="h-2 w-full bg-muted border border-border rounded-full overflow-hidden">
+              <div 
+                 className={cn("h-full transition-all duration-1000", isCompleted ? "bg-emerald-500" : "bg-indigo-500")} 
+                 style={{ width: `${progress}%` }} 
               />
            </div>
         </div>
 
-        {/* Control & Reward Center */}
-        <div className="mt-auto pt-6 border-t border-border/60">
+        {/* Action Button / Timer */}
+        <div className="mt-auto pt-4 border-t border-border">
            {isCompleted ? (
-              <div className="flex justify-center w-full">
-                 <button 
-                   onClick={() => handleCompletionAction(inv.id)}
-                   disabled={actionLoader === inv.id}
-                   className="w-full relative group py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black uppercase tracking-[0.15em] text-[12px] rounded-2xl hover:shadow-[0_15px_30px_rgba(16,185,129,0.3)] transition-all flex items-center justify-center gap-2 overflow-hidden active:scale-95"
-                 >
-                    {actionLoader === inv.id ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <CheckCircleIcon className="w-5 h-5" />}
-                    Complete Pool
-                 </button>
-              </div>
+              <button 
+                onClick={() => handleCompletionAction(inv.id)}
+                disabled={actionLoader === inv.id}
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-xs rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                 {actionLoader === inv.id ? "Processing..." : "Claim Investment"}
+              </button>
            ) : (
-              <div className="flex items-center justify-between bg-muted/40 p-5 rounded-2xl border border-border/60">
-                 <div className="flex items-center gap-3">
-                    <ClockIcon className="w-5 h-5 text-indigo-500" />
-                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Profit Cycle</span>
+              <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border border-border">
+                 <div className="flex items-center gap-2">
+                    <ClockIcon className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Next Profit In</span>
                  </div>
-                 <span className="font-mono font-medium text-sm text-muted-foreground tabular-nums tracking-wide bg-card px-4 py-2 rounded-xl shadow-sm border border-border">
-                    {poolTimer || "Evaluating..."}
+                 <span className="font-mono font-bold text-sm text-foreground">
+                    {poolTimer || "..."}
                  </span>
               </div>
            )}

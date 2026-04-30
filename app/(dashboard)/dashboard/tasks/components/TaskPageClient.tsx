@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { 
     CheckCircleIcon,
@@ -9,9 +9,12 @@ import {
     TrophyIcon,
     BoltIcon,
     GiftIcon,
-    InformationCircleIcon
+    InformationCircleIcon,
+    ChevronRightIcon,
+    XMarkIcon,
+    ArrowRightIcon
 } from "@heroicons/react/24/outline"
-import { LockClosedIcon } from "@heroicons/react/24/solid"
+import { LockClosedIcon, ClockIcon } from "@heroicons/react/24/solid"
 import { completeTask } from "@/app/actions/user/tasks"
 import { useRouter } from "next/navigation"
 
@@ -38,9 +41,17 @@ interface TaskPageClientProps {
     isUnlocked: boolean
 }
 
+function cn(...classes: (string | boolean | undefined)[]) {
+    return classes.filter(Boolean).join(' ')
+}
+
 export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked }: TaskPageClientProps) {
     const router = useRouter()
     const userIsActive = isUnlocked
+
+    const [activeTab, setActiveTab] = useState<"basic" | "premium">("basic")
+    const [previewTask, setPreviewTask] = useState<Task | null>(null)
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
     const [taskStates, setTaskStates] = useState<Record<string, { status: string, remarks?: string | null }>>(() => {
         const initialStates: Record<string, { status: string, remarks?: string | null }> = {}
@@ -57,8 +68,6 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
 
     const [isPending, startTransition] = useTransition()
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null)
-
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null)
     const [proofType, setProofType] = useState<'text' | 'image'>('image')
     const [proofText, setProofText] = useState('')
     
@@ -110,290 +119,308 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
         })
     }
 
+    // Step 1: Open Preview Popup
     const handleTaskClick = (task: Task) => {
         const state = taskStates[task.id]
-        
         if (state?.status === 'APPROVED' || state?.status === 'PENDING') return
-        
-        if (task.link) {
-            window.open(task.link, '_blank')
-        }
-        
-        setSelectedTask(task)
+        setPreviewTask(task)
     }
 
+    // Step 2: Confirmation Button inside Popup
+    const handleStartTask = () => {
+        if (!previewTask) return
+        
+        if (previewTask.link) {
+            window.open(previewTask.link, '_blank')
+        }
+        
+        setSelectedTask(previewTask)
+        setPreviewTask(null)
+    }
+
+    const filteredTasks = platformTasks.filter(t => 
+        activeTab === "premium" ? t.type === "PREMIUM" : t.type !== "PREMIUM"
+    )
+
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-8 sm:space-y-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8 font-sans">
             
-            {/* ═══ TASK CENTER BANNER ═══ */}
-            <div className="relative overflow-hidden rounded-2xl text-white"
-              style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1e1040 45%, #0d1117 100%)" }}>
-
-              <div className="absolute -top-8 right-0 w-40 h-40 bg-indigo-600/12 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 -left-8 w-36 h-36 bg-amber-500/8 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute inset-0 opacity-[0.03]"
-                style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M0 0h1v40H0zm40 0h1v40h-1zM0 0v1h41V0zm0 40v1h41v-1z'/%3E%3C/g%3E%3C/svg%3E\")" }} />
-
-              <div className="relative z-10 px-5 sm:px-7 py-4 sm:py-5 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-3">
-                <div className="min-w-0 text-center sm:text-left flex-1">
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/8 border border-white/10 text-[8px] font-bold uppercase tracking-[0.18em] text-amber-300/80 mb-1.5">
-                    <BoltIcon className="w-2.5 h-2.5" />
-                    Official Task Hub
+            {/* ═══ TASK HUB BANNER ═══ */}
+            <div className="relative overflow-hidden rounded-[2rem] text-white mb-8 sm:mb-10 bg-[#0f0f23] border border-white/5">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -mr-32 -mt-32" />
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -ml-32 -mb-32" />
+              
+              <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+                <div className="text-center sm:text-left flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-amber-400 mb-4">
+                    <BoltIcon className="w-4 h-4" /> Official Task Hub
                   </div>
-                  <h1 className="text-sm sm:text-base font-bold tracking-tight leading-tight mb-0.5">
-                    Earn More,{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200">Faster.</span>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-2">
+                    Official <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 italic">Task Hub</span>
                   </h1>
-                  <p className="text-white/40 text-[10px] max-w-xs leading-relaxed">
-                    Complete verified tasks for ARN tokens
+                  <p className="text-white/40 text-xs sm:text-sm max-w-sm font-medium">
+                    Complete basic & premium verified tasks to earn rewards.
                   </p>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center shadow-inner">
-                    <div className="text-base sm:text-lg font-black text-emerald-400 leading-none mb-0.5">
+                
+                <div className="flex gap-3 shrink-0">
+                  <div className="min-w-[90px] bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                    <div className="text-xl font-black text-emerald-400 leading-none mb-1">
                       {Math.floor(Object.values(taskStates).filter((s: any) => s.status === 'APPROVED').length)}
                     </div>
-                    <div className="text-[8px] font-bold text-emerald-400/50 uppercase tracking-wider">Completed</div>
+                    <div className="text-[9px] font-black text-emerald-400/40 uppercase tracking-widest">Completed</div>
                   </div>
-                  <div className="min-w-[68px] sm:min-w-[80px] bg-white/6 border border-white/8 rounded-xl p-2 sm:p-2.5 text-center shadow-inner">
-                    <div className="text-base sm:text-lg font-black text-amber-400 leading-none mb-0.5">
+                  <div className="min-w-[90px] bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                    <div className="text-xl font-black text-amber-400 leading-none mb-1">
                       {platformTasks.length}
                     </div>
-                    <div className="text-[8px] font-bold text-amber-400/50 uppercase tracking-wider">Total Tasks</div>
+                    <div className="text-[9px] font-black text-amber-400/40 uppercase tracking-widest">Available</div>
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
             </div>
 
-            {/* TASKS CONTAINER */}
-            <div className="space-y-8 sm:space-y-12">
-                
-                {/* 1. PREMIUM TASKS */}
-                <section>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 sm:p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-xl text-amber-700 shadow-sm">
-                                 <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                            </div>
-                            <div>
-                                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">Premium Tasks</h2>
-                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium">Exclusive high-reward opportunities.</p>
-                            </div>
-                        </div>
-                        {!userIsActive && (
-                            <div className="w-full sm:w-auto bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/50 px-3 sm:px-4 py-2 rounded-lg flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">
-                                    <BoltIcon className="w-4 h-4" /> Locked
-                                </div>
-                                <a href="/dashboard/wallet" className="text-[10px] sm:text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-md transition-colors shadow-sm">
-                                    Unlock Now
-                                </a>
-                            </div>
-                        )}
-                    </div>
+            {/* ═══ TAB NAVIGATION ═══ */}
+            <div className="flex p-1.5 bg-muted/40 rounded-2xl border border-border/40 mb-8 sm:mb-10 w-full sm:w-fit mx-auto lg:mx-0 shadow-sm">
+                <button 
+                    onClick={() => setActiveTab("basic")}
+                    className={cn(
+                        "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                        activeTab === "basic" ? "bg-card text-foreground shadow-xl shadow-black/5 border border-border/20" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    <GiftIcon className="w-4 h-4" />
+                    Basic Tasks
+                </button>
+                <button 
+                    onClick={() => setActiveTab("premium")}
+                    className={cn(
+                        "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                        activeTab === "premium" ? "bg-card text-foreground shadow-xl shadow-black/5 border border-border/20" : "text-muted-foreground hover:text-foreground"
+                    )}
+                >
+                    <TrophyIcon className="w-4 h-4 text-amber-500" />
+                    Premium Tasks
+                </button>
+            </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-                        {platformTasks.filter((t: any) => t.type === 'PREMIUM').map((task, index) => {
-                            const state = taskStates[task.id]
-                            const isApproved = state?.status === 'APPROVED'
-                            const isPendingTask = state?.status === 'PENDING'
-                            const isCompleted = isApproved 
-                            
-                            if (!userIsActive) {
-                                return (
-                                    <div key={task.id} className="relative group bg-card rounded-2xl border border-border p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 overflow-hidden shadow-sm min-h-[180px]">
-                                        <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-amber-50 dark:bg-amber-900/10 rounded-bl-full -mr-4 -mt-4 opacity-50"></div>
-                                        
-                                        <div className="relative z-20 flex flex-col items-center opacity-20 grayscale grayscale-50">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2 sm:mb-2 text-gray-400">
-                                                <TrophyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                                            </div>
-                                            <h3 className="font-bold text-foreground text-sm sm:text-base">{task.title}</h3>
+            {/* ═══ TASKS CONTENT ═══ */}
+            <div className="relative">
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={activeTab}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="relative"
+                    >
+                        {/* Premium Unlock Banner (Top) */}
+                        {activeTab === "premium" && !userIsActive && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mb-8"
+                            >
+                                <div className="bg-card border border-amber-500/20 rounded-[1.5rem] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xl shadow-amber-500/5 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-amber-500/10 transition-all" />
+                                    
+                                    <div className="flex items-center gap-4 relative z-10">
+                                        <div className="shrink-0 w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-600 shadow-inner">
+                                            <LockClosedIcon className="w-6 h-6" />
                                         </div>
-                                        
-                                        <div className="absolute inset-0 z-30 bg-background/60 backdrop-blur-md rounded-2xl flex flex-col items-center justify-center p-6 text-center border-2 border-dashed border-amber-500/20">
-                                            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-3 text-amber-600 dark:text-amber-500">
-                                                <LockClosedIcon className="w-6 h-6" />
-                                            </div>
-                                            <h3 className="text-sm font-black text-foreground mb-1 leading-tight">This is locked. All these features are currently locked.</h3>
-                                            <p className="text-[10px] text-muted-foreground max-w-[180px] mb-4">
-                                                Unlock premium tasks ($0.50+ / task) with a $1.00 deposit.
+                                        <div className="text-center sm:text-left">
+                                            <h3 className="text-base sm:text-lg font-black text-foreground tracking-tight leading-tight mb-1">Unlock Premium Tasks</h3>
+                                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                                                High-reward verified opportunities await
                                             </p>
-                                            <button 
-                                                onClick={() => router.push("/dashboard/wallet?tab=deposit")}
-                                                className="px-4 py-2 bg-foreground text-background font-bold rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all text-[10px]"
-                                            >
-                                                Unlock Now →
-                                            </button>
                                         </div>
                                     </div>
-                                )
-                            }
+                                    
+                                    <button 
+                                        onClick={() => router.push("/dashboard/wallet?action=unlock")}
+                                        className="relative z-10 w-full sm:w-auto px-10 py-3.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-[10px] uppercase tracking-[0.15em] rounded-xl transition-all shadow-lg shadow-amber-600/20 active:scale-95"
+                                    >
+                                        Unlock Now
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
 
-                            return (
-                                <motion.div
-                                    key={task.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className={`relative bg-gradient-to-br from-card to-amber-50/50 dark:from-card dark:to-amber-900/10 rounded-2xl p-4 sm:p-6 border transition-all duration-300 ${
-                                        isCompleted 
-                                            ? 'border-green-200 dark:border-green-800 shadow-none' 
-                                            : 'border-amber-100 dark:border-amber-800/50 shadow-sm hover:shadow-lg hover:shadow-amber-100/50 dark:hover:shadow-amber-900/20 hover:border-amber-300 hover:-translate-y-1'
-                                    }`}
-                                >
-                                    {isCompleted && (
-                                        <div className="absolute top-4 right-4 text-green-500 bg-green-50 rounded-full p-1">
-                                            <CheckCircleIcon className="w-5 h-5" />
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-start justify-between mb-3 sm:mb-4">
-                                        <div className="flex items-center gap-2">
-                                            {task.company?.logoUrl ? (
-                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 sm:w-8 sm:h-8 rounded-full shadow-sm" />
-                                            ) : (
-                                                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-bold border border-amber-200 dark:border-amber-800/50">
-                                                    {task.company?.name?.[0] || 'P'}
-                                                </div>
+                        <div className={cn(
+                            "bg-card border border-border/60 rounded-[2rem] overflow-hidden shadow-2xl shadow-black/5 divide-y divide-border/40 relative",
+                            activeTab === "premium" && !userIsActive && "select-none pointer-events-none"
+                        )}>
+                            {/* Blurred tasks state when locked */}
+                            {activeTab === "premium" && !userIsActive && (
+                                <div className="absolute inset-0 z-10 bg-background/10 backdrop-blur-[12px]" />
+                            )}
+                            {filteredTasks.length === 0 ? (
+                                <div className="py-24 text-center px-6">
+                                    <div className="w-20 h-20 bg-muted/40 rounded-[2rem] flex items-center justify-center mx-auto mb-6 border border-border/60">
+                                        <InformationCircleIcon className="w-10 h-10 text-muted-foreground/20" />
+                                    </div>
+                                    <p className="text-foreground font-black text-lg tracking-tight">No tasks found in this hub</p>
+                                    <p className="text-[10px] font-bold text-muted-foreground mt-2 uppercase tracking-widest opacity-60">Check back later for new opportunities</p>
+                                </div>
+                            ) : (
+                                filteredTasks.map((task, index) => {
+                                    const state = taskStates[task.id]
+                                    const isApproved = state?.status === 'APPROVED'
+                                    const isPendingTask = state?.status === 'PENDING'
+                                    const isRejected = state?.status === 'REJECTED'
+                                    
+                                    return (
+                                        <div 
+                                            key={task.id}
+                                            onClick={() => handleTaskClick(task)}
+                                            className={cn(
+                                                "group flex items-center gap-4 px-5 py-4 sm:px-7 sm:py-5 transition-all duration-300 relative overflow-hidden",
+                                                (isApproved || isPendingTask) ? "bg-muted/5 pointer-events-none" : "hover:bg-muted/30 cursor-pointer active:bg-muted/50"
                                             )}
-                                            <span className="px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
-                                                {task.company?.name || 'Premium Partner'}
-                                            </span>
-                                        </div>
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400">
-                                            Verified
-                                        </span>
-                                    </div>
-                                    
-                                    <h3 className="font-black text-foreground text-base sm:text-lg mb-1.5 leading-tight">
-                                        {task.title}
-                                    </h3>
-                                    <p className="text-[11px] sm:text-xs text-muted-foreground font-medium line-clamp-2 leading-relaxed mb-4">
-                                        {task.description || "Follow the task instructions closely. Submit valid proof of completion to earn your reward directly to your premium balance."}
-                                    </p>
-                                    
-                                    <div className="flex items-center justify-between pt-3 sm:pt-4 border-t border-amber-100/50 dark:border-amber-800/30">
-                                        <div className="flex flex-col">
-                                            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-muted-foreground">Reward</span>
-                                            <div className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                                <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
-                                                {task.reward.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
+                                        >
+                                            {/* Status Dot */}
+                                            <div className="shrink-0 w-2.5 h-2.5 rounded-full relative">
+                                                <div className={cn(
+                                                    "absolute inset-0 rounded-full animate-ping opacity-20",
+                                                    isApproved ? "bg-emerald-500" : isPendingTask ? "bg-blue-500" : isRejected ? "bg-rose-500" : "bg-indigo-500"
+                                                )} />
+                                                <div className={cn(
+                                                    "relative w-full h-full rounded-full",
+                                                    isApproved ? "bg-emerald-500" : isPendingTask ? "bg-blue-500" : isRejected ? "bg-rose-500" : "bg-indigo-500"
+                                                )} />
+                                            </div>
+
+                                            {/* Title & Type */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40 shrink-0">
+                                                        {task.type}
+                                                    </span>
+                                                    <h3 className="font-black text-foreground text-xs sm:text-sm truncate tracking-tight">
+                                                        {task.title}
+                                                    </h3>
+                                                </div>
+                                                <p className="text-[9px] font-medium text-muted-foreground/60 truncate uppercase tracking-widest">
+                                                    {task.company?.name || 'Official Task'}
+                                                </p>
+                                            </div>
+
+                                            {/* Reward & Button */}
+                                            <div className="shrink-0 flex items-center gap-3 sm:gap-6">
+                                                <div className="text-right">
+                                                    <div className={cn(
+                                                        "text-xs sm:text-sm font-black tabular-nums tracking-tighter",
+                                                        activeTab === "premium" ? "text-amber-600 dark:text-amber-500" : "text-indigo-600 dark:text-indigo-400"
+                                                    )}>
+                                                        +{task.reward.toLocaleString()} <span className="text-[9px] opacity-40">ARN</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className={cn(
+                                                    "hidden sm:flex items-center justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                                    isApproved ? "bg-emerald-500/10 text-emerald-600" :
+                                                    isPendingTask ? "bg-blue-500/10 text-blue-600" :
+                                                    isRejected ? "bg-rose-500/10 text-rose-600" :
+                                                    "bg-foreground text-background group-hover:px-6"
+                                                )}>
+                                                    {isApproved ? 'Done' : isPendingTask ? 'Verifying' : isRejected ? 'Retry' : 'Start'}
+                                                </div>
+                                                <ChevronRightIcon className="w-4 h-4 text-muted-foreground/30 sm:hidden" />
                                             </div>
                                         </div>
-                                        
-                                        {!isCompleted && !isPendingTask && (
-                                            <button
-                                                onClick={() => handleTaskClick(task)}
-                                                className="px-4 py-2 sm:px-5 sm:py-2.5 bg-gray-900 dark:bg-amber-600 hover:bg-amber-600 dark:hover:bg-amber-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-1.5 sm:gap-2"
-                                            >
-                                                Start <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                            </button>
-                                        )}
-                                        {isPendingTask && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] sm:text-xs font-bold border border-blue-100 dark:border-blue-800/50">Verifying...</span>}
-                                        {isCompleted && <span className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg text-[10px] sm:text-xs font-bold border border-green-100 dark:border-green-800/50">Paid out</span>}
-                                    </div>
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                </section>
-
-                {/* 2. BASIC TASKS */}
-                <section>
-                    <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 border-t border-border pt-8 sm:pt-10">
-                        <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800/50">
-                             <GiftIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                                    )
+                                })
+                            )}
                         </div>
-                        <div>
-                             <h2 className="text-xl sm:text-2xl font-bold text-foreground">Basic Tasks</h2>
-                             <p className="text-xs sm:text-sm text-muted-foreground font-medium">Steady growth for everyone. No restrictions.</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                        {platformTasks.filter((t: any) => t.type !== 'PREMIUM').map((task, index) => {
-                            const state = taskStates[task.id]
-                            const isApproved = state?.status === 'APPROVED'
-                            const isPendingTask = state?.status === 'PENDING'
-                            const isRejected = state?.status === 'REJECTED'
-
-                            return (
-                                <motion.div
-                                    key={task.id}
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className={`group relative bg-card rounded-2xl p-4 sm:p-5 border transition-all duration-300 hover:shadow-md ${
-                                        isApproved ? 'border-green-200 bg-green-50/20 dark:border-green-800 dark:bg-green-900/10' : 
-                                        isPendingTask ? 'border-blue-200 bg-blue-50/20 dark:border-blue-800 dark:bg-blue-900/10' :
-                                        isRejected ? 'border-red-200 bg-red-50/20 dark:border-red-800 dark:bg-red-900/10' : 'border-border hover:border-indigo-200 dark:hover:border-indigo-800'
-                                    }`}
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2">
-                                            {task.company?.logoUrl ? (
-                                                <img src={task.company.logoUrl} alt="" className="w-6 h-6 rounded-full shadow-sm" />
-                                            ) : (
-                                                <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-[10px] font-black border border-indigo-100 dark:border-indigo-800/50">
-                                                    {task.company?.name?.[0] || 'P'}
-                                                </div>
-                                            )}
-                                            <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                                {task.company?.name || 'Platform Network'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            {isApproved && <CheckCircleIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />}
-                                            {isRejected && <span className="text-[9px] sm:text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded">Failed</span>}
-                                        </div>
-                                    </div>
-
-                                    <h3 className="font-black text-foreground text-sm sm:text-base mb-1.5 leading-tight">
-                                        {task.title}
-                                    </h3>
-                                    <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium line-clamp-2 leading-relaxed mb-4">
-                                        {task.description || "Follow the specified link, complete the exact required actions, and submit your valid proof below."}
-                                    </p>
-
-                                    <div className="flex items-center justify-between border-t border-border pt-3 sm:pt-4 mt-auto">
-                                        <div className="text-xs sm:text-sm font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-indigo-100 dark:border-indigo-800/50">
-                                            +{task.reward.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
-                                        </div>
-                                        
-                                        {!isApproved && !isPendingTask && (
-                                            <button
-                                                onClick={() => handleTaskClick(task)}
-                                                className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all ${
-                                                    isRejected 
-                                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 hover:dark:bg-red-900/40'
-                                                    : 'bg-indigo-600 dark:bg-indigo-600 text-white border border-transparent hover:bg-indigo-700 dark:hover:bg-indigo-500'
-                                                }`}
-                                            >
-                                                {isRejected ? 'Retry Task' : 'Start Task'}
-                                            </button>
-                                        )}
-                                        {isPendingTask && <span className="text-[10px] sm:text-xs font-medium text-blue-500 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Checking</span>}
-                                        {isApproved && <span className="text-[10px] sm:text-xs font-medium text-green-600 dark:text-green-500">Completed</span>}
-                                    </div>
-                                </motion.div>
-                            )
-                        })}
-                    </div>
-                </section>
-
-             {/* Minimal Footer Info */}
-             <div className="mt-8 pt-8 border-t border-gray-100 dark:border-border text-center text-[10px] sm:text-xs text-muted-foreground">
-                 <p className="flex items-center justify-center gap-1.5 sm:gap-2">
-                     <InformationCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                     Tasks are verified within 24 hours. Rewards are credited immediately upon approval.
-                 </p>
-             </div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
 
-            {/* Task Submission Modal */}
+            {/* Footer Notice */}
+            <div className="mt-10 py-6 border-t border-border/40 text-center">
+                 <p className="flex items-center justify-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                     <InformationCircleIcon className="w-4 h-4 text-indigo-500/40" />
+                     Rewards are credited instantly after 24h verification cycle.
+                 </p>
+            </div>
+
+            {/* ═══ MODALS ═══ */}
             <AnimatePresence>
+                {/* STEP 1: PREVIEW POPUP */}
+                {previewTask && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setPreviewTask(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-md bg-card rounded-[2.5rem] shadow-2xl border border-white/5 p-6 sm:p-8 overflow-hidden"
+                        >
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest bg-muted text-muted-foreground">
+                                            {previewTask.type}
+                                        </span>
+                                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Verified Task</span>
+                                    </div>
+                                    <h2 className="text-xl sm:text-2xl font-black text-foreground leading-tight tracking-tight">
+                                        {previewTask.title}
+                                    </h2>
+                                </div>
+                                <div className="shrink-0 text-right">
+                                    <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.2em] mb-1">Reward</p>
+                                    <div className="text-xl font-black text-amber-500 flex items-center gap-1 justify-end tabular-nums">
+                                        <SparklesIcon className="w-5 h-5" />
+                                        {previewTask.reward.toLocaleString()}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-8">
+                                <div className="bg-muted/20 rounded-2xl p-5 border border-border/40">
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <InformationCircleIcon className="w-4 h-4 text-indigo-500" /> Task Instructions
+                                    </p>
+                                    <p className="text-sm font-medium text-foreground leading-relaxed">
+                                        {previewTask.description || "Follow the link to complete the task. Be sure to capture a screenshot of your successful completion to upload as proof later."}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+                                    <ClockIcon className="w-4 h-4 text-amber-600" />
+                                    <p className="text-[10px] font-bold text-amber-700/80 uppercase tracking-wide">
+                                        Verification usually takes 24-48 hours
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <button 
+                                    onClick={handleStartTask}
+                                    className="w-full py-4 bg-foreground text-background font-black text-xs uppercase tracking-widest rounded-xl shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    Start Task Now
+                                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                                <button 
+                                    onClick={() => setPreviewTask(null)}
+                                    className="w-full py-4 bg-muted hover:bg-muted/80 text-foreground font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
+                                >
+                                    Maybe Later
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {/* STEP 2: PROOF SUBMISSION */}
                 {selectedTask && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                         <motion.div
@@ -401,54 +428,58 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => !isPending && setSelectedTask(null)}
-                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         />
-                        
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="relative w-full max-w-lg bg-card rounded-2xl shadow-2xl border border-border p-5 sm:p-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+                            className="relative w-full max-w-md bg-card rounded-[2.5rem] shadow-2xl border border-border p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto"
                         >
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 mb-2">
-                                        {selectedTask?.type}
-                                    </span>
-                                    <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                                        {selectedTask?.title}
-                                    </h2>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[10px] text-muted-foreground uppercase font-bold block mb-0.5">Reward</span>
-                                    <div className="text-lg font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 justify-end">
-                                        <SparklesIcon className="w-4 h-4" />
-                                        {selectedTask?.reward?.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ARN
-                                    </div>
-                                </div>
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-black text-foreground tracking-tight">Submit Proof</h2>
+                                <button 
+                                    onClick={() => !isPending && setSelectedTask(null)}
+                                    className="p-2 rounded-full hover:bg-muted transition-colors"
+                                >
+                                    <XMarkIcon className="w-5 h-5 text-muted-foreground" />
+                                </button>
                             </div>
                             
-                            <div className="bg-muted/50 rounded-xl p-4 mb-6 text-sm text-foreground leading-relaxed whitespace-pre-wrap border border-border">
-                                {selectedTask?.description || "Click the 'Start' button again to open the task link (if available). Then, complete the task instructions and upload your proof here."}
-                            </div>
+                            <form action={handleSubmitProof} className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="bg-muted/10 rounded-2xl p-4 border border-border/40">
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Task</p>
+                                        <p className="text-sm font-bold text-foreground truncate">{selectedTask.title}</p>
+                                    </div>
 
-                            <form action={handleSubmitProof} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-foreground mb-2">Upload Screenshot Proof</label>
-                                    <div className="border-2 border-dashed border-border rounded-xl p-4 sm:p-6 text-center hover:bg-muted/50 transition-colors">
-                                        <input 
-                                            type="file" 
-                                            name="file" 
-                                            accept="image/*" 
-                                            required
-                                            className="w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/30 dark:file:text-indigo-400 cursor-pointer"
-                                        />
+                                    <div>
+                                        <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 ml-1">Upload Screenshot Proof</label>
+                                        <div className="group relative border-2 border-dashed border-border/60 hover:border-indigo-500/40 rounded-2xl p-6 sm:p-8 text-center transition-all bg-muted/5">
+                                            <input 
+                                                type="file" 
+                                                name="file" 
+                                                accept="image/*" 
+                                                required
+                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                            />
+                                            <div className="flex flex-col items-center">
+                                                <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center mb-3 text-muted-foreground group-hover:text-indigo-500 transition-colors">
+                                                    <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                                                </div>
+                                                <p className="text-xs font-bold text-foreground">Tap to select image</p>
+                                                <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">JPG, PNG or WEBP</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {feedback && (
-                                    <div className={`p-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 ${feedback?.type === 'error' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-100 dark:border-red-900/50' : 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-900/50'}`}>
-                                        {feedback?.type === 'error' ? <span>⚠️</span> : <CheckCircleIcon className="w-5 h-5" />}
+                                    <div className={cn(
+                                        "p-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border animate-in fade-in slide-in-from-bottom-2",
+                                        feedback?.type === 'error' ? 'bg-rose-500/5 text-rose-500 border-rose-500/10' : 'bg-emerald-500/5 text-emerald-500 border-emerald-500/10'
+                                    )}>
+                                        {feedback?.type === 'error' ? <InformationCircleIcon className="w-5 h-5" /> : <CheckCircleIcon className="w-5 h-5" />}
                                         {feedback?.message}
                                     </div>
                                 )}
@@ -458,16 +489,16 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                         type="button"
                                         onClick={() => setSelectedTask(null)}
                                         disabled={isPending}
-                                        className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-sm font-bold text-foreground bg-muted hover:bg-muted/80 transition-colors"
+                                        className="flex-1 py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted hover:bg-muted/80 transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isPending}
-                                        className="flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                                        className="flex-[2] py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-background bg-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                                     >
-                                        {isPending ? 'Submitting...' : 'Submit Proof'}
+                                        {isPending ? 'Uploading...' : 'Confirm Submission'}
                                     </button>
                                 </div>
                             </form>
@@ -475,6 +506,8 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                     </div>
                 )}
             </AnimatePresence>
+
         </div>
     )
 }
+

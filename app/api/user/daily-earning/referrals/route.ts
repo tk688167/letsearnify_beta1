@@ -21,27 +21,37 @@ export async function GET() {
     }
 
     // 1. Get total referral earnings from DAILY_POOL category
-    const totalEarningsResult = await prisma.referralCommission.aggregate({
+    const settledEarningsResult = await prisma.referralCommission.aggregate({
       where: {
         earnerId: userId,
-        category: "DAILY_POOL"
+        category: "DAILY_POOL",
+        status: "SETTLED"
       },
-      _sum: {
-        amount: true
-      }
+      _sum: { amount: true }
     })
 
-    const totalReferralEarnings = totalEarningsResult._sum.amount || 0
+    const pendingEarningsResult = await prisma.referralCommission.aggregate({
+      where: {
+        earnerId: userId,
+        category: "DAILY_POOL",
+        status: "PENDING"
+      },
+      _sum: { amount: true }
+    })
+
+    const totalSettledEarnings = settledEarningsResult._sum.amount || 0
+    const totalPendingEarnings = pendingEarningsResult._sum.amount || 0
 
     // 2. Get all direct referrals (level 1)
-    // We need to find users whose referredByCode matches current user's referralCode
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
-      select: { referralCode: true }
+      select: { referralCode: true, pendingReferralWallet: true }
     })
 
     if (!currentUser?.referralCode) {
       return NextResponse.json({
+        totalSettledEarnings: 0,
+        totalPendingEarnings: 0,
         totalReferralEarnings: 0,
         referrals: []
       })
@@ -71,19 +81,29 @@ export async function GET() {
 
     // 3. For each referral, calculate how much commission they've generated for the current user
     const referralStats = await Promise.all(referrals.map(async (ref) => {
-      const gennedEarningsResult = await prisma.referralCommission.aggregate({
+      const settledResult = await prisma.referralCommission.aggregate({
         where: {
           earnerId: userId,
           sourceUserId: ref.id,
-          category: "DAILY_POOL"
+          category: "DAILY_POOL",
+          status: "SETTLED"
         },
-        _sum: {
-          amount: true
-        }
+        _sum: { amount: true }
+      })
+
+      const pendingResult = await prisma.referralCommission.aggregate({
+        where: {
+          earnerId: userId,
+          sourceUserId: ref.id,
+          category: "DAILY_POOL",
+          status: "PENDING"
+        },
+        _sum: { amount: true }
       })
 
       const totalInvested = ref.dailyEarningInvestments.reduce((sum, inv) => sum + inv.amount, 0)
-      const earningsGenerated = gennedEarningsResult._sum.amount || 0
+      const settledEarningsGenerated = settledResult._sum.amount || 0
+      const pendingEarningsGenerated = pendingResult._sum.amount || 0
 
       return {
         id: ref.id,
@@ -93,7 +113,10 @@ export async function GET() {
         image: ref.image,
         joinedAt: ref.createdAt,
         totalInvested,
-        earningsGenerated
+        settledEarningsGenerated,
+        pendingEarningsGenerated,
+        // Kept for backward compatibility if needed temporarily
+        earningsGenerated: settledEarningsGenerated + pendingEarningsGenerated
       }
     }))
 
@@ -101,7 +124,9 @@ export async function GET() {
     referralStats.sort((a, b) => b.earningsGenerated - a.earningsGenerated)
 
     return NextResponse.json({
-      totalReferralEarnings,
+      totalSettledEarnings,
+      totalPendingEarnings,
+      totalReferralEarnings: totalSettledEarnings + totalPendingEarnings,
       referrals: referralStats
     })
 
