@@ -12,7 +12,8 @@ import {
     InformationCircleIcon,
     ChevronRightIcon,
     XMarkIcon,
-    ArrowRightIcon
+    ArrowRightIcon,
+    ArrowPathIcon
 } from "@heroicons/react/24/outline"
 import { LockClosedIcon, ClockIcon } from "@heroicons/react/24/solid"
 import { completeTask } from "@/app/actions/user/tasks"
@@ -70,7 +71,17 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
     const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null)
     const [proofType, setProofType] = useState<'text' | 'image'>('image')
     const [proofText, setProofText] = useState('')
-    
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null)
+
+    const closeProofModal = () => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl)
+        setPreviewUrl(null)
+        setSelectedTask(null)
+        setSubmittedTaskId(null)
+        setFeedback(null)
+    }
+
     const handleSubmitProof = async (formData: FormData) => {
         if (!selectedTask) return
 
@@ -106,10 +117,10 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                         ...prev,
                         [selectedTask.id]: { status: 'PENDING', remarks: null }
                     }))
-
-                    setFeedback({ type: 'success', message: result.message || 'Task submitted for review!' })
-                    setSelectedTask(null)
+                    setSubmittedTaskId(selectedTask.id)
+                    setFeedback(null)
                     setProofText("")
+                    if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null) }
                 } else {
                     setFeedback({ type: 'error', message: result.error || 'Failed to submit' })
                 }
@@ -301,9 +312,19 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                                         {task.title}
                                                     </h3>
                                                 </div>
-                                                <p className="text-[9px] font-medium text-muted-foreground/60 truncate uppercase tracking-widest">
-                                                    {task.company?.name || 'Official Task'}
-                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-[9px] font-medium text-muted-foreground/60 truncate uppercase tracking-widest">
+                                                        {task.company?.name || 'Official Task'}
+                                                    </p>
+                                                    {(isApproved || isPendingTask || isRejected) && (
+                                                        <span className={cn(
+                                                            "sm:hidden flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.1em]",
+                                                            isApproved ? "text-emerald-500" : isPendingTask ? "text-blue-500" : "text-rose-500"
+                                                        )}>
+                                                            • {isApproved ? "Done" : isPendingTask ? "Under Review" : "Retry"}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             {/* Reward & Button */}
@@ -318,13 +339,19 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                                                 </div>
                                                 
                                                 <div className={cn(
-                                                    "hidden sm:flex items-center justify-center px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                                    "hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                                                     isApproved ? "bg-emerald-500/10 text-emerald-600" :
                                                     isPendingTask ? "bg-blue-500/10 text-blue-600" :
                                                     isRejected ? "bg-rose-500/10 text-rose-600" :
                                                     "bg-foreground text-background group-hover:px-6"
                                                 )}>
-                                                    {isApproved ? 'Done' : isPendingTask ? 'Verifying' : isRejected ? 'Retry' : 'Start'}
+                                                    {isApproved ? (
+                                                        <><CheckCircleIcon className="w-3.5 h-3.5" /> Done</>
+                                                    ) : isPendingTask ? (
+                                                        <><ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> Under Review</>
+                                                    ) : isRejected ? (
+                                                        <><ArrowPathIcon className="w-3.5 h-3.5" /> Retry</>
+                                                    ) : 'Start'}
                                                 </div>
                                                 <ChevronRightIcon className="w-4 h-4 text-muted-foreground/30 sm:hidden" />
                                             </div>
@@ -427,7 +454,7 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => !isPending && setSelectedTask(null)}
+                            onClick={() => !isPending && closeProofModal()}
                             className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         />
                         <motion.div
@@ -436,72 +463,138 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             className="relative w-full max-w-md bg-card rounded-[2.5rem] shadow-2xl border border-border p-6 sm:p-8 overflow-hidden max-h-[90vh] overflow-y-auto"
                         >
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-black text-foreground tracking-tight">Submit Proof</h2>
-                                <button 
-                                    onClick={() => !isPending && setSelectedTask(null)}
-                                    className="p-2 rounded-full hover:bg-muted transition-colors"
-                                >
-                                    <XMarkIcon className="w-5 h-5 text-muted-foreground" />
-                                </button>
-                            </div>
-                            
-                            <form action={handleSubmitProof} className="space-y-6">
-                                <div className="space-y-4">
-                                    <div className="bg-muted/10 rounded-2xl p-4 border border-border/40">
-                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Task</p>
-                                        <p className="text-sm font-bold text-foreground truncate">{selectedTask.title}</p>
+                            {submittedTaskId === selectedTask.id ? (
+                                /* ── Under Review Confirmation Screen ── */
+                                <div className="flex flex-col items-center text-center py-4 gap-6">
+                                    <div className="relative">
+                                        <div className="w-20 h-20 rounded-[2rem] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                                            <ClockIcon className="w-9 h-9 text-blue-500" />
+                                        </div>
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full animate-ping opacity-30" />
+                                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full border-2 border-card" />
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 ml-1">Upload Screenshot Proof</label>
-                                        <div className="group relative border-2 border-dashed border-border/60 hover:border-indigo-500/40 rounded-2xl p-6 sm:p-8 text-center transition-all bg-muted/5">
-                                            <input 
-                                                type="file" 
-                                                name="file" 
-                                                accept="image/*" 
-                                                required
-                                                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                                            />
-                                            <div className="flex flex-col items-center">
-                                                <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center mb-3 text-muted-foreground group-hover:text-indigo-500 transition-colors">
-                                                    <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.25em] mb-2">Submitted Successfully</p>
+                                        <h3 className="text-2xl font-black text-foreground tracking-tight mb-3">
+                                            Your task is<br/>under review
+                                        </h3>
+                                        <p className="text-sm font-medium text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                                            Our team is reviewing your proof. You'll be notified once it's approved and your reward is credited.
+                                        </p>
+                                    </div>
+
+                                    <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden border border-border/40">
+                                        <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-pulse" style={{ width: '60%' }} />
+                                    </div>
+
+                                    <div className="w-full bg-muted/20 rounded-2xl p-4 border border-border/40 flex items-center gap-3">
+                                        <ClockIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider text-left">Verification typically takes 24–48 hours</p>
+                                    </div>
+
+                                    <button
+                                        onClick={closeProofModal}
+                                        className="w-full py-4 bg-foreground text-background font-black text-xs uppercase tracking-widest rounded-xl shadow-xl active:scale-95 transition-all"
+                                    >
+                                        Got It, Done
+                                    </button>
+                                </div>
+                            ) : (
+                                /* ── Normal Proof Submission Form ── */
+                                <>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-xl font-black text-foreground tracking-tight">Submit Proof</h2>
+                                        <button
+                                            onClick={() => !isPending && closeProofModal()}
+                                            className="p-2 rounded-full hover:bg-muted transition-colors"
+                                        >
+                                            <XMarkIcon className="w-5 h-5 text-muted-foreground" />
+                                        </button>
+                                    </div>
+
+                                    <form action={handleSubmitProof} className="space-y-6">
+                                        <div className="space-y-4">
+                                            <div className="bg-muted/10 rounded-2xl p-4 border border-border/40">
+                                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5">Task</p>
+                                                <p className="text-sm font-bold text-foreground truncate">{selectedTask.title}</p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-3 ml-1">Upload Screenshot Proof</label>
+                                                <div className="group relative border-2 border-dashed border-border/60 hover:border-indigo-500/40 rounded-2xl p-6 sm:p-8 text-center transition-all bg-muted/5">
+                                                    <input
+                                                        type="file"
+                                                        name="file"
+                                                        accept="image/*"
+                                                        required
+                                                        className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0]
+                                                            if (file) {
+                                                                if (previewUrl) URL.revokeObjectURL(previewUrl)
+                                                                setPreviewUrl(URL.createObjectURL(file))
+                                                            }
+                                                        }}
+                                                    />
+                                                    {previewUrl ? (
+                                                        <div className="flex flex-col items-center gap-3">
+                                                            <div className="w-full max-w-[200px] aspect-video rounded-xl overflow-hidden border border-border/60 shadow-sm mx-auto">
+                                                                <img src={previewUrl} alt="Screenshot preview" className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                                                                    <CheckCircleIcon className="w-3 h-3 text-emerald-500" />
+                                                                    <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Image ready</p>
+                                                                </div>
+                                                                <p className="text-[9px] text-muted-foreground/60 font-medium">Tap to change image</p>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center">
+                                                            <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center mb-3 text-muted-foreground group-hover:text-indigo-500 transition-colors">
+                                                                <ArrowTopRightOnSquareIcon className="w-6 h-6" />
+                                                            </div>
+                                                            <p className="text-xs font-bold text-foreground">Tap to select image</p>
+                                                            <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">JPG, PNG or WEBP</p>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                                <p className="text-xs font-bold text-foreground">Tap to select image</p>
-                                                <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest">JPG, PNG or WEBP</p>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
 
-                                {feedback && (
-                                    <div className={cn(
-                                        "p-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border animate-in fade-in slide-in-from-bottom-2",
-                                        feedback?.type === 'error' ? 'bg-rose-500/5 text-rose-500 border-rose-500/10' : 'bg-emerald-500/5 text-emerald-500 border-emerald-500/10'
-                                    )}>
-                                        {feedback?.type === 'error' ? <InformationCircleIcon className="w-5 h-5" /> : <CheckCircleIcon className="w-5 h-5" />}
-                                        {feedback?.message}
-                                    </div>
-                                )}
+                                        {feedback && (
+                                            <div className={cn(
+                                                "p-4 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-3 border animate-in fade-in slide-in-from-bottom-2",
+                                                feedback?.type === 'error' ? 'bg-rose-500/5 text-rose-500 border-rose-500/10' : 'bg-emerald-500/5 text-emerald-500 border-emerald-500/10'
+                                            )}>
+                                                {feedback?.type === 'error' ? <InformationCircleIcon className="w-5 h-5" /> : <CheckCircleIcon className="w-5 h-5" />}
+                                                {feedback?.message}
+                                            </div>
+                                        )}
 
-                                <div className="flex gap-3 pt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedTask(null)}
-                                        disabled={isPending}
-                                        className="flex-1 py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted hover:bg-muted/80 transition-colors"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={isPending}
-                                        className="flex-[2] py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-background bg-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                                    >
-                                        {isPending ? 'Uploading...' : 'Confirm Submission'}
-                                    </button>
-                                </div>
-                            </form>
+                                        <div className="flex gap-3 pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => closeProofModal()}
+                                                disabled={isPending}
+                                                className="flex-1 py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-muted hover:bg-muted/80 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={isPending}
+                                                className="flex-[2] py-4 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-background bg-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                                            >
+                                                {isPending ? (
+                                                    <><ArrowPathIcon className="w-4 h-4 animate-spin" /> Uploading...</>
+                                                ) : 'Confirm Submission'}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </>
+                            )}
                         </motion.div>
                     </div>
                 )}

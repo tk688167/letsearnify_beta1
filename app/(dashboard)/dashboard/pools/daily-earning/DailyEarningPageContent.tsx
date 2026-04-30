@@ -1013,35 +1013,44 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader, isUn
 
         {/* Financial Simple Grid */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                 Invested Amount
+           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col justify-center overflow-hidden">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 leading-tight whitespace-normal">
+                 Invested
               </p>
-              <p className="font-sans font-black text-xl text-foreground">
+              <p
+                className="font-sans font-black text-foreground leading-tight break-words"
+                style={{ fontSize: "clamp(13px, 3.8vw, 20px)" }}
+              >
                  {formatCurrency(inv.amount)}
               </p>
            </div>
            
-           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col justify-center">
-              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-500 uppercase tracking-widest mb-1">
-                 Total Expected Return
+           <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col justify-center overflow-hidden">
+              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-500 uppercase tracking-widest mb-1 leading-tight whitespace-normal">
+                 30-Day Return
               </p>
-              <p className="font-sans font-black text-xl text-emerald-700 dark:text-emerald-500">
+              <p
+                className="font-sans font-black text-emerald-700 dark:text-emerald-500 leading-tight break-words"
+                style={{ fontSize: "clamp(13px, 3.8vw, 20px)" }}
+              >
                  +{formatCurrency(inv.amount * 0.30)}
               </p>
            </div>
         </div>
 
         {/* Current Accumulated Profit */}
-        <div className="mb-6 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between gap-4">
-           <div>
-              <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-0.5">
-                 Profit Earned So Far
+        <div className="mb-6 p-4 rounded-xl bg-indigo-500/5 border border-indigo-500/20 flex items-center justify-between gap-3 overflow-hidden">
+           <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-0.5 leading-tight whitespace-normal">
+                 Profit Earned
               </p>
-              <p className="text-[9px] text-muted-foreground uppercase">(Your 80% Share)</p>
+              <p className="text-[9px] text-muted-foreground uppercase leading-tight whitespace-normal">Your 80% Share</p>
            </div>
-           <div className="text-right">
-              <p className="font-sans font-black text-2xl text-indigo-600 dark:text-indigo-400">
+           <div className="text-right shrink-0">
+              <p
+                className="font-sans font-black text-indigo-600 dark:text-indigo-400 leading-tight tabular-nums"
+                style={{ fontSize: "clamp(14px, 4.5vw, 24px)" }}
+              >
                  +{formatCurrency(inv.profitEarned * 0.8)}
               </p>
            </div>
@@ -1049,10 +1058,11 @@ function PoolCard({ inv, isCompleted, handleCompletionAction, actionLoader, isUn
 
         {/* Progress Bar (Pure CSS) */}
         <div className="mb-6">
-           <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">
-              <span>{format(startDate, "MMM dd, yyyy")}</span>
-              <span>{Math.round(progress)}% Completed</span>
-              <span>{format(expiryDate, "MMM dd, yyyy")}</span>
+           {/* Progress percentage above bar on mobile to prevent 3-span collision */}
+           <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">
+              <span className="shrink-0">{format(startDate, "MMM dd")}</span>
+              <span className="text-center px-2 shrink-0">{Math.round(progress)}%</span>
+              <span className="shrink-0">{format(expiryDate, "MMM dd")}</span>
            </div>
            <div className="h-2 w-full bg-muted border border-border rounded-full overflow-hidden">
               <div 

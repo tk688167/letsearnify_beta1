@@ -26,6 +26,7 @@ import { signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import ThemeToggle from "@/app/components/ui/ThemeToggle"
 import Logo from "@/app/components/ui/Logo"
+import { AdminNotificationBell } from "./AdminNotificationBell"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: HomeIcon },
@@ -131,8 +132,11 @@ export default function MobileAdminNav({
           </div>
         </div>
 
-        {/* Theme toggle in mobile header */}
-        <ThemeToggle />
+        {/* Notification bell + Theme toggle */}
+        <div className="flex items-center gap-2">
+          <AdminNotificationBell />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* ── Drawer Overlay ── */}

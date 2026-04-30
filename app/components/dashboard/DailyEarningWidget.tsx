@@ -408,11 +408,14 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
                                   <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
                                </div>
-                               <div className="flex-1 min-w-0">
+                               <div className="flex-1 min-w-0 overflow-hidden">
                                   <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 truncate">Total Locked Principal</p>
                                   <div className="flex flex-wrap items-baseline gap-2">
-                                     <p className={cn("font-serif font-black text-foreground tracking-tighter truncate max-w-full", isCompact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl lg:text-3xl")}>{formatCurrency(inv.amount)}</p>
-                                     <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap">
+                                     <p 
+                                       className="font-serif font-black text-foreground tracking-tighter leading-tight"
+                                       style={{ fontSize: isCompact ? "clamp(14px, 3.5vw, 20px)" : "clamp(16px, 4vw, 28px)" }}
+                                     >{formatCurrency(inv.amount)}</p>
+                                     <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap shrink-0">
                                         +{formatCurrency(inv.amount * 0.01)}/day
                                      </div>
                                   </div>
@@ -420,17 +423,20 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
                             </div>
 
                             <div className={cn("flex flex-row gap-2 sm:gap-6", isCompact ? "w-full sm:w-auto" : "w-full sm:w-auto")}>
-                               <div className="bg-emerald-500/5 p-2 sm:p-3 rounded-xl border border-emerald-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0">
+                               <div className="bg-emerald-500/5 p-2 sm:p-3 rounded-xl border border-emerald-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0 overflow-hidden">
                                   <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
                                     <SparklesIcon className="w-3 h-3 shrink-0" /> Profit
                                   </p>
-                                  <p className={cn("font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>+{formatCurrency(inv.profitEarned)}</p>
+                                  <p 
+                                    className="font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter tabular-nums leading-tight"
+                                    style={{ fontSize: isCompact ? "clamp(12px, 3vw, 18px)" : "clamp(13px, 3.5vw, 20px)" }}
+                                  >+{formatCurrency(inv.profitEarned)}</p>
                                </div>
-                               <div className="bg-orange-500/5 p-2 sm:p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0">
+                               <div className="bg-orange-500/5 p-2 sm:p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0 overflow-hidden">
                                   <p className="text-[9px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
                                     <LockClosedIcon className="w-3 h-3 shrink-0" /> Locked
                                   </p>
-                                  <p className={cn("font-black text-foreground tabular-nums truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
+                                  <p className={cn("font-black text-foreground tabular-nums", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
                                      {daysRemaining} <span className="text-[9px] sm:text-[10px] text-muted-foreground">DAYS</span>
                                   </p>
                                </div>
@@ -642,7 +648,7 @@ function StatBox({ label, value, icon: Icon, color, isCompact }: any) {
     }
     return (
         <div className={cn(
-          "bg-background/80 border border-border shadow-sm rounded-2xl transition-all hover:bg-muted/30 group",
+          "bg-background/80 border border-border shadow-sm rounded-2xl transition-all hover:bg-muted/30 group overflow-hidden",
           isCompact ? "p-3 sm:p-4 hover:scale-[1.02]" : "p-5 sm:p-6 rounded-[2rem] hover:scale-[1.02]"
         )}>
             <div className={cn(
@@ -653,7 +659,10 @@ function StatBox({ label, value, icon: Icon, color, isCompact }: any) {
                 <Icon className={cn(isCompact ? "w-4 h-4" : "w-6 h-6")} />
             </div>
             <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-foreground/70 transition-colors truncate">{label}</p>
-            <p className={cn("font-serif font-black text-foreground truncate max-w-full", isCompact ? "text-base sm:text-lg" : "text-xl sm:text-2xl lg:text-3xl")}>{value}</p>
+            <p
+              className="font-serif font-black text-foreground leading-tight"
+              style={{ fontSize: isCompact ? "clamp(13px, 3.5vw, 18px)" : "clamp(14px, 3.5vw, 24px)" }}
+            >{value}</p>
         </div>
     )
 }
