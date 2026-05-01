@@ -15,6 +15,8 @@ export default async function ReferralsPage() {
   const { user, referralTree, stats, isOffline } = await getMlmData(session.user.id);
  
   let displayUser = user;
+
+  console.log("displayUser::::::",displayUser)
   
 
   if (!displayUser && !isOffline) redirect("/login")
