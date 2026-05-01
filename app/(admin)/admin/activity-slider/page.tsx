@@ -144,3 +144,4 @@ export default function ActivitySliderManager() {
         </div>
     )
 }
+ 
