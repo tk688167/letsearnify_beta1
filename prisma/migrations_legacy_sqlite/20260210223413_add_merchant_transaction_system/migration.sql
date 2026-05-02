@@ -52,6 +52,7 @@ CREATE TABLE "new_User" (
     "activeMembers" INTEGER NOT NULL DEFAULT 0,
     "totalDeposit" REAL NOT NULL DEFAULT 0.0,
     "kycStatus" TEXT NOT NULL DEFAULT 'NOT_VERIFIED',
+    "pendingReferralWallet" INTEGER NOT NULL DEFAULT 0,
     "kycDocument" TEXT,
     "securityQuestion" TEXT,
     "securityAnswer" TEXT,

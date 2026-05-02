@@ -19,6 +19,7 @@ CREATE TABLE "User" (
     "isCbspMember" BOOLEAN NOT NULL DEFAULT false,
     "activeMembers" INTEGER NOT NULL DEFAULT 0,
     "totalDeposit" REAL NOT NULL DEFAULT 0.0,
+    "pendingReferralWallet" INTEGER NOT NULL DEFAULT 0,
     "kycStatus" TEXT NOT NULL DEFAULT 'NOT_VERIFIED',
     "kycDocument" TEXT,
     "securityQuestion" TEXT,

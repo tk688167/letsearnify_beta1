@@ -28,6 +28,7 @@ CREATE TABLE "User" (
     "isActiveMember" BOOLEAN NOT NULL DEFAULT false,
     "isCbspMember" BOOLEAN NOT NULL DEFAULT false,
     "activeMembers" INTEGER NOT NULL DEFAULT 0,
+    "pendingReferralWallet" INTEGER NOT NULL DEFAULT 0,
     "totalDeposit" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "mudarabahBalance" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "dailyEarningWallet" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
