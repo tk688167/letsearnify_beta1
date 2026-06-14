@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-earnings?token=temp_dev_secret_override",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

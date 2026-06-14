@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support | Let'sEarnify</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --bg-black: #0a0a0a;
+            --bg-dark: #111111;
+            --bg-card: #1a1a1a;
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+            --accent-gold: #1E90FF;
+            /* Changed to Blue as per request */
+            --accent-blue: #1E90FF;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-green: #2ecc71;
+        }
+
+        body {
+            background-color: var(--bg-black);
+            color: var(--text-white);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding-top: 80px;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Header & Nav */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            box-sizing: border-box;
+        }
+
+        /* Logo styles removed to use global style.css */
+
+        /* Page Layout */
+        .support-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px 80px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-title h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-gray);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .back-btn:hover {
+            color: var(--text-white);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+            border-color: var(--accent-gold);
+        }
+
+        /* Main Grid */
+        .support-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .support-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .support-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+        }
+
+        /* Help Categories (Accordion Style for FAQ inclusion) */
+        .help-category {
+            margin-bottom: 15px;
+        }
+
+        .help-toggle {
+            width: 100%;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: var(--text-white);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .help-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-blue);
+        }
+
+        .help-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        .help-toggle.active i {
+            transform: rotate(180deg);
+        }
+
+        .help-content {
+            display: none;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            margin-top: -5px;
+            /* slight overlap */
+        }
+
+        .help-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Contact Options */
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .contact-item:hover {
+            border-color: var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(30, 144, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        .contact-info h4 {
+            margin: 0 0 2px 0;
+            font-size: 1rem;
+            color: var(--text-white);
+        }
+
+        .contact-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-white);
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-gold);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(30, 144, 255, 0.4);
+        }
+
+        /* Quick Status Indicators */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success-green);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 0 20px;
+            }
+
+            .page-title h1 {
+                font-size: 2rem;
+            }
+
+            .contact-item {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <a href="dashboard.html" class="logo">Let'sEarnify</a>
+    </header>
+
+    <div class="support-container">
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Customer Support</h1>
+            </div>
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+
+        <div class="support-grid">
+
+            <!-- Left Column: Common Issues & embedded Login/Signup Help -->
+            <div class="main-column">
+
+                <!-- Login & Signup Help Section (Embedded) -->
+                <div class="support-card">
+                    <div class="card-title">
+                        <i class="fas fa-sign-in-alt"></i> Login & Signup Issues
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>I forgot my password</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>To reset your password, click on the "Forgot Password?" link on the login page. Enter
+                                your registered email address, and we will send you a password reset link. Follow the
+                                instructions in the email to create a new password.</p>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>I'm not receiving the verification email</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>Please check your spam/junk folder first. If it's not there, ensure you entered the
+                                correct email address. You can also try resending the verification email from the login
+                                screen after 2 minutes.</p>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>My account is locked</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>Accounts may be temporarily locked due to multiple failed login attempts. Please wait 30
+                                minutes and try again. If the issue persists, contact our support team using the form on
+                                this page.</p>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>How do I create a new account?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>Click on "Register" or "Sign Up" on the homepage. Fill in your details (User ID, Email,
+                                Password, Referral ID if applicable) and click Submit. Verify your email to complete the
+                                process.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account & General Support -->
+                <div class="support-card">
+                    <div class="card-title">
+                        <i class="fas fa-user-shield"></i> Account & General Support
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>How do I verify my identity (KYC)?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>Go to Settings > Account Information. Upload the required documents (ID card, Passport,
+                                or Driver's License). Verification usually takes 24-48 hours.</p>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <div class="help-toggle" onclick="toggleHelp(this)">
+                            <span>How to withdraw my earnings?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="help-content">
+                            <p>Visit the Wallet page, click on Withdraw, select your method (Crypto - TRC20 or Stripe),
+                                enter the amount, and submit. Withdrawals are processed within 24 hours.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Form -->
+                <div class="support-card">
+                    <div class="card-title">
+                        <i class="fas fa-envelope-open-text"></i> Submit a Ticket
+                    </div>
+                    <form
+                        onsubmit="event.preventDefault(); alert('Ticket submitted successfully! We will contact you shortly.');">
+                        <div class="form-group">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-input" placeholder="E.g., Login Issue">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-textarea" placeholder="Describe your issue in detail..."></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">Submit Ticket</button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Contact Info -->
+            <div class="side-column">
+                <div class="support-card">
+                    <div class="card-title">
+                        <i class="fas fa-headset"></i> Contact Us
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Email Support</h4>
+                            <p>support@earnify.com</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Phone</h4>
+                            <p>+1 (555) 123-4567</p>
+                            <span class="status-badge status-online">Available 9-5 EST</span>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-telegram-plane"></i>
+                        </div>
+                        <div class="contact-info">
+                            <h4>Telegram</h4>
+                            <p>@EarnifySupport</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.9rem; color: #888; text-align: center;">
+                        <p>Our team usually responds within 2 hours during business hours.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Authentication Check
+        if (localStorage.getItem('earnify_auth_status') !== 'true') {
+            window.location.href = 'index.html';
+        }
+
+        // Toggle Help Content
+        function toggleHelp(element) {
+            const content = element.nextElementSibling;
+            const icon = element.querySelector('.fa-chevron-down');
+
+            // Close others 
+            // (Optional: remove this block if you want multiple open)
+            /*
+            document.querySelectorAll('.help-content').forEach(el => {
+                if (el !== content) el.classList.remove('show');
+            });
+            document.querySelectorAll('.help-toggle').forEach(el => {
+                if (el !== element) el.classList.remove('active');
+            });
+            */
+
+            element.classList.toggle('active');
+            content.classList.toggle('show');
+        }
+    </script>
+</body>
+
+</html>

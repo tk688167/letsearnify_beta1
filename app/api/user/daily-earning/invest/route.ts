@@ -1,0 +1,107 @@
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+
+const MIN_INVESTMENT = 1.0
+
+export async function POST(req: Request) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await req.json()
+    const { amount } = body
+
+    if (!amount || typeof amount !== "number" || amount < MIN_INVESTMENT) {
+      return NextResponse.json(
+        { error: `Minimum investment is $${MIN_INVESTMENT.toFixed(2)}` },
+        { status: 400 }
+      )
+    }
+
+    // 1. Synthetic Admin Support (Anti-Gravity Fix)
+    // If the user is the super-admin, we bypass DB balance checks and transactions 
+    // to allow activation testing without a real User record in the database.
+    if (session.user.id === "super-admin-id") {
+      return NextResponse.json({ 
+        success: true, 
+        message: "Admin synthetic activation successful",
+        investment: {
+          id: `admin-${Date.now()}`,
+          userId: session.user.id,
+          amount: amount,
+          status: "ACTIVE",
+          profitEarned: 0,
+          createdAt: new Date()
+        }
+      })
+    }
+
+    // 2. Double check the user's available daily earning wallet balance
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { dailyEarningWallet: true }
+    })
+
+    if (!user) {
+       return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    if (user.dailyEarningWallet < amount) {
+      return NextResponse.json(
+        { error: "Insufficient wallet balance" },
+        { status: 400 }
+      )
+    }
+
+    const now = new Date()
+    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+    const nextCycleAt = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+
+    // Execute atomically to prevent race conditions during checkout
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Deduct from Daily Earning Wallet
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: { dailyEarningWallet: { decrement: amount } }
+      })
+
+      // Lock funds into the newly minted Pool record
+      const investment = await tx.dailyEarningInvestment.create({
+        data: {
+          userId: session.user.id,
+          amount: amount,
+          status: "ACTIVE",
+          profitEarned: 0,
+          expiresAt: expiresAt,
+          lastCalculatedDate: now,
+          nextCycleAt: nextCycleAt
+        }
+      })
+
+      // Log it into system transactions
+      await tx.transaction.create({
+        data: {
+          userId: session.user.id,
+          amount: amount,
+          type: "INVESTMENT",
+          status: "COMPLETED",
+          method: "DAILY_EARNING_POOL",
+          description: `Daily Earning Pool Deposit (30 Day Lock)`
+        }
+      })
+
+      return investment
+    })
+
+    return NextResponse.json({ success: true, investment: result })
+  } catch (error: any) {
+    console.error("Daily Earning Investment Error:", error)
+    return NextResponse.json(
+      { error: error.message || "Failed to process investment" },
+      { status: 500 }
+    )
+  }
+}

@@ -1,0 +1,239 @@
+import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
+import { executeSpin } from "@/app/actions/spin"
+import SpinWheel from "./SpinWheel"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
+import { LockClosedIcon, StarIcon, SparklesIcon, ArrowRightIcon } from "@heroicons/react/24/solid"
+import CountdownTimer from "./CountdownTimer"
+import SpinHistory from "./SpinHistory"
+import { ClockIcon } from "@heroicons/react/24/outline"
+
+import { getSpinSettings } from "@/app/actions/admin/spin-rewards"
+import { cookies } from "next/headers"
+import PremiumLockedOverlay from "./PremiumLockedOverlay"
+import { getStandardSegments } from "@/lib/spin-config"
+
+export default async function SpinPage() {
+  const session = await auth()
+  
+  if (!session?.user?.id) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <h2 className="text-2xl font-bold">Authentication Required</h2>
+        <p className="text-slate-500">Please log in to access the daily spin.</p>
+        <a href="/login" className="px-6 py-2 bg-indigo-600 text-white rounded-lg">Login</a>
+      </div>
+    )
+  }
+
+  try {
+    // 1. Pre-fetch check for Environment Variables
+    if (!process.env.DATABASE_URL && !process.env.DIRECT_URL) {
+      throw new Error("Missing DATABASE_URL / DIRECT_URL. Please check Vercel environment variables.");
+    }
+
+    // 2. Data Fetching with individualized error handling potential
+    const [user, freeRewardsDB, premiumRewardsDB, spinSettings] = await Promise.all([
+        prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { 
+                id: true, 
+                name: true,
+                email: true,
+                isActiveMember: true, 
+                lastSpinTime: true,
+                lastPremiumSpinTime: true,
+                premiumBonusSpins: true
+            }
+        }).catch((e: any) => { throw new Error(`User Fetch Failed: ${e.message}`) }),
+        prisma.spinReward.findMany({ 
+            where: { spinType: "FREE", isEnabled: true }, 
+            orderBy: { order: "asc" } 
+        }).catch((e: any) => { throw new Error(`Free Rewards Fetch Failed: ${e.message}`) }),
+        prisma.spinReward.findMany({ 
+            where: { spinType: "PREMIUM", isEnabled: true }, 
+            orderBy: { order: "asc" } 
+        }).catch(() => [] as any[]),
+        getSpinSettings()
+    ])
+    
+    const freeRewards = getStandardSegments(freeRewardsDB, "FREE");
+    const premiumRewards = getStandardSegments(premiumRewardsDB, "PREMIUM");
+
+    let currentUser = user;
+
+    if (!currentUser) {
+        if (session.user.id === "super-admin-id") {
+            const cookieStore = await cookies();
+            const adminLastSpin = cookieStore.get("admin_lastSpinTime")?.value;
+            const adminLastPremium = cookieStore.get("admin_lastPremiumSpinTime")?.value;
+
+            currentUser = {
+                id: "super-admin-id",
+                name: "Super Admin",
+                email: "admin@letsearnify.com",
+                isActiveMember: true,
+                lastSpinTime: adminLastSpin ? new Date(adminLastSpin) : null,
+                lastPremiumSpinTime: adminLastPremium ? new Date(adminLastPremium) : null,
+                premiumBonusSpins: 0
+            } as any;
+        } else {
+            return (
+              <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                  <LockClosedIcon className="w-8 h-8 text-red-600" />
+                </div>
+                <h2 className="text-2xl font-bold">Account Registry Error</h2>
+                <p className="text-slate-500">Your account was not found in the production database. Try logging out and back in.</p>
+              </div>
+            )
+        }
+    }
+
+    if (!currentUser) return null;
+
+    const now = new Date()
+
+    // Calculate Free Spin Cooldown
+    let freeCooldownDate: Date | null = null
+    if (currentUser.lastSpinTime) {
+        const diffMs = now.getTime() - currentUser.lastSpinTime.getTime()
+        const diffHours = diffMs / (1000 * 60 * 60)
+        if (diffHours < spinSettings.freeSpinCooldownHours) {
+            freeCooldownDate = new Date(currentUser.lastSpinTime.getTime() + (spinSettings.freeSpinCooldownHours * 60 * 60 * 1000))
+        }
+    }
+
+    // Calculate Premium Spin Cooldown
+    let premiumCooldownDate: Date | null = null
+    const lastPremiumSpin = currentUser.lastPremiumSpinTime ? currentUser.lastPremiumSpinTime : null
+    
+    if (lastPremiumSpin) {
+        const diffMs = now.getTime() - lastPremiumSpin.getTime()
+        const diffHours = diffMs / (1000 * 60 * 60)
+        if (diffHours < spinSettings.premiumSpinCooldownHours) {
+            if (currentUser.premiumBonusSpins <= 0) {
+               premiumCooldownDate = new Date(lastPremiumSpin.getTime() + (spinSettings.premiumSpinCooldownHours * 60 * 60 * 1000))
+            }
+        }
+    }
+
+    return (
+      <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6 md:space-y-8 pb-20 select-none">
+         {/* ═══ MINIMALIST SPIN HEADER ═══ */}
+         <div className="text-center md:text-left mb-6 pt-2">
+             <h1 className="text-3xl sm:text-4xl font-black font-serif italic tracking-tighter uppercase drop-shadow-sm text-slate-900 dark:text-white">
+                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-indigo-300">Reward Spin</span>
+             </h1>
+             <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1 mb-2">
+                 Activate your cycle to win exclusive platform rewards every {spinSettings.freeSpinCooldownHours} hours.
+             </p>
+         </div>
+
+         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+             {/* ═══ MAIN WHEEL AREA ═══ */}
+             <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-[3.5rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 overflow-hidden flex flex-col relative transition-all hover:shadow-indigo-500/5">
+                  <Tabs defaultValue="free" className="w-full flex-1 flex flex-col">
+                      {/* Premium Styled Tabs Switcher */}
+                      <div className="bg-slate-50/50 dark:bg-slate-950/50 border-b border-slate-200/60 dark:border-slate-800/80 p-3 md:p-4 backdrop-blur-xl sticky top-0 z-20">
+                          <TabsList className="grid w-full max-w-sm grid-cols-2 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl p-1 h-auto">
+                              <TabsTrigger value="free" className="py-3 md:py-4 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-900 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-md font-black text-[11px] md:text-xs tracking-tight transition-all text-slate-500 uppercase">
+                                  Standard Wheel
+                              </TabsTrigger>
+                              <TabsTrigger value="premium" className="py-3 md:py-4 rounded-xl data-[state=active]:bg-[#0c0c0c] dark:data-[state=active]:bg-amber-500/10 data-[state=active]:text-amber-500 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-md font-black text-[11px] md:text-xs tracking-tight flex items-center justify-center gap-1.5 transition-all text-slate-500 uppercase">
+                                  <StarIcon className="w-4 h-4" />
+                                  Premium Daily
+                              </TabsTrigger>
+                          </TabsList>
+                      </div>
+                      
+                      {/* Free Spin Tab Content */}
+                      <TabsContent value="free" className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[450px] md:min-h-[550px]">
+                          <SpinWheel 
+                              rewards={freeRewards} 
+                              onSpin={executeSpin.bind(null, "FREE")} 
+                              isLocked={false}
+                              cooldownDate={freeCooldownDate} 
+                              type="FREE"
+                              userId={currentUser.id}
+                          />
+                      </TabsContent>
+
+                      {/* Premium Spin Tab Content */}
+                      <TabsContent value="premium" className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 outline-none animate-in fade-in slide-in-from-bottom-5 duration-500 min-h-[450px] md:min-h-[550px] relative bg-gradient-to-b from-amber-50/50 via-transparent to-transparent dark:from-amber-950/20">
+                          {/* High-End Premium Locked Overlay */}
+                          {!currentUser.isActiveMember && (
+                              <PremiumLockedOverlay />
+                          )}
+
+                          <SpinWheel 
+                              rewards={premiumRewards} 
+                              onSpin={executeSpin.bind(null, "PREMIUM")}
+                              isLocked={!currentUser.isActiveMember}
+                              cooldownDate={premiumCooldownDate && currentUser.premiumBonusSpins <= 0 ? premiumCooldownDate : null}
+                              type="PREMIUM"
+                              userId={currentUser.id}
+                          />
+                      </TabsContent>
+                  </Tabs>
+             </div>
+
+             {/* ═══ SIDEBAR: HISTORY & STATS ═══ */}
+             <div className="lg:col-span-4 space-y-10">
+                  <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl border border-slate-200/60 dark:border-slate-800/80 p-10 transition-all hover:shadow-indigo-500/5 group">
+                      <div className="flex items-center justify-between mb-8">
+                          <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase flex items-center gap-3">
+                              <ClockIcon className="w-7 h-7 text-slate-400 group-hover:text-indigo-500 transition-colors" />
+                              Fortunes
+                          </h3>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Recent</span>
+                      </div>
+                      <SpinHistory userId={currentUser.id} />
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-purple-700 rounded-[3rem] shadow-[0_30px_60px_rgba(79,70,229,0.2)] p-10 text-white relative overflow-hidden group">
+                      <div className="relative z-10 space-y-4">
+                          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
+                              <SparklesIcon className="w-7 h-7 text-white" />
+                          </div>
+                          <h3 className="font-black text-3xl tracking-tighter uppercase leading-none">Elevate Your Strategy</h3>
+                          <p className="text-indigo-100/80 text-sm md:text-base leading-relaxed font-medium">
+                              Premium partners achieve up to <span className="text-white font-black underline decoration-amber-500 underline-offset-4">2x higher</span> win rates on Arnold Token rewards.
+                          </p>
+                      </div>
+                      <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-white opacity-5 rounded-full blur-[60px] group-hover:opacity-10 transition-opacity"></div>
+                  </div>
+             </div>
+         </div>
+      </div>
+    )
+  } catch (error: any) {
+    console.error("Spin Page Error:", error);
+    return (
+      <div className="max-w-7xl mx-auto p-4 md:p-10 min-h-[60vh] flex flex-col items-center justify-center space-y-6">
+        <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+          <SparklesIcon className="w-10 h-10 text-red-600" />
+        </div>
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase italic">System Interruption</h2>
+          <p className="text-slate-500 max-w-md mx-auto">
+            We encountered a technical issue while initializing your daily portal. Use the button below to retry or check your connection.
+          </p>
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-left border border-slate-200 dark:border-slate-700">
+               <p className="text-[10px] font-mono text-red-500 uppercase font-bold mb-1">Diagnostic Info:</p>
+               <p className="text-xs font-mono text-slate-600 dark:text-slate-400 break-all">{error.message}</p>
+            </div>
+          )}
+        </div>
+        <a 
+          href="/dashboard/spin" 
+          className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-black font-black rounded-2xl shadow-lg transition-transform active:scale-95 uppercase tracking-tighter"
+        >
+          Re-initialize Portal
+        </a>
+      </div>
+    )
+  }
+}
+

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investments | HybridEstates</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Sidebar (Shared Structure) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <!-- Updated Logo: Let'sEarnify -->
+            <div class="logo">Let'sEarnify</div>
+            <div class="close-sidebar mobile-only">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+
+        <div class="user-mini-profile">
+            <div class="avatar-circle">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h4>John Doe</h4>
+                <p>Premium Member</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Overview</a></li>
+                <li><a href="marketplace.html"><i class="fas fa-tasks"></i> Tasks & Earn</a></li>
+                <li class="active"><a href="investments.html"><i class="fas fa-chart-pie"></i> Investments</a></li>
+
+                <li><a href="referrals.html"><i class="fas fa-users"></i> Referrals</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Custom Styles for Investments Page -->
+    <style>
+        /* Scoped Layout Styles */
+        .invest-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Hero Card */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.9) 0%, rgba(0, 0, 0, 0.95) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content h2 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .hero-content p {
+            color: #aaa;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .hero-stat h3 {
+            font-size: 3rem;
+            color: #d4af37;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .hero-stat p {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            text-align: right;
+            letter-spacing: 1px;
+        }
+
+        /* Investment Grid */
+        .investment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Investment Card */
+        .invest-card {
+            background: rgba(25, 25, 25, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .invest-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .card-header {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(20, 20, 20, 0.9));
+        }
+
+        .category-tag {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            color: #d4af37;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 2;
+        }
+
+        .card-body {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-body h3 {
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 20px;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 20px;
+        }
+
+        .metric h4 {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .metric p {
+            font-size: 1rem;
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .metric .highlight {
+            color: #4caf50;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .progress-track {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d4af37, #fdf5e6);
+            border-radius: 3px;
+        }
+
+        .btn-invest {
+            width: 100%;
+            background: transparent;
+            border: 1px solid #d4af37;
+            color: #d4af37;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: auto;
+        }
+
+        .btn-invest:hover {
+            background: #d4af37;
+            color: #000;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Portfolio Table */
+        .portfolio-section {
+            background: rgba(20, 20, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .table-header h3 {
+            color: #fff;
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modern-table th {
+            text-align: left;
+            padding: 15px;
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .modern-table td {
+            padding: 20px 15px;
+            color: #fff;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+        }
+
+        .status-badge.locked {
+            background: rgba(255, 152, 0, 0.15);
+            color: #ff9800;
+        }
+
+        @media (max-width: 768px) {
+            .invest-container {
+                padding: 20px;
+            }
+
+            .hero-banner {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .hero-stat p {
+                text-align: center;
+            }
+
+            .investment-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .portfolio-section {
+                overflow-x: auto;
+            }
+        }
+    </style>
+
+    <main class="main-content" style="margin-left: 0; width: 100%; min-height: 100vh; background: #050505;">
+        <!-- Top Header -->
+        <header class="dashboard-header" style="background: transparent;">
+            <div class="mobile-toggle open-sidebar-btn" style="display: none;">
+                <i class="fas fa-bars"></i>
+            </div>
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+            <h2 class="page-title" style="font-family: 'Playfair Display', serif; font-size: 1.8rem;">Investments</h2>
+            <div class="header-actions">
+                <div class="icon-btn notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="invest-container">
+
+            <!-- Hero Banner -->
+            <div class="hero-banner reveal reveal-up">
+                <div class="hero-content">
+                    <span
+                        style="color: #d4af37; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase;">Mudaraba
+                        Fund</span>
+                    <h2>Ethical Growth Portfolios</h2>
+                    <p>Invest in curated, Sharia-compliant real estate and tech ventures. Earn competitive returns with
+                        full transparency.</p>
+                </div>
+                <div class="hero-stat">
+                    <p>Total Active Assets</p>
+                    <h3>$0.00</h3>
+                </div>
+            </div>
+
+            <!-- Section Title -->
+            <h3 class="reveal reveal-left"
+                style="font-size: 1.4rem; color: #fff; margin-bottom: 25px; font-family: 'Playfair Display', serif;">
+                Available Opportunities</h3>
+
+            <!-- Investment Cards Grid -->
+            <div class="investment-grid">
+
+                <!-- Card 1: Real Estate -->
+                <div class="invest-card reveal reveal-up">
+                    <div class="card-header"
+                        style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                        <span class="category-tag">Real Estate</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Premium Urban Housing</h3>
+
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <h4>Exp. ROI</h4>
+                                <p class="highlight">15%</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Duration</h4>
+                                <p>24 Mo</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Min Entry</h4>
+                                <p>$500</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span>$450k Funded</span>
+                                <span>$1.2M Goal</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width: 37%;"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn-invest" onclick="alert('Investment Details: Urban Housing')">View
+                            Details</button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Tech Startup -->
+                <div class="invest-card reveal reveal-up">
+                    <div class="card-header"
+                        style="background-image: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                        <span class="category-tag" style="border-color: rgba(156, 39, 176, 0.4); color: #e1bee7;">Tech
+                            VC</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Halal FinTech Series A</h3>
+
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <h4>Exp. ROI</h4>
+                                <p class="highlight">25%</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Duration</h4>
+                                <p>36 Mo</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Min Entry</h4>
+                                <p>$1,000</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span>$850k Funded</span>
+                                <span>$2.0M Goal</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill"
+                                    style="width: 42%; background: linear-gradient(90deg, #9c27b0, #e1bee7);"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn-invest" style="border-color: #9c27b0; color: #e1bee7;"
+                            onclick="alert('Investment Details: FinTech')">View Details</button>
+                    </div>
+                </div>
+
+                <!-- Card 3: Logistics -->
+                <div class="invest-card reveal reveal-up">
+                    <div class="card-header"
+                        style="background-image: url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                        <span class="category-tag" style="border-color: rgba(0, 188, 212, 0.4); color: #b2ebf2;">SME
+                            Growth</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Eco-Friendly Logistics</h3>
+
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <h4>Exp. ROI</h4>
+                                <p class="highlight">12%</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Duration</h4>
+                                <p>12 Mo</p>
+                            </div>
+                            <div class="metric">
+                                <h4>Min Entry</h4>
+                                <p>$200</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-section">
+                            <div class="progress-labels">
+                                <span>$120k Funded</span>
+                                <span>$150k Goal</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill"
+                                    style="width: 80%; background: linear-gradient(90deg, #00bcd4, #b2ebf2);"></div>
+                            </div>
+                        </div>
+
+                        <button class="btn-invest" style="border-color: #00bcd4; color: #b2ebf2;"
+                            onclick="alert('Investment Details: Logistics')">View Details</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Portfolio Section -->
+            <div class="portfolio-section reveal reveal-up">
+                <div class="table-header">
+                    <h3>Active Portfolio</h3>
+                    <button
+                        style="background: rgba(255,255,255,0.05); border: none; color: #aaa; padding: 8px 16px; border-radius: 8px; cursor: pointer;">Download
+                        Report</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Asset Name</th>
+                                <th>Invested Date</th>
+                                <th>Principal</th>
+                                <th>Current Val</th>
+                                <th>Status</th>
+                                <th>Next Payout</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 30px; color: #888;">No active
+                                    investments found. Start investing to grow your portfolio.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Notification Modal (Reused) -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content" style="border-color: var(--primary-gold);">
+            <span class="close-modal" onclick="closeModal('notificationModal')">&times;</span>
+            <div style="font-size: 3rem; color: var(--primary-gold); margin-bottom: 10px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 id="notifTitle">Notification</h2>
+            <p id="notifMessage" style="color: #bbb; margin-top: 10px;">Message goes here.</p>
+            <button class="btn btn-primary" onclick="closeModal('notificationModal')"
+                style="margin-top: 20px;">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

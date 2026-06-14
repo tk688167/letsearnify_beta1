@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketplace | HybridEstates</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Sidebar (Shared Structure) -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">Let'sEarnify</div>
+            <div class="close-sidebar mobile-only">
+                <i class="fas fa-times"></i>
+            </div>
+        </div>
+
+        <div class="user-mini-profile">
+            <div class="avatar-circle">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-info">
+                <h4>John Doe</h4>
+                <p>Premium Member</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-th-large"></i> Overview</a></li>
+                <li class="active"><a href="marketplace.html"><i class="fas fa-tasks"></i> Marketplace</a></li>
+                <li><a href="investments.html"><i class="fas fa-chart-pie"></i> Investments</a></li>
+
+                <li><a href="referrals.html"><i class="fas fa-users"></i> Referrals</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="index.html" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </aside>
+
+    <!-- Custom Styles for Marketplace Page -->
+    <style>
+        /* Scoped Layout Styles */
+        .market-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        /* Filter Area */
+        .category-scroll {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 35px;
+            overflow-x: auto;
+            padding-bottom: 15px;
+            scrollbar-width: none;
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .cat-pill:hover,
+        .cat-pill.active {
+            background: #fff;
+            color: #000;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Gig Grid */
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        /* Gig Card */
+        .gig-card {
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .gig-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .gig-thumb {
+            height: 180px;
+            background-color: #222;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        /* Smooth zoom effect on hover */
+        .gig-card:hover .gig-thumb {
+            transform: scale(1.05);
+        }
+
+        .gig-body {
+            padding: 18px;
+        }
+
+        .author-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .author-avatar {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #d4af37, #fdf5e6);
+            border-radius: 50%;
+        }
+
+        .author-name {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .gig-title {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .gig-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
+        }
+
+        .rating {
+            font-size: 0.85rem;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .price-tag {
+            font-size: 0.8rem;
+            color: #888;
+            text-align: right;
+        }
+
+        .price-val {
+            display: block;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .market-container {
+                padding: 20px;
+            }
+
+            .marketplace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <main class="main-content" style="margin-left: 0; width: 100%; min-height: 100vh; background: #050505;">
+        <!-- Top Header -->
+        <header class="dashboard-header" style="background: transparent;">
+            <div class="mobile-toggle open-sidebar-btn" style="display: none;">
+                <i class="fas fa-bars"></i>
+            </div>
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i> Back</button>
+            <div class="search-bar"
+                style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-search" style="color: #666;"></i>
+                <input type="text" placeholder="Find services (e.g. Design, SEO)..." style="color: #fff;">
+            </div>
+            <div class="header-actions">
+                <div class="icon-btn notification-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="market-container">
+
+            <div class="section-header reveal reveal-up" style="margin-bottom: 25px;">
+                <h2 style="font-size: 1.8rem; color: #fff; font-family: 'Playfair Display', serif;">Marketplace Gigs
+                </h2>
+                <p style="color: #666;">Discover professional services and gigs.</p>
+            </div>
+
+            <!-- Categories -->
+            <div class="category-scroll reveal reveal-up">
+                <button class="cat-pill active">All Services</button>
+                <button class="cat-pill">Graphics & Design</button>
+                <button class="cat-pill">Digital Marketing</button>
+                <button class="cat-pill">Writing & Translation</button>
+                <button class="cat-pill">Video & Animation</button>
+                <button class="cat-pill">Programming</button>
+            </div>
+
+            <!-- Gigs Grid -->
+            <div class="marketplace-grid">
+
+                <!-- Card 1 -->
+                <div class="gig-card reveal reveal-up">
+                    <div class="gig-thumb"
+                        style="background-image: url('https://images.unsplash.com/photo-1626785774573-4b799312c95d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                    </div>
+                    <div class="gig-body">
+                        <div class="author-row">
+                            <div class="author-avatar"></div>
+                            <span class="author-name">CreativeStudio</span>
+                        </div>
+                        <h4 class="gig-title">I will design a modern minimalist logo for your brand</h4>
+                        <div class="gig-footer">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>5.0</span>
+                                <span style="color: #666;">(128)</span>
+                            </div>
+                            <div class="price-tag">
+                                <span>STARTING AT</span>
+                                <span class="price-val">$50</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="gig-card reveal reveal-up">
+                    <div class="gig-thumb"
+                        style="background-image: url('https://images.unsplash.com/photo-1455390582262-044cdead277a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                    </div>
+                    <div class="gig-body">
+                        <div class="author-row">
+                            <div class="author-avatar" style="background: linear-gradient(45deg, #FF6B6B, #FFE66D);">
+                            </div>
+                            <span class="author-name">SEO_Wizard</span>
+                        </div>
+                        <h4 class="gig-title">I will write SEO optimized articles for your blog</h4>
+                        <div class="gig-footer">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.9</span>
+                                <span style="color: #666;">(85)</span>
+                            </div>
+                            <div class="price-tag">
+                                <span>STARTING AT</span>
+                                <span class="price-val">$30</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="gig-card reveal reveal-up">
+                    <div class="gig-thumb"
+                        style="background-image: url('https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                    </div>
+                    <div class="gig-body">
+                        <div class="author-row">
+                            <div class="author-avatar" style="background: linear-gradient(45deg, #4facfe, #00f2fe);">
+                            </div>
+                            <span class="author-name">SocialBoost</span>
+                        </div>
+                        <h4 class="gig-title">I will manage your Instagram for 30 days growth</h4>
+                        <div class="gig-footer">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>5.0</span>
+                                <span style="color: #666;">(210)</span>
+                            </div>
+                            <div class="price-tag">
+                                <span>STARTING AT</span>
+                                <span class="price-val">$120</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="gig-card reveal reveal-up">
+                    <div class="gig-thumb"
+                        style="background-image: url('https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80');">
+                    </div>
+                    <div class="gig-body">
+                        <div class="author-row">
+                            <div class="author-avatar" style="background: linear-gradient(45deg, #43e97b, #38f9d7);">
+                            </div>
+                            <span class="author-name">DevPro_X</span>
+                        </div>
+                        <h4 class="gig-title">I will build a responsive landing page with React</h4>
+                        <div class="gig-footer">
+                            <div class="rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.8</span>
+                                <span style="color: #666;">(42)</span>
+                            </div>
+                            <div class="price-tag">
+                                <span>STARTING AT</span>
+                                <span class="price-val">$200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Notification Modal (Reused) -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content" style="border-color: var(--primary-gold);">
+            <span class="close-modal" onclick="closeModal('notificationModal')">&times;</span>
+            <div style="font-size: 3rem; color: var(--primary-gold); margin-bottom: 10px;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 id="notifTitle">Notification</h2>
+            <p id="notifMessage">Message</p>
+            <button class="btn btn-primary" onclick="closeModal('notificationModal')">OK</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
