@@ -11,17 +11,18 @@ import { Suspense } from "react";
 import RouteLoader from "./components/RouteLoader";
 import SupportWidget from "./components/layout/SupportWidget";
 import NextAuthProvider from "./components/providers/NextAuthProvider";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
-  display: 'swap',
+  display: "swap",
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  display: 'swap',
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -29,16 +30,28 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   userScalable: true,
-}
+};
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://www.letsearnify.com'),
+  metadataBase: new URL("https://www.letsearnify.com"),
   title: {
     default: "Let'$Earnify (LADS) - Earn Online Rewards & Freelancing",
-    template: "%s | Let'$Earnify (LADS)"
+    template: "%s | Let'$Earnify (LADS)",
   },
-  description: "Join LetsEarnify (LADS) - The trusted platform to earn money online. Complete tasks, offer freelance services, and get paid daily. Sign up for free.",
-  keywords: ["LetsEarnify", "LADS", "earn online rewards", "earn money online", "referral program", "crypto investments", "freelancing", "micro tasks", "trusted payouts", "mudaraba"],
+  description:
+    "Join LetsEarnify (LADS) - The trusted platform to earn money online. Complete tasks, offer freelance services, and get paid daily. Sign up for free.",
+  keywords: [
+    "LetsEarnify",
+    "LADS",
+    "earn online rewards",
+    "earn money online",
+    "referral program",
+    "crypto investments",
+    "freelancing",
+    "micro tasks",
+    "trusted payouts",
+    "mudaraba",
+  ],
   authors: [{ name: "LetsEarnify Team" }],
   creator: "LetsEarnify",
   publisher: "LetsEarnify",
@@ -53,59 +66,63 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   openGraph: {
     title: "Let'$Earnify - Financial Freedom Platform",
-    description: "Your gateway to digital wealth. Tasks, Freelancing, and Ethical Investments in one ecosystem.",
-    url: 'https://www.letsearnify.com',
+    description:
+      "Your gateway to digital wealth. Tasks, Freelancing, and Ethical Investments in one ecosystem.",
+    url: "https://www.letsearnify.com",
     siteName: "Let'$Earnify",
-    locale: 'en_US',
-    type: 'website',
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
     title: "Let'$Earnify - Earn, Invest, Grow",
-    description: "The all-in-one platform for digital earning. Join thousands of users today.",
-    creator: '@LetsEarnify',
+    description:
+      "The all-in-one platform for digital earning. Join thousands of users today.",
+    creator: "@LetsEarnify",
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: "/favicon.ico",
   },
 };
 
 const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
+  "@context": "https://schema.org",
+  "@type": "Organization",
   name: "LetsEarnify",
   alternateName: "L-E-T-S Earnify",
-  url: 'https://www.letsearnify.com',
-  logo: 'https://www.letsearnify.com/logo.jpg',
+  url: "https://www.letsearnify.com",
+  logo: "https://www.letsearnify.com/logo.jpg",
   sameAs: [
-    'https://twitter.com/LetsEarnify',
-    'https://facebook.com/LetsEarnify',
-    'https://instagram.com/LetsEarnify',
-    'https://linkedin.com/company/letsearnify'
+    "https://twitter.com/LetsEarnify",
+    "https://facebook.com/LetsEarnify",
+    "https://instagram.com/LetsEarnify",
+    "https://linkedin.com/company/letsearnify",
   ],
   contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '',
-    contactType: 'customer support',
-    email: 'support@letsearnify.com',
-    availableLanguage: 'English'
+    "@type": "ContactPoint",
+    telephone: "",
+    contactType: "customer support",
+    email: "support@letsearnify.com",
+    availableLanguage: "English",
   },
-  description: "The trusted digital ecosystem for earning online rewards, freelancing, and ethical investments."
-}
+  description:
+    "The trusted digital ecosystem for earning online rewards, freelancing, and ethical investments.",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  return ( 
     <html lang="en" suppressHydrationWarning>
       <head>
         <script
@@ -171,13 +188,11 @@ export default function RootLayout({
                   }
                 }, true);
               })();
-            `
+            `,
           }}
         />
       </head>
-      <body
-        className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
-      >
+      <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}>
         <NextAuthProvider>
           <ThemeProvider
             attribute="class"
@@ -203,6 +218,8 @@ export default function RootLayout({
             <Tracker />
           </ThemeProvider>
         </NextAuthProvider>
+        {/* 2. Component ko yahan add karein */}
+       {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );
