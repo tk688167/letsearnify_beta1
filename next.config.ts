@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
 
     ],
     dangerouslyAllowSVG: false,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   experimental: {
     serverActions: {

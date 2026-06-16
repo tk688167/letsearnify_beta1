@@ -23,19 +23,31 @@ export async function proxy(req: NextRequest) {
   // ─────────────────────────────────────────────────────────────
   const nonce = btoa(crypto.randomUUID())
   
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https://* http://*;
-    font-src 'self' data:;
-    connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self' https://accounts.google.com;
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-  `.replace(/\s{2,}/g, ' ').trim()
+ const cspHeader = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval'
+    https://js.stripe.com
+    https://www.googletagmanager.com
+    https://www.google-analytics.com;
+
+  style-src 'self' 'unsafe-inline';
+
+  img-src 'self' blob: data: https://* http://*;
+
+  font-src 'self' data:;
+
+  connect-src 'self'
+    https://accounts.google.com
+    https://oauth2.googleapis.com
+    https://www.google-analytics.com
+    https://www.googletagmanager.com;
+
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self' https://accounts.google.com;
+  frame-ancestors 'none';
+  upgrade-insecure-requests;
+`.replace(/\s{2,}/g, ' ').trim()
 
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set('x-nonce', nonce)

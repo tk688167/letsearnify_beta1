@@ -218,7 +218,7 @@ export default function RootLayout({
             <Tracker />
           </ThemeProvider>
         </NextAuthProvider>
-        {/* 2. Component ko yahan add karein */}
+  
        {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
