@@ -92,10 +92,10 @@ export default function TermsPageContent() {
               </div>
               <div className="space-y-3 sm:space-y-4 text-[13.5px] sm:text-[15px] text-muted-foreground leading-relaxed">
                  <p>
-                    LetsEarnify operates on a <strong className="text-foreground">Strict Active-User Model</strong>. To maintain the highest quality network and prevent automated bots from draining community pools, a one-time <strong className="text-primary">$1 Activation Fee</strong> is required.
+                   LetsEarnify operates exclusively on an active-user basis. To maintain the integrity and quality of our network and to prevent community pools from being flooded with automatic bots, we have implemented a one-time $1 activation fee.
                  </p>
                  <p>
-                    <strong className="text-foreground">This is NOT an investment.</strong> It is an anti-abuse mechanism acting as a permanent license for your account. We do not provide fixed ROI (Return on Investment) or passive trading yields. Your earnings are strictly a reflection of your active participation, networking, and task engagement on the platform.
+                    This is not an investment opportunity. There is no set ROI or anything resembling passive trade yields. Earnings are based solely upon your individual initiative, networking efforts and activity within the platform when completing tasks, referring others, and engaging with the ecosystem. 
                  </p>
               </div>
            </motion.div>

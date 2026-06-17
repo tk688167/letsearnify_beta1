@@ -17,43 +17,43 @@ export default function FeaturesPageContent() {
 
   const features = [
     {
-      title: "Global Referral Network",
-      description: "Build a massive 15-level deep downline. Earn instant commissions for every single user activated within your network, creating an effortless passive income stream as your team grows globally.",
+      title: "Worldwide Referral System",
+      description: "Build your own 15-level deep referring system. Get paid commissions immediately for every person who signs up using your unique link. Grow your residual income worldwide as your network multiplies with little maintenance work from you.",
       icon: UserGroupIcon,
       accentColor: "text-blue-500",
       bgHover: "hover:border-blue-500/30"
     },
     {
-      title: "Micro-Task Bounties",
-      description: "Complete quick digital tasks like watching videos, app testing, and social media engagements. Earn steady daily payouts with high volume availability.",
+      title: "Micro Task Bounties",
+      description: "Complete small tasks everyday like watching videos, beta testing, and social media activities. They're simple tasks that take little time and are available in high volume. Claim your earnings daily.",
       icon: CheckBadgeIcon,
       accentColor: "text-emerald-500",
       bgHover: "hover:border-emerald-500/30"
     },
     {
-      title: "Mudaraba Profit Pools",
-      description: "Participate in ethical, Islamic finance-inspired profit-sharing pools. Stake your earnings safely and split platform-generated revenue daily. Completely Riba (interest) free.",
+      title: "Mudaraba Earning Pools",
+      description: "Participate in our halal earning pools. Deposit your funds and earn a daily cut of the overall platform earnings. No Riba (interest) involved.",
       icon: BanknotesIcon,
       accentColor: "text-amber-500",
       bgHover: "hover:border-amber-500/30"
     },
     {
-      title: "Spin & Win Rewards",
-      description: "Try your luck daily on our premium reward wheel. Win instant cash bonuses, profile upgrades, and massive multiplier boosts to accelerate your overall platform earnings.",
+      title: "Spin to Win Gifts",
+      description: "Spin our reward wheel once every day to win free cash, account upgrades, and highMultiplier bonuses that can exponentially grow your earnings.",
       icon: SparklesIcon,
       accentColor: "text-fuchsia-500",
       bgHover: "hover:border-fuchsia-500/30"
     },
     {
-      title: "Freelance Marketplace",
-      description: "A built-in marketplace to buy and sell digital services. Hire experts within the community or offer your own skills (graphic design, writing, coding) to a ready pool of buyers.",
+      title: "Freelancing Hub",
+      description: "Sell your services or buy services from others in the community. Need logo design? How about content writing? We have it all. Buy and sell services with anyone else in the community.",
       icon: BriefcaseIcon,
       accentColor: "text-indigo-500",
       bgHover: "hover:border-indigo-500/30"
     },
     {
-      title: "Universal Auto-Wallet",
-      description: "Manage all your income streams automatically. Lightning-fast withdrawals in multiple local and global currencies (EasyPaisa, JazzCash, USDT, Payeer, and more) with minimal fees.",
+      title: "Auto Crypto Wallet",
+      description: "All funds you earn are automatically deposited into our smart wallet. Cashout fast to local accounts such as EasyPaisa and JazzCash, or exchange for international accounts like USDT and Payeer. Low fees. Less nonsense.",
       icon: WalletIcon,
       accentColor: "text-rose-500",
       bgHover: "hover:border-rose-500/30"
@@ -87,7 +87,7 @@ export default function FeaturesPageContent() {
                   Platform Features
                 </h1>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium">
-                  We built Let'sEarnify to be the most comprehensive ecosystem for earning online. Explore the six core pillars designed to generate steady, reliable income.
+                 Let'sEarnify is designed to be an all-in-one solution to earn money online. These are the 6 key features that combine to provide you with sustainable and dependable earnings.
                 </p>
               </div>
             </div>
