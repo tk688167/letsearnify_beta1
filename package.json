@@ -44,7 +44,7 @@
     "use-debounce": "^10.0.6",
     "ws": "^8.19.0",
     "zod": "^4.3.4",
-    "@opennextjs/cloudflare": "latest"
+    "@opennextjs/cloudflare": "1.19.11"
   },
   "overrides": {
     "nodemailer": "^6.9.16"
