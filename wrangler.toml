@@ -1,0 +1,10 @@
+name = "my-nextjs-app" # Yahan apne project ka naam likhein
+main = ".open-next/worker.js"
+compatibility_date = "2026-06-20"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".open-next/assets"
+
+[vars]
+# Agar aapko environment variables yahan bhi define karne hon toh
