@@ -43,7 +43,8 @@
     "tailwind-merge": "^3.4.0",
     "use-debounce": "^10.0.6",
     "ws": "^8.19.0",
-    "zod": "^4.3.4"
+    "zod": "^4.3.4",
+    "@opennextjs/cloudflare": "latest"
   },
   "overrides": {
     "nodemailer": "^6.9.16"

@@ -26,11 +26,6 @@ export default function Footer() {
             <p className="text-sm leading-relaxed text-gray-400">
               The trusted digital ecosystem for earning online rewards, freelancing, and ethical investments. We bridge the gap between effort and financial freedom.
             </p>
-            <div className="flex gap-4 pt-2">
-               {/* Social Icons Placeholder */}
-               <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer"><GlobeAltIcon className="w-4 h-4 text-white"/></div>
-               {/* Add more as needed */}
-            </div>
           </div>
 
           {/* 2. Quick Links */}
@@ -79,18 +74,10 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-          <div>
-            &copy; <span suppressHydrationWarning>{new Date().getFullYear()}</span> LetsEarnify. All rights reserved.
+        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500">
+         &copy; 2025 LetsEarnify. All rights reserved.
           </div>
-          <div className="flex gap-6">
-            <div className="flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-               Systems Operational
-            </div>
-            <span>v2.1.0 Beta</span>
-          </div>
-        </div>
+        
       </div>
     </footer>
   )

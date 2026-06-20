@@ -69,33 +69,12 @@ export default function AboutPageContent() {
         <div className="max-w-5xl mx-auto">
           
           {/* Main Glassmorphism Container Box */}
-          <div className="bg-card/40 backdrop-blur-xl border border-border/80 rounded-[1.5rem] sm:rounded-[2.5rem] shadow-2xl p-6 sm:p-10 md:p-16 relative overflow-hidden">
-            
-            {/* Subtle Back Button inside the box */}
-            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-               <Link 
-                 href="/" 
-                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted rounded-lg transition-colors"
-               >
-                 <ArrowLeftIcon className="w-3.5 h-3.5" />
-                 <span className="hidden sm:inline">Back</span>
-               </Link>
-            </div>
-
+          <div className="bg-card/40   p-6 sm:p-10 md:p-16 relative overflow-hidden">
             {/* Decorative Inner Glow */}
             <div className="absolute top-[-50px] right-[-50px] w-48 h-48 bg-primary/10 rounded-full blur-3xl -z-10"></div>
             
             {/* Header Section */}
             <div className="text-center mb-12 sm:mb-16 relative z-10 px-2 mt-6 sm:mt-0">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-5 shadow-sm"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse relative"></span>
-                Official Guide
-              </motion.div>
-
               <motion.h1 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
