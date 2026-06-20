@@ -337,7 +337,7 @@ export default function SignupForm({ referralCode = "", isModal = false }: Signu
         >
           {loading
             ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            : <span className="flex items-center gap-1.5">Create Account <span className="text-blue-200 font-normal">· $1 Activation</span></span>}
+            : <span className="flex items-center gap-1.5">Create Account </span>}
         </button>
       </form>
 
