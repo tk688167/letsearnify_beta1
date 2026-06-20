@@ -7,7 +7,6 @@ const config: OpenNextConfig = {
       converter: "edge",
       incrementalCache: "dummy",
       tagCache: "dummy",
-      rateLimiter: "dummy",
     },
   },
 };
