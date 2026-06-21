@@ -15,7 +15,7 @@ import {
 
 export default function CookiesPageContent() {
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-background text-foreground font-sans selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#060e25] text-foreground font-sans selection:bg-primary/20 selection:text-primary overflow-x-hidden">
       <LandingHeader />
 
       <main className="flex-1 pt-20 pb-20 sm:pt-24 sm:pb-24 relative overflow-hidden">
@@ -25,24 +25,12 @@ export default function CookiesPageContent() {
           <div className="absolute top-[15%] right-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-fuchsia-500/10 dark:bg-fuchsia-500/10 rounded-full blur-[80px] sm:blur-[120px] mix-blend-normal dark:mix-blend-screen" />
         </div>
 
-        {/* Back Navigation */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10 mb-4 sm:mb-6">
-           <InlineBackButton label="Back to Platform" />
-        </div>
+      
 
         {/* Page Header */}
         <section className="pt-4 pb-10 sm:pt-8 sm:pb-16 px-4 sm:px-6 text-center relative z-10">
            <div className="max-w-4xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-card/60 dark:bg-card/40 backdrop-blur-md border border-border/50 dark:border-white/10 rounded-full mb-5 sm:mb-6 mx-auto shadow-sm"
-              >
-                <DocumentTextIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
-                <span className="text-[10px] sm:text-xs font-bold text-foreground/80 tracking-[0.1em] uppercase">Tracking & Usage</span>
-              </motion.div>
-              
+            
               <motion.h1 
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -62,14 +50,7 @@ export default function CookiesPageContent() {
                  Transparency is key in everything we do. Find out exactly how we use cookies and tracking technologies to power your experience and secure your account.
               </motion.p>
               
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.3 }}
-                className="mt-6 sm:mt-8 inline-block px-4 py-1.5 rounded-lg bg-background/50 dark:bg-card/30 border border-border/50 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest"
-              >
-                 Effective: Jan 1, 2026
-              </motion.div>
+            
            </div>
         </section>
 
@@ -81,7 +62,7 @@ export default function CookiesPageContent() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-6 sm:p-10 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-indigo-500/30 transition-colors"
+              className="bg-slate-50 dark:bg-[#060e28] p-6 sm:p-10 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-sm group hover:border-indigo-500/30 transition-colors"
            >
               <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                  <div className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex-shrink-0">
@@ -106,7 +87,7 @@ export default function CookiesPageContent() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: 0.1 }}
-                 className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-emerald-500/30 transition-colors"
+                 className="bg-slate-50 dark:bg-[#060e28] p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-sm group hover:border-emerald-500/30 transition-colors"
               >
                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -128,7 +109,7 @@ export default function CookiesPageContent() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: 0.2 }}
-                 className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-fuchsia-500/30 transition-colors"
+                 className="bg-slate-50 dark:bg-[#060e28] p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-sm group hover:border-fuchsia-500/30 transition-colors"
               >
                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-fuchsia-500/10 text-fuchsia-500 border border-fuchsia-500/20 flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -150,7 +131,7 @@ export default function CookiesPageContent() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: 0.3 }}
-                 className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-amber-500/30 transition-colors"
+                 className="bg-slate-50 dark:bg-[#060e28] p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-amber-500/30 transition-colors"
               >
                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -172,7 +153,7 @@ export default function CookiesPageContent() {
                  whileInView={{ opacity: 1, y: 0 }}
                  viewport={{ once: true }}
                  transition={{ delay: 0.4 }}
-                 className="bg-card/80 dark:bg-card/40 backdrop-blur-md p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-cyan-500/30 transition-colors"
+                 className="bg-slate-50 dark:bg-[#060e28] p-5 sm:p-8 rounded-[1.25rem] sm:rounded-[2rem] border border-border/60 dark:border-white/5 shadow-lg group hover:border-cyan-500/30 transition-colors"
               >
                  <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div className="p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20 flex-shrink-0 group-hover:scale-110 transition-transform">

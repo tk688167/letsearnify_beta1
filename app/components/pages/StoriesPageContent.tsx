@@ -109,10 +109,7 @@ export default function StoriesPageContent() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-indigo-500/30 blur-[100px] rounded-full mix-blend-screen" />
         </div>
 
-        {/* Back Navigation */}
-        <div className="max-w-7xl mx-auto px-6 relative z-10 mb-8 mt-4">
-           <InlineBackButton />
-        </div>
+     
 
         {/* Hero Section */}
         <section className="px-6 text-center relative z-10 mb-16">

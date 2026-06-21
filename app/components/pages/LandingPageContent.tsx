@@ -66,20 +66,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
             style={{ opacity, scale }}
             className="w-full max-w-7xl mx-auto text-center relative z-10 px-4 sm:px-6"
           >
-            {/* Live badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-card/80 to-card/40 backdrop-blur-md border border-white/10 shadow-[0_0_15px_rgba(34,197,94,0.1)] rounded-full mb-6 mx-auto"
-            >
-              <div className="relative flex h-1.5 w-1.5 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 opacity-60"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-              </div>
-              <span className="text-[8px] sm:text-[9px] font-black text-black dark:text-foreground/80 tracking-[0.15em] uppercase whitespace-nowrap">Platform Live <span className="text-muted-foreground/40 mx-1">|</span> Earning In Progress</span>
-            </motion.div>
-
+           
             {/* Main Headline */}
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
@@ -95,25 +82,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               </span>
             </motion.h1>
 
-             {/* Minimal Activation Badge */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="flex justify-center mb-10"
-            >
-              <div className="relative group cursor-default">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-amber-500/40 to-orange-500/40 blur-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  <div className="relative inline-flex items-center gap-2.5 px-5 py-2 bg-background/50 backdrop-blur-xl border border-amber-500/30 rounded-full shadow-[0_0_20px_rgba(245,158,11,0.1)]">
-                     <div className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-600 text-white font-black text-xs shadow-inner shadow-white/20">
-                        $1
-                     </div>
-                     <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-amber-800 dark:text-amber-200/80">
-                        One-Time Activation Required
-                     </span>
-                  </div>
-              </div>
-            </motion.div>
+         
 
             {/* Sub-headline / Tagline */}
             <motion.p
@@ -142,7 +111,6 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                        Get Started Now
                        <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
-                    <span className="text-[10px] font-black opacity-80 uppercase tracking-widest leading-none">Lifetime Access • Only $1</span>
                  </button>
               </Link>
 
@@ -462,13 +430,13 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.25 }}
                 viewport={{ once: true }}
-                className="p-6 sm:p-8 bg-gradient-to-br from-foreground to-foreground/80 rounded-[2rem] flex flex-col justify-between text-background relative overflow-hidden group cursor-default"
+                className="p-6 sm:p-8 bg-slate-50 dark:bg-[#060e25] border border-border/50 rounded-[2rem] flex flex-col justify-between  relative overflow-hidden group cursor-default"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/20 to-fuchsia-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div className="relative z-10">
                   <div className="text-3xl sm:text-4xl mb-4 sm:mb-6">🚀</div>
                   <h3 className="font-bold text-xl sm:text-2xl mb-2 sm:mb-3 font-serif">Ready to start?</h3>
-                  <p className="text-background/70 text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8">
+                  <p className=" text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8">
                     All 5 streams. One $1 activation. Join the platform today.
                   </p>
                   <Link href="/signup" className="inline-flex items-center justify-center sm:justify-start gap-2 px-5 py-3 w-full sm:w-auto bg-white text-gray-900 rounded-xl font-bold text-sm hover:bg-gray-100 transition-all">
@@ -682,59 +650,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
         ═══════════════════════════════════════════════════════ */}
         <FAQSection />
 
-        {/* ═══════════════════════════════════════════════════════
-            FINAL CTA — POWERFUL CLOSE
-        ═══════════════════════════════════════════════════════ */}
-        <section className="py-20 md:py-32 px-4 sm:px-6 bg-background relative overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] h-[300px] bg-indigo-500/8 rounded-full blur-3xl"></div>
-          </div>
-          <FadeIn>
-            <div className="max-w-3xl mx-auto text-center relative z-10">
-              <div className="inline-flex px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-[10px] sm:text-xs mb-6 sm:mb-8 border border-primary/20 uppercase tracking-wider items-center justify-center mx-auto">
-                Your Journey Starts Here
-              </div>
-              <h2 className="text-[2.25rem] leading-[1.1] sm:text-5xl md:text-7xl font-serif font-black text-foreground mb-4 sm:mb-6 tracking-tight flex flex-col items-center">
-                <span>One Dollar.</span>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600 mt-1 pb-1">
-                  Infinite Opportunity.
-                </span>
-              </h2>
-              <p className="text-sm sm:text-lg md:text-xl text-black dark:text-muted-foreground mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-1 sm:px-0">
-                Financial freedom doesn't need a fortune to start. LetsEarnify was built so that anyone —
-                anywhere in the world — can build real, diversified digital income.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-[320px] sm:max-w-2xl mx-auto mb-10 px-4">
-                <Link
-                  href="/signup"
-                  className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-primary to-emerald-500 group-hover:scale-110 transition-transform duration-500"></div>
-                  <button className="relative w-full h-full flex items-center justify-center gap-2 text-white font-black text-sm sm:text-lg shadow-xl group-hover:-translate-y-0.5 transition-all">
-                    Create Account — Only $1
-                    <ArrowRightIcon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </Link>
-                <Link
-                  href="/login"
-                  className="group relative w-full sm:w-1/2 overflow-hidden rounded-2xl h-16 border border-border/80 hover:border-indigo-500/50 transition-colors"
-                >
-                  <div className="absolute inset-0 bg-secondary/30 backdrop-blur-xl group-hover:bg-indigo-500/5 transition-all"></div>
-                  <button className="relative w-full h-full flex items-center justify-center gap-2 text-foreground font-bold text-sm sm:text-lg group-hover:text-indigo-400 transition-colors">
-                    Sign In to Dashboard
-                  </button>
-                </Link>
-              </div>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-6 text-[11px] sm:text-sm text-muted-foreground font-medium">
-                <span className="flex items-center gap-1.5"><CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" /> No monthly fees</span>
-                <span className="hidden sm:inline text-border/50">•</span>
-                <span className="flex items-center gap-1.5"><CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" /> Cancel anytime</span>
-                <span className="hidden sm:inline text-border/50">•</span>
-                <span className="flex items-center gap-1.5"><CheckCircleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" /> Globally accessible</span>
-              </div>
-            </div>
-          </FadeIn>
-        </section>
+   
 
       </main>
 

@@ -140,3 +140,61 @@ export async function rejectTaskCompletion(completionId: string, remarks?: strin
         return { success: false, error: `Failed: ${error.message?.substring(0, 200) || "Unknown error"}` }
     }
 }
+
+
+export async function approveAllCompletions(completionIds: string[]) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN") return { success: false, error: "Unauthorized" };
+
+    try {
+        const BATCH_SIZE = 50; 
+        const completions = await prisma.taskCompletion.findMany({
+            where: { id: { in: completionIds }, status: "PENDING" },
+            include: { task: true }
+        });
+
+        for (let i = 0; i < completions.length; i += BATCH_SIZE) {
+            const batch = completions.slice(i, i + BATCH_SIZE);
+
+            await prisma.$transaction(async (tx) => {
+                for (const completion of batch) {
+                    const reward = completion.task.reward;
+
+                    // Update Completion
+                    await tx.taskCompletion.update({
+                        where: { id: completion.id },
+                        data: { status: "APPROVED", pointsEarned: reward }
+                    });
+
+                    // Update User Balance
+                    await tx.user.update({
+                        where: { id: completion.userId },
+                        data: {
+                            arnBalance: { increment: reward },
+                            balance: { increment: reward / 10 }
+                        }
+                    });
+
+                    // Transaction Log
+                    await tx.transaction.create({
+                        data: {
+                            userId: completion.userId,
+                            type: "TASK_REWARD",
+                            amount: reward / 10,
+                            status: "COMPLETED",
+                            method: "SYSTEM",
+                            description: `Task Approved: ${completion.task.title}`,
+                            arnMinted: reward
+                        }
+                    });
+                }
+            }, { timeout: 60000 }); 
+        }
+
+        revalidatePath("/admin/tasks/approvals");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Batch Approval Error:", error);
+        return { success: false, error: error.message };
+    }
+}

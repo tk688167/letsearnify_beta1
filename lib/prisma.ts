@@ -68,14 +68,11 @@ function createPrismaClient(): ExtendedPrismaClient {
 
     return new PrismaClient({
       adapter,
-      log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+      log: ['error'], // Static: Query logs band kar diye gaye hain
     }) as any;
   }
 
   // Supabase and other PostgreSQL providers use the generic Postgres adapter.
-  // We initialize the pg.Pool explicitly to set limits, timeouts, and most importantly,
-  // trap asynchronous DNS resolution errors like getaddrinfo EAI_AGAIN to prevent server crashing.
-  
   if (!globalThis.pgPoolSingleton) {
     globalThis.pgPoolSingleton = new Pool({
       connectionString,
@@ -93,7 +90,7 @@ function createPrismaClient(): ExtendedPrismaClient {
 
   return new PrismaClient({
     adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log: ['error'], // Static: Query logs band kar diye gaye hain
   }) as any;
 }
 

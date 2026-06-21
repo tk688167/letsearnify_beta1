@@ -3,6 +3,8 @@
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { BoltIcon } from "@heroicons/react/24/solid";
+import { toast } from "react-hot-toast";
+import { approveAllCompletions } from "@/app/actions/admin/task-approvals";
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -53,7 +55,12 @@ export interface TaskCompletion {
   userName?: string;
   userEmail?: string;
   campaign?: TaskCampaign | null;
-  task?: { title: string; reward: number; isPremium?: boolean; type?: string } | null;
+  task?: {
+    title: string;
+    reward: number;
+    isPremium?: boolean;
+    type?: string;
+  } | null;
 }
 
 type Props = {
@@ -180,7 +187,7 @@ function CompletionCard({
   isProcessing,
   actionStatus,
 }: {
-  completion: any; 
+  completion: any;
   onApprove: () => void;
   onReject: () => void;
   isProcessing: boolean;
@@ -226,10 +233,10 @@ function CompletionCard({
     .toUpperCase();
 
   // Premium Check Logic (Aapke schema ke mutabiq true/false ya string match check karega)
-  const isPremiumTask = 
-    completion?.task?.isPremium || 
-    completion?.campaign?.isPremium || 
-    completion?.task?.type === "PREMIUM" || 
+  const isPremiumTask =
+    completion?.task?.isPremium ||
+    completion?.campaign?.isPremium ||
+    completion?.task?.type === "PREMIUM" ||
     completion?.campaign?.type === "PREMIUM";
 
   return (
@@ -526,32 +533,62 @@ export default function ApprovalsPanel({
     });
   };
 
-  const handleApproveAll = () => {
-    if (!filtered.length) return;
-    if (
-      !confirm(
-        `Are you sure you want to approve all ${filtered.length} pending submissions concurrently?`,
-      )
-    )
-      return;
+ const handleApproveAll = async () => {
+  if (!filtered.length) return;
 
-    startTransition(async () => {
-      filtered.forEach((item) => {
-        markProcessing(item.id, "APPROVING");
-        onApprovalComplete?.(item.id);
-      });
+  // 1. Custom Confirmation Toast
+  toast((t) => (
+    <div className="flex flex-col gap-3 min-w-[280px] p-2">
+      <div className="text-sm font-semibold text-gray-800">Confirm Action</div>
+      <p className="text-xs text-gray-600">
+        Are you sure you want to approve all <strong>{filtered.length}</strong> pending submissions?
+      </p>
+      <div className="flex gap-2 justify-end mt-1">
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            toast.dismiss(t.id);
+            await executeBatchProcess(); // Niche define kiya gaya function
+          }}
+          className="px-3 py-1.5 text-xs font-bold text-white bg-green-600 hover:bg-green-700 rounded-lg transition shadow-sm"
+        >
+          Confirm & Approve
+        </button>
+      </div>
+    </div>
+  ), { duration: 10000 }); // User ko time dein parhne ka
+};
 
-      try {
-        const promises = filtered.map((item) => approveTaskCompletion(item.id));
-        await Promise.all(promises);
-      } catch (error) {
-        console.error("Error batch processing completions:", error);
-      } finally {
-        filtered.forEach((item) => unmarkProcessing(item.id));
-        router.refresh();
-      }
+// 2. Separate logic function for cleanliness
+const executeBatchProcess = async () => {
+  const loadingToast = toast.loading("Processing batch approval...");
+
+  startTransition(() => {
+    filtered.forEach((item) => markProcessing(item.id, "APPROVING"));
+  });
+
+  try {
+    const ids = filtered.map((item) => item.id);
+    const result = await approveAllCompletions(ids);
+
+    if (!result.success) throw new Error(result.error);
+
+    toast.success("All requests approved successfully!", { id: loadingToast });
+    router.refresh();
+  } catch (error) {
+    toast.error(`Failed: ${error instanceof Error ? error.message : "Unknown error"}`, { 
+      id: loadingToast,
+      duration: 5000 
     });
-  };
+  } finally {
+    filtered.forEach((item) => unmarkProcessing(item.id));
+  }
+};
 
   if (!completions || completions.length === 0) {
     return (
@@ -589,7 +626,7 @@ export default function ApprovalsPanel({
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                setCurrentPage(1); 
+                setCurrentPage(1);
               }}
               className="w-full pl-9 pr-4 py-2 sm:py-2.5 rounded-xl bg-white dark:bg-slate-800 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all border border-gray-200/60 dark:border-transparent"
             />
@@ -602,11 +639,11 @@ export default function ApprovalsPanel({
               <button
                 type="button"
                 onClick={handleApproveAll}
-                disabled={isPending}
-                className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-40"
+                disabled={isPending} 
+                className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <CheckBadgeIcon className="w-4 h-4" />
-                Approve All
+                {isPending ? "Processing..." : "Approve All"}
               </button>
             )}
           </div>
