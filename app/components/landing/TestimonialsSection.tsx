@@ -60,20 +60,14 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-16 md:py-24 bg-muted/20 overflow-hidden relative">
-      {/* Background decor */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-indigo-500/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-32 -left-32 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-fuchsia-500/5 rounded-full blur-3xl"></div>
-      </div>
+    <section className="py-13  bg-slate-50 dark:bg-[#060e25] overflow-hidden relative">
+     
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         <div className="text-center mb-12 sm:mb-16">
-          <div className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-[10px] sm:text-xs mb-4 sm:mb-6 border border-amber-500/20 uppercase tracking-wider">
-            Real People. Real Earnings.
-          </div>
+        
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-3 sm:mb-4 tracking-tight">
-            Trusted by Global Leaders
+            Testimonials from Real Users
           </h2>
           <p className="text-black dark:text-muted-foreground max-w-xl mx-auto text-base sm:text-lg leading-relaxed px-2 font-medium">
             Thousands of users across the world are already building consistent
@@ -91,7 +85,7 @@ export default function TestimonialsSection() {
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
               viewport={{ once: true }}
-              className="bg-card rounded-2xl p-6 sm:p-7 border border-border hover:border-indigo-500/30 hover:shadow-2xl transition-all duration-300 flex flex-col relative overflow-hidden group h-full shadow-sm"
+              className="bg-slate-50 dark:bg-[#060e28] rounded-2xl p-6 sm:p-7 border border-border hover:border-indigo-500/30 hover:shadow-2xl transition-all duration-300 flex flex-col relative overflow-hidden group h-full shadow-sm"
             >
               {/* Header: Platform Meta */}
               <div className="flex items-center justify-between mb-5">

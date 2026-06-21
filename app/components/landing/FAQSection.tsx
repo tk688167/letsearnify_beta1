@@ -33,12 +33,9 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-    <section className="py-16 md:py-24 bg-background">
+    <section className="py-15 bg-slate-50 dark:bg-[#060e25]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12 sm:mb-16">
-          <div className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-primary/10 text-primary font-bold text-[10px] sm:text-xs mb-4 sm:mb-6 border border-primary/20 uppercase tracking-wider">
-            Got Questions?
-          </div>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif font-bold text-foreground mb-3 sm:mb-4 tracking-tight">
             Frequently Asked Questions
           </h2>
@@ -66,7 +63,7 @@ function FAQItem({ faq, idx }: { faq: { question: string, answer: string }, idx:
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: idx * 0.05 }}
       viewport={{ once: true }}
-      className={`bg-card rounded-2xl border transition-all duration-300 overflow-hidden ${isOpen ? "border-primary/30 shadow-md shadow-primary/5" : "border-border hover:border-primary/20"}`}
+      className={`bg-slate-50 dark:bg-[#060e28] rounded-2xl border transition-all duration-300 overflow-hidden ${isOpen ? "border-primary/30 shadow-md shadow-primary/5" : "border-border hover:border-primary/20"}`}
     >
       <button
         onClick={() => setIsOpen(!isOpen)}

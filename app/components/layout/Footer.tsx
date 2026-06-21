@@ -14,7 +14,7 @@ import Logo from "@/app/components/ui/Logo"
 
 export default function Footer() {
   return (
-    <footer className=" bg-slate-50 dark:bg-[#060e27] transition-colors  py-12 border-t border-gray-800">
+    <footer className=" bg-slate-50 dark:bg-[#060e27] transition-colors  py-12 border-t border-gray-300 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           
@@ -23,7 +23,7 @@ export default function Footer() {
             <div className="mb-4">
               <Logo  size="md" asLink={false} />
             </div>
-            <p className="text-sm leading-relaxed text-gray-400">
+            <p className="text-sm leading-relaxed ">
               The trusted digital ecosystem for earning online rewards, freelancing, and ethical investments. We bridge the gap between effort and financial freedom.
             </p>
           </div>
@@ -54,14 +54,14 @@ export default function Footer() {
           <div>
             <h3 className="font-bold uppercase tracking-wider text-sm mb-6">Verified & Secure</h3>
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-xl  border border-gray-700">
+              <div className="flex items-center gap-3 p-3 rounded-xl  border border-gray-300 dark:border-gray-700">
                 <ShieldCheckIcon className="w-8 h-8 text-green-400"/>
                 <div>
                   <div className="text-xs font-bold  uppercase">SSL Encrypted</div>
                   <div className="text-[10px] text-gray-500">256-bit Secure Connection</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-xl  border border-gray-700">
+              <div className="flex items-center gap-3 p-3 rounded-xl  border border-gray-300 dark:border-gray-700">
                 <BuildingLibraryIcon className="w-8 h-8 text-blue-400"/>
                 <div>
                   <div className="text-xs font-bold  uppercase">Verified Platform</div>
@@ -74,7 +74,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500">
+        <div className="pt-8 border-t border-gray-300 dark:border-gray-700 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500">
          &copy; 2025 LetsEarnify. All rights reserved.
           </div>
         

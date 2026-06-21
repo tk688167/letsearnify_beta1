@@ -6,7 +6,7 @@ import { ArrowTrendingUpIcon, ShieldCheckIcon, ArrowRightIcon } from "@heroicons
 
 export default function SpecialPoolsSection() {
   return (
-    <section className="py-16 md:py-24 relative overflow-hidden bg-muted/30">
+    <section className="py-16 md:py-24 relative overflow-hidden bg-slate-50 dark:bg-[#060e25]">
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
          <div className="absolute top-1/4 -left-64 w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-[100px]"></div>

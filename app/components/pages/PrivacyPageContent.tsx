@@ -32,10 +32,7 @@ export default function PrivacyPageContent() {
               transition={{ duration: 0.7, delay: 0.1 }}
               className="text-[2rem] leading-[1.1] sm:text-5xl md:text-6xl font-serif font-black text-foreground mb-3 sm:mb-6 tracking-tight"
             >
-              Privacy Is{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-fuchsia-500">
-                Not an Option.
-              </span>
+              Your Privacy, Our Promise
             </motion.h1>
 
             <motion.p
