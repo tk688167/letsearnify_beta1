@@ -70,11 +70,7 @@ export default function LandingHeader() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 bg-slate-50 dark:bg-[#060e28]  w-full z-40 transition-all duration-500 ${
-          scrolled
-            ? "bg-background/80 backdrop-blur-xl border-b border-gray-300 dark:border-gray-700 shadow-2xl shadow-black/5"
-            : "bg-background/30 backdrop-blur-md border-b border-transparent shadow-none"
-        }`}
+        className={`fixed top-0 left-0 bg-slate-50 dark:bg-[#060e28]  w-full z-40 transition-all duration-500 bg-background/80 backdrop-blur-xl border-b border-gray-300 dark:border-gray-800 shadow-2xl shadow-black/5`}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex justify-between items-center relative">
           {/* Mobile Hamburger */}

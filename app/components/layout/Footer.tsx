@@ -14,7 +14,7 @@ import Logo from "@/app/components/ui/Logo"
 
 export default function Footer() {
   return (
-    <footer className=" bg-slate-50 dark:bg-[#060e27] transition-colors  py-12 border-t border-gray-300 dark:border-gray-700">
+    <footer className=" bg-slate-50 dark:bg-[#060e27]  transition-colors  py-12 border-t border-gray-300 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           
@@ -74,7 +74,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-gray-300 dark:border-gray-700 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500">
+        <div className="pt-8 border-t border-gray-300 dark:border-gray-800 flex flex-col md:flex-row justify-center items-center gap-4 text-xs text-gray-500">
          &copy; 2025 LetsEarnify. All rights reserved.
           </div>
         
