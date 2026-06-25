@@ -356,7 +356,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
                     Let
                   </span>
                  <span className="animate-dollar inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">
-  $
+  
 </span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500">
                     Earnify

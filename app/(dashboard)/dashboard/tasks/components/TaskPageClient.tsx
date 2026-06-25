@@ -82,53 +82,54 @@ export default function TaskPageClient({ user, platformTasks, cfxUrl, isUnlocked
         setFeedback(null)
     }
 
-    const handleSubmitProof = async (formData: FormData) => {
-        if (!selectedTask) return
+   const handleSubmitProof = async (formData: FormData) => {
+    if (!selectedTask) return
 
-        startTransition(async () => {
-            try {
-                let proof = ""
-
-                if (proofType === 'image') {
-                    const file = formData.get('file') as File
-                    if (!file || file.size === 0) {
-                        setFeedback({ type: 'error', message: 'Please select an image.' })
-                        return
-                    }
-                    const { uploadProof } = await import("@/app/actions/user/upload")
-                    const uploadRes = await uploadProof(formData)
-                    if (uploadRes?.error || !uploadRes?.path) {
-                         setFeedback({ type: 'error', message: uploadRes?.error || 'Upload failed' })
-                         return
-                    }
-                    proof = uploadRes.path
-                } else {
-                    if (!proofText.trim()) {
-                        setFeedback({ type: 'error', message: 'Please enter proof text/url.' })
-                        return
-                    }
-                    proof = proofText
-                }
-
-                const result = await completeTask(selectedTask.id, proof)
-                
-                if (result.success) {
-                    setTaskStates(prev => ({
-                        ...prev,
-                        [selectedTask.id]: { status: 'PENDING', remarks: null }
-                    }))
-                    setSubmittedTaskId(selectedTask.id)
-                    setFeedback(null)
-                    setProofText("")
-                    if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null) }
-                } else {
-                    setFeedback({ type: 'error', message: result.error || 'Failed to submit' })
-                }
-            } catch (error) {
-                setFeedback({ type: 'error', message: 'Something went wrong' })
+    startTransition(async () => {
+        try {
+            // 🔥 IMPORTANT: File ko formData se nikal lo
+            const file = formData.get('file') as File
+            
+            // Agar file nahi mili to error
+            if (!file || file.size === 0) {
+                setFeedback({ type: 'error', message: 'Please select an image.' })
+                return
             }
-        })
-    }
+
+            // 🔥 NAYA FormData banao (ye zaroori hai)
+            const uploadFormData = new FormData()
+            uploadFormData.append('file', file)
+
+            // Server action call karo
+            const { uploadProof } = await import("@/app/actions/user/upload")
+            const uploadRes = await uploadProof(uploadFormData)
+            
+            if (uploadRes?.error || !uploadRes?.path) {
+                setFeedback({ type: 'error', message: uploadRes?.error || 'Upload failed' })
+                return
+            }
+
+            // Proof path mil gaya, ab task complete karo
+            const result = await completeTask(selectedTask.id, uploadRes.path)
+            
+            if (result.success) {
+                setTaskStates(prev => ({
+                    ...prev,
+                    [selectedTask.id]: { status: 'PENDING', remarks: null }
+                }))
+                setSubmittedTaskId(selectedTask.id)
+                setFeedback(null)
+                setProofText("")
+                if (previewUrl) { URL.revokeObjectURL(previewUrl); setPreviewUrl(null) }
+            } else {
+                setFeedback({ type: 'error', message: result.error || 'Failed to submit' })
+            }
+        } catch (error) {
+            console.error('Submission error:', error)
+            setFeedback({ type: 'error', message: 'Something went wrong' })
+        }
+    })
+}
 
     // Step 1: Open Preview Popup
     const handleTaskClick = (task: Task) => {
