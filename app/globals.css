@@ -335,6 +335,6 @@ body {
 
 .animate-dollar {
   display: inline-block;
-  animation: rotate-dollar 1.5s ease-in-out infinite;
+  animation: rotate-dollar 3.5s ease-in-out infinite;
   transform-style: preserve-3d;
 }

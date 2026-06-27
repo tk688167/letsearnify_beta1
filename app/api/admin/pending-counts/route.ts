@@ -11,7 +11,7 @@ export async function GET() {
 
     const [deposits, withdrawals, merchantDeposits] = await Promise.all([
       prisma.transaction.count({ where: { type: "DEPOSIT", status: "PENDING" } }),
-      prisma.transaction.count({ where: { type: "WITHDRAWAL", status: "PENDING" } }),
+      prisma.merchantTransaction.count({ where: { type: "WITHDRAWAL", status: "PENDING" } }),
       prisma.merchantTransaction.count({ where: { status: "PENDING" } }),
     ])
 

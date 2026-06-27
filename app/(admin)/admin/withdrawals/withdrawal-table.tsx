@@ -39,8 +39,8 @@ interface WithdrawalRequest {
   rate?: number;
   accountNo?: string;
   accountName?: string;
-  detectedMethod?: string; // New field for detected merchant method
-  rawMethod?: string; // Raw method from DB
+  detectedMethod?: string;
+  rawMethod?: string;
 }
 
 interface NotificationMessage {
@@ -50,6 +50,7 @@ interface NotificationMessage {
 
 type TabType = "TRC20" | "BINANCE" | "MERCHANT";
 type StatusFilterType = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+type DateFilterType = "ALL" | "TODAY" | "WEEK" | "MONTH";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -317,6 +318,9 @@ export default function WithdrawalTable({
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("ALL");
+  
+  // ─── ADDED: Date filter state ────────────────────────────────────────────────
+  const [dateFilter, setDateFilter] = useState<DateFilterType>("ALL");
 
   useEffect(() => {
     setIsMounted(true);
@@ -346,7 +350,7 @@ export default function WithdrawalTable({
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, activeTab, requests.length]);
+  }, [searchQuery, statusFilter, activeTab, dateFilter, requests.length]); // ─── ADDED: dateFilter
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -427,6 +431,28 @@ export default function WithdrawalTable({
       });
     }
 
+    // ─── ADDED: Date filter logic ─────────────────────────────────────────────
+    if (dateFilter !== "ALL") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      filtered = filtered.filter((req) => {
+        const createdAt = new Date(req.createdAt);
+        if (dateFilter === "TODAY") {
+          return createdAt >= today;
+        } else if (dateFilter === "WEEK") {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(today.getDate() - 7);
+          return createdAt >= weekAgo;
+        } else if (dateFilter === "MONTH") {
+          const monthAgo = new Date(today);
+          monthAgo.setMonth(today.getMonth() - 1);
+          return createdAt >= monthAgo;
+        }
+        return true;
+      });
+    }
+
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -449,7 +475,7 @@ export default function WithdrawalTable({
     }
 
     return filtered;
-  }, [requests, activeTab, statusFilter, searchQuery]);
+  }, [requests, activeTab, statusFilter, searchQuery, dateFilter]); // ─── ADDED: dateFilter
 
   // ─── Pagination ────────────────────────────────────────────────────────────
 
@@ -496,22 +522,17 @@ export default function WithdrawalTable({
       if (method === "BINANCE") return "Binance";
       return method || "Crypto";
     } else {
-      // For MERCHANT - use detected method from server
       if (req.detectedMethod) {
-        return req.detectedMethod; // This will be "EasyPaisa" or "JazzCash" only
+        return req.detectedMethod;
       }
-
-      // Fallback detection
       const accountNo = req.accountNo || "";
       if (accountNo.startsWith("03")) {
-        // Try to detect from raw method or payment method name
         if (req.rawMethod) {
           if (req.rawMethod.toLowerCase().includes("easypaisa"))
             return "EasyPaisa";
           if (req.rawMethod.toLowerCase().includes("jazzcash"))
             return "JazzCash";
         }
-        // Default to EasyPaisa if no specific info
         return "EasyPaisa";
       }
       return "Local Agent";
@@ -524,7 +545,7 @@ export default function WithdrawalTable({
     <div className="min-h-screen dark:bg-[#020618] text-gray-900 dark:text-white font-sans transition-colors duration-300">
       {/* Toast Notification */}
       {message && (
-        <div className="fixed bottom-5 right-5 z-[100] animate-slide-up px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-black tracking-wide backdrop-blur-md border">
+        <div className="fixed top-5 right-5 z-[100] animate-slide-up px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-black tracking-wide backdrop-blur-md ">
           <div
             className={`${
               message.type === "success"
@@ -630,7 +651,7 @@ export default function WithdrawalTable({
         </div>
 
         {/* ─── Search + Filter Bar ───────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-3 items-center justify-between bg-white dark:bg-[#0E172B] p-4 rounded-xl border border-gray-200 dark:border-slate-800/70 shadow-sm mb-5">
+        <div className="flex flex-wrap gap-3 items-center bg-white dark:bg-[#0E172B] p-4 rounded-xl border border-gray-200 dark:border-slate-800/70 shadow-sm mb-5">
           <div className="relative flex-1 max-w-sm">
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
             <input
@@ -641,7 +662,7 @@ export default function WithdrawalTable({
               className="bg-gray-50 dark:bg-[#0B1329] border border-gray-200 dark:border-slate-800/70 rounded-xl pl-9 pr-3 py-2 text-xs w-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 transition-colors"
             />
           </div>
-          <div className="flex gap-1 bg-gray-100 dark:bg-[#0B1329] p-1 rounded-xl border border-gray-200 dark:border-slate-800/70">
+          <div className="flex gap-1  w-full sm:w-auto bg-gray-100 dark:bg-[#0B1329] p-1 rounded-xl border border-gray-200 dark:border-slate-800/70">
             {(["ALL", "PENDING", "APPROVED", "REJECTED"] as const).map(
               (filter) => (
                 <button
@@ -658,6 +679,31 @@ export default function WithdrawalTable({
               ),
             )}
           </div>
+
+          {/* ─── ADDED: Date Filter Dropdown ────────────────────────────────── */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto ml-auto">
+  {/* <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Date:</span> */}
+  <select
+    value={dateFilter}
+    onChange={(e) => setDateFilter(e.target.value as DateFilterType)}
+    className="px-3 py-2 sm:py-1.5 text-sm sm:text-xs bg-white dark:bg-[#0B1329] border border-gray-200 dark:border-slate-700/60 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-gray-800 dark:text-white w-full sm:w-40 md:w-44 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%236b7280%22%20d%3D%22M6%208L1%203h10z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_12px_center] bg-no-repeat pr-8"
+  >
+    <option value="ALL">All Time</option>
+    <option value="TODAY">Today</option>
+    <option value="WEEK">Last 7 Days</option>
+    <option value="MONTH">Last 30 Days</option>
+  </select>
+</div>
+
+          {/* ─── ADDED: Clear Date Filter Button ────────────────────────────── */}
+          {dateFilter !== "ALL" && (
+            <button
+              onClick={() => setDateFilter("ALL")}
+              className="text-red-500 dark:text-red-400 text-[10px] font-black hover:bg-red-50 dark:hover:bg-red-500/10 px-2 py-1 rounded-lg transition-all"
+            >
+              Clear ×
+            </button>
+          )}
         </div>
 
         {/* ─── Result Count ───────────────────────────────────────────────────── */}
@@ -693,7 +739,6 @@ export default function WithdrawalTable({
               const accountNumber = req.accountNo || "N/A";
               const routeDisplayName = getRouteDisplayName(req);
 
-              // Check if it's a local mobile wallet (EasyPaisa or JazzCash)
               const isLocalMobile =
                 routeDisplayName === "EasyPaisa" ||
                 routeDisplayName === "JazzCash";

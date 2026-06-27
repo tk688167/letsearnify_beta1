@@ -988,7 +988,6 @@ function WalletContent({ user, transactions, platformWallets, merchantSettings }
   {/* Primary Balance Card - Modernized */}
   <div className="w-full bg-slate-900 rounded-[1rem] p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center border border-white/10">
     <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-blue-500/20 rounded-full blur-[100px]" />
-    
     <div className="relative z-10 w-full flex flex-col items-center">
       <div className="flex items-center gap-2 mb-4 bg-white/5 px-3 py-1 rounded-full backdrop-blur-md">
         <BanknotesIcon className="w-4 h-4 text-blue-400" />
