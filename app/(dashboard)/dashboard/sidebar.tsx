@@ -51,9 +51,9 @@ export async function Sidebar({ session }: { session: any }) {
            <ThemeToggle />
         </div>
       </div>
-      <div className="px-8 -mt-2 mb-4">
+      {/* <div className="px-8 -mt-2 mb-4">
         <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Beta Release</p>
-      </div>
+      </div> */}
       
       <SidebarNav isActiveMember={isActiveMember} session={session} />
 

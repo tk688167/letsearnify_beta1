@@ -338,3 +338,13 @@ body {
   animation: rotate-dollar 3.5s ease-in-out infinite;
   transform-style: preserve-3d;
 }
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

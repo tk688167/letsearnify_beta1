@@ -90,7 +90,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
   }
 
   return (
-    <div className="p-5 max-w-7xl mx-auto">
+    <div className="p-3 sm:p-5 max-w-7xl mx-auto">
 
        <WalletClient 
           user={user} 

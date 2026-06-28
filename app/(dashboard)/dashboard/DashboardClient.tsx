@@ -21,7 +21,12 @@ import {
   SparklesIcon,
   WalletIcon,
   ClockIcon,
-  TrophyIcon
+  TrophyIcon,
+  GiftIcon,
+  RocketLaunchIcon,
+  ChartPieIcon,
+  UsersIcon,
+  CurrencyDollarIcon
 } from "@heroicons/react/24/outline"
 import { formatUserId, cn, calculateTierProgress } from "@/lib/utils"
 import { useCurrency } from "@/app/components/providers/CurrencyProvider"
@@ -33,7 +38,6 @@ const FEATURE_FLAGS = {
     PLAY_EARN: false
 }
 
-// Feature info for the unlock modal
 const FEATURE_INFO: Record<string, { title: string, description: string, benefits: string[], redirectTo: string }> = {
     WITHDRAW: {
         title: "This is locked. All these features are currently locked.",
@@ -73,7 +77,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   const router = useRouter();
   const { formatCurrency, userCurrency } = useCurrency();
 
-  // Unlock Modal State
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [unlockFeature, setUnlockFeature] = useState<string | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
@@ -97,7 +100,6 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
           setBalance((prev: number) => prev - 1.0);
           setShowUnlockModal(false);
           
-          // Redirect to the feature page after unlock
           if (unlockFeature && FEATURE_INFO[unlockFeature]) {
               const redirectTo = unlockFeature === "WITHDRAW" ? "/dashboard/wallet?tab=withdraw" : FEATURE_INFO[unlockFeature].redirectTo;
               router.push(redirectTo);
@@ -110,27 +112,16 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   };
 
   const getFeatureStatus = (featureKey: "TASKS" | "PLAY_EARN" | "MARKETPLACE" | "MUDARABA" | "POOLS" | "WITHDRAW") => {
-      // Tasks are always open for everyone (standard tasks)
       if (featureKey === "TASKS") return "LIVE";
-      
-      // Initially, all premium features are LOCKED
       if (!isUnlocked) return "LOCKED";
-      
-      // After unlock ($1 activation):
-      // Marketplace, Mudaraba, CBSP, and Royalty (POOLS) show Development Mode
       if (featureKey === "MARKETPLACE") return "DEV";
       if (featureKey === "MUDARABA") return "DEV";
       if (featureKey === "POOLS") return "DEV";
-      
-      // Withdraw and other features become LIVE
       if (featureKey === "WITHDRAW") return "LIVE";
-      
       if (featureKey === "PLAY_EARN") return FEATURE_FLAGS.PLAY_EARN ? "LIVE" : "DEV";
-      
       return "LIVE";
   }
 
-  // Get modal info based on selected feature
   const modalInfo = unlockFeature ? FEATURE_INFO[unlockFeature] : null;
 
   const { progress, nextTier } = calculateTierProgress(
@@ -152,44 +143,38 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   const tierColor = TIER_COLORS[nextTier] || "from-indigo-500 to-purple-500";
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-4 md:space-y-10 pb-24">
+    <div className="p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10 pb-24">
       
-      {/* ═══ DASHBOARD HERO HEADER ═══ */}
+      {/* ═══ WELCOME CARD ═══ */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-2xl text-white"
-        style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #0f172a 100%)" }}
+        className="relative overflow-hidden rounded-2xl sm:rounded-3xl text-white bg-gradient-to-br from-slate-900 via-indigo-950 to-blue-950 shadow-2xl shadow-indigo-950/40 border border-white/5 flex flex-col items-center justify-center text-center p-5 sm:p-6 md:p-8"
       >
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="absolute inset-0 opacity-[0.03]"
+        <div className="absolute top-0 right-0 w-64 sm:w-72 h-64 sm:h-72 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 sm:w-72 h-64 sm:h-72 bg-purple-400/20 rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
 
-        <div className="relative z-10 px-5 sm:px-10 py-4 sm:py-10 text-center">
-
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[9px] sm:text-xs font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-2 sm:mb-4">
+        <div className="relative z-10 w-full flex flex-col items-center">
+          {/* Welcome Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/8 border border-white/10 text-[8px] sm:text-[10px] font-bold uppercase tracking-[0.18em] text-blue-300/80 mb-3 sm:mb-4">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Dashboard · Active
+            Welcome back
           </div>
 
-          <p className="text-white/40 text-xs sm:text-sm font-semibold tracking-widest uppercase mb-1 sm:mb-2">
-            Welcome back
-          </p>
-
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-2 sm:mb-5">
+          {/* User Name */}
+          <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-2">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-indigo-200 to-blue-300">
               {user?.name || "Partner"}
             </span>
           </h1>
 
-          <div className="w-12 h-px bg-white/10 mx-auto mb-3 sm:mb-4" />
-
-          <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          {/* Tier & Status Badges */}
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-3 sm:mb-4">
             <div className={cn(
-              "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold border",
+              "inline-flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md text-[8px] sm:text-[9px] font-semibold border",
               user?.tier === 'DIAMOND' ? 'bg-blue-500/15 border-blue-400/25 text-blue-300' :
               user?.tier === 'PLATINUM' ? 'bg-slate-400/15 border-slate-300/25 text-slate-300' :
               user?.tier === 'GOLD' ? 'bg-amber-500/15 border-amber-400/25 text-amber-300' :
@@ -206,555 +191,616 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
             </div>
             
             {isUnlocked ? (
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-500/12 border border-emerald-400/20 text-emerald-300">
-                  <ShieldCheckIcon className="w-2.5 h-2.5" />
-                  Unlocked
-                </div>
+              <div className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md text-[8px] sm:text-[9px] font-semibold bg-emerald-500/12 border border-emerald-400/20 text-emerald-300">
+                <ShieldCheckIcon className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
+                Unlocked
+              </div>
             ) : (
-                <button 
-                  onClick={() => openUnlockModal()}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-semibold bg-amber-500/12 border border-amber-400/20 text-amber-300 hover:bg-amber-500/20 transition-colors"
-                >
-                  <LockClosedIcon className="w-2.5 h-2.5" />
-                  Activate for $1
-                </button>
+              <button 
+                onClick={() => openUnlockModal()}
+                className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md text-[8px] sm:text-[9px] font-semibold bg-amber-500/12 border border-amber-400/20 text-amber-300 hover:bg-amber-500/20 transition-all duration-200"
+              >
+                <LockClosedIcon className="w-2.5 sm:w-3 h-2.5 sm:h-3" />
+                Activate
+              </button>
             )}
-            
+          </div>
+
+          {/* Divider */}
+          <div className="w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-3 sm:mb-4" />
+
+          {/* ═══ TOTAL BALANCE SECTION ═══ */}
+          <div className="w-full">
+            <p className="text-white/40 text-[8px] sm:text-[10px] font-semibold tracking-[0.2em] uppercase mb-2 sm:mb-3">
+              Total Available Balance
+            </p>
+
+            <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-white mb-2 sm:mb-3">
+              {formatCurrency(user.balance || 0)}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-6 text-xs sm:text-sm font-medium">
+              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
+                <span className="text-white/40 text-[8px] sm:text-[10px]">USD</span>
+                <span className="text-white font-bold text-xs sm:text-sm">
+                  ${(user.balance || 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
+                <span className="text-white/40 text-[8px] sm:text-[10px]">ARN</span>
+                <span className="text-indigo-300 font-bold text-xs sm:text-sm">
+                  {(user.arnBalance || 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-3 sm:my-4" />
+
+          {/* Account Status */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+            <span
+              className={cn(
+                "px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-wider border backdrop-blur-sm transition-colors",
+                user.isActiveMember
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              )}
+            >
+              ● {user.isActiveMember ? "Active" : "Locked"}
+            </span>
+
+            {(user.pendingMerchantDeposits || 0) > 0 && (
+              <span className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[8px] sm:text-[10px] font-bold uppercase tracking-wider border bg-amber-500/10 text-amber-400 border-amber-500/20 animate-pulse backdrop-blur-sm">
+                <ClockIcon className="w-2.5 sm:w-3.5 h-2.5 sm:h-3.5 text-amber-400" />
+                {formatCurrency(user.pendingMerchantDeposits)} Pending
+              </span>
+            )}
           </div>
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/8 to-transparent" />
       </motion.div>
 
-
-      {/* 2. STATS OVERVIEW GRID (Desktop) */}
-      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub={`Available ${userCurrency}`} icon={WalletIcon} color="emerald" delay={0.1} />
-          <StatCard title="Total ARN" value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} icon={StarIcon} color="blue" delay={0.2} />
-          <StatCard title="Task Earnings" value={formatCurrency(user?.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
-          <StatCard title="Referral Earnings" value={formatCurrency(user?.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
-          <StatCard title="Total Deposited" value={formatCurrency(user?.totalDeposit || 0)} sub="Lifetime Investment" icon={ArrowDownTrayIcon} color="amber" delay={0.5} />
-          <StatCard title="Pending Deposit" value={formatCurrency(user?.pendingDeposit || 0)} sub="Processing" icon={ClockIcon} color="blue" delay={0.6} />
-          <StatCard title="Total Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} sub="Successful Payouts" icon={CheckIcon} color="emerald" delay={0.7} />
-          <StatCard title="Pending Withdrawal" value={formatCurrency(user?.pendingWithdrawal || 0)} sub="Processing" icon={ArrowUpTrayIcon} color="orange" delay={0.8} />
+      {/* ═══ STATS OVERVIEW (Desktop) ═══ */}
+      <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <StatCard title="Wallet Balance" value={formatCurrency(balance)} sub={`Available ${userCurrency}`} icon={WalletIcon} color="emerald" delay={0.1} />
+        <StatCard title="Total ARN" value={(balance * 10).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} icon={StarIcon} color="blue" delay={0.2} />
+        <StatCard title="Task Earnings" value={formatCurrency(user?.taskEarnings || 0)} sub="From Activity" icon={BriefcaseIcon} color="indigo" delay={0.3} />
+        <StatCard title="Referral Earnings" value={formatCurrency(user?.referralEarnings || 0)} sub="Team Commissions" icon={UserGroupIcon} color="purple" delay={0.4} />
+        <StatCard title="Total Deposited" value={formatCurrency(user?.totalDeposit || 0)} sub="Lifetime Investment" icon={ArrowDownTrayIcon} color="amber" delay={0.5} />
+        <StatCard title="Pending Deposit" value={formatCurrency(user?.pendingDeposit || 0)} sub="Processing" icon={ClockIcon} color="blue" delay={0.6} />
+        <StatCard title="Total Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} sub="Successful Payouts" icon={CheckIcon} color="emerald" delay={0.7} />
+        <StatCard title="Pending Withdrawal" value={formatCurrency(user?.pendingWithdrawal || 0)} sub="Processing" icon={ArrowUpTrayIcon} color="orange" delay={0.8} />
       </div>
 
-      {/* 2b. STATS OVERVIEW (Mobile) */}
+      {/* ═══ STATS OVERVIEW (Mobile) ═══ */}
       <div className="md:hidden space-y-3">
-          <motion.div 
-             initial={{ opacity: 0, y: 10 }}
-             animate={{ opacity: 1, y: 0 }}
-             className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-3 sm:p-4 text-white shadow-lg shadow-blue-500/20"
-          >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none"></div>
-              <div className="relative z-10 flex flex-col items-center text-center py-1 sm:py-2">
-                  <div className="p-1.5 sm:p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 mb-2 sm:mb-4 shadow-inner">
-                      <SparklesIcon className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300 animate-pulse"/>
-                  </div>
-                  
-                  <h3 className="text-blue-200 text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mb-1.5 sm:mb-3">
-                      <StarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300"/> Total ARN Balance
-                  </h3>
-                  
-                  <div className="text-3xl sm:text-5xl font-black font-serif tracking-tighter leading-none mb-3 sm:mb-4 text-white drop-shadow-sm">
-                      {((user?.balance || 0) * 10).toFixed(2)} <span className="text-base sm:text-lg text-blue-200/80 font-sans font-black tracking-normal">ARN</span>
-                  </div>
-                  
-                  <div className="inline-flex flex-col items-center gap-0.5 sm:gap-1 px-6 sm:px-8 py-2 sm:py-3.5 bg-white/10 rounded-[1rem] border border-white/20 backdrop-blur-xl shadow-2xl relative group overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                      <span className="text-[9px] sm:text-[10px] font-black text-blue-200 uppercase tracking-widest opacity-60">Estimated {userCurrency} Value</span>
-                      <span className="text-xl sm:text-3xl font-black text-white tracking-tight">≈ {formatCurrency(user?.balance || 0)}</span>
-                  </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-900 dark:to-indigo-900 p-3 sm:p-4 text-white shadow-lg shadow-blue-500/20"
+        >
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl translate-x-10 -translate-y-10 pointer-events-none" />
+          <div className="relative z-10 flex flex-col items-center text-center py-1 sm:py-2">
+            <div className="p-1.5 sm:p-2 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 mb-2 sm:mb-4 shadow-inner">
+              <SparklesIcon className="w-4 sm:w-6 h-4 sm:h-6 text-yellow-300 animate-pulse"/>
+            </div>
+            
+            <h3 className="text-blue-200 text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-2 mb-1.5 sm:mb-3">
+              <StarIcon className="w-3 sm:w-4 h-3 sm:h-4 text-blue-300"/> Total ARN Balance
+            </h3>
+            
+            <div className="text-2xl sm:text-4xl md:text-5xl font-black font-serif tracking-tighter leading-none mb-2 sm:mb-4 text-white drop-shadow-sm">
+              {((user?.balance || 0) * 10).toFixed(2)} <span className="text-base sm:text-lg text-blue-200/80 font-sans font-black tracking-normal">ARN</span>
+            </div>
+            
+            <div className="inline-flex flex-col items-center gap-0.5 sm:gap-1 px-4 sm:px-6 md:px-8 py-1.5 sm:py-2 md:py-3.5 bg-white/10 rounded-xl sm:rounded-[1rem] border border-white/20 backdrop-blur-xl shadow-2xl relative group overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span className="text-[7px] sm:text-[9px] md:text-[10px] font-black text-blue-200 uppercase tracking-widest opacity-60">Estimated Value</span>
+              <span className="text-base sm:text-xl md:text-3xl font-black text-white tracking-tight">≈ {formatCurrency(user?.balance || 0)}</span>
+            </div>
+          </div>
+        </motion.div>
+
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+          <MobileStatCard title="Balance" value={formatCurrency(user?.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
+          <MobileStatCard title="Deposited" value={formatCurrency(user?.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
+          <MobileStatCard title="Tasks" value={formatCurrency(user?.taskEarnings || 0)} icon={BriefcaseIcon} color="indigo" delay={0.3} />
+          <MobileStatCard title="Referrals" value={formatCurrency(user?.referralEarnings || 0)} icon={UserGroupIcon} color="purple" delay={0.4} />
+          <MobileStatCard title="Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} icon={CheckIcon} color="emerald" delay={0.5} />
+          <MobileStatCard title="Pending" value={formatCurrency(user?.pendingWithdrawal || 0)} icon={ArrowUpTrayIcon} color="orange" delay={0.6} />
+          <MobileStatCard title="Active" value={`${user?.activeMembers || 0}`} icon={UsersIcon} color="blue" delay={0.7} />
+          <MobileStatCard title="Tier" value={`${(user?.tier || 'N').charAt(0)}`} icon={TrophyIcon} color="amber" delay={0.8} />
+        </div>
+      </div>
+
+      {/* ═══ ACTION HUB ═══ */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+        <ActionTile 
+          href="/dashboard/wallet?tab=deposit" 
+          icon={ArrowDownTrayIcon} 
+          label="Add Funds" 
+          sub="Deposit" 
+          color="blue" 
+          delay={0.1} 
+        />
+        <ActionTile 
+          href="/dashboard/wallet?tab=withdraw" 
+          icon={ArrowUpTrayIcon} 
+          label="Withdraw" 
+          sub="Cash Out" 
+          color="purple" 
+          delay={0.2}
+          status={getFeatureStatus("WITHDRAW")}
+          onLockedClick={() => openUnlockModal("WITHDRAW")}
+        />
+        <ActionTile 
+          href="/dashboard/tasks" 
+          icon={BriefcaseIcon} 
+          label="Tasks" 
+          sub="Earn" 
+          color="emerald" 
+          delay={0.3}
+        />
+        <ActionTile 
+          href="/dashboard/marketplace" 
+          icon={ShoppingBagIcon} 
+          label="Marketplace" 
+          sub="Buy & Sell" 
+          color="orange" 
+          delay={0.4}
+          status={getFeatureStatus("MARKETPLACE")}
+          onLockedClick={() => openUnlockModal("MARKETPLACE")}
+        />
+        <ActionTile 
+          href="/dashboard/mudaraba" 
+          icon={ChartBarIcon} 
+          label="Mudaraba" 
+          sub="Invest" 
+          color="indigo" 
+          delay={0.5}
+          status={getFeatureStatus("MUDARABA")}
+          onLockedClick={() => openUnlockModal("MUDARABA")}
+        />
+        <ActionTile 
+          href="/dashboard/games" 
+          icon={SparklesIcon} 
+          label="Play & Earn" 
+          sub="Games" 
+          color="fuchsia" 
+          delay={0.6}
+          status={getFeatureStatus("PLAY_EARN")}
+          onLockedClick={() => openUnlockModal("PLAY_EARN")}
+        />
+      </div>
+
+      {/* ═══ DAILY EARNING WIDGET ═══ */}
+      <div className="pt-4 sm:pt-6">
+        <DailyEarningWidget isCompact={true} />
+      </div>
+
+      {/* ═══ GROWTH & IDENTITY ═══ */}
+      <div className="pt-4 sm:pt-6 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <ReferralCard user={user} />
+        <IdentityCard user={user} />
+      </div>
+
+      {/* ═══ COMMUNITY POOLS ═══ */}
+      <div className="pt-4 sm:pt-6 relative">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground font-serif">Community Pools</h2>
+          <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[8px] sm:text-[10px] font-bold rounded-full">Active</span>
+        </div>
+        <div className="relative">
+          <CompanyPools 
+            pools={pools} 
+            status={getFeatureStatus("POOLS")} 
+            userTier={user?.tier || 'NEWBIE'} 
+            onLockedClick={() => openUnlockModal("POOLS")}
+          />
+        </div>
+      </div>
+
+      {/* ═══ RANK PROGRESSION ═══ */}
+      <div className="pt-4 sm:pt-6">
+        <div className="relative overflow-hidden group bg-card border-none shadow-xl shadow-black/[0.03] dark:shadow-white/[0.02] rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 md:p-8 lg:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8">
+          <div className="absolute -right-16 -top-16 text-amber-500/[0.03] rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+            <TrophyIcon className="w-48 sm:w-64 h-48 sm:h-64" />
+          </div>
+          
+          <div className="flex-1 relative z-10 w-full">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-500/10 rounded-full border border-amber-100 dark:border-amber-500/20 text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-500 mb-3 sm:mb-4">
+              <RocketLaunchIcon className="w-3 h-3" /> Performance Analytics
+            </div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black font-serif mb-2 text-foreground tracking-tight">Rank Progression</h2>
+            <p className="text-muted-foreground text-xs sm:text-sm max-w-sm leading-relaxed">
+              Track your growth as you approach the <span className="text-foreground font-bold">{nextTier}</span> milestone.
+            </p>
+          </div>
+          
+          <div className="flex-1 w-full max-w-md relative z-10 bg-background/40 backdrop-blur-md border border-white/10 dark:border-white/5 p-4 sm:p-5 md:p-6 rounded-2xl sm:rounded-[2rem] shadow-2xl shadow-black/5">
+            <div className="flex justify-between items-baseline mb-2 sm:mb-3">
+              <div className="flex flex-col">
+                <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">Progress</p>
+                <p className="text-[10px] sm:text-xs font-bold text-amber-500">To {nextTier}</p>
               </div>
-          </motion.div>
-
-          <div className="grid grid-cols-2 gap-2">
-              <MobileStatCard title="Wallet Balance" value={formatCurrency(user?.balance || 0)} icon={WalletIcon} color="emerald" delay={0.1} />
-              <MobileStatCard title="Total Deposited" value={formatCurrency(user?.totalDeposit || 0)} icon={ArrowDownTrayIcon} color="amber" delay={0.2} />
-              <MobileStatCard title="Task Earnings" value={formatCurrency(user?.taskEarnings || 0)} icon={BriefcaseIcon} color="indigo" delay={0.3} />
-              <MobileStatCard title="Ref. Earnings" value={formatCurrency(user?.referralEarnings || 0)} icon={UserGroupIcon} color="purple" delay={0.4} />
-              <MobileStatCard title="Total Withdrawn" value={formatCurrency(user?.totalWithdrawal || 0)} icon={CheckIcon} color="emerald" delay={0.5} />
-              <MobileStatCard title="Pending Withdraw" value={formatCurrency(user?.pendingWithdrawal || 0)} icon={ArrowUpTrayIcon} color="orange" delay={0.6} />
-              <MobileStatCard title="Pending Deposit" value={formatCurrency(user?.pendingDeposit || 0)} icon={ClockIcon} color="blue" delay={0.7} />
-              <MobileStatCard title="Team / Tier" value={`${user?.activeMembers || 0} / ${(user?.tier || 'N').charAt(0)}`} icon={UserGroupIcon} color="amber" delay={0.8} />
-          </div>
-      </div>
-
-      {/* 3. ACTION HUB */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
-          <ActionTile 
-              href="/dashboard/wallet?tab=deposit" 
-              icon={ArrowDownTrayIcon} 
-              label="Add Funds" 
-              sub="Deposit Crypto" 
-              color="blue" 
-              delay={0.1} 
-          />
-          <ActionTile 
-              href="/dashboard/wallet?tab=withdraw" 
-              icon={ArrowUpTrayIcon} 
-              label="Withdraw" 
-              sub="Cash Out" 
-              color="purple" 
-              delay={0.2}
-              status={getFeatureStatus("WITHDRAW")}
-              onLockedClick={() => openUnlockModal("WITHDRAW")}
-          />
-          <ActionTile 
-              href="/dashboard/tasks" 
-              icon={BriefcaseIcon} 
-              label="Task Center" 
-              sub="Earn Cash" 
-              color="emerald" 
-              delay={0.3}
-          />
-          <ActionTile 
-              href="/dashboard/marketplace" 
-              icon={ShoppingBagIcon} 
-              label="Marketplace" 
-              sub="Buy & Sell" 
-              color="orange" 
-              delay={0.4}
-              status={getFeatureStatus("MARKETPLACE")}
-              onLockedClick={() => openUnlockModal("MARKETPLACE")}
-          />
-          <ActionTile 
-              href="/dashboard/mudaraba" 
-              icon={ChartBarIcon} 
-              label="Mudaraba" 
-              sub="Investment" 
-              color="indigo" 
-              delay={0.5}
-              status={getFeatureStatus("MUDARABA")}
-              onLockedClick={() => openUnlockModal("MUDARABA")}
-          />
-          <ActionTile 
-              href="/dashboard/games" 
-              icon={SparklesIcon} 
-              label="Play & Earn" 
-              sub="Web3 Games" 
-              color="fuchsia" 
-              delay={0.6}
-              status={getFeatureStatus("PLAY_EARN")}
-              onLockedClick={() => openUnlockModal("PLAY_EARN")}
-          />
-      </div>
-
-      {/* 5. DAILY EARNING WIDGET (Compact for Dashboard) */}
-      <div className="pt-8">
-          <DailyEarningWidget isCompact={true} />
-      </div>
-
-      {/* 4. GROWTH & IDENTITY (Switched order) */}
-      <div className="pt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ReferralCard user={user} />
-          <IdentityCard user={user} />
-      </div>
-
-      {/* 7. POOLS SECTION */}
-      <div className="pt-8 relative">
-          <div className="flex items-center gap-3 mb-8">
-              <h2 className="text-2xl font-bold text-foreground font-serif">Community Pools</h2>
-          </div>
-          <div className="relative">
-              <CompanyPools 
-                 pools={pools} 
-                 status={getFeatureStatus("POOLS")} 
-                 userTier={user?.tier || 'NEWBIE'} 
-                 onLockedClick={() => openUnlockModal("POOLS")}
+              <div className="text-right">
+                <span className="text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tighter">{progress}%</span>
+              </div>
+            </div>
+            
+            <div className="h-3 sm:h-4 bg-muted/30 rounded-full overflow-hidden p-0.5 sm:p-1 border border-border/20 shadow-inner">
+              <div 
+                className={`h-full rounded-full bg-gradient-to-r ${tierColor} shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all duration-1000 ease-out`} 
+                style={{ width: `${progress}%` }}
               />
+            </div>
+            
+            <div className="mt-3 sm:mt-4 flex items-center justify-between">
+              <div className="flex -space-x-2">
+                {[1,2,3].map((i: any) => (
+                  <div key={i} className="w-5 sm:w-6 h-5 sm:h-6 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[6px] sm:text-[8px] font-bold text-muted-foreground">
+                    L{i}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Real-time</p>
+            </div>
           </div>
+        </div>
       </div>
 
-      <div className="pt-8">
-         <div className="relative overflow-hidden group bg-card border-none shadow-xl shadow-black/[0.03] dark:shadow-white/[0.02] rounded-[2.5rem] p-6 sm:p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-             {/* Decorative Background Icon & Glow */}
-             <div className="absolute -right-16 -top-16 text-amber-500/[0.03] rotate-12 pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-                 <TrophyIcon className="w-64 h-64" />
-             </div>
-             
-             <div className="flex-1 relative z-10 w-full">
-                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-500/10 rounded-full border border-amber-100 dark:border-amber-500/20 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-500 mb-4">
-                    <SparklesIcon className="w-3 h-3" /> Performance Analytics
-                 </div>
-                 <h2 className="text-2xl sm:text-3xl font-black font-serif mb-2 text-foreground tracking-tight">Rank Progression</h2>
-                 <p className="text-muted-foreground text-sm max-w-sm leading-relaxed">
-                    Track your growth as you approach the <span className="text-foreground font-bold">{nextTier}</span> milestone. 
-                    Higher ranks unlock deeper network earnings and increased withdrawal limits.
-                 </p>
-             </div>
-             
-             <div className="flex-1 w-full max-w-md relative z-10 bg-background/40 backdrop-blur-md border border-white/10 dark:border-white/5 p-6 rounded-[2rem] shadow-2xl shadow-black/5">
-                 <div className="flex justify-between items-baseline mb-3">
-                     <div className="flex flex-col">
-                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/60">Current Progress</p>
-                        <p className="text-xs font-bold text-amber-500">Toward {nextTier}</p>
-                     </div>
-                     <div className="text-right">
-                        <span className="text-3xl font-black text-foreground tabular-nums tracking-tighter">{progress}%</span>
-                     </div>
-                 </div>
-                 
-                 <div className="h-4 bg-muted/30 rounded-full overflow-hidden p-1 border border-border/20 shadow-inner">
-                     <div 
-                        className={`h-full rounded-full bg-gradient-to-r ${tierColor} shadow-[0_0_20px_rgba(0,0,0,0.15)] transition-all duration-1000 ease-out`} 
-                        style={{ width: `${progress}%` }}
-                     />
-                 </div>
-                 
-                 <div className="mt-4 flex items-center justify-between">
-                    <div className="flex -space-x-2">
-                        {[1,2,3].map((i: any) => (
-                            <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground">
-                                L{i}
-                            </div>
-                        ))}
-                    </div>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Real-time Tier Engine</p>
-                 </div>
-             </div>
-         </div>
-      </div>
-
-      {/* 6. UNLOCK BANNER (Moved to very bottom) */}
+      {/* ═══ UNLOCK BANNER ═══ */}
       {!isUnlocked && (
-          <div className="pt-8">
-            <motion.div 
-               initial={{ opacity: 0, scale: 0.95 }}
-               animate={{ opacity: 1, scale: 1 }}
-               className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-blue-900 to-indigo-900 p-8 md:p-12 text-white shadow-2xl shadow-blue-900/20 group"
-            >
-               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-1000"></div>
-               <div className="relative z-10 max-w-2xl">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-bold mb-6 border border-white/10 text-blue-200">
-                     <LockClosedIcon className="w-3.5 h-3.5"/> Account Limited
-                  </div>
-                  <h3 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold mb-4 leading-tight break-words">
-                     Unlock Your Full <br className="hidden sm:block" />Earnings Potential
-                  </h3>
-                  <p className="text-blue-100/80 mb-6 sm:mb-8 leading-relaxed text-sm md:text-lg max-w-lg">
-                     Activate your account by depositing just <span className="text-white font-bold">{formatCurrency(1.00)}</span>. This instantly unlocks the Task Center, Marketplace, and all withdrawal features. Plus, even initial deposits can be withdrawn anytime.
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                     <Link href="/dashboard/wallet?tab=deposit" className="px-8 py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm md:text-base">
-                        Deposit $1.00 Now
-                     </Link>
-                     <Link href="/dashboard/how-it-works" className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-sm md:text-base">
-                        Learn More
-                     </Link>
-                  </div>
-               </div>
-            </motion.div>
-          </div>
+        <div className="pt-4 sm:pt-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative overflow-hidden rounded-2xl sm:rounded-[2rem] bg-gradient-to-r from-blue-900 to-indigo-900 p-6 sm:p-8 md:p-10 lg:p-12 text-white shadow-2xl shadow-blue-900/20 group"
+          >
+            <div className="absolute top-0 right-0 w-64 sm:w-[500px] h-64 sm:h-[500px] bg-blue-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/20 transition-all duration-1000" />
+            <div className="relative z-10 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 bg-white/10 backdrop-blur-md rounded-full text-[8px] sm:text-xs font-bold mb-4 sm:mb-6 border border-white/10 text-blue-200">
+                <LockClosedIcon className="w-3 sm:w-3.5 h-3 sm:h-3.5"/> Account Limited
+              </div>
+              <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-3 sm:mb-4 leading-tight break-words">
+                Unlock Your Full <br className="hidden sm:block" />Earnings Potential
+              </h3>
+              <p className="text-blue-100/80 text-xs sm:text-sm md:text-base lg:text-lg mb-4 sm:mb-6 md:mb-8 leading-relaxed max-w-lg">
+                Activate your account by depositing just <span className="text-white font-bold">{formatCurrency(1.00)}</span>. Instantly unlock all features.
+              </p>
+              <div className="flex flex-wrap gap-3 sm:gap-4">
+                <Link href="/dashboard/wallet?tab=deposit" className="px-6 sm:px-8 py-2.5 sm:py-3 md:py-4 bg-white text-blue-900 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all text-xs sm:text-sm md:text-base">
+                  Deposit $1.00 Now
+                </Link>
+                <Link href="/dashboard/how-it-works" className="px-6 sm:px-8 py-2.5 sm:py-3 md:py-4 bg-transparent border border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-xs sm:text-sm md:text-base">
+                  Learn More
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       )}
 
-      {/* 8. FEATURE-SPECIFIC UNLOCK MODAL */}
+      {/* ═══ UNLOCK MODAL ═══ */}
       {showUnlockModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-gray-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
-                  <div className="mb-6 text-center">
-                      <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <LockClosedIcon className="w-8 h-8" />
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                          🔒 {modalInfo ? modalInfo.title : "Feature"} Locked
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-                          {modalInfo 
-                              ? modalInfo.description 
-                              : <>Activating your account costs <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(1.00)}</span> from your wallet balance.</>
-                          }
-                      </p>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-4 mb-6">
-                      <h4 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3 text-center">
-                          After activation, you will get access to
-                      </h4>
-                      <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                          {(modalInfo ? modalInfo.benefits : [
-                              "Premium Tasks",
-                              "Marketplace Platform",
-                              "Mudarabah Pools",
-                              "Partner Commissions"
-                          ]).map((item, i) => (
-                              <li key={i} className="flex items-center gap-2">
-                                  <CheckIcon className="w-4 h-4 text-emerald-500 shrink-0" /> {item}
-                              </li>
-                          ))}
-                      </ul>
-                  </div>
-
-                  {unlockError && <div className="text-sm text-red-500 text-center mb-4 font-medium">{unlockError}</div>}
-
-                  <div className="flex flex-col gap-2.5">
-                      <Link 
-                          href="/dashboard/wallet?tab=deposit"
-                          onClick={() => setShowUnlockModal(false)}
-                          className="w-full py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-sm rounded-xl hover:bg-black dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
-                      >
-                          Activate for {formatCurrency(1.00)} <span className="text-lg">→</span>
-                      </Link>
-                      <button 
-                          onClick={() => setShowUnlockModal(false)}
-                          className="w-full py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 font-bold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-                      >
-                          Learn More
-                      </button>
-                  </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 md:p-8 max-w-sm w-full shadow-2xl relative border border-gray-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto"
+          >
+            <div className="mb-4 sm:mb-6 text-center">
+              <div className="w-14 sm:w-16 h-14 sm:h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-500 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <LockClosedIcon className="w-6 sm:w-8 h-6 sm:h-8" />
               </div>
-          </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2">
+                🔒 {modalInfo ? modalInfo.title : "Feature Locked"}
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                {modalInfo 
+                  ? modalInfo.description 
+                  : <>Activating your account costs <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(1.00)}</span></>
+                }
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+              <h4 className="text-[8px] sm:text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2 sm:mb-3 text-center">
+                After activation, you get:
+              </h4>
+              <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                {(modalInfo ? modalInfo.benefits : [
+                  "Premium Tasks",
+                  "Marketplace Platform",
+                  "Mudarabah Pools",
+                  "Partner Commissions"
+                ]).map((item, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-500 shrink-0" /> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {unlockError && <div className="text-xs sm:text-sm text-red-500 text-center mb-3 sm:mb-4 font-medium">{unlockError}</div>}
+
+            <div className="flex flex-col gap-2.5">
+              <Link 
+                href="/dashboard/wallet?tab=deposit"
+                onClick={() => setShowUnlockModal(false)}
+                className="w-full py-3 sm:py-3.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold text-xs sm:text-sm rounded-xl hover:bg-black dark:hover:bg-gray-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
+              >
+                Activate for {formatCurrency(1.00)} <span className="text-base sm:text-lg">→</span>
+              </Link>
+              <button 
+                onClick={() => setShowUnlockModal(false)}
+                className="w-full py-2.5 sm:py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-gray-400 font-bold text-xs sm:text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
 
     </div>
   )
 }
 
+// ═══ STAT CARD (Desktop) ═══
 function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
-    const colors: any = {
-        emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",
-        blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10",
-        amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10",
-        indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/10",
-        purple: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10",
-        orange: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/10",
-    }
-    return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: delay, duration: 0.4 }}
-            className="p-5 bg-card rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all group shrink-0"
-        >
-            <div className="flex justify-between items-start mb-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colors[color])}>
-                    <Icon className="w-5 h-5"/>
-                </div>
-            </div>
-            <div className="space-y-0.5">
-                <div className="text-lg xl:text-xl font-bold text-foreground font-serif truncate">{value}</div>
-                <div className="text-[10px] xl:text-xs font-bold text-muted-foreground uppercase tracking-wider">{title}</div>
-            </div>
-        </motion.div>
-    )
+  const colors: any = {
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10",
+    indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/10",
+    purple: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/10",
+    orange: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/10",
+  }
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: delay, duration: 0.4 }}
+      className="p-4 sm:p-5 bg-card rounded-2xl border border-border shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.1)] transition-all group shrink-0"
+    >
+      <div className="flex justify-between items-start mb-2 sm:mb-3">
+        <div className={cn("w-8 sm:w-10 h-8 sm:h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110", colors[color])}>
+          <Icon className="w-4 sm:w-5 h-4 sm:h-5"/>
+        </div>
+      </div>
+      <div className="space-y-0.5">
+        <div className="text-base sm:text-lg lg:text-xl font-bold text-foreground font-serif truncate">{value}</div>
+        <div className="text-[8px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{title}</div>
+      </div>
+    </motion.div>
+  )
 }
 
+// ═══ MOBILE STAT CARD ═══
 function MobileStatCard({ title, value, icon: Icon, color, delay }: any) {
-    const iconColors: any = {
-        emerald: "text-emerald-500",
-        blue: "text-blue-500",
-        amber: "text-amber-500",
-        indigo: "text-indigo-500",
-        purple: "text-purple-500",
-        orange: "text-orange-500",
-    }
-    return (
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay }}
-            className="bg-card p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-3.5 overflow-hidden"
-        >
-            <Icon className={cn("w-5 h-5 mb-1.5", iconColors[color] || "text-foreground")}/>
-            <div className="font-bold text-foreground text-xs leading-tight truncate w-full px-1">{value}</div>
-            <div className="text-[9px] font-bold text-muted-foreground uppercase mt-0.5 truncate w-full">{title}</div>
-        </motion.div>
-    )
+  const iconColors: any = {
+    emerald: "text-emerald-500",
+    blue: "text-blue-500",
+    amber: "text-amber-500",
+    indigo: "text-indigo-500",
+    purple: "text-purple-500",
+    orange: "text-orange-500",
+  }
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay }}
+      className="bg-card p-1.5 sm:p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center text-center py-2.5 sm:py-3.5 overflow-hidden"
+    >
+      <Icon className={cn("w-4 sm:w-5 h-4 sm:h-5 mb-1 sm:mb-1.5", iconColors[color] || "text-foreground")}/>
+      <div className="font-bold text-foreground text-[10px] sm:text-xs leading-tight truncate w-full px-1">{value}</div>
+      <div className="text-[7px] sm:text-[9px] font-bold text-muted-foreground uppercase mt-0.5 truncate w-full">{title}</div>
+    </motion.div>
+  )
 }
 
+// ═══ ACTION TILE ═══
 function ActionTile({ href, icon: Icon, label, sub, color, delay, status = "LIVE", onLockedClick }: any) {
-    const isLive = status === "LIVE"
-    const isLocked = status === "LOCKED"
-    const isDev = status === "DEV"
-    
-    const hoverColors: any = {
-        blue: "group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10",
-        purple: "group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:border-purple-200 dark:group-hover:border-purple-800/50 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/10",
-        emerald: "group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-200 dark:group-hover:border-emerald-800/50 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/10",
-        orange: "group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:border-orange-200 dark:group-hover:border-orange-800/50 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/10",
-        indigo: "group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-200 dark:group-hover:border-indigo-800/50 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/10",
-        fuchsia: "group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 group-hover:border-fuchsia-200 dark:group-hover:border-fuchsia-800/50 group-hover:bg-fuchsia-50 dark:group-hover:bg-fuchsia-900/10",
-    }
-    const iconColors: any = {
-        blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
-        purple: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
-        emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
-        orange: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
-        indigo: "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
-        fuchsia: "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20",
-    }
+  const isLive = status === "LIVE"
+  const isLocked = status === "LOCKED"
+  const isDev = status === "DEV"
+  
+  const hoverColors: any = {
+    blue: "group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200 dark:group-hover:border-blue-800/50 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/10",
+    purple: "group-hover:text-purple-600 dark:group-hover:text-purple-400 group-hover:border-purple-200 dark:group-hover:border-purple-800/50 group-hover:bg-purple-50 dark:group-hover:bg-purple-900/10",
+    emerald: "group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-200 dark:group-hover:border-emerald-800/50 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/10",
+    orange: "group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:border-orange-200 dark:group-hover:border-orange-800/50 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/10",
+    indigo: "group-hover:text-indigo-600 dark:group-hover:text-indigo-400 group-hover:border-indigo-200 dark:group-hover:border-indigo-800/50 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/10",
+    fuchsia: "group-hover:text-fuchsia-600 dark:group-hover:text-fuchsia-400 group-hover:border-fuchsia-200 dark:group-hover:border-fuchsia-800/50 group-hover:bg-fuchsia-50 dark:group-hover:bg-fuchsia-900/10",
+  }
+  const iconColors: any = {
+    blue: "text-blue-500 bg-blue-50 dark:bg-blue-900/20",
+    purple: "text-purple-500 bg-purple-50 dark:bg-purple-900/20",
+    emerald: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20",
+    orange: "text-orange-500 bg-orange-50 dark:bg-orange-900/20",
+    indigo: "text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20",
+    fuchsia: "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/20",
+  }
 
-    const content = (
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: delay, duration: 0.4 }}
-            className={cn(
-                "h-full p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden flex flex-col items-start",
-                isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) :
-                isDev ? "bg-card border-border cursor-pointer hover:border-indigo-200/50 dark:hover:border-indigo-800/50" : 
-                "bg-card border-border cursor-pointer opacity-75 hover:opacity-100 hover:border-amber-200 dark:hover:border-amber-800/50"
+  const content = (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: delay, duration: 0.4 }}
+      className={cn(
+        "h-full p-3 sm:p-4 md:p-5 rounded-2xl border shadow-sm transition-all duration-300 relative overflow-hidden flex flex-col items-start",
+        isLive ? cn("bg-card border-border cursor-pointer", hoverColors[color]) :
+        isDev ? "bg-card border-border cursor-pointer hover:border-indigo-200/50 dark:hover:border-indigo-800/50" : 
+        "bg-card border-border cursor-pointer opacity-75 hover:opacity-100 hover:border-amber-200 dark:hover:border-amber-800/50"
+      )}
+    >
+      <div className="flex justify-between items-start w-full mb-2 sm:mb-3 relative z-10">
+        <div className={cn("w-7 sm:w-8 md:w-10 h-7 sm:h-8 md:h-10 rounded-full flex items-center justify-center transition-colors shrink-0", 
+          isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : 
+          isDev ? cn(iconColors[color], "bg-indigo-50 dark:bg-indigo-900/20") :
+          cn(iconColors[color], "opacity-60")
+        )}>
+          {isDev ? <WrenchScrewdriverIcon className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 text-indigo-500"/> : <Icon className="w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5"/>}
+        </div>
+
+        {!isLive && (
+          <div className="shrink-0 ml-1 sm:ml-2 mt-0.5">
+            {isLocked ? (
+              <div className="w-4 sm:w-5 h-4 sm:h-5 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
+                <LockClosedIcon className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-amber-600 dark:text-amber-400"/>
+              </div>
+            ) : (
+              <span className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[6px] sm:text-[7px] font-bold uppercase tracking-wider rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
+                <span className="relative flex h-1 w-1 sm:h-1.5 sm:w-1.5 align-middle">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1 w-1 sm:h-1.5 sm:w-1.5 bg-indigo-500" />
+                </span>
+                Soon
+              </span>
             )}
-        >
-            <div className="flex justify-between items-start w-full mb-3 relative z-10">
-                <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors shrink-0", 
-                    isLive ? cn(iconColors[color], "group-hover:bg-white dark:group-hover:bg-gray-800") : 
-                    isDev ? cn(iconColors[color], "bg-indigo-50 dark:bg-indigo-900/20") :
-                    cn(iconColors[color], "opacity-60")
-                )}>
-                    {isDev ? <WrenchScrewdriverIcon className="w-4 h-4 md:w-5 md:h-5 text-indigo-500"/> : <Icon className="w-4 h-4 md:w-5 md:h-5"/>}
-                </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="relative z-10 w-full min-w-0 pr-1">
+        <h3 className={cn("font-bold text-[10px] sm:text-xs md:text-sm lg:text-base transition-colors truncate", 
+          isLive ? "text-foreground group-hover:text-inherit" : 
+          isDev ? "text-foreground" : 
+          "text-foreground/70"
+        )}>
+          {label}
+        </h3>
+        <p className={cn("text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs transition-colors truncate mt-0.5", 
+          isLive ? "text-muted-foreground group-hover:text-inherit/70" : 
+          isDev ? "text-muted-foreground" : 
+          "text-muted-foreground/70"
+        )}>
+          {sub}
+        </p>
+      </div>
+    </motion.div>
+  )
 
-                {!isLive && (
-                    <div className="shrink-0 ml-2 mt-0.5">
-                         {isLocked ? (
-                             <div className="w-5 h-5 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
-                                 <LockClosedIcon className="w-3 h-3 text-amber-600 dark:text-amber-400"/>
-                             </div>
-                         ) : (
-                             <span className="flex items-center gap-1.5 px-1.5 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-[6.5px] md:text-[7.5px] font-bold uppercase tracking-wider rounded-full border border-indigo-100 dark:border-indigo-800/50 shadow-sm">
-                                 <span className="relative flex h-1 w-1 md:h-1.5 md:w-1.5 align-middle">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-1 w-1 md:h-1.5 md:w-1.5 bg-indigo-500"></span>
-                                 </span>
-                                 Built Soon
-                             </span>
-                         )}
-                    </div>
-                )}
-            </div>
-            
-            <div className="relative z-10 w-full min-w-0 pr-1">
-                <h3 className={cn("font-bold text-xs md:text-sm lg:text-base transition-colors truncate", 
-                     isLive ? "text-foreground group-hover:text-inherit" : 
-                     isDev ? "text-foreground" : 
-                     "text-foreground/70"
-                )}>
-                    {label}
-                </h3>
-                <p className={cn("text-[10px] md:text-[11px] lg:text-xs transition-colors truncate mt-0.5", 
-                     isLive ? "text-muted-foreground group-hover:text-inherit/70" : 
-                     isDev ? "text-muted-foreground" : 
-                     "text-muted-foreground/70"
-                )}>
-                    {sub}
-                </p>
-            </div>
-        </motion.div>
-    )
+  if (isLocked && onLockedClick) {
+    return <div onClick={onLockedClick} className="block group cursor-pointer">{content}</div>
+  }
 
-    // Locked cards open the unlock modal instead of navigating
-    if (isLocked && onLockedClick) {
-        return <div onClick={onLockedClick} className="block group cursor-pointer">{content}</div>
-    }
-
-    return <Link href={href} className="block group">{content}</Link>
+  return <Link href={href} className="block group">{content}</Link>
 }
 
+// ═══ IDENTITY CARD ═══
 function IdentityCard({ user }: any) {
-    return (
-        <div className="p-6 bg-card rounded-2xl border border-border shadow-sm flex flex-col justify-center transition-colors">
-             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-                <div className="w-16 h-16 sm:w-14 sm:h-14 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-xl shadow-inner border border-white dark:border-gray-700 shrink-0">
-                    {user.name?.[0]?.toUpperCase() || "U"}
-                </div>
-                <div className="min-w-0 flex-1 w-full">
-                   <h3 className="font-bold text-foreground font-serif text-lg">Identity Card</h3>
-                   <p className="text-sm text-muted-foreground mb-6 sm:mb-4">Your digital access keys.</p>
-                   <div className="space-y-4 sm:space-y-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between p-3 sm:p-2 bg-muted/30 rounded-lg border border-border">
-                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">User ID</span>
-                         <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-                            <span className="font-mono text-sm font-bold text-foreground break-all">{formatUserId(user.memberId)}</span>
-                            <CopyButton text={formatUserId(user.memberId)} />
-                         </div>
-                      </div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 justify-between p-3 sm:p-2 bg-muted/30 rounded-lg border border-border">
-                         <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">Email</span>
-                         <div className="flex items-center justify-between w-full sm:w-auto gap-3 min-w-0">
-                            <span className="text-sm font-medium text-foreground truncate">{user.email}</span>
-                            <CopyButton text={user.email} />
-                         </div>
-                      </div>
-                   </div>
-                </div>
-             </div>
+  return (
+    <div className="p-4 sm:p-5 md:p-6 bg-card rounded-2xl border border-border shadow-sm flex flex-col justify-center transition-colors">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
+        <div className="w-14 sm:w-16 h-14 sm:h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 font-bold text-lg sm:text-xl shadow-inner border border-white dark:border-gray-700 shrink-0">
+          {user.name?.[0]?.toUpperCase() || "U"}
         </div>
-    )
+        <div className="min-w-0 flex-1 w-full">
+          <h3 className="font-bold text-foreground font-serif text-base sm:text-lg">Identity Card</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">Your digital access keys.</p>
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 justify-between p-2.5 sm:p-3 bg-muted/30 rounded-lg border border-border">
+              <span className="text-[8px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">User ID</span>
+              <div className="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-3">
+                <span className="font-mono text-xs sm:text-sm font-bold text-foreground break-all">{formatUserId(user.memberId)}</span>
+                <CopyButton text={formatUserId(user.memberId)} />
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 justify-between p-2.5 sm:p-3 bg-muted/30 rounded-lg border border-border">
+              <span className="text-[8px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider pl-1 self-start sm:self-center">Email</span>
+              <div className="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-3 min-w-0">
+                <span className="text-xs sm:text-sm font-medium text-foreground truncate">{user.email}</span>
+                <CopyButton text={user.email} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
+// ═══ REFERRAL CARD ═══
 function ReferralCard({ user }: any) {
-    const [origin, setOrigin] = useState("")
+  const [origin, setOrigin] = useState("")
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setOrigin(window.location.origin)
-        }
-    }, [])
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin)
+    }
+  }, [])
 
-    const referralLink = origin ? `${origin}/?ref=${user.referralCode}` : "Loading..."
+  const referralLink = origin ? `${origin}/?ref=${user.referralCode}` : "Loading..."
 
-    return (
-        <div className="p-6 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 rounded-2xl border border-indigo-100 dark:border-slate-800 flex flex-col justify-center shadow-sm relative overflow-hidden group transition-colors">
-             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/30 transition-colors"></div>
-             <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                   <div>
-                       <h3 className="font-bold text-indigo-900 dark:text-indigo-400 font-serif text-lg">Partner Program</h3>
-                       <p className="text-sm text-indigo-600/80 dark:text-indigo-300/80">Share your link to earn lifelong commissions.</p>
-                   </div>
-                   <div className="p-2 bg-white dark:bg-indigo-900/20 rounded-lg shadow-sm text-indigo-500">
-                       <UserGroupIcon className="w-6 h-6"/>
-                   </div>
-                </div>
-
-                {user.referralCode ? (
-                    <div className="space-y-3">
-                        <div className="bg-white dark:bg-slate-800/80 p-3 rounded-xl border border-indigo-100 dark:border-slate-700 shadow-sm">
-                            <label className="text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-wider mb-1 block">Your Personal Link</label>
-                            <div className="flex items-center gap-2">
-                                <div className="flex-1 overflow-hidden">
-                                     <p className="text-sm font-medium text-indigo-900 dark:text-indigo-100 truncate bg-indigo-50/50 dark:bg-slate-800/50 px-2 py-1.5 rounded-lg border border-indigo-100/50 dark:border-slate-600">
-                                        {referralLink}
-                                     </p>
-                                </div>
-                                <CopyButton text={referralLink} color="indigo" />
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between gap-3 px-1">
-                             <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Referral Code:</span>
-                             <div className="flex items-center gap-2">
-                                <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300">{user.referralCode}</span>
-                                <CopyButton text={user.referralCode} />
-                             </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg">Referral code generating...</div>
-                )}
-             </div>
+  return (
+    <div className="p-4 sm:p-5 md:p-6 bg-gradient-to-br from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 rounded-2xl border border-indigo-100 dark:border-slate-800 flex flex-col justify-center shadow-sm relative overflow-hidden group transition-colors">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100/50 dark:bg-indigo-900/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-indigo-200/50 dark:group-hover:bg-indigo-900/30 transition-colors" />
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-3 sm:mb-4">
+          <div>
+            <h3 className="font-bold text-indigo-900 dark:text-indigo-400 font-serif text-base sm:text-lg">Partner Program</h3>
+            <p className="text-xs sm:text-sm text-indigo-600/80 dark:text-indigo-300/80">Share your link to earn commissions.</p>
+          </div>
+          <div className="p-1.5 sm:p-2 bg-white dark:bg-indigo-900/20 rounded-lg shadow-sm text-indigo-500">
+            <UserGroupIcon className="w-5 sm:w-6 h-5 sm:h-6"/>
+          </div>
         </div>
-    )
+
+        {user.referralCode ? (
+          <div className="space-y-2.5 sm:space-y-3">
+            <div className="bg-white dark:bg-slate-800/80 p-2.5 sm:p-3 rounded-xl border border-indigo-100 dark:border-slate-700 shadow-sm">
+              <label className="text-[8px] sm:text-[10px] font-bold text-indigo-400 dark:text-indigo-300 uppercase tracking-wider mb-1 block">Your Link</label>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className="flex-1 overflow-hidden">
+                  <p className="text-xs sm:text-sm font-medium text-indigo-900 dark:text-indigo-100 truncate bg-indigo-50/50 dark:bg-slate-800/50 px-2 py-1.5 rounded-lg border border-indigo-100/50 dark:border-slate-600">
+                    {referralLink}
+                  </p>
+                </div>
+                <CopyButton text={referralLink} color="indigo" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2 sm:gap-3 px-1">
+              <span className="text-[8px] sm:text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Code:</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="font-mono font-bold text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm">{user.referralCode}</span>
+                <CopyButton text={user.referralCode} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs sm:text-sm text-amber-600 bg-amber-50 dark:bg-amber-900/20 p-2.5 sm:p-3 rounded-lg">Generating...</div>
+        )}
+      </div>
+    </div>
+  )
 }
 
+// ═══ COPY BUTTON ═══
 function CopyButton({ text, color = "gray" }: { text: string, color?: string }) {
-    const [copied, setCopied] = useState(false)
-    const handleCopy = () => {
-        navigator.clipboard.writeText(text)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-    }
+  const [copied, setCopied] = useState(false)
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
-    return (
-        <button 
-           onClick={handleCopy}
-           className={cn("p-2 rounded-lg transition-all", 
-               copied 
-                   ? "bg-green-100 text-green-700 scale-110" 
-                   : color === "indigo" ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200" : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
-           )}
-        >
-            {copied ? <CheckIcon className="w-4 h-4"/> : <DocumentDuplicateIcon className="w-4 h-4"/>}
-        </button>
-    )
+  return (
+    <button 
+      onClick={handleCopy}
+      className={cn("p-1.5 sm:p-2 rounded-lg transition-all", 
+        copied 
+          ? "bg-green-100 text-green-700 scale-110" 
+          : color === "indigo" ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200" : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
+      )}
+    >
+      {copied ? <CheckIcon className="w-3.5 sm:w-4 h-3.5 sm:h-4"/> : <DocumentDuplicateIcon className="w-3.5 sm:w-4 h-3.5 sm:h-4"/>}
+    </button>
+  )
 }

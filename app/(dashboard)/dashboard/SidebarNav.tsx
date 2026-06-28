@@ -110,7 +110,13 @@ export function SidebarNav({ isActiveMember, session }: SidebarNavProps) {
   }
 
   return (
-    <nav className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-1.5">
+    <nav 
+  className="flex-1 min-h-0 overflow-y-auto px-4 py-6 space-y-1.5"
+  style={{
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none'
+  }}
+>
       <div className="px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">Platform</div>
       
       {NAV_ITEMS.slice(0, 3).map((item) => {

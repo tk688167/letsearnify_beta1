@@ -106,24 +106,24 @@ export default function LiveChatWindow({ onBack, conversationId }: LiveChatWindo
       {/* Fixed Top Section */}
       <div className="shrink-0 px-6 pt-4 bg-background/50">
         {/* Branding Header */}
-        <div className="text-center mb-6">
+        {/* <div className="text-center mb-6">
           <Logo size="sm" className="justify-center mb-2" />
           <p className="text-[10px] sm:text-xs font-black text-muted-foreground/60 uppercase tracking-[0.2em]">
               We’re here to help you grow with LetsEarnify 🚀
           </p>
-        </div>
+        </div> */}
 
-        <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-4">
+        <div className="flex items-center justify-between  pb-4">
           <button 
             onClick={onBack}
             className="flex items-center gap-1 text-[10px] font-black text-muted-foreground hover:text-foreground uppercase tracking-widest transition-colors bg-muted/30 px-3 py-1.5 rounded-full"
           >
             <ArrowLeftIcon className="w-3 h-3" /> Inbox
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/10">
+          {/* <div className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 rounded-full border border-green-500/10">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               <span className="text-[9px] font-black text-green-600 dark:text-green-400 uppercase tracking-widest">Active Thread</span>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -199,9 +199,9 @@ export default function LiveChatWindow({ onBack, conversationId }: LiveChatWindo
             <PaperAirplaneIcon className="w-5 h-5 -rotate-45" />
             </button>
         </form>
-        <p className="text-center text-[8px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mt-3">
+        {/* <p className="text-center text-[8px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] mt-3">
             Multi-Conversation Support Active
-        </p>
+        </p> */}
       </div>
     </div>
   )

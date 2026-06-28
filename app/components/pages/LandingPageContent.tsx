@@ -385,8 +385,7 @@ export default function LandingPageContent({ initialStats, initialProofs }: { in
               transition={{ duration: 0.8, delay: 0.35 }}
               className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-8 px-4"
             >
-              Complete tasks, refer friends, and earn rewards through genuine participation.
-              A simple activation unlocks everything. Just real opportunities to grow your digital income and with our global community, you're never alone on your journey to financial empowerment.
+              Do tasks, invite friends, earn rewards. One quick activation unlocks it all. Real ways to grow your income—with a global community by your side.
             </motion.p>
 
             {/* CTA Buttons */}
