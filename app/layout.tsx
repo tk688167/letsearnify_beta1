@@ -123,16 +123,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
   return ( 
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script
-  id="google-adsense"
-  async
-  strategy="afterInteractive"
-  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6787482697484118"
-  crossOrigin="anonymous"
-/>
+  {adsenseClient && (
+  <Script
+    id="google-adsense"
+    async
+    strategy="afterInteractive"
+    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+    crossOrigin="anonymous"
+  />
+)}
         <script
           dangerouslySetInnerHTML={{
             __html: `
