@@ -7,6 +7,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "./components/ui/CookieConsent";
 import { ThemeProvider } from "./components/theme-provider";
+import Script from "next/script";
 import { Suspense } from "react";
 import RouteLoader from "./components/RouteLoader";
 import SupportWidget from "./components/layout/SupportWidget";
@@ -125,6 +126,13 @@ export default function RootLayout({
   return ( 
     <html lang="en" suppressHydrationWarning>
       <head>
+        <Script
+  id="google-adsense"
+  async
+  strategy="afterInteractive"
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6787482697484118"
+  crossOrigin="anonymous"
+/>
         <script
           dangerouslySetInnerHTML={{
             __html: `
