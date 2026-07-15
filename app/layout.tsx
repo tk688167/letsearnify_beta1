@@ -124,18 +124,18 @@ export default function RootLayout({
 }>) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
   const adsenseClient = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
-  return ( 
+  return (
     <html lang="en" suppressHydrationWarning>
       <head>
-  {adsenseClient && (
-  <Script
-    id="google-adsense"
-    async
-    strategy="afterInteractive"
-    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
-    crossOrigin="anonymous"
-  />
-)}
+        {adsenseClient && (
+          <Script
+            id="google-adsense"
+            async
+            strategy="afterInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+            crossOrigin="anonymous"
+          />
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -202,8 +202,11 @@ export default function RootLayout({
             `,
           }}
         />
+        
       </head>
-      <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}>
+      <body
+        className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}
+      >
         <NextAuthProvider>
           <ThemeProvider
             attribute="class"
@@ -229,8 +232,8 @@ export default function RootLayout({
             <Tracker />
           </ThemeProvider>
         </NextAuthProvider>
-  
-       {gaId && <GoogleAnalytics gaId={gaId} />}
+
+        {gaId && <GoogleAnalytics gaId={gaId} />}
       </body>
     </html>
   );

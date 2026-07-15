@@ -22,6 +22,7 @@ import { BellAlertIcon } from "@heroicons/react/24/solid"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { createPortal } from "react-dom"
+import { PushNotificationSetup } from "./PushNotificationSetup"
 
 interface Notification {
   id: string
@@ -204,12 +205,17 @@ export function AdminNotificationBell() {
                </div>
              </div>
              
+             {/* ✅ RIGHT SIDE - Push Notification Button + Actions */}
              <div className="flex items-center gap-2">
+               {/* ✅ PUSH NOTIFICATION SETUP BUTTON */}
+               <PushNotificationSetup />
+               
                {unreadCount > 0 && (
                  <button onClick={markAllRead} className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-semibold transition-colors">
                    <CheckIcon className="w-3.5 h-3.5" /> Mark all read
                  </button>
                )}
+               
                <button onClick={() => setIsOpen(false)} className="w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors border border-slate-200/40 dark:border-transparent">
                  <XMarkIcon className="w-4 h-4" />
                </button>

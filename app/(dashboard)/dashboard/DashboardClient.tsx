@@ -551,7 +551,7 @@ export default function DashboardClient({ user, pools, stats, isMarketplaceLive 
   )
 }
 
-// ═══ STAT CARD (Desktop) ═══
+// ═══ STAT CARD  ═══
 function StatCard({ title, value, sub, icon: Icon, color, delay }: any) {
   const colors: any = {
     emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/10",

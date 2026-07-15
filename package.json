@@ -44,6 +44,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.3.1",
     "use-debounce": "^10.0.6",
+    "web-push": "^3.6.7",
     "ws": "^8.19.0",
     "zod": "^4.3.4"
   },
@@ -56,6 +57,7 @@
     "@types/nodemailer": "^6.4.24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/web-push": "^3.6.4",
     "@types/ws": "^8.18.1",
     "dotenv": "^16.6.1",
     "eslint": "^9",

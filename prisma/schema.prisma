@@ -54,6 +54,7 @@ model User {
   lockedBalance           Float                    @default(0.0)
   poolInvestorShare       Float                    @default(80.0)
   poolReferrerShare       Float                    @default(20.0)
+  pushSubscriptions       PushSubscription[]       @relation("UserPushSubscriptions")
   accounts                Account[]
   adminLogs               AdminLog[]               @relation("AdminTarget")
   cbspContributions       CbspContribution[]
@@ -595,18 +596,18 @@ model MudarabahDistribution {
 }
 
 model DailyEarningInvestment {
-  id                 String   @id @default(cuid())
-  userId             String
-  amount             Float
-  status             String   @default("ACTIVE")
-  profitEarned       Float    @default(0.0)
-  pendingInvestorProfit Float @default(0.0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  lastCalculatedDate DateTime @default(now())
-  nextCycleAt        DateTime @default(now())
-  expiresAt          DateTime
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(cuid())
+  userId                String
+  amount                Float
+  status                String   @default("ACTIVE")
+  profitEarned          Float    @default(0.0)
+  pendingInvestorProfit Float    @default(0.0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastCalculatedDate    DateTime @default(now())
+  nextCycleAt           DateTime @default(now())
+  expiresAt             DateTime
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -652,4 +653,17 @@ enum Tier {
 enum TierStatus {
   CURRENT
   UPGRADED
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade) // ✅ Relation name added
+  endpoint  String
+  keys      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, endpoint])
+  @@index([userId])
 }

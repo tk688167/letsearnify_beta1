@@ -4,9 +4,9 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import useSWR from "swr"
 import { format } from "date-fns"
-import { 
-  ChartBarIcon, 
-  WalletIcon, 
+import {
+  ChartBarIcon,
+  WalletIcon,
   ArrowPathIcon,
   ClockIcon,
   XMarkIcon,
@@ -26,11 +26,10 @@ const fetcher = async (url: string) => {
   return r.json()
 }
 
-
 export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean }) {
   const { data, error, isLoading, mutate } = useSWR("/api/user/daily-earning", fetcher)
   const { formatCurrency, userCurrency, convertFromUSD, convertToUSD } = useCurrency();
-  
+
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferAmount, setTransferAmount] = useState("")
   const [transferDirection, setTransferDirection] = useState<"MAIN_TO_DAILY" | "DAILY_TO_MAIN">("MAIN_TO_DAILY")
@@ -51,7 +50,6 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
   const dailyEarningWallet = data?.dailyEarningWallet || 0
   const activeInvestments: any[] = data?.activeInvestments || []
 
-  // Derive Stats
   const now = new Date()
   const activeLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) > now)
   const expiredLocks = activeInvestments.filter((inv: any) => inv.status === "ACTIVE" && new Date(inv.expiresAt) <= now)
@@ -60,64 +58,62 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
   if (isLoading) {
     return (
-      <div className={cn("bg-card border border-border rounded-[2.5rem] p-8 animate-pulse", isCompact ? "h-64" : "h-96")}>
-         <div className="h-8 bg-muted rounded-full w-1/2 mb-8" />
-         <div className="grid grid-cols-2 gap-4">
-            <div className="h-32 bg-muted rounded-2xl" />
-            <div className="h-32 bg-muted rounded-2xl" />
-         </div>
+      <div className={cn("bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 sm:p-8 animate-pulse", isCompact ? "h-64" : "h-96")}>
+        <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded-full w-1/2 mb-6" />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className={cn("bg-card border border-rose-500/20 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center", isCompact ? "h-64" : "h-96")}>
-         <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center mb-4">
-            <ExclamationTriangleIcon className="w-6 h-6 text-rose-500" />
-         </div>
-         <h3 className="font-black text-foreground mb-2">Protocol Link Failed</h3>
-         <p className="text-xs text-muted-foreground mb-6 max-w-[200px]">We couldn't connect to your earning node. Please try refreshing.</p>
-         <button onClick={() => mutate()} className="px-6 py-2.5 bg-foreground text-background text-[10px] font-black uppercase tracking-widest rounded-xl transition-all active:scale-95">
-            Retry Connection
-         </button>
+      <div className={cn("bg-white dark:bg-gray-900 border border-red-500/20 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center", isCompact ? "h-64" : "h-96")}>
+        <div className="w-12 h-12 bg-red-500/10 rounded-2xl flex items-center justify-center mb-4">
+          <ExclamationTriangleIcon className="w-6 h-6 text-red-500" />
+        </div>
+        <h3 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">Protocol Link Failed</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-[200px]">We couldn't connect to your earning node. Please try refreshing.</p>
+        <button onClick={() => mutate()} className="px-6 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xs font-bold uppercase tracking-wider rounded-xl transition-all hover:scale-105 active:scale-95">
+          Retry Connection
+        </button>
       </div>
     )
   }
 
   const handleCompletionAction = async (investmentId: string) => {
-     setActionError(null)
-     setActionSuccess(null)
-     setActionLoader(investmentId)
-     try {
-       const res = await fetch("/api/user/daily-earning/complete", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ investmentId })
-       })
-       const result = await res.json()
-       if (!res.ok) throw new Error(result.error || "Action failed")
-       setActionSuccess(result.message || "Congrats, your pool is complete")
-       mutate()
-     } catch(err: any) {
-       setActionError(err.message)
-     } finally {
-       setActionLoader(null)
-     }
+    setActionError(null)
+    setActionSuccess(null)
+    setActionLoader(investmentId)
+    try {
+      const res = await fetch("/api/user/daily-earning/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ investmentId })
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || "Action failed")
+      setActionSuccess(result.message || "Congrats, your pool is complete")
+      mutate()
+    } catch (err: any) {
+      setActionError(err.message)
+    } finally {
+      setActionLoader(null)
+    }
   }
 
   const handleTransfer = async (e: React.FormEvent) => {
     e.preventDefault()
     const amountInUserCurrency = parseFloat(transferAmount)
-    
+
     if (isNaN(amountInUserCurrency) || amountInUserCurrency <= 0) return setTransferError("Enter a valid amount.")
-    
-    // Check limits in user currency
+
     const limit = transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet
     const limitInUserCurrency = convertFromUSD(limit)
     if (amountInUserCurrency > limitInUserCurrency) return setTransferError(`Insufficient ${transferDirection === "MAIN_TO_DAILY" ? 'Main' : 'Daily'} Wallet Balance.`)
 
-    // Convert to USD for backend
     const amountInUSD = convertToUSD(amountInUserCurrency)
 
     setTransferLoader(true)
@@ -129,10 +125,10 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
       })
       const result = await res.json()
       if (!res.ok) throw new Error(result.error || "Transfer failed")
-      
+
       setTransferAmount("")
       setIsTransferModalOpen(false)
-      mutate() // Refresh SWR state instantly
+      mutate()
     } catch (err: any) {
       setTransferError(err.message)
     } finally {
@@ -146,7 +142,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
     const minAmountInUserCurrency = convertFromUSD(1)
     if (isNaN(amountInUserCurrency) || amountInUserCurrency < minAmountInUserCurrency) return setInvestError(`Minimum lock amount is ${formatCurrency(1)}`)
-    
+
     const dailyWalletInUserCurrency = convertFromUSD(dailyEarningWallet)
     if (amountInUserCurrency > dailyWalletInUserCurrency) return setInvestError("Insufficient Daily Earning Wallet balance.")
 
@@ -159,7 +155,7 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 
       setInvestSuccess(result.message || `Pool activated for 30 days.`)
       setInvestAmount("")
-      mutate() // Instantly refresh SWR data across both Dashboard and main page
+      mutate()
     } catch (err: any) {
       setInvestError(err.message)
     } finally {
@@ -168,470 +164,545 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "bg-card border border-border rounded-[2.5rem] shadow-xl relative overflow-hidden transition-colors duration-300",
-        isCompact ? "p-5 sm:p-7" : ""
+        "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl shadow-xl relative overflow-hidden transition-all duration-300",
+        isCompact ? "p-4 sm:p-6" : "p-6 sm:p-8 lg:p-10"
       )}
     >
       {/* Background Decor */}
       {!isCompact && (
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-           <ChartBarIcon className="w-64 h-64 text-indigo-500" />
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] dark:opacity-[0.05]">
+          <ChartBarIcon className="w-48 sm:w-64 h-48 sm:h-64 text-indigo-500" />
         </div>
       )}
 
-      {/* Global Background Gradient Overlays for themes */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 dark:from-indigo-600/10 dark:to-purple-600/10 pointer-events-none" />
+      <div className={cn("relative z-10", isCompact ? "" : "")}>
 
-      <div className={cn("relative z-10", isCompact ? "" : "p-6 sm:p-10")}>
-        
         {/* --- HEADER SECTION --- */}
-        <div className={cn("flex flex-col gap-5", isCompact ? "mb-6" : "mb-12 border-b border-border pb-8")}>
-           <div className={cn("flex justify-between items-start md:items-center")}>
-              <div className="w-full md:w-auto pr-4">
-                <h2 className={cn("font-black tracking-tighter capitalize text-foreground", isCompact ? "text-xl sm:text-2xl" : "text-4xl sm:text-5xl mb-2")}>
-                  <span className={cn(isCompact ? "" : "text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500")}>Daily Earning Pool</span>
-                </h2>
-                {!isCompact && (
-                  <p className="text-muted-foreground font-medium text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
-                     Create your pool from {formatCurrency(1)} and earn 1% daily. Funds are locked for 30 days before withdrawal.
-                  </p>
-                )}
-              </div>
-              
-              {isCompact && (
-                <button 
-                  onClick={() => setIsTransferModalOpen(true)}
-                  className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 uppercase tracking-widest flex items-center gap-1 transition-all hover:scale-105"
-                >
-                  <ArrowPathIcon className="w-3 h-3" /> Transfer
-                </button>
+        <div className={cn("flex flex-col gap-4", isCompact ? "mb-6" : "mb-8 sm:mb-12 border-b border-gray-200 dark:border-gray-800 pb-6 sm:pb-8")}>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h2 className={cn(
+                "font-bold tracking-tight text-gray-900 dark:text-white",
+                isCompact ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl lg:text-5xl"
+              )}>
+                <span className={cn(isCompact ? "" : "bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent")}>
+                  Daily Earning Pool
+                </span>
+              </h2>
+              {!isCompact && (
+                <p className="text-gray-500 dark:text-gray-400 text-sm sm:text-base mt-2 max-w-xl leading-relaxed">
+                  Create your pool from {formatCurrency(1)} and earn 1% daily. Funds are locked for 30 days before withdrawal.
+                </p>
               )}
-           </div>
-
-           {isCompact && (
-             <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-                <button 
-                  onClick={() => setIsInvestModalOpen(true)}
-                  disabled={dailyEarningWallet < 1}
-                  className="relative w-full overflow-hidden bg-background hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 border border-border hover:border-indigo-500/30 rounded-2xl p-4 transition-all flex items-center justify-between shadow-sm disabled:opacity-50"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 transition-transform group-hover:scale-110">
-                            <PlusIcon className="w-5 h-5" />
-                        </div>
-                        <div className="text-left">
-                            <h4 className="text-sm font-black text-foreground tracking-tight">Create Pool</h4>
-                            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">1% Daily Yield • 30-Day</p>
-                        </div>
-                    </div>
-                    <div className="hidden sm:block px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-[9px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                        Create
-                    </div>
-                </button>
-             </div>
-           )}
-
-           {!isCompact && (
-             <div className="flex flex-col sm:flex-row items-center justify-end gap-3 mt-4">
-                <button 
-                  onClick={() => setIsTransferModalOpen(true)}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-background hover:bg-muted text-foreground text-xs font-black uppercase tracking-widest rounded-[1rem] border border-border transition-all shadow-sm active:scale-95"
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  Transfer Funds
-                </button>
-                <button 
-                  onClick={() => setIsInvestModalOpen(true)}
-                  disabled={dailyEarningWallet < 1}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-black uppercase tracking-widest rounded-[1rem] transition-all shadow-xl shadow-indigo-500/25 active:scale-95 disabled:opacity-50"
-                >
-                  <SparklesIcon className="w-4 h-4" />
-                  + Create New Pool
-                </button>
-             </div>
-           )}
-        </div>
-
-        <div className={cn("grid gap-4", isCompact ? "grid-cols-2 mb-8" : "grid-cols-2 lg:grid-cols-5 mb-12")}>
-            <StatBox 
-              label={`Earnings Wallet (${userCurrency})`} 
-              value={formatCurrency(dailyEarningWallet)} 
-              icon={CurrencyDollarIcon} 
-              color="indigo" 
-              isCompact={isCompact}
-            />
-            <StatBox 
-              label={`Active Pool (${userCurrency})`} 
-              value={formatCurrency(totalPrincipalLocked)} 
-              icon={LockClosedIcon} 
-              color="amber" 
-              isCompact={isCompact}
-            />
-            <div className={cn(isCompact ? "col-span-2" : "hidden lg:block")}>
-               <StatBox 
-                 label={`Accumulated Profit (${userCurrency})`} 
-                 value={formatCurrency(totalAccumulatedProfit)} 
-                 icon={ChartBarIcon} 
-                 color="emerald" 
-                 isCompact={isCompact}
-               />
             </div>
-            {!isCompact && (
-              <>
-                <StatBox 
-                  label="Active Pools" 
-                  value={activeLocks.length.toString()} 
-                  icon={GridIcon} 
-                  color="blue" 
-                />
-                <StatBox 
-                  label={`Main Balance (${userCurrency})`} 
-                  value={formatCurrency(walletBalance)} 
-                  icon={WalletIcon} 
-                  color="gray" 
-                />
-              </>
+
+            {isCompact && (
+              <button
+                onClick={() => setIsTransferModalOpen(true)}
+                className="flex-shrink-0 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+              >
+                <ArrowPathIcon className="w-4 h-4" /> Transfer
+              </button>
             )}
+          </div>
+
+          {isCompact && (
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+              <button
+                onClick={() => setIsInvestModalOpen(true)}
+                disabled={dailyEarningWallet < 1}
+                className="relative w-full overflow-hidden bg-gray-50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 rounded-2xl p-4 transition-all flex items-center justify-between shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 transition-transform group-hover:scale-110">
+                    <PlusIcon className="w-5 h-5" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <h4 className="text-sm font-bold text-gray-900 dark:text-white tracking-tight">Create Pool</h4>
+                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">1% Daily Yield • 30-Day</p>
+                  </div>
+                </div>
+                <div className="hidden sm:block flex-shrink-0 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                  Create
+                </div>
+              </button>
+            </div>
+          )}
+
+          {!isCompact && (
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2">
+              <button
+                onClick={() => setIsTransferModalOpen(true)}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white text-xs font-bold uppercase tracking-wider rounded-2xl border border-gray-200 dark:border-gray-700 transition-all shadow-sm hover:shadow-md active:scale-95"
+              >
+                <ArrowPathIcon className="w-4 h-4" />
+                Transfer Funds
+              </button>
+              <button
+                onClick={() => setIsInvestModalOpen(true)}
+                disabled={dailyEarningWallet < 1}
+                className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-indigo-500/25 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SparklesIcon className="w-4 h-4" />
+                + Create New Pool
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* ACTION REQUIRED: Expired Locks Segment */}
-        {expiredLocks.length > 0 && (
-           <div className="mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-                 <ClockIcon className="w-4 h-4 text-rose-500" />
-              </div>
-              <h3 className={cn("font-black text-foreground uppercase tracking-tighter", isCompact ? "text-base" : "text-xl")}>Terms Completed</h3>
-            </div>
-              
-              {actionError && <div className="mb-4 p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-xs font-bold rounded-2xl">{actionError}</div>}
-              {actionSuccess && <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold rounded-2xl">{actionSuccess}</div>}
+        {/* --- STATS GRID --- */}
+        <div className={cn(
+          "grid gap-3 sm:gap-4",
+          isCompact
+            ? "grid-cols-2 mb-6"
+            : "grid-cols-2 lg:grid-cols-5 mb-8 sm:mb-10"
+        )}>
+          <StatBox
+            label={`Earnings Wallet (${userCurrency})`}
+            value={formatCurrency(dailyEarningWallet)}
+            icon={CurrencyDollarIcon}
+            color="indigo"
+            isCompact={isCompact}
+          />
+          <StatBox
+            label={`Active Pool (${userCurrency})`}
+            value={formatCurrency(totalPrincipalLocked)}
+            icon={LockClosedIcon}
+            color="amber"
+            isCompact={isCompact}
+          />
+          <div className={cn(isCompact ? "col-span-2" : "hidden lg:block")}>
+            <StatBox
+              label={`Accumulated Profit (${userCurrency})`}
+              value={formatCurrency(totalAccumulatedProfit)}
+              icon={ChartBarIcon}
+              color="emerald"
+              isCompact={isCompact}
+            />
+          </div>
+          {!isCompact && (
+            <>
+              <StatBox
+                label="Active Pools"
+                value={activeLocks.length.toString()}
+                icon={GridIcon}
+                color="blue"
+                isCompact={isCompact}
+              />
+              <StatBox
+                label={`Main Balance (${userCurrency})`}
+                value={formatCurrency(walletBalance)}
+                icon={WalletIcon}
+                color="gray"
+                isCompact={isCompact}
+              />
+            </>
+          )}
+        </div>
 
-              <div className="grid grid-cols-1 gap-4">
-                 {expiredLocks.map((inv: any) => (
-                    <motion.div 
-                      key={inv.id} 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className={cn(
-                        "bg-background border border-rose-500/30 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between shadow-xl shadow-rose-500/5 relative overflow-hidden group",
-                        isCompact ? "p-5" : "p-6 lg:p-8"
-                      )}
-                    >
-                       <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-rose-400 to-rose-600"></div>
-                       <div className="mb-6 md:mb-0 pl-4">
-                          <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 flex items-center gap-2 truncate">
-                             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
-                             Principal Ready to be Collected
-                          </p>
-                          <div className="flex flex-wrap items-baseline gap-3">
-                             <p className="text-2xl sm:text-3xl font-serif font-black text-foreground truncate max-w-full">{formatCurrency(inv.amount)}</p>
-                             <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs sm:text-sm bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 whitespace-nowrap">
-                                <PlusIcon className="w-3 h-3" />
-                                {formatCurrency(inv.profitEarned)}
-                             </div>
-                          </div>
-                       </div>
-                       
-                       <div className="flex flex-col sm:flex-row gap-3">
-                          <button 
-                            type="button" onClick={() => handleCompletionAction(inv.id)}
-                            disabled={actionLoader === inv.id}
-                            className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 shadow-md shadow-emerald-500/25 active:scale-95"
-                          >
-                            {actionLoader === inv.id ? "Working..." : "Complete Pool"}
-                          </button>
-                       </div>
-                    </motion.div>
-                 ))}
+        {/* --- EXPIRED LOCKS SECTION --- */}
+        {expiredLocks.length > 0 && (
+          <div className="mb-8 sm:mb-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                <ClockIcon className="w-4 h-4 text-red-500" />
               </div>
-           </div>
+              <h3 className={cn("font-bold text-gray-900 dark:text-white uppercase tracking-tight", isCompact ? "text-base" : "text-xl")}>
+                Terms Completed
+              </h3>
+            </div>
+
+            {actionError && (
+              <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-2xl">
+                {actionError}
+              </div>
+            )}
+            {actionSuccess && (
+              <div className="mb-4 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold rounded-2xl">
+                {actionSuccess}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-4">
+              {expiredLocks.map((inv: any) => (
+                <motion.div
+                  key={inv.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={cn(
+                    "bg-gray-50 dark:bg-gray-800/50 border border-red-500/30 rounded-2xl sm:rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between shadow-lg shadow-red-500/5 relative overflow-hidden group",
+                    isCompact ? "p-4" : "p-5 sm:p-6 lg:p-8"
+                  )}
+                >
+                  <div className="absolute top-0 left-0 w-1 sm:w-2 h-full bg-gradient-to-b from-red-400 to-red-600"></div>
+                  <div className="mb-4 sm:mb-0 pl-3 sm:pl-4">
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                      Principal Ready to be Collected
+                    </p>
+                    <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+                      <p className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-gray-900 dark:text-white truncate">
+                        {formatCurrency(inv.amount)}
+                      </p>
+                      <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 whitespace-nowrap">
+                        <PlusIcon className="w-3 h-3" />
+                        {formatCurrency(inv.profitEarned)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleCompletionAction(inv.id)}
+                    disabled={actionLoader === inv.id}
+                    className="flex-shrink-0 px-5 sm:px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all disabled:opacity-50 shadow-md shadow-emerald-500/25 hover:shadow-lg active:scale-95"
+                  >
+                    {actionLoader === inv.id ? "Working..." : "Complete Pool"}
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         )}
 
-        {/* Live Active Investments Segment */}
+        {/* --- ACTIVE POOLS SECTION --- */}
         <div>
-           <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between", isCompact ? "mb-5 gap-3" : "mb-8 gap-4")}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                   <ClockIcon className="w-4 h-4 text-indigo-500" />
-                </div>
-                <h3 className={cn("font-black text-foreground uppercase tracking-tighter", isCompact ? "text-base" : "text-xl")}>Active Live Pools</h3>
+          <div className={cn(
+            "flex flex-col sm:flex-row sm:items-center justify-between",
+            isCompact ? "mb-4 gap-3" : "mb-6 sm:mb-8 gap-4"
+          )}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                <ClockIcon className="w-4 h-4 text-indigo-500" />
               </div>
-              
-              {activeLocks.length > 0 && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl w-max">
-                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                   <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">Growing 1% Daily</span>
+              <h3 className={cn("font-bold text-gray-900 dark:text-white uppercase tracking-tight", isCompact ? "text-base" : "text-xl")}>
+                Active Live Pools
+              </h3>
+            </div>
+
+            {activeLocks.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl w-max">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em]">
+                  Growing 1% Daily
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:gap-5">
+            {activeLocks.length === 0 ? (
+              <div className="py-12 sm:py-16 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl sm:rounded-3xl bg-gray-50/50 dark:bg-gray-800/20">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-center mx-auto mb-4">
+                  <WalletIcon className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400 dark:text-gray-600" />
                 </div>
-              )}
-           </div>
-           
-           <div className="grid grid-cols-1 gap-5">
-               {activeLocks.length === 0 ? (
-                 <div className="py-16 text-center border-2 border-dashed border-border rounded-[2.5rem] bg-muted/20">
-                    <div className="w-16 h-16 bg-background rounded-2xl border border-border shadow-sm flex items-center justify-center mx-auto mb-4">
-                       <WalletIcon className="w-8 h-8 text-muted-foreground/60" />
+                <p className="text-gray-900 dark:text-white font-bold text-base sm:text-lg">No active pools running.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mt-1">Start your first pool to generate consistent passive yields.</p>
+              </div>
+            ) : (
+              activeLocks.map((inv: any) => {
+                const startDate = new Date(inv.createdAt)
+                const expiryDate = new Date(inv.expiresAt)
+                const totalDays = 30
+                const elapsedMs = now.getTime() - startDate.getTime()
+                const elapsedDays = Math.max(0, Math.min(totalDays, elapsedMs / (1000 * 60 * 60 * 24)))
+                const progress = (elapsedDays / totalDays) * 100
+                const daysRemaining = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+
+                return (
+                  <motion.div
+                    key={inv.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      "bg-gray-50/80 dark:bg-gray-800/40 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-2xl sm:rounded-3xl shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300 group overflow-hidden relative",
+                      isCompact ? "p-4" : "p-5 sm:p-6 lg:p-8"
+                    )}
+                  >
+                    {/* Subtle Glow */}
+                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform"></div>
+
+                    <div className={cn(
+                      "flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6",
+                      isCompact ? "mb-4" : "mb-6 sm:mb-8"
+                    )}>
+                      <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+                        <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                          <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[9px] sm:text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 truncate">
+                            Total Locked Principal
+                          </p>
+                          <div className="flex flex-wrap items-baseline gap-2">
+                            <p className="font-serif font-bold text-gray-900 dark:text-white tracking-tight leading-tight text-lg sm:text-xl lg:text-2xl">
+                              {formatCurrency(inv.amount)}
+                            </p>
+                            <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap">
+                              +{formatCurrency(inv.amount * 0.01)}/day
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row gap-2 sm:gap-4 w-full sm:w-auto">
+                        <div className="flex-1 sm:flex-none bg-emerald-500/5 p-2 sm:p-3 rounded-xl border border-emerald-500/10 text-center min-w-[80px] sm:min-w-[100px]">
+                          <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1 flex justify-center items-center gap-1">
+                            <SparklesIcon className="w-3 h-3 flex-shrink-0" /> Profit
+                          </p>
+                          <p className="font-serif font-bold text-emerald-600 dark:text-emerald-400 tracking-tight tabular-nums leading-tight text-sm sm:text-base lg:text-lg">
+                            +{formatCurrency(inv.profitEarned)}
+                          </p>
+                        </div>
+                        <div className="flex-1 sm:flex-none bg-orange-500/5 p-2 sm:p-3 rounded-xl border border-orange-500/10 text-center min-w-[80px] sm:min-w-[100px]">
+                          <p className="text-[9px] font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1 flex justify-center items-center gap-1">
+                            <LockClosedIcon className="w-3 h-3 flex-shrink-0" /> Locked
+                          </p>
+                          <p className="font-bold text-gray-900 dark:text-white tabular-nums text-sm sm:text-base lg:text-lg">
+                            {daysRemaining} <span className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400">DAYS</span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-foreground font-black text-lg">No active pools running.</p>
-                    <p className="text-muted-foreground text-sm font-medium mt-1">Start your first pool to generate consistent passive yields.</p>
-                 </div>
-               ) : (
-                 activeLocks.map((inv: any) => {
-                    const startDate = new Date(inv.createdAt)
-                    const expiryDate = new Date(inv.expiresAt)
-                    const totalDays = 30
-                    const elapsedMs = now.getTime() - startDate.getTime()
-                    const elapsedDays = Math.max(0, Math.min(totalDays, elapsedMs / (1000 * 60 * 60 * 24)))
-                    const progress = (elapsedDays / totalDays) * 100
-                    const daysRemaining = Math.max(0, Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
 
-                    return (
-                      <motion.div 
-                        key={inv.id} 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn(
-                          "bg-background/80 backdrop-blur-sm border border-border rounded-[2rem] shadow-sm hover:border-indigo-500/30 transition-all duration-300 group overflow-hidden relative",
-                          isCompact ? "p-5" : "p-6 sm:p-8"
-                        )}
-                      >
-                         {/* Subtle Glow Background hover */}
-                         <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform"></div>
-
-                         <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6", isCompact ? "mb-6" : "mb-8")}>
-                            <div className="flex items-center gap-4 sm:gap-5">
-                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/10 border border-indigo-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
-                                  <ChartBarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
-                               </div>
-                               <div className="flex-1 min-w-0 overflow-hidden">
-                                  <p className="text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 truncate">Total Locked Principal</p>
-                                  <div className="flex flex-wrap items-baseline gap-2">
-                                     <p 
-                                       className="font-serif font-black text-foreground tracking-tighter leading-tight"
-                                       style={{ fontSize: isCompact ? "clamp(14px, 3.5vw, 20px)" : "clamp(16px, 4vw, 28px)" }}
-                                     >{formatCurrency(inv.amount)}</p>
-                                     <div className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded-md border border-emerald-500/20 whitespace-nowrap shrink-0">
-                                        +{formatCurrency(inv.amount * 0.01)}/day
-                                     </div>
-                                  </div>
-                               </div>
-                            </div>
-
-                            <div className={cn("flex flex-row gap-2 sm:gap-6", isCompact ? "w-full sm:w-auto" : "w-full sm:w-auto")}>
-                               <div className="bg-emerald-500/5 p-2 sm:p-3 rounded-xl border border-emerald-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0 overflow-hidden">
-                                  <p className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
-                                    <SparklesIcon className="w-3 h-3 shrink-0" /> Profit
-                                  </p>
-                                  <p 
-                                    className="font-serif font-black text-emerald-600 dark:text-emerald-400 tracking-tighter tabular-nums leading-tight"
-                                    style={{ fontSize: isCompact ? "clamp(12px, 3vw, 18px)" : "clamp(13px, 3.5vw, 20px)" }}
-                                  >+{formatCurrency(inv.profitEarned)}</p>
-                               </div>
-                               <div className="bg-orange-500/5 p-2 sm:p-3 rounded-xl border border-orange-500/10 text-center flex-1 sm:flex-none sm:min-w-[100px] min-w-0 overflow-hidden">
-                                  <p className="text-[9px] font-black text-orange-600 dark:text-orange-500 uppercase tracking-widest mb-1 flex justify-center items-center gap-1 truncate">
-                                    <LockClosedIcon className="w-3 h-3 shrink-0" /> Locked
-                                  </p>
-                                  <p className={cn("font-black text-foreground tabular-nums", isCompact ? "text-base sm:text-lg" : "text-lg sm:text-xl")}>
-                                     {daysRemaining} <span className="text-[9px] sm:text-[10px] text-muted-foreground">DAYS</span>
-                                  </p>
-                               </div>
-                            </div>
-                         </div>
-
-                         {/* Term Progress Bar Container */}
-                         <div className="space-y-3 bg-muted/30 p-4 rounded-2xl border border-border">
-                            <div className="flex justify-between items-end">
-                               <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Maturation Progress</span>
-                               </div>
-                               <span className="text-xs font-black text-foreground font-mono">{Math.floor(progress)}%</span>
-                            </div>
-                            <div className="h-3 bg-card border border-border rounded-full overflow-hidden p-0.5 shadow-inner">
-                               <motion.div 
-                                 initial={{ width: 0 }}
-                                 animate={{ width: `${progress}%` }}
-                                 transition={{ duration: 1, ease: "easeOut" }}
-                                 className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-sm"
-                               />
-                            </div>
-                            <div className="flex justify-between text-[10px] font-bold text-muted-foreground/80 uppercase tracking-widest pt-1">
-                               <span>Started: {format(startDate, 'MMM dd')}</span>
-                               <span className="text-indigo-600 dark:text-indigo-400">Unlock: {format(expiryDate, 'MMM dd')}</span>
-                            </div>
-                         </div>
-                      </motion.div>
-                    )
-                 })
-               )}
-           </div>
+                    {/* Progress Bar */}
+                    <div className="space-y-2 sm:space-y-3 bg-white dark:bg-gray-900/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-gray-200 dark:border-gray-700">
+                      <div className="flex justify-between items-end">
+                        <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          Maturation Progress
+                        </span>
+                        <span className="text-xs font-bold text-gray-900 dark:text-white font-mono">
+                          {Math.floor(progress)}%
+                        </span>
+                      </div>
+                      <div className="h-2.5 sm:h-3 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full overflow-hidden p-0.5 shadow-inner">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-sm"
+                        />
+                      </div>
+                      <div className="flex justify-between text-[9px] sm:text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider pt-1">
+                        <span>Started: {format(startDate, 'MMM dd')}</span>
+                        <span className="text-indigo-600 dark:text-indigo-400">Unlock: {format(expiryDate, 'MMM dd')}</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })
+            )}
+          </div>
         </div>
 
       </div>
 
-      {/* --- PREMIUM MODALS --- */}
+      {/* --- MODALS --- */}
       <AnimatePresence>
-         {isTransferModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 pr-6 sm:pr-4">
-               <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => !transferLoader && setIsTransferModalOpen(false)} />
-               <motion.div 
-                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                 className="bg-card border border-border w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl"
-               >
-                  <button onClick={() => !transferLoader && setIsTransferModalOpen(false)} className="absolute top-6 right-6 p-2 bg-muted hover:bg-muted-foreground/10 rounded-full text-muted-foreground transition-colors">
-                     <XMarkIcon className="w-5 h-5" />
-                  </button>
+        {isTransferModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !transferLoader && setIsTransferModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 w-full max-w-md rounded-3xl p-6 sm:p-8 relative z-10 shadow-2xl"
+            >
+              <button
+                onClick={() => !transferLoader && setIsTransferModalOpen(false)}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
 
-                  <h3 className="text-2xl font-black text-foreground tracking-tight mb-2">Fund Allocation</h3>
-                  <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Shift your balance internally between your standard Wallet and Earning Pool Wallet.</p>
-                  
-                  {/* Direction Selection */}
-                  <div className="flex bg-muted/50 p-1 rounded-2xl border border-border mb-6">
-                    <button 
-                      type="button"
-                      onClick={() => setTransferDirection("MAIN_TO_DAILY")}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
-                        transferDirection === "MAIN_TO_DAILY" 
-                          ? "bg-card border border-border shadow-sm text-foreground" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <span className="opacity-50">Main</span> → Daily
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setTransferDirection("DAILY_TO_MAIN")}
-                      className={cn(
-                        "flex-1 py-3 px-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all",
-                        transferDirection === "DAILY_TO_MAIN" 
-                          ? "bg-card border border-border shadow-sm text-foreground" 
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                    >
-                      <span className="opacity-50">Daily</span> → Main
-                    </button>
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+                Fund Allocation
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6 sm:mb-8 leading-relaxed">
+                Shift your balance internally between your standard Wallet and Earning Pool Wallet.
+              </p>
+
+              {/* Direction Toggle */}
+              <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl border border-gray-200 dark:border-gray-700 mb-6">
+                <button
+                  type="button"
+                  onClick={() => setTransferDirection("MAIN_TO_DAILY")}
+                  className={cn(
+                    "flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all",
+                    transferDirection === "MAIN_TO_DAILY"
+                      ? "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  <span className="opacity-50">Main</span> → Daily
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTransferDirection("DAILY_TO_MAIN")}
+                  className={cn(
+                    "flex-1 py-2.5 sm:py-3 px-4 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all",
+                    transferDirection === "DAILY_TO_MAIN"
+                      ? "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-900 dark:text-white"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  <span className="opacity-50">Daily</span> → Main
+                </button>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-3 sm:p-4 mb-6 border border-gray-200 dark:border-gray-700 flex justify-between items-center shadow-inner">
+                <span className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                  {transferDirection === "MAIN_TO_DAILY" ? "Main Wallet Balance" : "Daily Earning Base"}
+                </span>
+                <span className="text-gray-900 dark:text-white font-serif font-bold text-base sm:text-lg">
+                  {formatCurrency(transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet)}
+                </span>
+              </div>
+
+              <form onSubmit={handleTransfer}>
+                <div className="mb-6 relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
+                    <span className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                      {userCurrency}
+                    </span>
                   </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    max={transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet}
+                    value={transferAmount}
+                    onChange={(e: any) => setTransferAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 rounded-2xl py-4 sm:py-5 pl-14 sm:pl-16 pr-4 sm:pr-5 text-gray-900 dark:text-white font-serif text-xl sm:text-2xl outline-none shadow-sm transition-all"
+                    required
+                  />
+                </div>
 
-                  <div className="bg-muted/40 rounded-2xl p-4 mb-6 border border-border flex justify-between items-center shadow-inner">
-                     <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-                       {transferDirection === "MAIN_TO_DAILY" ? "Main Wallet Balance" : "Daily Earning Base"}
-                     </span>
-                     <span className="text-foreground font-serif font-black text-lg">
-                       {formatCurrency(transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet)}
-                     </span>
+                {transferError && (
+                  <p className="text-red-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-center mb-6">
+                    {transferError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={transferLoader}
+                  className="w-full py-4 sm:py-5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] rounded-2xl transition-all shadow-xl hover:shadow-2xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {transferLoader ? "Processing..." : "Authorize Transfer"}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {isInvestModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !investLoader && setIsInvestModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 30 }}
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 w-full max-w-md rounded-3xl p-6 sm:p-8 relative z-10 shadow-2xl"
+            >
+              <button
+                onClick={() => !investLoader && setIsInvestModalOpen(false)}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400 transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+                Create New Pool
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mb-6 sm:mb-8 leading-relaxed">
+                Deposit capital to automatically generate a steady 1% daily return over a 30-day locked term.
+              </p>
+
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-2xl p-3 sm:p-4 mb-6 border border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <span className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                  Available Allocation
+                </span>
+                <span className="text-gray-900 dark:text-white font-serif font-bold text-base sm:text-lg">
+                  {formatCurrency(dailyEarningWallet)}
+                </span>
+              </div>
+
+              <form onSubmit={handleInvest}>
+                <div className="mb-6 relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 sm:pl-5 flex items-center pointer-events-none">
+                    <span className="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+                      {userCurrency}
+                    </span>
                   </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    max={dailyEarningWallet}
+                    value={investAmount}
+                    onChange={(e: any) => setInvestAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 focus:border-indigo-500 dark:focus:border-indigo-400 rounded-2xl py-4 sm:py-5 pl-12 sm:pl-14 pr-4 sm:pr-5 text-gray-900 dark:text-white font-serif text-xl sm:text-2xl outline-none shadow-inner transition-colors"
+                    required
+                  />
+                </div>
 
-                  <form onSubmit={handleTransfer}>
-                     <div className="mb-8 relative group">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{userCurrency}</span>
-                        </div>
-                        <input 
-                          type="number"
-                          step="0.01"
-                          min="1"
-                          max={transferDirection === "MAIN_TO_DAILY" ? walletBalance : dailyEarningWallet}
-                          value={transferAmount}
-                          onChange={(e: any) => setTransferAmount(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-14 pr-5 text-foreground font-serif text-2xl outline-none shadow-sm transition-all"
-                          required
-                        />
-                     </div>
-
-                     {transferError && <p className="text-rose-500 text-[11px] font-black uppercase tracking-widest text-center mb-6">{transferError}</p>}
-                     
-                     <button 
-                       type="submit" 
-                       disabled={transferLoader}
-                       className="w-full py-5 bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[11px] rounded-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50"
-                     >
-                        {transferLoader ? "Processing..." : "Authorize Transfer"}
-                     </button>
-                  </form>
-               </motion.div>
-            </div>
-         )}
-
-         {isInvestModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-               <div className="absolute inset-0 bg-background/80 backdrop-blur-md" onClick={() => !investLoader && setIsInvestModalOpen(false)} />
-               <motion.div 
-                 initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                 exit={{ opacity: 0, scale: 0.95, y: 30 }}
-                 className="bg-card border border-border w-full max-w-md rounded-[2.5rem] p-8 relative z-10 shadow-2xl"
-               >
-                  <button onClick={() => !investLoader && setIsInvestModalOpen(false)} className="absolute top-6 right-6 p-2 bg-muted hover:bg-muted-foreground/10 rounded-full text-muted-foreground transition-colors">
-                     <XMarkIcon className="w-5 h-5" />
-                  </button>
-
-                  <h3 className="text-2xl font-black text-foreground tracking-tight mb-2">Create New Pool</h3>
-                  <p className="text-muted-foreground text-sm font-medium mb-8 leading-relaxed">Deposit capital to automatically generate a steady 1% daily return over a 30-day locked term.</p>
-                  
-                  <div className="bg-muted/40 rounded-2xl p-4 mb-6 border border-border flex justify-between items-center">
-                     <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">Available Allocation</span>
-                     <span className="text-foreground font-serif font-black text-lg">{formatCurrency(dailyEarningWallet)}</span>
+                {/* Preview Box */}
+                {investAmount && !isNaN(parseFloat(investAmount)) && parseFloat(investAmount) >= 1 && (
+                  <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
+                    <div className="text-center border-r border-indigo-500/10">
+                      <p className="text-[9px] font-bold text-indigo-500 uppercase tracking-wider mb-1">
+                        Expected Daily
+                      </p>
+                      <p className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-400 font-serif">
+                        +{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider mb-1">
+                        Total Return (30d)
+                      </p>
+                      <p className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 font-serif">
+                        +{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}
+                      </p>
+                    </div>
                   </div>
+                )}
 
-                  <form onSubmit={handleInvest}>
-                     <div className="mb-6 relative">
-                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                          <span className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">{userCurrency}</span>
-                        </div>
-                        <input 
-                          type="number"
-                          step="0.01"
-                          min="1"
-                          max={dailyEarningWallet}
-                          value={investAmount}
-                          onChange={(e: any) => setInvestAmount(e.target.value)}
-                          placeholder="0.00"
-                          className="w-full bg-background border border-border focus:border-indigo-500 rounded-2xl py-5 pl-10 pr-5 text-foreground font-serif text-2xl outline-none shadow-inner transition-colors"
-                          required
-                        />
-                     </div>
-                     
-                     {/* Preview Box */}
-                     {investAmount && !isNaN(parseFloat(investAmount)) && parseFloat(investAmount) >= 1 && (
-                        <div className="mb-6 grid grid-cols-2 gap-4 p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
-                           <div className="text-center border-r border-indigo-500/10">
-                              <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mb-1">Expected Daily</p>
-                              <p className="text-base font-black text-indigo-600 dark:text-indigo-400 font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.01)}</p>
-                           </div>
-                           <div className="text-center">
-                              <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Total Return (30d)</p>
-                              <p className="text-base font-black text-emerald-600 dark:text-emerald-400 font-serif">+{formatCurrency(convertToUSD(parseFloat(investAmount)) * 0.30)}</p>
-                           </div>
-                        </div>
-                     )}
+                {investError && (
+                  <p className="text-red-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-center mb-6">
+                    {investError}
+                  </p>
+                )}
+                {investSuccess && (
+                  <p className="text-emerald-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.1em] text-center mb-6">
+                    <SparklesIcon className="inline w-4 h-4 mb-0.5" /> {investSuccess}
+                  </p>
+                )}
 
-                     {investError && <p className="text-rose-500 text-[11px] font-black uppercase tracking-widest text-center mb-6">{investError}</p>}
-                     {investSuccess && <p className="text-emerald-500 text-[11px] font-black uppercase tracking-[0.1em] text-center mb-6"><SparklesIcon className="inline w-4 h-4 mb-0.5" /> {investSuccess}</p>}
-                     
-                     <div className="mb-8 p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold leading-relaxed flex items-start gap-3 shadow-sm">
-                        <LockClosedIcon className="w-5 h-5 shrink-0 mt-0.5" />
-                        <p>Capital is strictly locked for 30 days. Your principal and 30% accumulated profit are released automatically upon maturity.</p>
-                     </div>
+                <div className="mb-6 sm:mb-8 p-3 sm:p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-bold leading-relaxed flex items-start gap-3 shadow-sm">
+                  <LockClosedIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <p>Capital is strictly locked for 30 days. Your principal and 30% accumulated profit are released automatically upon maturity.</p>
+                </div>
 
-                     <button 
-                       type="submit" 
-                       disabled={investLoader || !investAmount || parseFloat(investAmount) < 1 || parseFloat(investAmount) > dailyEarningWallet}
-                       className="w-full py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black tracking-widest uppercase text-[11px] rounded-2xl transition-all disabled:opacity-50 shadow-lg shadow-indigo-500/25 active:scale-95"
-                     >
-                        {investLoader ? "Initializing Contract..." : "Confirm & Start Pool"}
-                     </button>
-                  </form>
-               </motion.div>
-            </div>
-         )}
+                <button
+                  type="submit"
+                  disabled={investLoader || !investAmount || parseFloat(investAmount) < 1 || parseFloat(investAmount) > dailyEarningWallet}
+                  className="w-full py-4 sm:py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold tracking-wider uppercase text-[10px] sm:text-[11px] rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/25 hover:shadow-xl active:scale-95"
+                >
+                  {investLoader ? "Initializing Contract..." : "Confirm & Start Pool"}
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
     </motion.div>
@@ -639,46 +710,50 @@ export function DailyEarningWidget({ isCompact = false }: { isCompact?: boolean 
 }
 
 function StatBox({ label, value, icon: Icon, color, isCompact }: any) {
-    const colorMap: any = {
-        gray: "text-muted-foreground bg-muted border-border",
-        indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20",
-        emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20",
-        blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20",
-        amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20",
-    }
-    return (
-        <div className={cn(
-          "bg-background/80 border border-border shadow-sm rounded-2xl transition-all hover:bg-muted/30 group overflow-hidden",
-          isCompact ? "p-3 sm:p-4 hover:scale-[1.02]" : "p-5 sm:p-6 rounded-[2rem] hover:scale-[1.02]"
-        )}>
-            <div className={cn(
-              "rounded-xl flex items-center justify-center mb-3 transition-colors", 
-              colorMap[color],
-              isCompact ? "w-8 h-8" : "w-12 h-12 rounded-2xl mb-5 shadow-sm"
-            )}>
-                <Icon className={cn(isCompact ? "w-4 h-4" : "w-6 h-6")} />
-            </div>
-            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1 group-hover:text-foreground/70 transition-colors truncate">{label}</p>
-            <p
-              className="font-serif font-black text-foreground leading-tight"
-              style={{ fontSize: isCompact ? "clamp(13px, 3.5vw, 18px)" : "clamp(14px, 3.5vw, 24px)" }}
-            >{value}</p>
-        </div>
-    )
+  const colorMap: any = {
+    gray: "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700",
+    indigo: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 border-indigo-100 dark:border-indigo-800",
+    emerald: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-800",
+    blue: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-800",
+    amber: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-800",
+  }
+  return (
+    <div className={cn(
+      "bg-white dark:bg-gray-900/80 border border-gray-200 dark:border-gray-700 shadow-sm rounded-xl sm:rounded-2xl transition-all hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 group overflow-hidden",
+      isCompact ? "p-3 sm:p-4 hover:scale-[1.02]" : "p-4 sm:p-5 lg:p-6 hover:scale-[1.02]"
+    )}>
+      <div className={cn(
+        "rounded-xl flex items-center justify-center mb-2 sm:mb-3 transition-colors",
+        colorMap[color],
+        isCompact ? "w-8 h-8" : "w-10 h-10 sm:w-12 sm:h-12 rounded-2xl mb-4 shadow-sm"
+      )}>
+        <Icon className={cn(isCompact ? "w-4 h-4" : "w-5 h-5 sm:w-6 sm:h-6")} />
+      </div>
+      <p className="text-[8px] sm:text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors truncate">
+        {label}
+      </p>
+      <p
+        className="font-serif font-bold text-gray-900 dark:text-white leading-tight"
+        style={{ fontSize: isCompact ? "clamp(13px, 3.5vw, 18px)" : "clamp(14px, 3.5vw, 24px)" }}
+      >
+        {value}
+      </p>
+    </div>
+  )
 }
 
 function GridIcon({ className }: { className?: string }) {
-    return (
-        <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-        </svg>
-    )
+  return (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+    </svg>
+  )
 }
 
 function LockClosedIcon({ className }: { className?: string }) {
-   return (
-       <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-       </svg>
-   )
+  return (
+    <svg fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+  )
 }
